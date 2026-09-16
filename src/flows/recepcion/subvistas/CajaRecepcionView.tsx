@@ -148,7 +148,7 @@ export function CajaRecepcionView() {
 
         <div className="caja-paciente">
           <div className="clinica-acciones">
-            <button className="secundario" type="button" onClick={() => { setPaciente(null); setBusqueda(''); }}><Icon name="plus" size={15} /> Consumidor final</button>
+            <button className="secundario caja-registrar-paciente" type="button" onClick={() => { setPaciente(null); setBusqueda(''); }}><Icon name="plus" size={15} /> Registrar paciente</button>
           </div>
           <label className="buscador-local"><Icon name="search" size={16} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar paciente o CI" /></label>
           {pacientesFiltrados.length > 0 && (
@@ -156,7 +156,6 @@ export function CajaRecepcionView() {
               {pacientesFiltrados.map((item) => <button key={item.id} onClick={() => { setPaciente(item); setBusqueda(''); }}>{item.nombre}<small>{item.documento}</small></button>)}
             </div>
           )}
-          <div className="ficha-datos"><div><small>Paciente para factura</small><strong>{paciente?.nombre || 'Consumidor final'}</strong><span>{paciente?.documento || 'Sin paciente seleccionado'}</span>{paciente && <em>{paciente.tipo}</em>}{paciente && historialPaciente.length === 0 && <em>Sin consumos previos registrados</em>}</div></div>
         </div>
 
         <div className="caja-consumo">

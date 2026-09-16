@@ -19,3 +19,36 @@
 .orthanc-fila{border-color:#1f4566;color:#e8f2fb}.orthanc-fila.columnas{color:#8da6be;background:#061f3b}.orthanc-fila small{color:#7791a8}.orthanc-paciente>span{border-color:#2d5c83;color:#63beff;background:#092f55}.orthanc-modalidad{color:#b9e8ff;background:#0b4d7b}.orthanc-asociacion.asociado{color:#a9f2dc;background:#145448}.orthanc-asociacion.pendiente{color:#ffd899;background:#65491c}
 .orthanc-acciones button,.orthanc-ver-paciente{border-color:#35658c;color:#70c9ff;background:#092d50}.orthanc-acciones button:hover,.orthanc-ver-paciente:hover{color:#eaf7ff;background:#0b3c68}.orthanc-acciones .eliminar{color:#ffb7bf;border-color:#73424b;background:#3d1d25}.orthanc-acciones .eliminar:hover{color:#ffd8dd;background:#522630}.orthanc-vacio{color:#7691a8}.orthanc-vacio strong{color:#d8e8f5}
 .orthanc-modal-fondo{background:#010b18d9}.orthanc-modal{border-color:#315270;background:#072542;color:#f4f9fd}.orthanc-modal>header{border-bottom-color:#24435e}.orthanc-modal>header small,.orthanc-modal-campos label span{color:#8daac2}.orthanc-modal>header button,.orthanc-modal>footer button{border-color:#315270;color:#cfe7fb;background:#082d50}.orthanc-modal-campos input{border-color:#315270;color:#eff8ff;background:#061f3b}.orthanc-modal-campos input:focus{border-color:#52baff;background:#082846}.orthanc-modal>footer{border-top:1px solid #24435e}.orthanc-modal>footer .principal{border-color:#0aaee0;background:linear-gradient(100deg,#316cff,#09b5e9)}.orthanc-modal-aviso{border-color:#765b22;color:#ffe2a5;background:#3a2a11}
+
+.orthanc-estado{min-height:78px;padding:13px 16px;gap:12px;border-color:#d7e9f7;background:linear-gradient(180deg,#fff,#f7fbff);box-shadow:0 10px 24px rgba(6,71,115,.08)}
+.orthanc-conexion{min-width:300px;padding:0 18px 0 2px}
+.orthanc-conexion i{width:10px;height:10px}
+.orthanc-conexion strong{color:#06395c;font-size:13px;font-weight:900;letter-spacing:.1px}
+.orthanc-conexion small{color:#6d89a3;font-size:9px}
+.orthanc-metrica{min-width:160px;min-height:48px;padding:0 18px;border-left:1px solid #c7deef;justify-content:center}
+.orthanc-metrica strong{color:#0f8ee8!important;font-size:24px!important;font-weight:900;line-height:1}
+.orthanc-metrica small{max-width:82px;margin:0;color:#6f8ba5;font-size:9px;line-height:1.25}
+.orthanc-sincronizar{height:44px;margin-left:8px;padding:0 18px;border:1px solid #086fd4;border-radius:10px;background:linear-gradient(135deg,#0d64d8,#04a6d8);box-shadow:0 9px 20px rgba(4,111,207,.2);font-size:11px}
+.orthanc-sincronizar:hover{filter:saturate(1.05) brightness(1.02)}
+
+@media(max-width:1050px){.orthanc-estado{gap:10px}.orthanc-conexion{min-width:100%;padding:0}.orthanc-metrica{flex:1;min-width:140px;padding:0 12px}.orthanc-sincronizar{margin-left:0}}
+@media(max-width:760px){.orthanc-estado{padding:14px}.orthanc-metrica{justify-content:flex-start;border-left:0;border-top:1px solid #c7deef}.orthanc-sincronizar{width:100%;justify-content:center}}
+
+.orthanc-filtros{margin-top:12px;margin-bottom:10px;padding:12px 14px;border-radius:10px}
+.orthanc-paginacion{height:auto;min-height:38px;margin:0 0 8px;padding:0;align-items:center}
+.orthanc-paginacion:first-of-type{margin-top:0}
+.orthanc-tabla{margin-top:0;border-radius:10px}
+.orthanc-fila{min-height:58px;padding:9px 14px;gap:10px}
+.orthanc-fila.columnas{min-height:38px}
+.orthanc-paciente>span{width:35px;height:35px;border-radius:8px}
+.orthanc-fila:not(.orthanc-fila-paciente){grid-template-columns:minmax(190px,1.1fr) minmax(220px,1.35fr) 85px 78px 45px 92px 164px}
+.orthanc-acciones{display:flex;gap:7px;align-items:center;justify-content:flex-start}
+.orthanc-acciones button{width:34px;height:34px;min-height:34px;padding:0;border-radius:9px;display:grid;place-items:center;color:#0877c8;border-color:#b9daf0;background:#f7fcff;font-size:0}
+.orthanc-acciones button span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.orthanc-acciones button svg{transform:none!important}
+.orthanc-acciones button:hover{color:#fff;border-color:#0a7fd3;background:#0a7fd3}
+.orthanc-acciones .eliminar{color:#9f2631;border-color:#e0b6bd;background:#fff7f8}
+.orthanc-acciones .eliminar:hover{color:#fff;border-color:#b42331;background:#b42331}
+.orthanc-acciones button:disabled{opacity:.45;cursor:not-allowed}
+
+@media(max-width:760px){.orthanc-paginacion{gap:8px}.orthanc-fila{min-height:0;padding:12px}}

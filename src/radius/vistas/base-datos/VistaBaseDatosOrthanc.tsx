@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "../../api";
 import Icon from "../../componentes/Icono";
 import { confirmar, notificar } from "../../componentes/Notificaciones";
@@ -97,7 +97,7 @@ export default function VistaBaseDatosOrthanc() {
       }>("/api/orthanc/sincronizar", { method: "POST" });
       await cargar();
       setResultado(
-        `${r.total} estudios encontrados · ${r.nuevos} nuevos · ${r.asignados} asociados · ${r.pendientes} pendientes`,
+        `${r.total} estudios encontrados Â· ${r.nuevos} nuevos Â· ${r.asignados} asociados Â· ${r.pendientes} pendientes`,
       );
     } catch (e) {
       const mensaje =
@@ -255,9 +255,9 @@ export default function VistaBaseDatosOrthanc() {
   const eliminar = async (e: Estudio) => {
     const aceptado = await confirmar({
       titulo: "Eliminar estudio de Orthanc",
-      mensaje: `Se eliminará “${e.descripcion || "Sin descripción"}” de ${e.patientName || "este paciente"}.`,
+      mensaje: `Se eliminarÃ¡ â€œ${e.descripcion || "Sin descripciÃ³n"}â€ de ${e.patientName || "este paciente"}.`,
       detalle:
-        "Esta acción elimina definitivamente todas sus series e imágenes del servidor y no se puede deshacer.",
+        "Esta acciÃ³n elimina definitivamente todas sus series e imÃ¡genes del servidor y no se puede deshacer.",
       textoConfirmar: "Eliminar estudio",
       peligrosa: true,
     });
@@ -281,7 +281,7 @@ export default function VistaBaseDatosOrthanc() {
       notificar(
         "exito",
         "Estudio eliminado",
-        "El estudio y todas sus imágenes fueron eliminados de Orthanc.",
+        "El estudio y todas sus imÃ¡genes fueron eliminados de Orthanc.",
       );
     } catch (x) {
       const mensaje =
@@ -299,37 +299,27 @@ export default function VistaBaseDatosOrthanc() {
   };
   return (
     <div className="orthanc-vista">
-      <header className="orthanc-cabecera">
-        <div>
-          <p>IMAGENOLOGÍA / ORTHANC</p>
-          <h2>Base de datos</h2>
-          <small>
-            Todos los pacientes y estudios radiográficos almacenados en el
-            servidor PACS.
-          </small>
-        </div>
-      </header>
       <section className="orthanc-estado">
-        <div className={estado ? "conectado" : "desconectado"}>
+        <div className={`orthanc-conexion ${estado ? "conectado" : "desconectado"}`}>
           <i />
           <span>
             <strong>
               {estado
                 ? `${estado.nombre} conectado`
-                : "Sin conexión confirmada"}
+                : "Sin conexiÃ³n confirmada"}
             </strong>
             <small>
               {estado
-                ? `Orthanc ${estado.version}${estado.servidor ? ` · ${estado.servidor}` : ""}`
+                ? `Orthanc ${estado.version}${estado.servidor ? ` Â· ${estado.servidor}` : ""}`
                 : errorConexion || "No se pudo consultar el servidor Orthanc"}
             </small>
           </span>
         </div>
-        <div>
+        <div className="orthanc-metrica">
           <strong>{estudios.length}</strong>
           <small>estudios en el servidor</small>
         </div>
-        <div>
+        <div className="orthanc-metrica">
           <strong>
             {
               new Set(estudios.map((e) => e.patientIdDicom || e.patientName))
@@ -338,7 +328,7 @@ export default function VistaBaseDatosOrthanc() {
           </strong>
           <small>pacientes DICOM</small>
         </div>
-        <div>
+        <div className="orthanc-metrica">
           <strong>{estudios.filter((e) => !e.pacienteId).length}</strong>
           <small>pendientes de asociar</small>
         </div>
@@ -349,7 +339,7 @@ export default function VistaBaseDatosOrthanc() {
           onClick={() => void sincronizar()}
         >
           <Icon name="arrowRight" size={17} />
-          {sincronizando ? "Consultando Orthanc…" : "Sincronizar servidor"}
+          {sincronizando ? "Consultando Orthancâ€¦" : "Sincronizar servidor"}
         </button>
       </section>
       {error && <div className="orthanc-mensaje error">{error}</div>}
@@ -386,7 +376,7 @@ export default function VistaBaseDatosOrthanc() {
               setBusqueda(e.target.value);
               setPagina(1);
             }}
-            placeholder="Buscar nombre, ID, descripción, acceso o UID…"
+            placeholder="Buscar nombre, ID, descripciÃ³n, acceso o UIDâ€¦"
           />
         </label>
         <select
@@ -401,7 +391,7 @@ export default function VistaBaseDatosOrthanc() {
           <option value="nombre">Nombre</option>
         </select>
         <select
-          aria-label="Dirección del orden"
+          aria-label="DirecciÃ³n del orden"
           value={direccionOrden}
           onChange={(e) => {
             setDireccionOrden(e.target.value as "asc" | "desc");
@@ -436,11 +426,7 @@ export default function VistaBaseDatosOrthanc() {
         </label>
       </div>
       <div className="orthanc-paginacion">
-        <small>
-          {elementos.length
-            ? `${(actual - 1) * tamano + 1}–${Math.min(actual * tamano, elementos.length)} de ${elementos.length}`
-            : "0 resultados"}
-        </small>
+        <span />
         <div>
           <label>
             Mostrar{" "}
@@ -463,7 +449,7 @@ export default function VistaBaseDatosOrthanc() {
             <Icon name="chevronLeft" size={16} />
           </button>
           <span>
-            Página <b>{actual}</b> de {paginas}
+            PÃ¡gina <b>{actual}</b> de {paginas}
           </span>
           <button
             disabled={actual === paginas}
@@ -498,7 +484,7 @@ export default function VistaBaseDatosOrthanc() {
                 </div>
               </div>
               <div>
-                <strong>{e.descripcion || "Estudio sin descripción"}</strong>
+                <strong>{e.descripcion || "Estudio sin descripciÃ³n"}</strong>
                 <small>Acceso: {e.accessionNumber || "No registrado"}</small>
                 <small title={e.studyInstanceUid}>
                   UID: {e.studyInstanceUid || "No registrado"}
@@ -519,7 +505,7 @@ export default function VistaBaseDatosOrthanc() {
                 </span>
               </div>
               <div className="orthanc-acciones">
-                <button type="button" onClick={() => visualizar(e)}>
+                <button type="button" onClick={() => visualizar(e)} aria-label="Ver estudio" title="Ver estudio">
                   <Icon name="eye" size={17} />
                   <span>Ver</span>
                 </button>
@@ -527,11 +513,13 @@ export default function VistaBaseDatosOrthanc() {
                   type="button"
                   disabled={descargando === e.id}
                   onClick={() => void descargar(e)}
+                  aria-label="Descargar ZIP"
+                  title="Descargar ZIP"
                 >
                   <Icon name="arrowRight" size={17} />
-                  <span>{descargando === e.id ? "…" : "ZIP"}</span>
+                  <span>{descargando === e.id ? "â€¦" : "ZIP"}</span>
                 </button>
-                <button type="button" onClick={() => abrirEdicion(e)}>
+                <button type="button" onClick={() => abrirEdicion(e)} aria-label="Editar estudio" title="Editar estudio">
                   <Icon name="edit" size={17} />
                   <span>Editar</span>
                 </button>
@@ -540,9 +528,11 @@ export default function VistaBaseDatosOrthanc() {
                   className="eliminar"
                   disabled={eliminando === e.id}
                   onClick={() => void eliminar(e)}
+                  aria-label="Eliminar estudio"
+                  title="Eliminar estudio"
                 >
                   <Icon name="trash" size={17} />
-                  <span>{eliminando === e.id ? "…" : "Eliminar"}</span>
+                  <span>{eliminando === e.id ? "â€¦" : "Eliminar"}</span>
                 </button>
               </div>
             </div>
@@ -555,8 +545,8 @@ export default function VistaBaseDatosOrthanc() {
             <span>Modalidades</span>
             <span>Estudios</span>
             <span>Primera fecha</span>
-            <span>Última fecha</span>
-            <span>Acción</span>
+            <span>Ãšltima fecha</span>
+            <span>AcciÃ³n</span>
           </div>
           {pacientesPagina.map((p) => (
             <div className="orthanc-fila orthanc-fila-paciente" key={p.clave}>
@@ -598,19 +588,19 @@ export default function VistaBaseDatosOrthanc() {
           <Icon name={vista === "pacientes" ? "patient" : "image"} size={28} />
           <strong>
             {cargando
-              ? "Leyendo la base de datos…"
+              ? "Leyendo la base de datosâ€¦"
               : `No hay ${vista} para mostrar`}
           </strong>
           <small>
             {cargando
               ? "La primera consulta puede tardar si Orthanc contiene muchos estudios."
-              : "Cambia la búsqueda, modalidad o rango de fechas."}
+              : "Cambia la bÃºsqueda, modalidad o rango de fechas."}
           </small>
         </div>
       )}
       {!cargando && elementos.length > 0 && (
         <div className="orthanc-paginacion orthanc-paginacion-inferior">
-          <small>{`${(actual - 1) * tamano + 1}–${Math.min(actual * tamano, elementos.length)} de ${elementos.length}`}</small>
+          <small>{`${(actual - 1) * tamano + 1}â€“${Math.min(actual * tamano, elementos.length)} de ${elementos.length}`}</small>
           <div>
             <label>
               Mostrar{" "}
@@ -633,7 +623,7 @@ export default function VistaBaseDatosOrthanc() {
               <Icon name="chevronLeft" size={16} />
             </button>
             <span>
-              Página <b>{actual}</b> de {paginas}
+              PÃ¡gina <b>{actual}</b> de {paginas}
             </span>
             <button
               disabled={actual === paginas}
@@ -658,7 +648,7 @@ export default function VistaBaseDatosOrthanc() {
               <div>
                 <strong>Editar estudio DICOM</strong>
                 <small>
-                  Los cambios se aplicarán a todas las imágenes del estudio en
+                  Los cambios se aplicarÃ¡n a todas las imÃ¡genes del estudio en
                   Orthanc.
                 </small>
               </div>
@@ -694,18 +684,18 @@ export default function VistaBaseDatosOrthanc() {
                 />
               </label>
               <label className="ancho">
-                <span>Descripción del estudio</span>
+                <span>DescripciÃ³n del estudio</span>
                 <input
                   maxLength={200}
                   value={form.descripcion}
                   onChange={(e) =>
                     setForm({ ...form, descripcion: e.target.value })
                   }
-                  placeholder="Ej. TC de cráneo sin contraste"
+                  placeholder="Ej. TC de crÃ¡neo sin contraste"
                 />
               </label>
               <label>
-                <span>Número de acceso</span>
+                <span>NÃºmero de acceso</span>
                 <input
                   maxLength={100}
                   value={form.accessionNumber}
@@ -715,7 +705,7 @@ export default function VistaBaseDatosOrthanc() {
                 />
               </label>
               <label>
-                <span>Fecha del estudio (día/mes/año)</span>
+                <span>Fecha del estudio (dÃ­a/mes/aÃ±o)</span>
                 <input
                   type="date"
                   lang="es-BO"
@@ -747,7 +737,7 @@ export default function VistaBaseDatosOrthanc() {
               </button>
               <button type="submit" className="principal" disabled={guardando}>
                 <Icon name="check" size={16} />
-                {guardando ? "Actualizando Orthanc…" : "Guardar cambios"}
+                {guardando ? "Actualizando Orthancâ€¦" : "Guardar cambios"}
               </button>
             </footer>
           </form>
@@ -756,3 +746,4 @@ export default function VistaBaseDatosOrthanc() {
     </div>
   );
 }
+

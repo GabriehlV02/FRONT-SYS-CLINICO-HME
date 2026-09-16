@@ -1,6 +1,6 @@
 import type { ReactNode, SVGProps } from 'react';
 
-export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'check' | 'arrowRight' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'edit' | 'trash';
+export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'check' | 'arrowRight' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'edit' | 'trash';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; size?: number };
 
 const paths: Record<IconName, ReactNode> = {
@@ -13,6 +13,7 @@ const paths: Record<IconName, ReactNode> = {
   users: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3.25" fill="currentColor" stroke="none"/><path d="M3.85 20.15C4.65 14.85 7.75 12 12 12s7.35 2.85 8.15 8.15A10.05 10.05 0 0 1 12 22a10.05 10.05 0 0 1-8.15-1.85Z" fill="currentColor" stroke="none"/></>,
   patient: <><circle cx="10" cy="7.5" r="3.25"/><path d="M3.5 20v-1.2a6.5 6.5 0 0 1 11.8-3.8"/><circle cx="17.5" cy="16.5" r="4"/><path d="M17.5 14.4v4.2m-2.1-2.1h4.2"/></>,
   userCheck: <><circle cx="9" cy="7.5" r="3.25"/><path d="M2.5 20v-1.2A6.5 6.5 0 0 1 14 14.65"/><path d="m15.2 18 2 2 4.3-5"/></>,
+  lab: <><path d="M9 3h6"/><path d="M10 3v5.2l-5.5 9.3A2.3 2.3 0 0 0 6.5 21h11a2.3 2.3 0 0 0 2-3.5L14 8.2V3"/><path d="M7.2 16h9.6"/><path d="M9.4 12.2h5.2"/><circle cx="10" cy="18" r=".5" fill="currentColor"/><circle cx="14" cy="18" r=".5" fill="currentColor"/></>,
   logout: <><path d="m10 17 5-5-5-5m5 5H3"/><path d="M15 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-5"/></>,
   search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
   bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></>,

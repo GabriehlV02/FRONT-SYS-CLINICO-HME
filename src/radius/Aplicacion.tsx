@@ -37,6 +37,7 @@ const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: 
 
 const modulos: Modulo[] = [
   { id: 'recepcion', nombre: 'Recepción', icono: 'patient', grupo: 'ATENCIÓN CLÍNICA' },
+  { id: 'laboratorio', nombre: 'Laboratorio', icono: 'lab', grupo: 'ATENCIÓN CLÍNICA' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   {
     id: "configuracion",
@@ -349,7 +350,19 @@ export default function Aplicacion() {
               ))}
             </nav>
           )}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === "imagenologia" && subvistaImagenologia === "base-datos" ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'laboratorio' ? (
+            <div className="modulo-vacio">
+              <span>
+                <Icon name="lab" size={28} />
+              </span>
+              <p>LABORATORIO</p>
+              <h2>Laboratorio</h2>
+              <small>
+                Este apartado está listo para incorporar solicitudes, muestras,
+                resultados y reportes de laboratorio.
+              </small>
+            </div>
+          ) : modulo === "imagenologia" && subvistaImagenologia === "base-datos" ? (
             <VistaBaseDatosOrthanc />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (
             <VistaInformes />
@@ -366,7 +379,7 @@ export default function Aplicacion() {
               <span>
                 <Icon name={actual.icono} size={28} />
               </span>
-              <p>SISTEMA DE IMAGENOLOGÍA</p>
+              <p>SISTEMA CLÍNICO</p>
               <h2>{actual.nombre}</h2>
               <small>
                 Este módulo está listo para incorporar su contenido.

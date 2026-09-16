@@ -10,29 +10,59 @@
 .comprobantes-pendiente strong{display:block;color:#064773;font-size:13px}
 .comprobantes-pendiente small{display:block;margin-top:4px;color:#6e849a;font-size:11px;line-height:1.45}
 
-.recepcion-caja{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px;align-items:start;min-height:calc(100vh - 220px)}
+.recepcion-caja{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px;align-items:start;min-height:calc(100vh - 220px)}
 .recepcion-caja.con-historial{grid-template-columns:260px minmax(0,1fr) 390px}
+.recepcion-caja.caja-con-catalogo{grid-template-columns:250px minmax(0,1fr) 390px;justify-content:stretch}
+.recepcion-caja.caja-con-catalogo.historial-replegado{grid-template-columns:32px minmax(0,1fr) 390px}
+.recepcion-caja.sin-catalogo{grid-template-columns:260px minmax(0,560px);justify-content:space-between}
+.recepcion-caja.sin-catalogo.historial-replegado{grid-template-columns:minmax(0,720px);justify-content:end}
 .caja-historial,.caja-catalogo,.caja-detalle{padding:16px;overflow:hidden}
-.caja-historial{padding:0}
-.caja-historial .panel-cabecera{padding:14px 14px 10px;border-bottom:1px solid #dbeafe}
-.caja-historial-lista{display:grid}
-.caja-historial-lista article{display:grid;gap:5px;padding:13px 15px;border-bottom:1px solid #e7f0f7}
-.caja-historial-lista article:last-child{border-bottom:0}
-.caja-historial-lista small{color:#647f9b;font-size:10px}
-.caja-historial-lista strong{color:#12384d;font-size:12px}
-.caja-historial-lista span{width:max-content;padding:4px 8px;border-radius:999px;color:#216757;background:#e5f4f1;font-size:9px;font-weight:800}
-.caja-historial-lista b{color:#064773;font-size:13px}
-.caja-mostrar-historial{height:42px;align-self:start}
-.caja-categorias{display:flex;gap:8px;margin:14px 0 16px;overflow-x:auto;padding-bottom:2px}
-.caja-categorias button{height:34px;padding:0 12px;border:1px solid #c8dfeb;border-radius:999px;color:#315b7b;background:#fff;font-size:11px;font-weight:800;white-space:nowrap}
-.caja-categorias button.activo{color:#fff;border-color:#096bb5;background:#096bb5}
-.caja-servicios{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-.caja-servicios button{position:relative;min-height:116px;padding:14px 44px 14px 14px;display:grid;gap:8px;align-content:start;border:1px solid #c8dfeb;border-radius:12px;color:#17364d;background:#fff;text-align:left;box-shadow:0 7px 16px rgba(7,89,133,.06)}
-.caja-servicios button:hover{border-color:#8fc7e4;background:#f8fcff;transform:translateY(-1px)}
-.caja-servicios span{width:max-content;padding:4px 8px;border-radius:999px;color:#075985;background:#e0f2fe;font-size:9px;font-weight:900}
-.caja-servicios strong{font-size:13px;line-height:1.35}
-.caja-servicios b{color:#064773;font-size:15px}
-.caja-servicios svg{position:absolute;right:14px;bottom:14px;color:#096bb5}
+.caja-historial{min-height:calc(100dvh - 220px);padding:0}
+.caja-historial .panel-cabecera{padding:14px 14px 10px;border-bottom:0}
+.caja-historial-control{width:30px;height:30px;padding:0;display:grid;place-items:center}
+.caja-historial-filtro{display:grid;gap:5px;margin:0 14px 12px;color:#52738b;font-size:9px;font-weight:900}
+.caja-historial-filtro select{height:36px;padding:0 9px;border:1px solid #c8dfeb;border-radius:7px;color:#17364d;background:#fff;font-size:11px}
+.caja-historial-lista{display:grid;align-content:start;gap:10px;padding:0 14px 14px}
+.caja-historial-vacio{min-height:190px;padding:26px 18px;display:grid;place-items:center;align-content:center;gap:8px;color:#69849a;text-align:center}
+.caja-historial-vacio svg{color:#8eb8d2}
+.caja-historial-vacio strong{color:#315b7b;font-size:11px}
+.caja-historial-vacio small{max-width:155px;font-size:10px;line-height:1.45}
+.caja-historial-lista article{display:grid;gap:5px;padding:12px 12px 11px;border:1px solid #c8dfeb;border-left:3px solid #096bb5;border-radius:8px;background:#fff}
+.caja-historial-lista article.estado-pagado{border-color:#8bd9b4;border-left-color:#16a05c}
+.caja-historial-lista article.estado-preventa{border-color:#ecd48c;border-left-color:#d68d09}
+.caja-historial-lista article.estado-anulado{border-color:#efaaaa;border-left-color:#d94343}
+.caja-historial-lista article header,.caja-historial-lista article footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.caja-historial-lista article header strong{color:#12384d;font-size:11px;letter-spacing:.2px}
+.caja-historial-lista article header em{font-size:9px;font-style:normal;font-weight:900}
+.caja-historial-lista article.estado-pagado em{color:#168552}.caja-historial-lista article.estado-preventa em{color:#a16a00}.caja-historial-lista article.estado-anulado em{color:#bb3535}
+.caja-historial-lista article>span{color:#52738b;font-size:9px;font-weight:900;letter-spacing:.5px}
+.caja-historial-lista article p{margin:0;color:#42647c;font-size:10px;line-height:1.35}
+.caja-historial-lista article small{color:#647f9b;font-size:9px}
+.caja-historial-lista article b{color:#064773;font-size:13px}
+.caja-catalogo-operativo{min-width:0;padding:14px;overflow:hidden}
+.caja-catalogo-cabecera{display:flex;gap:10px;align-items:center}
+.caja-catalogo-cabecera .buscador-local{height:40px;flex:1}
+.caja-vista-catalogo{display:flex;padding:3px;border:1px solid #c8dfeb;border-radius:8px;background:#f6fbfe}
+.caja-vista-catalogo button{height:30px;display:inline-flex;align-items:center;gap:6px;padding:0 9px;border:0;border-radius:6px;color:#52738b;background:transparent;font-size:10px;font-weight:800}
+.caja-vista-catalogo button.activo{color:#075985;background:#fff;box-shadow:0 2px 7px rgba(7,89,133,.12)}
+.caja-categorias{display:flex;gap:7px;margin:13px 0;overflow-x:auto;padding-bottom:2px}
+.caja-categorias button{height:30px;padding:0 10px;border:1px solid #c8dfeb;border-radius:999px;color:#52738b;background:#fff;font-size:10px;font-weight:800;white-space:nowrap}
+.caja-categorias button.activo{border-color:#096bb5;color:#fff;background:#096bb5}
+.caja-items{display:grid;gap:8px}
+.caja-items.listado{grid-template-columns:1fr}
+.caja-items.galeria{grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px}
+.caja-item{min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;padding:12px;border:1px solid #d5e5ef;border-radius:9px;color:#17364d;background:#fff;text-align:left}
+.caja-item:hover{border-color:#8fc7e4;background:#f8fcff;box-shadow:0 6px 15px rgba(7,89,133,.08)}
+.caja-item>span{grid-column:1/-1;width:max-content;max-width:100%;overflow:hidden;padding:3px 6px;border-radius:5px;color:#27719a;background:#e4f4fb;font-size:8px;font-weight:900;text-overflow:ellipsis;white-space:nowrap}
+.caja-item strong{align-self:end;font-size:12px;line-height:1.3}
+.caja-item small{grid-column:1/-1;color:#71889a;font-size:10px;line-height:1.35}
+.caja-item>div{grid-column:1/-1;display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid #e5f0f6}
+.caja-item b{color:#064773;font-size:13px}
+.caja-item em{margin-left:auto;padding:3px 6px;border-radius:999px;color:#216757;background:#e5f4f1;font-size:8px;font-style:normal;font-weight:800}
+.caja-item svg{color:#096bb5}
+.caja-items.galeria .caja-item{min-height:142px;align-content:start}
+.caja-catalogo-vacio{grid-column:1/-1;margin:0;padding:35px 16px;color:#647f9b;text-align:center;font-size:11px}
+.caja-mostrar-historial{position:static;align-self:start;width:30px;height:30px;margin-top:14px;padding:0;display:grid;place-items:center}
 .caja-detalle{position:sticky;top:92px;display:grid;gap:14px}
 .caja-paciente{display:grid;gap:10px}
 .caja-paciente .clinica-acciones{margin:0;padding:0;border:0;box-shadow:none;background:transparent}
@@ -42,6 +72,38 @@
 .caja-paciente .caja-registrar-paciente{border:1px solid #096bb5;color:#fff;background:linear-gradient(135deg,#096bb5,#1686e7);box-shadow:0 8px 18px rgba(9,107,181,.18)}
 .caja-paciente .caja-registrar-paciente:hover{border-color:#075a9a;color:#fff;background:linear-gradient(135deg,#075a9a,#0f78ce);box-shadow:0 10px 22px rgba(9,107,181,.24);transform:none}
 .caja-resultados{position:static;margin-top:-4px;box-shadow:0 10px 22px rgba(7,89,133,.12)}
+.caja-resultados button{display:grid;gap:3px;padding:10px 12px}
+.caja-resultados button strong{color:#12384d;font-size:11px}
+.caja-resultados button small{color:#647f9b;font-size:10px}
+.caja-sin-coincidencias{margin:0;padding:9px 11px;border:1px dashed #bdd8e8;border-radius:8px;color:#647f9b;background:#f8fcff;font-size:10px;line-height:1.45}
+.caja-form-paciente{display:grid;gap:12px;padding:13px;border:1px solid #c8dfeb;border-radius:10px;background:#f8fcff}
+@media(min-width:1181px){
+  .caja-detalle:has(.caja-form-paciente){overflow:visible}
+  .caja-form-paciente{position:absolute;right:calc(100% + 16px);top:0;width:min(560px,calc(100vw - 470px));max-height:calc(100dvh - 112px);overflow-y:auto;z-index:2;box-shadow:0 12px 28px rgba(7,89,133,.12)}
+}
+.caja-grupo-paciente{min-width:0;margin:0;padding:11px;border:1px solid #d7e7f1;border-radius:8px;background:#fff}
+.caja-grupo-paciente legend{padding:0 5px;color:#315b7b;font-size:10px;font-weight:900}
+.caja-form-cabecera{display:flex;align-items:center;justify-content:space-between;color:#12384d;font-size:12px}
+.caja-form-cabecera button,.caja-paciente-seleccionado>button{display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid #c8dfeb;border-radius:7px;color:#54738c;background:#fff}
+.caja-form-cabecera button:hover,.caja-paciente-seleccionado>button:hover{color:#075a9a;border-color:#8fc7e4;background:#eef8fd}
+.caja-form-error{margin:0;padding:8px 10px;border:1px solid #efc4c4;border-radius:7px;color:#a33d3d;background:#fff6f6;font-size:10px}
+.caja-campos-paciente{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.caja-campos-paciente label,.caja-factura-campos label{display:grid;gap:5px;color:#315b7b;font-size:10px;font-weight:900}
+.caja-campos-paciente label small{font-size:9px;font-weight:600;color:#71889a}
+.caja-campos-paciente input,.caja-factura-campos input{width:100%;height:36px;padding:0 9px;border:1px solid #c8dfeb;border-radius:7px;color:#17364d;background:#fff;font-size:11px}
+.caja-campos-paciente select{width:100%;height:36px;padding:0 9px;border:1px solid #c8dfeb;border-radius:7px;color:#17364d;background:#fff;font-size:11px}
+.caja-campos-paciente textarea{width:100%;padding:8px 9px;border:1px solid #c8dfeb;border-radius:7px;color:#17364d;background:#fff;font-size:11px;resize:vertical}
+.caja-campos-paciente input[readonly]{color:#647f9b;background:#f4f9fd}
+.caja-campos-paciente .campo-completo{grid-column:1/-1}
+.caja-campos-paciente .caja-opciones{display:flex;flex-wrap:wrap;gap:14px;align-items:center;color:#315b7b}
+.caja-campos-paciente .caja-opciones span{display:inline-flex;align-items:center;gap:6px}
+.caja-campos-paciente .caja-opciones input{width:15px;height:15px;accent-color:#096bb5}
+.caja-guardar-paciente{height:38px;justify-content:center;font-size:11px}
+.caja-paciente-seleccionado{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border:1px solid #b9dcea;border-radius:9px;background:#eef8fd}
+.caja-paciente-seleccionado>div{min-width:0;display:grid;gap:3px}
+.caja-paciente-seleccionado span{color:#527791;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.6px}
+.caja-paciente-seleccionado strong{overflow:hidden;color:#12384d;font-size:12px;text-overflow:ellipsis;white-space:nowrap}
+.caja-paciente-seleccionado small{color:#647f9b;font-size:10px}
 .caja-consumo{border:1px solid #dbeafe;border-radius:12px;overflow:hidden;background:#fff}
 .caja-consumo-titulo{min-height:42px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e7f0f7;background:#f8fcff}
 .caja-consumo-titulo strong{color:#12384d;font-size:12px}
@@ -61,6 +123,16 @@
 .caja-pago input,.caja-pago select{height:38px;padding:0 10px}
 .caja-pago textarea{padding:9px 10px;resize:vertical}
 .caja-observacion{grid-column:1/-1}
+.caja-factura{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 13px;border:1px solid #c8dfeb;border-radius:10px;background:#f8fcff}
+.caja-factura>div:first-child{display:grid;gap:3px}
+.caja-factura strong{color:#12384d;font-size:12px}
+.caja-factura>div:first-child small{color:#647f9b;font-size:10px}
+.caja-factura>button{height:32px;padding:0 11px;border:1px solid #a9cde3;border-radius:7px;color:#075985;background:#fff;font-size:10px;font-weight:800}
+.caja-factura>button.activo{border-color:#096bb5;color:#fff;background:#096bb5}
+.caja-factura-campos{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:10px;border-top:1px solid #dceaf3}
+.caja-factura-campos>small{grid-column:1/-1;color:#647f9b;font-size:10px}
+.caja-guardar-factura{grid-column:1/-1;justify-self:start;height:31px;padding:0 10px;border:0;border-radius:6px;color:#075985;background:#dff1fa;font-size:10px;font-weight:800}
+.caja-guardar-factura:hover{background:#cceaf7}
 .caja-resumen{display:grid;gap:8px;padding:13px;border:1px solid #c8dfeb;border-radius:12px;background:#f8fcff}
 .caja-resumen div{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#526f83;font-size:11px}
 .caja-resumen strong{color:#12384d}
@@ -69,5 +141,5 @@
 .caja-resumen .cambio strong{color:#216757}
 .caja-resumen .pendiente strong{color:#a15c00}
 .caja-cobrar{width:100%;height:46px;justify-content:center}
-@media(max-width:1180px){.recepcion-caja,.recepcion-caja.con-historial{grid-template-columns:1fr}.caja-detalle{position:static}.caja-historial{order:3}.caja-mostrar-historial{width:max-content}}
-@media(max-width:620px){.caja-servicios{grid-template-columns:1fr}.caja-pago{grid-template-columns:1fr}.caja-consumo article{grid-template-columns:1fr;align-items:start}.caja-consumo article b{text-align:left}.recepcion-caja{gap:12px}}
+@media(max-width:1180px){.recepcion-caja,.recepcion-caja.con-historial,.recepcion-caja.sin-catalogo,.recepcion-caja.sin-catalogo.con-historial,.recepcion-caja.sin-catalogo.historial-replegado,.recepcion-caja.caja-con-catalogo.historial-replegado{grid-template-columns:1fr;justify-content:stretch}.caja-detalle{position:static}.caja-historial{order:3;min-height:0}.caja-mostrar-historial{position:static;width:30px}}
+@media(max-width:620px){.caja-pago,.caja-campos-paciente,.caja-factura-campos{grid-template-columns:1fr}.caja-consumo article{grid-template-columns:1fr;align-items:start}.caja-consumo article b{text-align:left}.recepcion-caja{gap:12px}}

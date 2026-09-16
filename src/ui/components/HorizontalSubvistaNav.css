@@ -1,0 +1,3 @@
+.subvistas-carrusel{position:relative;min-width:0}.subvistas-carrusel>nav{scrollbar-width:none}.subvistas-carrusel>nav::-webkit-scrollbar{display:none}.subvistas-flecha{position:absolute;top:7px;z-index:2;width:36px;height:36px;padding:0;display:grid;place-items:center;border:1px solid #b9ddea;border-radius:50%;color:#0879af;background:#fff;box-shadow:0 3px 10px rgba(7,55,99,.12)}.subvistas-flecha:hover{background:#f2fbff}.subvistas-flecha.siguiente{right:6px}.subvistas-flecha.anterior{left:6px}
+.subvistas-carrusel>nav{overflow-x:auto;overflow-y:hidden;max-width:100%;box-sizing:content-box;scroll-padding-inline:44px}
+.subvistas-carrusel>nav>button{flex-shrink:0}

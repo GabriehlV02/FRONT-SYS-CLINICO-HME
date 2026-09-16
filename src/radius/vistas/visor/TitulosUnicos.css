@@ -1,0 +1,7 @@
+/* Cada subvista conserva un encabezado propio y aprovecha el espacio disponible. */
+.orthanc-cabecera>div:first-child,.estudios-cabecera>div:first-child,.usuarios-cabecera>div:first-child,.rx-cabecera>div:first-child,.pagina-cabecera>div:first-child{display:block}
+.orthanc-cabecera,.estudios-cabecera,.usuarios-cabecera,.rx-cabecera,.pagina-cabecera{min-height:54px;justify-content:space-between;align-items:flex-start}
+.orthanc-cabecera h2,.estudios-cabecera h2,.usuarios-cabecera h2,.rx-cabecera h2,.pagina-cabecera h2{margin:0;font-size:25px;letter-spacing:-.5px}
+.orthanc-cabecera small,.estudios-cabecera small,.usuarios-cabecera small,.rx-cabecera small,.pagina-cabecera small{display:block;margin-top:6px;color:#777;font-size:11px}
+.orthanc-estado,.estudios-herramientas,.usuarios-herramientas,.rx-estacion{margin-top:14px}
+@media(max-width:760px){.orthanc-cabecera,.estudios-cabecera,.usuarios-cabecera,.rx-cabecera,.pagina-cabecera{min-height:48px}.orthanc-cabecera h2,.estudios-cabecera h2,.usuarios-cabecera h2,.rx-cabecera h2,.pagina-cabecera h2{font-size:22px}.orthanc-estado,.estudios-herramientas,.usuarios-herramientas,.rx-estacion{margin-top:12px}}

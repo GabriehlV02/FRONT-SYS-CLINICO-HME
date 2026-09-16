@@ -1,0 +1,79 @@
+.sistema-sidebar{width:270px;border-right:1px solid #d9e3f2;background:#fff;box-shadow:none}
+.sistema-sidebar:after{display:none}
+.sistema-marca{height:96px;padding:18px 20px;gap:12px}
+.marca-icono{width:188px;height:64px;flex:0 0 188px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.marca-icono img{width:188px;height:64px;max-width:none;object-fit:contain}
+.marca-texto{min-width:0}
+.sistema-marca strong{font-size:16px;letter-spacing:0}
+.sistema-marca small{margin-top:3px;font-size:10px;letter-spacing:.35px}
+.sistema-nav{padding:13px 12px 18px}
+.sistema-nav section+section{margin-top:10px;padding-top:10px;border-top:0}
+.sistema-nav section p{margin:12px 13px 8px;font-size:11px;letter-spacing:1px;color:#2d50bb}
+.sistema-nav .nav-modulo{position:relative;height:44px;margin:5px 0;padding:0 11px;border:1px solid transparent;border-radius:8px;gap:12px;color:#334e70;box-shadow:none;transition:color .18s,background .18s,border-color .18s}
+.sistema-nav .nav-modulo:hover{color:#123d8f;border-color:#d8e4fb;background:#f7fbff;box-shadow:none;transform:none}
+.sistema-nav .nav-modulo:focus-visible{outline:0;box-shadow:0 0 0 2px rgba(7,136,221,.18)}
+.sistema-nav .nav-modulo.activo{color:#fff;border-color:#0786d7;background:linear-gradient(135deg,#1e40af,#149ce8);box-shadow:0 8px 18px rgba(37,99,235,.18)}
+.sistema-nav .nav-modulo.activo:before{display:none}
+.nav-icono{width:34px;height:34px;flex:0 0 34px;border:1px solid #d5e1f6;border-radius:8px;color:#264b75;background:#f4f8ff;transition:color .18s,background .18s,border-color .18s}
+.nav-modulo:hover .nav-icono{color:#1d4ed8;border-color:#b9cbeb;background:#eaf1ff;transform:none}
+.nav-modulo.activo .nav-icono{color:#fff;border-color:rgba(255,255,255,.36);background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.nav-texto{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:700}
+.nav-indicador{margin-left:auto;flex:0 0 auto;color:#aaa;opacity:0;transform:translateX(-4px);transition:opacity .18s,transform .18s}
+.nav-modulo:hover .nav-indicador,.nav-modulo.activo .nav-indicador{opacity:1;transform:none}
+.nav-subvistas-imagenologia{margin:0 0 7px 49px;padding:2px 0 3px 10px;border-left:1px solid #d8d8d8}
+.nav-subvistas-imagenologia .subvista-nav{display:flex;align-items:center;width:calc(100% - 10px);min-height:38px;margin:1px 0;padding:0 9px;border:1px solid transparent;border-radius:8px;gap:8px;color:#777;font-size:11px;text-align:left}
+.nav-subvistas-imagenologia .subvista-nav:hover{color:#343434;background:#fafafa;border-color:#e2e2e2}
+.nav-subvistas-imagenologia .subvista-nav.activo{color:#252525;background:#fff;border-color:#d2d2d2;font-weight:700;box-shadow:0 3px 8px rgba(35,35,35,.07)}
+.nav-subvistas-imagenologia .subvista-nav svg{flex:0 0 16px}
+.imagenologia-subvistas{display:flex;gap:6px;width:max-content;max-width:100%;margin:0 0 20px;padding:5px;border:1px solid #c6dfef;border-radius:13px;background:#eef7fd}
+.imagenologia-subvistas button{min-width:150px;height:48px;padding:0 13px;display:flex;align-items:center;gap:10px;border:0;border-radius:9px;color:#35627d;background:transparent;font-size:12px;font-weight:700;text-align:left}
+.imagenologia-subvistas button:hover{background:#f8f8f8}
+.imagenologia-subvistas button.activo{color:#083d6a;background:#fff;box-shadow:0 5px 14px rgba(17,104,175,.11)}
+.imagenologia-subvistas button span{width:30px;height:30px;display:grid;place-items:center;border:1px solid #badbf1;border-radius:8px;color:#0a6fae;background:#e8f6ff}
+.imagenologia-subvistas button.activo span{color:#fff;border-color:#0473bd;background:linear-gradient(145deg,#10a7f4,#056fba)}
+.imagenologia-subvistas button b{min-width:24px;height:24px;margin-left:auto;padding:0 7px;display:grid;place-items:center;border-radius:999px;color:#35627d;background:#d7ecfa;font-size:9px}
+.imagenologia-subvistas button.activo b{color:#fff;background:#056fba}
+.boton-salir{height:44px;margin:auto 16px 16px;width:calc(100% - 32px);padding:0 11px;border:1px solid #b9cbeb;border-radius:8px;color:#001db8;background:#fff}
+.boton-salir:hover{color:#001db8;background:#eaf1ff}
+.boton-salir:hover .nav-icono{color:#fff;border-color:#1d4ed8;background:#2563eb}
+.sistema-nav{flex:1}.boton-salir{margin-top:4px}
+.replegar-menu{z-index:2;border-radius:50%}
+.sidebar-replegado .sistema-sidebar{width:80px}
+.sidebar-replegado .sistema-cuerpo{width:calc(100% - 80px);margin-left:80px}
+.sidebar-replegado .sistema-marca{height:86px;padding:16px 14px}
+.sidebar-replegado .marca-icono{width:46px;height:46px;flex-basis:46px;border-radius:14px}
+.sidebar-replegado .sistema-nav{padding:10px}
+.sidebar-replegado .sistema-nav section+section{border-top:0}
+.sidebar-replegado .sistema-nav .nav-modulo{height:50px;padding:0;justify-content:center;transform:none}
+.sidebar-replegado .nav-indicador{display:none}
+.sidebar-replegado .nav-subvistas-imagenologia{margin-left:0;padding:2px 0;border-left:0}
+.sidebar-replegado .nav-subvistas-imagenologia .subvista-nav{width:50px;height:42px;padding:0;justify-content:center}
+.sidebar-replegado .subvista-nav .nav-texto{display:none}
+.sidebar-replegado .nav-icono{width:40px;height:40px;flex-basis:40px}
+.sidebar-replegado .boton-salir{width:58px;margin:0 11px 15px;padding:10px 0 0}
+@media(max-width:760px){.sistema-sidebar,.sidebar-replegado .sistema-sidebar{width:min(290px,88vw)}.sistema-marca,.sidebar-replegado .sistema-marca{height:96px;padding:18px 20px}.sidebar-replegado .sistema-nav{padding:13px 12px 18px}.sidebar-replegado .sistema-nav section+section{border-top:1px solid #e7e7e7}.sidebar-replegado .sistema-nav .nav-modulo{height:52px;padding:0 11px;justify-content:flex-start}.sidebar-replegado .nav-indicador{display:block}.sidebar-replegado .boton-salir{width:calc(100% - 24px);margin:auto 12px 15px;padding:10px 11px 0}.nav-indicador{opacity:1}}
+.sistema-nav button:focus-visible,.sistema-nav .nav-modulo:focus-visible{outline:0;box-shadow:0 0 0 2px rgba(7,136,221,.16)}
+.sistema-nav button.activo,.sistema-nav .nav-modulo.activo{box-shadow:0 6px 16px rgba(17,104,175,.1)}
+.sistema-nav button.activo:before,.sistema-nav .nav-modulo.activo:before{display:none}
+.sidebar-replegado .sistema-nav button:hover,.sidebar-replegado .sistema-nav button.activo{box-shadow:none}
+
+/* Barra superior compacta: conserva controles cómodos sin desperdiciar altura. */
+.sistema-cuerpo{width:calc(100% - 270px);margin-left:270px;background:#eaf1ff}
+.sistema-topbar{height:70px;gap:10px;padding:0 20px 0 24px;border-bottom:1px solid #d9e3f2;background:#fff}
+.topbar-icono,.topbar-boton{width:38px;height:38px;border-radius:10px}
+.topbar-titulo h1{font-size:18px}
+.topbar-titulo small{margin-top:3px;font-size:9px}
+.busqueda-global{height:38px;padding:0 13px;border-radius:11px;gap:9px}
+.busqueda-global input{font-size:11px}
+.topbar-institucion{width:148px;height:44px;flex:0 0 148px;padding:2px 8px;border-left:1px solid #d8d8d8;display:flex;align-items:center;justify-content:center}.topbar-institucion img{width:100%;height:100%;display:block;object-fit:contain;filter:brightness(0) saturate(0) opacity(.62) drop-shadow(1px 0 #fff) drop-shadow(-1px 0 #fff) drop-shadow(0 1px #fff) drop-shadow(0 -1px #fff)}.busqueda-global{min-width:220px}
+@media(max-width:1240px){.topbar-institucion{width:112px;flex-basis:112px;padding-inline:5px}}
+@media(max-width:980px){.topbar-institucion{display:none}}
+.perfil{padding-left:10px;gap:8px}
+.perfil-avatar{width:36px;height:36px}
+.perfil .perfil-avatar svg{width:32px;height:32px}
+.perfil small{margin-top:3px}
+.area-trabajo{min-height:calc(100vh - 70px);padding:28px clamp(20px,4.4vw,82px);background:#eaf1ff;background-image:none}
+.area-trabajo>.imagenologia-subvistas{width:100%;max-width:none;margin-bottom:14px}
+.imagenologia-subvistas button{flex:1;justify-content:flex-start}
+.usuarios-vista,.orthanc-vista,.rx-vista,.gestion-usuarios,.config-vista{max-width:none;width:100%}
+@media(max-width:760px){.sistema-topbar{height:58px;padding:0 12px}.area-trabajo{min-height:calc(100vh - 58px);padding:14px 12px}.topbar-boton{width:36px;height:36px}.area-trabajo>.imagenologia-subvistas{overflow-x:auto}.imagenologia-subvistas button{flex:0 0 auto}}

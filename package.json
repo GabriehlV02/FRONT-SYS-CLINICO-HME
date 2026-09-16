@@ -1,0 +1,28 @@
+{
+  "name": "front-sys-clinico-hme",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --config vite.config.ts",
+    "build": "tsc --noEmit && vite build --config vite.config.ts",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "latest",
+    "vite": "latest",
+    "typescript": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "@cornerstonejs/core": "^5.8.2",
+    "@cornerstonejs/dicom-image-loader": "^5.8.2",
+    "@cornerstonejs/tools": "^5.8.2",
+    "dicom-parser": "^1.8.21",
+    "events": "^3.3.0",
+    "jszip": "^3.10.1",
+    "libarchive.js": "^2.0.2",
+    "node-unrar-js": "^2.0.2"
+  },
+  "devDependencies": {}
+}

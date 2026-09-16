@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-label="Logo clinico">
+  <defs>
+    <linearGradient id="clinico-blue" x1="122" x2="518" y1="86" y2="586" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2a9cf4" />
+      <stop offset="1" stop-color="#0964cf" />
+    </linearGradient>
+    <filter id="soft-shadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#073763" flood-opacity=".22" />
+    </filter>
+  </defs>
+  <rect width="640" height="640" rx="148" fill="url(#clinico-blue)" />
+  <g filter="url(#soft-shadow)">
+    <path
+      d="M320 147c95 0 172 77 172 172 0 127-172 220-172 220S148 446 148 319c0-95 77-172 172-172Z"
+      fill="#fff"
+      opacity=".15"
+    />
+    <path
+      d="M100 322h118l45-115 77 250 59-160 38 76h103"
+      fill="none"
+      stroke="#fff"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="48"
+    />
+    <path
+      d="M100 322h118l45-115 77 250 59-160 38 76h103"
+      fill="none"
+      stroke="#bfefff"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="18"
+      opacity=".95"
+    />
+  </g>
+</svg>

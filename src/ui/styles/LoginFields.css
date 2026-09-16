@@ -1,0 +1,23 @@
+/* Un único borde al escribir, sin los aros superpuestos del tema global. */
+.login-field { margin-bottom: 17px; }
+.login-field .login-label { margin-bottom: 0; }
+
+.login-page .login-input,
+.login-page .login-input:focus-within {
+  outline: none;
+  box-shadow: none;
+  border-color: #d2d2d2;
+  background: #f3f3f3;
+}
+
+.login-page .login-input input:focus,
+.login-page .login-input input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Edge agrega su propio botón: conservamos solo el control de la aplicación. */
+.login-page .login-input input::-ms-reveal,
+.login-page .login-input input::-ms-clear {
+  display: none;
+}

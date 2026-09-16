@@ -1,0 +1,250 @@
+.config-vista{
+  width:100%;
+  max-width:none;
+  margin:0;
+  color:var(--text,#10233d);
+}
+
+.config-pestanas{
+  display:flex;
+  align-items:stretch;
+  width:100%;
+  gap:0;
+  margin:0 0 20px;
+  padding:0;
+  border:0;
+  border-bottom:1px solid var(--border,#d9e3f2);
+  background:transparent;
+  overflow-x:auto;
+}
+
+.config-pestanas button{
+  position:relative;
+  flex:0 0 220px;
+  min-width:0;
+  min-height:56px;
+  padding:0 18px;
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:11px;
+  border:0;
+  border-bottom:2px solid transparent;
+  border-radius:0;
+  color:#31506f;
+  background:transparent;
+  text-align:left;
+  box-shadow:none;
+}
+
+.config-pestanas button:hover{
+  color:#1e40af;
+  background:#f8fbff;
+}
+
+.config-pestanas button.activo{
+  color:#002bad;
+  border-color:#2563eb;
+  background:transparent;
+  box-shadow:none;
+}
+
+.config-pestanas button>svg{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  padding:8px;
+  border:1px solid #c9d8f3;
+  border-radius:8px;
+  color:#2563eb;
+  background:#eaf1ff;
+}
+
+.config-pestanas button.activo>svg{
+  color:#fff;
+  border-color:#2563eb;
+  background:linear-gradient(135deg,#1e40af,#2f7df6);
+}
+
+.config-pestanas button>span{min-width:0}
+.config-pestanas strong,.config-pestanas small{display:block}
+.config-pestanas strong{color:currentColor;font-size:12px;line-height:1.15}
+.config-pestanas small{margin-top:4px;color:#607894;font-size:10px;line-height:1.25}
+.config-pestanas button.activo small{color:#395574}
+
+.config-contenido{padding-top:0}
+
+.config-seccion-titulo{
+  margin-bottom:16px;
+  padding:18px;
+  border:1px solid var(--border,#d9e3f2);
+  border-left:3px solid #2563eb;
+  border-radius:8px;
+  background:#fff;
+  box-shadow:0 10px 26px rgba(15,35,65,.06);
+}
+
+.config-seccion-titulo h2{
+  margin:0;
+  color:#071831;
+  font-size:24px;
+  line-height:1.15;
+}
+
+.config-seccion-titulo p{
+  margin:8px 0 0;
+  color:#395574;
+  font-size:12px;
+  line-height:1.45;
+}
+
+.config-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+  margin-top:0;
+}
+
+.config-tarjeta{
+  padding:18px;
+  border:1px solid var(--border,#d9e3f2);
+  border-radius:8px;
+  background:#fff;
+  box-shadow:0 10px 26px rgba(15,35,65,.06);
+}
+
+.config-tarjeta h3{margin:0;color:#071831;font-size:14px;line-height:1.25}
+
+.config-perfil{
+  grid-column:1/-1;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.config-icono,.config-servicio-cabecera>span{
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  display:grid;
+  place-items:center;
+  border:1px solid #c9d8f3;
+  border-radius:8px;
+  color:#fff;
+  background:linear-gradient(135deg,#1e40af,#2f7df6);
+}
+
+.config-perfil small,.config-servicio-cabecera small{
+  color:#002bad;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1px;
+  text-transform:uppercase;
+}
+
+.config-perfil h3,.config-servicio-cabecera h3{
+  margin:5px 0 0;
+  color:#071831;
+  font-size:18px;
+  line-height:1.2;
+}
+
+.config-estado{
+  width:max-content;
+  margin-top:9px;
+  padding:6px 10px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  border-radius:999px;
+  color:#216757;
+  background:#e5f4f1;
+  font-size:11px;
+  font-weight:800;
+}
+
+.config-estado i{width:7px;height:7px;border-radius:50%;background:#10b981}
+.config-tarjeta dl{margin:16px 0 0}
+
+.config-tarjeta dl>div{
+  min-height:42px;
+  padding:9px 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  border-top:1px solid #e5edf8;
+}
+
+.config-tarjeta dt{color:#607894;font-size:11px}
+
+.config-tarjeta dd{
+  min-width:0;
+  margin:0;
+  color:#10233d;
+  font-size:12px;
+  font-weight:800;
+  text-align:right;
+  overflow-wrap:anywhere;
+}
+
+.config-servicio-cabecera{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.config-servicio-cabecera>i{
+  width:10px;
+  height:10px;
+  margin-left:auto;
+  border-radius:50%;
+  background:#ef4444;
+  box-shadow:0 0 0 4px #fee2e2;
+}
+
+.config-servicio-cabecera>i.conectado{background:#10b981;box-shadow:0 0 0 4px #d1fae5}
+
+.config-servicio>button{
+  height:40px;
+  margin-top:16px;
+  padding:0 14px;
+  border:1px solid #cbd8f3;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#002bad;
+  background:#fff;
+  font-size:11px;
+  font-weight:800;
+}
+
+.config-servicio>button:hover{border-color:#2563eb;background:#eaf1ff}
+.config-servicio>button:disabled{cursor:progress;opacity:.65}
+.config-servicio>button svg{transform:rotate(90deg)}
+
+.config-error{
+  margin:0 0 16px;
+  padding:12px 14px;
+  border:1px solid #efb9b4;
+  border-radius:8px;
+  color:#9d342d;
+  background:#fff3f2;
+  font-size:12px;
+}
+
+@media(max-width:900px){
+  .config-grid{grid-template-columns:1fr}
+  .config-perfil{grid-column:1}
+}
+
+@media(max-width:760px){
+  .config-pestanas button{flex:0 0 180px;padding-inline:12px}
+  .config-pestanas small{display:none}
+  .config-seccion-titulo{padding:14px}
+  .config-seccion-titulo h2{font-size:21px}
+  .config-tarjeta{padding:16px}
+  .config-tarjeta dl>div{align-items:flex-start;flex-direction:column;gap:5px}
+  .config-tarjeta dd{text-align:left}
+}

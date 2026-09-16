@@ -1,0 +1,136 @@
+.gestion-usuarios{
+  width:100%;
+  max-width:none;
+  margin:0;
+}
+
+.gestion-encabezado{
+  margin-bottom:16px;
+  padding:18px;
+  border:1px solid var(--border,#d9e3f2);
+  border-left:3px solid #2563eb;
+  border-radius:8px;
+  background:#fff;
+  box-shadow:0 10px 26px rgba(15,35,65,.06);
+}
+
+.gestion-encabezado p{
+  margin:0 0 9px;
+  color:#002bad;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.4px;
+}
+
+.gestion-encabezado h2{
+  margin:0;
+  color:#071831;
+  font-size:24px;
+  line-height:1.15;
+}
+
+.gestion-encabezado small{
+  display:block;
+  margin-top:8px;
+  color:#395574;
+  font-size:12px;
+  line-height:1.45;
+}
+
+.subvistas-nav{
+  display:flex;
+  align-items:stretch;
+  width:100%;
+  gap:0;
+  margin:0 0 16px;
+  padding:0;
+  border:0;
+  border-bottom:1px solid var(--border,#d9e3f2);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  overflow-x:auto;
+}
+
+.subvistas-nav button{
+  position:relative;
+  flex:0 0 210px;
+  min-width:0;
+  height:52px;
+  padding:0 16px;
+  border:0;
+  border-bottom:2px solid transparent;
+  border-radius:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#31506f;
+  background:transparent;
+  font-size:12px;
+  font-weight:800;
+  box-shadow:none;
+}
+
+.subvistas-nav button:hover{
+  color:#1e40af;
+  background:#f8fbff;
+}
+
+.subvistas-nav button.activo{
+  color:#002bad;
+  border-color:#2563eb;
+  background:transparent;
+  box-shadow:none;
+}
+
+.subvistas-nav button svg{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  padding:8px;
+  border:1px solid #c9d8f3;
+  border-radius:8px;
+  color:#2563eb;
+  background:#eaf1ff;
+}
+
+.subvistas-nav button.activo svg{
+  color:#fff;
+  border-color:#2563eb;
+  background:linear-gradient(135deg,#1e40af,#2f7df6);
+}
+
+.subvistas-nav button b{
+  min-width:22px;
+  height:22px;
+  margin-left:auto;
+  padding:0 7px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  color:#002bad;
+  background:#eaf1ff;
+  font-size:10px;
+}
+
+.subvistas-nav button.activo b{
+  color:#fff;
+  background:#2563eb;
+}
+
+.subvista-contenido{
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+
+.subvista-contenido>.usuarios-vista>.usuarios-cabecera{display:none}
+.subvista-contenido>.usuarios-vista>.usuarios-herramientas{margin-top:0}
+
+@media(max-width:700px){
+  .gestion-encabezado{padding:14px}
+  .gestion-encabezado h2{font-size:21px}
+  .subvistas-nav button{flex:0 0 180px;height:50px;padding-inline:12px}
+}

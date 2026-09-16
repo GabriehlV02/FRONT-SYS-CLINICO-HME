@@ -1,0 +1,227 @@
+.avisos-contenedor {
+  position: fixed;
+  z-index: 2000;
+  right: 22px;
+  top: 82px;
+  width: min(370px, calc(100vw - 30px));
+  display: grid;
+  gap: 9px;
+  pointer-events: none;
+}
+.aviso {
+  min-height: 70px;
+  padding: 12px 11px;
+  display: grid;
+  grid-template-columns: 36px 1fr 26px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d7dce1;
+  border-left: 4px solid #55728e;
+  border-radius: 11px;
+  color: #27313b;
+  background: #fffffff5;
+  box-shadow: 0 15px 36px #1c283528;
+  backdrop-filter: blur(10px);
+  pointer-events: auto;
+  animation: aviso-entrada 0.22s ease-out;
+}
+.aviso > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: #315f88;
+  background: #e7f0f8;
+}
+.aviso strong {
+  display: block;
+  font-size: 10px;
+}
+.aviso p {
+  margin: 5px 0 0;
+  color: #6d7780;
+  font-size: 8px;
+  line-height: 1.4;
+}
+.aviso > button {
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 0;
+  display: grid;
+  place-items: center;
+  color: #899198;
+  background: transparent;
+}
+.aviso-exito {
+  border-left-color: #30966b;
+}
+.aviso-exito > span {
+  color: #277956;
+  background: #e0f3ea;
+}
+.aviso-error {
+  border-left-color: #b95353;
+}
+.aviso-error > span {
+  color: #963e3e;
+  background: #fae7e7;
+}
+.aviso-advertencia {
+  border-left-color: #c08b2b;
+}
+.aviso-advertencia > span {
+  color: #8b651f;
+  background: #fbf0d6;
+}
+@keyframes aviso-entrada {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.confirmacion-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  background: #17212a91;
+  backdrop-filter: blur(4px);
+}
+.confirmacion-modal {
+  width: min(500px, 100%);
+  overflow: hidden;
+  border: 1px solid #d5d9dd;
+  border-radius: 15px;
+  color: #252c33;
+  background: #fff;
+  box-shadow: 0 28px 85px #10182055;
+  animation: modal-entrada 0.18s ease-out;
+}
+.confirmacion-modal header {
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid #e4e6e8;
+}
+.confirmacion-modal header > span {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: #315f88;
+  background: #e8f0f7;
+}
+.confirmacion-modal header div {
+  flex: 1;
+}
+.confirmacion-modal header small {
+  color: #73808b;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+.confirmacion-modal h3 {
+  margin: 5px 0 0;
+  font-size: 16px;
+}
+.confirmacion-modal header > button {
+  width: 31px;
+  height: 31px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #777;
+  background: #fafafa;
+}
+.confirmacion-contenido {
+  padding: 19px 20px;
+}
+.confirmacion-contenido > p {
+  margin: 0;
+  color: #3e4851;
+  font-size: 10px;
+  line-height: 1.55;
+}
+.confirmacion-contenido > div {
+  margin-top: 14px;
+  padding: 11px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  border: 1px solid #ead4a9;
+  border-radius: 9px;
+  color: #775a21;
+  background: #fff9e9;
+  font-size: 8.5px;
+  line-height: 1.45;
+}
+.confirmacion-modal footer {
+  padding: 14px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid #e5e7e9;
+  background: #fafafa;
+}
+.confirmacion-modal footer button {
+  height: 39px;
+  padding: 0 16px;
+  border: 1px solid #d2d5d8;
+  border-radius: 8px;
+  color: #4f5962;
+  background: #fff;
+  font-size: 9px;
+  font-weight: 750;
+}
+.confirmacion-modal footer .confirmar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-color: #425e78;
+  color: #fff;
+  background: #425e78;
+}
+.confirmacion-modal.peligrosa header > span {
+  color: #9a3e3e;
+  background: #fae7e7;
+}
+.confirmacion-modal.peligrosa footer .confirmar {
+  border-color: #a94242;
+  background: #a94242;
+}
+.confirmacion-modal.peligrosa footer .confirmar:hover {
+  background: #913737;
+}
+@keyframes modal-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 600px) {
+  .avisos-contenedor {
+    right: 15px;
+    top: 70px;
+  }
+  .confirmacion-modal header,
+  .confirmacion-contenido,
+  .confirmacion-modal footer {
+    padding-inline: 15px;
+  }
+}

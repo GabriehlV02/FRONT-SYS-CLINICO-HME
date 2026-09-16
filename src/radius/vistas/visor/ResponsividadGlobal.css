@@ -1,0 +1,98 @@
+/* Compatibilidad final para telefonos, tabletas, escritorio y pantallas grandes. */
+html,body,#root{width:100%;min-width:0;min-height:100%;overflow-x:hidden}
+body{min-height:100dvh}
+img,svg,canvas,video{max-width:100%}
+.sistema-app,.sistema-cuerpo,.area-trabajo,.sistema-topbar{min-width:0}
+.area-trabajo>*{min-width:0}
+.topbar-titulo{min-width:0;flex:1 1 auto}
+.topbar-titulo h1,.topbar-titulo small{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:normal;word-break:keep-all}
+.busqueda-global{min-width:180px}
+.busqueda-global input{min-width:0}
+
+@media(max-width:1050px){
+  .sistema-topbar{gap:9px;padding-inline:18px}
+  .topbar-titulo{max-width:220px}
+  .area-trabajo{padding-inline:22px}
+  .orthanc-estado,.usuarios-herramientas,.estudios-herramientas{min-width:0}
+  .config-pestanas{max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+  .config-pestanas button{flex:0 0 210px}
+}
+
+@media(max-width:800px){
+  .rx-estacion{position:relative;height:calc(100dvh - 150px);min-height:440px;max-height:780px}
+  .rx-panel{inset:0 auto 0 0;width:min(270px,86vw);height:100%;box-shadow:12px 0 28px #0008}
+  .rx-toolbar{overflow-x:auto;overscroll-behavior-inline:contain;scrollbar-width:thin}
+  .rx-toolbar button{flex:0 0 auto}
+  .rx-cabecera,.roles-cabecera,.usuarios-cabecera,.orthanc-cabecera,.estudios-cabecera{flex-wrap:wrap}
+  .rx-cabecera>div:last-child,.usuarios-cabecera>button,.orthanc-cabecera>button{flex:0 0 auto}
+}
+
+@media(max-width:760px){
+  input,select,textarea{font-size:16px!important}
+  button,[role="button"],input,select{touch-action:manipulation}
+  .area-trabajo{padding:14px max(12px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}
+  .sistema-topbar{height:auto;min-height:58px;padding-top:7px;padding-right:max(10px,env(safe-area-inset-right));padding-bottom:7px;padding-left:max(10px,env(safe-area-inset-left));gap:7px}
+  .topbar-icono{display:none}
+  .topbar-titulo{max-width:none}
+  .topbar-titulo h1,.topbar-titulo small{overflow:visible;text-overflow:clip;white-space:normal;overflow-wrap:normal;word-break:keep-all}
+  .topbar-titulo h1{font-size:15px;line-height:1.15}
+  .topbar-titulo small{display:block;font-size:9px;line-height:1.25}
+  .sistema-sidebar{padding-bottom:env(safe-area-inset-bottom)}
+  .topbar-titulo{max-width:calc(100vw - 190px)}
+  .pagina-cabecera,.rx-cabecera,.roles-cabecera,.usuarios-cabecera,.orthanc-cabecera,.estudios-cabecera{gap:12px}
+  .rx-cabecera>div:last-child{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rx-cabecera button{min-width:0;padding-inline:9px;justify-content:center}
+  .rx-estacion{height:calc(100dvh - 205px);min-height:420px;margin-top:12px;border-radius:6px}
+  .rx-toolbar{padding-inline:6px}
+  .rx-datos{max-width:70%;overflow:hidden;text-overflow:ellipsis}
+  .orthanc-modal-fondo,.modal-fondo{padding:8px}
+  .orthanc-modal,.usuario-modal,.modal-imagen{max-height:calc(100dvh - 16px);overflow-y:auto;border-radius:10px}
+  .orthanc-modal>footer,.usuario-form-acciones{position:sticky;bottom:0;background:#fff}
+  .orthanc-paginacion,.estudios-paginacion,.usuarios-paginacion{height:auto;min-height:52px;flex-wrap:wrap;gap:8px;padding-block:8px}
+  .config-pestanas{gap:6px;padding-bottom:10px}
+  .config-pestanas button{flex:0 0 165px;height:52px}
+  .config-tarjeta{padding:16px}
+  .config-tarjeta dl>div{align-items:flex-start;flex-direction:column;gap:5px}
+  .config-tarjeta dd{text-align:left;overflow-wrap:normal;word-break:normal}
+  .usuarios-fila,.orthanc-fila,.estudio-fila{min-width:0;overflow-wrap:normal;word-break:normal}
+  .subvistas-nav{scroll-snap-type:x proximity;overscroll-behavior-inline:contain}
+  .subvistas-nav button{scroll-snap-align:start}
+  .notificaciones-contenedor{left:10px;right:10px;width:auto;max-width:none}
+}
+
+@media(max-width:480px){
+  .sistema-topbar{min-height:56px}
+  .topbar-icono{display:none}
+  .topbar-titulo{max-width:none}
+  .topbar-titulo h1{font-size:14px}
+  .topbar-titulo small{font-size:8px}
+  .topbar-boton,.salir-rapido,.abrir-menu{width:38px;height:38px;flex:0 0 38px}
+  .login-page{align-items:start;overflow-y:auto;padding:14px 10px 58px}
+  .login-card{padding:22px 16px 18px;border-radius:12px}
+  .login-opciones{align-items:flex-start;gap:10px;flex-direction:column}
+  .login-opciones>span{max-width:none;text-align:left}
+  .usuarios-herramientas{grid-template-columns:1fr}
+  .roles-cabecera>button,.usuarios-cabecera>button,.orthanc-cabecera>button{width:100%;justify-content:center}
+  .orthanc-estado{display:grid;grid-template-columns:1fr 1fr}
+  .orthanc-estado>div:first-child{grid-column:1/-1}
+  .orthanc-modal-campos,.paciente-campos,.usuario-campos{padding-inline:14px}
+  .orthanc-modal>footer,.usuario-form-acciones{display:grid;grid-template-columns:1fr}
+  .orthanc-modal>footer button,.usuario-form-acciones button{width:100%;min-width:0}
+}
+
+@media(orientation:landscape) and (max-height:600px) and (max-width:1000px){
+  .rx-estacion{height:calc(100dvh - 90px);min-height:320px;max-height:none}
+  .rx-area{min-height:0}
+  .rx-cabecera{display:none}
+}
+
+@media(min-width:1900px){
+  .area-trabajo{padding-inline:clamp(48px,5vw,110px)}
+  .biblioteca,.orthanc-vista,.gestion-usuarios,.rx-vista,.config-vista{max-width:1780px}
+  .busqueda-global{width:min(36vw,760px)}
+}
+
+@media(hover:none) and (pointer:coarse){
+  button,.nav-modulo,.subvistas-nav button{min-height:44px}
+  .imagen-boton span{opacity:1}
+}

@@ -9,3 +9,60 @@
 .comprobantes-pendiente>span{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border:1px solid #b9ddea;border-radius:10px;color:#09639b;background:#eaf5fb}
 .comprobantes-pendiente strong{display:block;color:#064773;font-size:13px}
 .comprobantes-pendiente small{display:block;margin-top:4px;color:#6e849a;font-size:11px;line-height:1.45}
+
+.recepcion-caja{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:16px;align-items:start;min-height:calc(100vh - 220px)}
+.recepcion-caja.con-historial{grid-template-columns:260px minmax(0,1fr) 390px}
+.caja-historial,.caja-catalogo,.caja-detalle{padding:16px;overflow:hidden}
+.caja-historial{padding:0}
+.caja-historial .panel-cabecera{padding:14px 14px 10px;border-bottom:1px solid #dbeafe}
+.caja-historial-lista{display:grid}
+.caja-historial-lista article{display:grid;gap:5px;padding:13px 15px;border-bottom:1px solid #e7f0f7}
+.caja-historial-lista article:last-child{border-bottom:0}
+.caja-historial-lista small{color:#647f9b;font-size:10px}
+.caja-historial-lista strong{color:#12384d;font-size:12px}
+.caja-historial-lista span{width:max-content;padding:4px 8px;border-radius:999px;color:#216757;background:#e5f4f1;font-size:9px;font-weight:800}
+.caja-historial-lista b{color:#064773;font-size:13px}
+.caja-mostrar-historial{height:42px;align-self:start}
+.caja-categorias{display:flex;gap:8px;margin:14px 0 16px;overflow-x:auto;padding-bottom:2px}
+.caja-categorias button{height:34px;padding:0 12px;border:1px solid #c8dfeb;border-radius:999px;color:#315b7b;background:#fff;font-size:11px;font-weight:800;white-space:nowrap}
+.caja-categorias button.activo{color:#fff;border-color:#096bb5;background:#096bb5}
+.caja-servicios{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.caja-servicios button{position:relative;min-height:116px;padding:14px 44px 14px 14px;display:grid;gap:8px;align-content:start;border:1px solid #c8dfeb;border-radius:12px;color:#17364d;background:#fff;text-align:left;box-shadow:0 7px 16px rgba(7,89,133,.06)}
+.caja-servicios button:hover{border-color:#8fc7e4;background:#f8fcff;transform:translateY(-1px)}
+.caja-servicios span{width:max-content;padding:4px 8px;border-radius:999px;color:#075985;background:#e0f2fe;font-size:9px;font-weight:900}
+.caja-servicios strong{font-size:13px;line-height:1.35}
+.caja-servicios b{color:#064773;font-size:15px}
+.caja-servicios svg{position:absolute;right:14px;bottom:14px;color:#096bb5}
+.caja-detalle{position:sticky;top:92px;display:grid;gap:14px}
+.caja-paciente{display:grid;gap:10px}
+.caja-paciente .clinica-acciones{margin:0;padding:0;border:0;box-shadow:none;background:transparent}
+.caja-resultados{position:static;margin-top:-4px;box-shadow:0 10px 22px rgba(7,89,133,.12)}
+.caja-consumo{border:1px solid #dbeafe;border-radius:12px;overflow:hidden;background:#fff}
+.caja-consumo-titulo{min-height:42px;padding:0 13px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #e7f0f7;background:#f8fcff}
+.caja-consumo-titulo strong{color:#12384d;font-size:12px}
+.caja-consumo-titulo span{color:#647f9b;font-size:10px;font-weight:800}
+.caja-consumo .modulo-vacio{min-height:96px;margin:0;padding:24px;color:#647f9b}
+.caja-consumo article{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:12px 13px;border-bottom:1px solid #edf4fa}
+.caja-consumo article:last-child{border-bottom:0}
+.caja-consumo article strong{display:block;color:#12384d;font-size:12px}
+.caja-consumo article small{display:block;margin-top:3px;color:#647f9b;font-size:10px}
+.caja-consumo article b{color:#064773;font-size:12px;text-align:right}
+.caja-cantidad{display:grid;grid-template-columns:28px 28px 28px;align-items:center;border:1px solid #c8dfeb;border-radius:8px;overflow:hidden;background:#fff}
+.caja-cantidad button{height:28px;border:0;color:#096bb5;background:#f4f9fd;font-weight:900}
+.caja-cantidad span{text-align:center;color:#12384d;font-size:11px;font-weight:900}
+.caja-pago{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.caja-pago label{display:grid;gap:6px;color:#315b7b;font-size:10px;font-weight:900}
+.caja-pago input,.caja-pago select,.caja-pago textarea{width:100%;min-width:0;border:1px solid #c8dfeb;border-radius:9px;background:#fff;color:#17364d;font-size:12px}
+.caja-pago input,.caja-pago select{height:38px;padding:0 10px}
+.caja-pago textarea{padding:9px 10px;resize:vertical}
+.caja-observacion{grid-column:1/-1}
+.caja-resumen{display:grid;gap:8px;padding:13px;border:1px solid #c8dfeb;border-radius:12px;background:#f8fcff}
+.caja-resumen div{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#526f83;font-size:11px}
+.caja-resumen strong{color:#12384d}
+.caja-resumen .total{padding-top:9px;border-top:1px solid #dbeafe;color:#064773;font-size:13px;font-weight:900}
+.caja-resumen .total strong{font-size:20px;color:#064773}
+.caja-resumen .cambio strong{color:#216757}
+.caja-resumen .pendiente strong{color:#a15c00}
+.caja-cobrar{width:100%;height:46px;justify-content:center}
+@media(max-width:1180px){.recepcion-caja,.recepcion-caja.con-historial{grid-template-columns:1fr}.caja-detalle{position:static}.caja-historial{order:3}.caja-mostrar-historial{width:max-content}}
+@media(max-width:620px){.caja-servicios{grid-template-columns:1fr}.caja-pago{grid-template-columns:1fr}.caja-consumo article{grid-template-columns:1fr;align-items:start}.caja-consumo article b{text-align:left}.recepcion-caja{gap:12px}}

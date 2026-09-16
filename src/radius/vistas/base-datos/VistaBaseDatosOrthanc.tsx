@@ -308,14 +308,6 @@ export default function VistaBaseDatosOrthanc() {
             servidor PACS.
           </small>
         </div>
-        <button
-          type="button"
-          disabled={sincronizando}
-          onClick={() => void sincronizar()}
-        >
-          <Icon name="arrowRight" size={17} />
-          {sincronizando ? "Consultando Orthanc…" : "Sincronizar servidor"}
-        </button>
       </header>
       <section className="orthanc-estado">
         <div className={estado ? "conectado" : "desconectado"}>
@@ -350,9 +342,17 @@ export default function VistaBaseDatosOrthanc() {
           <strong>{estudios.filter((e) => !e.pacienteId).length}</strong>
           <small>pendientes de asociar</small>
         </div>
+        <button
+          className="orthanc-sincronizar"
+          type="button"
+          disabled={sincronizando}
+          onClick={() => void sincronizar()}
+        >
+          <Icon name="arrowRight" size={17} />
+          {sincronizando ? "Consultando Orthanc…" : "Sincronizar servidor"}
+        </button>
       </section>
       {error && <div className="orthanc-mensaje error">{error}</div>}
-      {resultado && <div className="orthanc-mensaje correcto">{resultado}</div>}
       <div className="orthanc-vistas">
         <button
           type="button"

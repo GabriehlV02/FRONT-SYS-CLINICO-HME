@@ -68,7 +68,6 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       <button className="login-submit" disabled={loading}>{loading ? 'Ingresando…' : 'Iniciar sesión'} <Icon name="arrowRight" size={18} /></button>
       <div className="login-seguro"><Icon name="check" size={16} /> Sesión protegida · Expira tras 6 horas</div>
     </form>
-    <p className="login-frase">Gestiona estudios, pacientes e imágenes médicas en un solo lugar.</p>
-    <p className="login-copyright">© 2026 Hospital Maria Esperanza · Sistema clinico</p>
+    <p className="login-copyright">© 2026 Hospital Maria Esperanza · Sistema clínico</p>
   </main>;
 }

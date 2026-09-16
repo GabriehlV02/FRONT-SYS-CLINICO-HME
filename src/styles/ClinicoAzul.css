@@ -1544,3 +1544,47 @@ button:focus-visible{
   color:#fff;
   background:var(--primary-500);
 }
+
+/* Login clinico: refuerzo de CTA y decoracion inferior. */
+.login-page .login-submit {
+  min-height: 54px;
+  border: 0;
+  border-radius: 10px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #064773 0%, #096bb5 58%, #0aa2d6 100%);
+  box-shadow: 0 14px 28px rgba(6, 71, 115, 0.28);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.login-page .login-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #053c62 0%, #085d9c 58%, #078fc2 100%);
+  box-shadow: 0 18px 34px rgba(6, 71, 115, 0.34);
+}
+
+.login-page .login-submit:disabled {
+  color: #ffffff;
+  opacity: 0.76;
+}
+
+.login-page .triangulo-inferior {
+  width: min(760px, 50vw);
+  left: -318px;
+  bottom: -396px;
+  transform: rotate(-18deg);
+}
+
+.login-page .triangulo-inferior path {
+  fill: #064773;
+  stroke: #0aa2d6;
+  stroke-width: 2.4;
+}
+
+@media(max-width:700px){
+  .login-page .triangulo-inferior {
+    width: 470px;
+    left: -260px;
+    bottom: -260px;
+  }
+}

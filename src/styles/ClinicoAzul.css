@@ -1588,3 +1588,431 @@ button:focus-visible{
     bottom: -260px;
   }
 }
+
+/* Login institucional: composicion dividida y limpia. */
+.login-page-clinico {
+  min-height: 100dvh;
+  padding: 0;
+  display: block;
+  overflow: hidden;
+  background: #f8fbff;
+  isolation: isolate;
+}
+
+.login-page-clinico > .triangulo-fondo,
+.login-page-clinico > .mini-triangulo,
+.login-page-clinico > .punto,
+.login-page-clinico > .trazo,
+.login-page-clinico > span {
+  display: none;
+}
+
+.login-shell {
+  width: min(1440px, 100%);
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(420px, 1fr) minmax(460px, 1.06fr);
+  background: #fff;
+}
+
+.login-presentacion {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.8), transparent 45%),
+    linear-gradient(135deg, #eaf5ff 0%, #d8ecff 58%, #c1e3ff 100%);
+}
+
+.login-presentacion:before,
+.login-presentacion:after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-presentacion:before {
+  width: 78%;
+  aspect-ratio: 1;
+  top: -39%;
+  left: -27%;
+  border: 1px solid rgba(37,99,235,.1);
+  box-shadow: 0 0 0 28px rgba(255,255,255,.2), 0 0 0 56px rgba(37,99,235,.05);
+}
+
+.login-presentacion:after {
+  width: 58%;
+  aspect-ratio: 1;
+  right: -26%;
+  top: 11%;
+  background: rgba(255,255,255,.24);
+}
+
+.login-presentacion-contenido {
+  position: relative;
+  z-index: 2;
+  width: min(430px, 72%);
+  margin: 0 auto;
+  padding-top: clamp(44px, 8vh, 100px);
+}
+
+.login-logo {
+  width: min(290px, 100%);
+  height: auto;
+  display: block;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.login-presentacion-kicker {
+  margin: clamp(58px, 11vh, 130px) 0 18px;
+  color: #2275cb;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.login-presentacion h1 {
+  margin: 0;
+  color: #102d58;
+  font-size: clamp(34px, 4vw, 60px);
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+
+.login-presentacion h1 strong {
+  color: #1688e8;
+  font-weight: 900;
+}
+
+.login-presentacion-texto {
+  margin: 28px 0 0;
+  color: #5e7898;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.login-presentacion-onda {
+  position: absolute;
+  z-index: 1;
+  width: 150%;
+  height: 27%;
+  left: -24%;
+  bottom: -13%;
+  border-radius: 50% 50% 0 0 / 45% 45% 0 0;
+  background: #9dd4fb;
+  transform: rotate(-7deg);
+  box-shadow: 0 -22px 0 rgba(255,255,255,.42), 0 -44px 0 rgba(111,190,247,.35);
+}
+
+.login-acceso {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: clamp(34px, 8vh, 94px) clamp(32px, 8vw, 120px);
+  background: #fff;
+}
+
+.login-acceso .login-card {
+  width: min(100%, 470px);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.login-icono-acceso {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 15px;
+  color: #087ee0;
+  background: #edf6ff;
+}
+
+.login-acceso .login-kicker {
+  display: none;
+}
+
+.login-acceso .login-card h1 {
+  margin: 0;
+  color: #122d55;
+  text-align: left;
+  font-size: clamp(34px, 3vw, 48px);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.login-acceso .login-subtitulo {
+  margin: 13px 0 36px;
+  color: #7890ad;
+  text-align: left;
+  font-size: 15px;
+}
+
+.login-acceso .login-label {
+  margin-bottom: 10px;
+  color: #527096;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.login-acceso .login-field + .login-field {
+  margin-top: 22px;
+}
+
+.login-acceso .login-input {
+  height: 58px;
+  margin-top: 0;
+  padding: 0 17px;
+  border: 1px solid #cbdced;
+  border-radius: 11px;
+  color: #6e8dad;
+  background: #fff;
+  box-shadow: none;
+}
+
+.login-acceso .login-input input {
+  color: #19385f;
+  font-size: 14px;
+}
+
+.login-acceso .login-input input::placeholder { color: #91a5bc; }
+
+.login-acceso .login-input:focus-within {
+  border-color: #278ce4;
+  box-shadow: 0 0 0 4px rgba(39,140,228,.11);
+}
+
+.login-acceso .login-opciones {
+  margin: 19px 0 31px;
+  color: #5f7896;
+  font-size: 12px;
+}
+
+.login-acceso .login-opciones > span {
+  color: #087ee0;
+  font-weight: 700;
+}
+
+.login-acceso .login-submit {
+  height: 58px;
+  border-radius: 11px;
+  background: linear-gradient(105deg, #0878d7, #208fe9);
+  box-shadow: 0 12px 24px rgba(8,120,215,.22);
+  font-size: 14px;
+}
+
+.login-acceso .login-seguro {
+  margin-top: 38px;
+  padding: 18px 0 0;
+  border-top: 1px solid #dce7f3;
+  border-bottom: 0;
+  color: #6c86a2;
+  font-size: 11px;
+}
+
+.login-acceso .login-seguro svg { color: #5485b6; }
+
+@media(max-width: 820px) {
+  .login-shell { grid-template-columns: 1fr; }
+  .login-presentacion { min-height: 390px; }
+  .login-presentacion-contenido { width: min(560px, 82%); padding-top: 42px; }
+  .login-logo { width: 230px; }
+  .login-presentacion-kicker { margin-top: 34px; }
+  .login-presentacion h1 { font-size: 36px; }
+  .login-presentacion-texto { margin-top: 13px; font-size: 13px; }
+  .login-presentacion-onda { height: 35%; bottom: -22%; }
+  .login-acceso { min-height: 0; padding: 52px 24px 44px; }
+}
+
+@media(max-width: 480px) {
+  .login-presentacion { min-height: 340px; }
+  .login-presentacion-contenido { width: 84%; padding-top: 30px; }
+  .login-logo { width: 190px; }
+  .login-presentacion-kicker { margin: 29px 0 12px; font-size: 9px; }
+  .login-presentacion h1 { font-size: 30px; }
+  .login-presentacion-texto { font-size: 12px; }
+  .login-acceso { padding: 38px 22px 32px; }
+  .login-acceso .login-subtitulo { margin-bottom: 28px; }
+}
+
+/* Refinamiento final: mas aire util y movimiento ambiental discreto. */
+.login-shell {
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.login-presentacion {
+  display: flex;
+  align-items: center;
+}
+
+.login-presentacion-contenido {
+  width: min(520px, 72%);
+  padding-top: 0;
+  transform: translateY(-4%);
+}
+
+.login-logo {
+  width: min(390px, 118%);
+  margin-left: -4%;
+  filter: drop-shadow(0 12px 18px rgba(30, 105, 179, .12));
+  transform: scale(1.04);
+  transform-origin: left center;
+}
+
+.login-presentacion:after {
+  animation: login-brillo-lateral 8s ease-in-out infinite alternate;
+}
+
+.login-presentacion-onda {
+  animation: login-onda-flotante 9s ease-in-out infinite alternate;
+}
+
+.login-presentacion-onda:after,
+.login-presentacion-onda:before {
+  content: '';
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  top: -30%;
+  right: 23%;
+  border: 1px solid rgba(255,255,255,.76);
+  border-radius: 50%;
+  box-shadow: 0 0 0 8px rgba(255,255,255,.16);
+  animation: login-punto-ascendente 7s ease-in-out infinite;
+}
+
+.login-presentacion-onda:before {
+  width: 15px;
+  height: 15px;
+  top: -64%;
+  right: 38%;
+  border: 0;
+  background: rgba(255,255,255,.72);
+  box-shadow: none;
+  animation-delay: -2.5s;
+}
+
+.login-acceso {
+  padding-inline: clamp(32px, 8vw, 150px);
+}
+
+.login-acceso .login-card {
+  width: min(100%, 500px);
+}
+
+.login-acceso .login-subtitulo {
+  margin-bottom: 42px;
+}
+
+.login-acceso .login-opciones {
+  margin-bottom: 36px;
+}
+
+.login-acceso .login-submit {
+  height: 60px;
+}
+
+@keyframes login-onda-flotante {
+  from { transform: translate3d(-1%, 0, 0) rotate(-7deg); }
+  to { transform: translate3d(3%, -8px, 0) rotate(-4deg); }
+}
+
+@keyframes login-brillo-lateral {
+  from { transform: translate3d(0, 0, 0) scale(1); opacity: .8; }
+  to { transform: translate3d(-32px, 22px, 0) scale(1.08); opacity: .45; }
+}
+
+@keyframes login-punto-ascendente {
+  0%, 100% { transform: translate3d(0, 12px, 0); opacity: .3; }
+  50% { transform: translate3d(-22px, -34px, 0); opacity: .85; }
+}
+
+@media(max-width: 820px) {
+  .login-shell { grid-template-columns: 1fr; }
+  .login-presentacion-contenido { width: min(560px, 82%); padding-top: 0; transform: none; }
+  .login-logo { width: min(330px, 108%); }
+  .login-acceso { padding-inline: 24px; }
+}
+
+@media(prefers-reduced-motion: reduce) {
+  .login-presentacion:after,
+  .login-presentacion-onda,
+  .login-presentacion-onda:before,
+  .login-presentacion-onda:after { animation: none; }
+}
+
+/* Identidad clinica: el azul profundo es el color dominante. */
+:root {
+  --consultorio-bg: #eef5fc;
+  --consultorio-blue: #0b5cab;
+  --consultorio-blue-dark: #064773;
+  --consultorio-blue-soft: #e5f1fb;
+  --consultorio-text: #071b35;
+}
+
+.sistema-app {
+  --primary: #0b5cab;
+  --primary-strong: #064773;
+  --primary-soft: #e5f1fb;
+  --primary-gradient: linear-gradient(135deg, #064773, #0b5cab);
+}
+
+.sistema-nav .nav-modulo.activo,
+.sistema-sidebar .nav-modulo.activo {
+  color: #fff;
+  border-color: #0b5cab;
+  background: linear-gradient(135deg, #064773, #0b5cab);
+}
+
+.login-page-clinico .login-submit,
+.sistema-app .boton-principal,
+.sistema-app .primario {
+  background: linear-gradient(135deg, #064773, #0b5cab);
+}
+
+/* Panel institucional: azul clinico con mayor contraste y profundidad. */
+.login-page-clinico .login-presentacion {
+  background:
+    radial-gradient(circle at 78% 18%, rgba(167,224,247,.2), transparent 25%),
+    linear-gradient(145deg, rgba(255,255,255,.96) 0%, rgba(255,255,255,.72) 34%, transparent 66%),
+    linear-gradient(160deg, #fafdff 0%, #e4f1fc 48%, #8ec8f0 100%);
+}
+
+.login-page-clinico .login-presentacion:before {
+  border-color: rgba(11,92,171,.16);
+  box-shadow: 0 0 0 28px rgba(255,255,255,.22), 0 0 0 56px rgba(11,92,171,.08);
+}
+
+.login-page-clinico .login-presentacion:after {
+  background: rgba(104,181,232,.16);
+}
+
+.login-page-clinico .login-presentacion-kicker {
+  color: #0b70c5;
+}
+
+.login-page-clinico .login-presentacion h1 {
+  color: #063b73;
+  text-shadow: 0 2px 12px rgba(6,71,115,.08);
+}
+
+.login-page-clinico .login-presentacion h1 strong {
+  color: #087edb;
+}
+
+.login-page-clinico .login-presentacion-texto {
+  color: #426d98;
+}
+
+.login-page-clinico .login-presentacion-onda {
+  background: #67b5e9;
+  box-shadow: 0 -22px 0 rgba(255,255,255,.74), 0 -44px 0 rgba(31,119,194,.52);
+}

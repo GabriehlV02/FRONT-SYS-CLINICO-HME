@@ -38,6 +38,9 @@ const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: 
 const modulos: Modulo[] = [
   { id: 'recepcion', nombre: 'Recepción', icono: 'patient', grupo: 'ATENCIÓN CLÍNICA' },
   { id: 'laboratorio', nombre: 'Laboratorio', icono: 'lab', grupo: 'ATENCIÓN CLÍNICA' },
+  { id: 'atencion-medica', nombre: 'Atención médica', icono: 'userCheck', grupo: 'ATENCIÓN MÉDICA' },
+  { id: 'triaje-emergencias', nombre: 'Triaje de enfermería', icono: 'patient', grupo: 'EMERGENCIAS' },
+  { id: 'atencion-urgencias', nombre: 'Atención médica de urgencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   {
     id: "configuracion",
@@ -363,6 +366,42 @@ export default function Aplicacion() {
               <small>
                 Este apartado está listo para incorporar solicitudes, muestras,
                 resultados y reportes de laboratorio.
+              </small>
+            </div>
+          ) : modulo === 'atencion-medica' ? (
+            <div className="modulo-vacio">
+              <span>
+                <Icon name="userCheck" size={28} />
+              </span>
+              <p>ATENCIÓN MÉDICA</p>
+              <h2>Atención médica</h2>
+              <small>
+                Espacio de trabajo para consultas, historia clínica,
+                diagnósticos, indicaciones y recetas del médico.
+              </small>
+            </div>
+          ) : modulo === 'triaje-emergencias' ? (
+            <div className="modulo-vacio">
+              <span>
+                <Icon name="patient" size={28} />
+              </span>
+              <p>EMERGENCIAS</p>
+              <h2>Triaje de enfermería</h2>
+              <small>
+                Valoración inicial, registro de signos vitales y priorización
+                clínica de pacientes de emergencias.
+              </small>
+            </div>
+          ) : modulo === 'atencion-urgencias' ? (
+            <div className="modulo-vacio">
+              <span>
+                <Icon name="userCheck" size={28} />
+              </span>
+              <p>EMERGENCIAS</p>
+              <h2>Atención médica de urgencias</h2>
+              <small>
+                Evaluación, diagnóstico, tratamiento e indicaciones médicas
+                para pacientes atendidos en emergencias.
               </small>
             </div>
           ) : modulo === "imagenologia" && subvistaImagenologia === "base-datos" ? (

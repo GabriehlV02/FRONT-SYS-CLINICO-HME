@@ -77,3 +77,10 @@
 .imagenologia-subvistas button{flex:1;justify-content:flex-start}
 .usuarios-vista,.orthanc-vista,.rx-vista,.gestion-usuarios,.config-vista{max-width:none;width:100%}
 @media(max-width:760px){.sistema-topbar{height:58px;padding:0 12px}.area-trabajo{min-height:calc(100vh - 58px);padding:14px 12px}.topbar-boton{width:36px;height:36px}.area-trabajo>.imagenologia-subvistas{overflow-x:auto}.imagenologia-subvistas button{flex:0 0 auto}}
+.desplegar-sidebar-escritorio{display:none;width:38px;height:38px;padding:0;place-items:center;border:1px solid #b9d8ea;border-radius:50%;color:#087fc0;background:#fff;box-shadow:0 3px 10px rgba(7,85,139,.14)}
+@media (min-width:761px) and (hover:hover) and (pointer:fine), (min-width:1200px){
+  .sistema-sidebar{transition:transform .2s ease,width .2s ease}
+  .sidebar-replegado .sistema-sidebar{width:270px;transform:translateX(-105%);visibility:hidden}
+  .sidebar-replegado .sistema-cuerpo{width:100%;margin-left:0}
+  .sidebar-replegado .desplegar-sidebar-escritorio{display:grid;flex:0 0 38px}
+}

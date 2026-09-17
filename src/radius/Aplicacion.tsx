@@ -292,6 +292,14 @@ export default function Aplicacion() {
       <section className="sistema-cuerpo" inert={menuAbierto}>
         <header className="sistema-topbar">
           <button
+            className="desplegar-sidebar-escritorio"
+            onClick={alternarSidebar}
+            aria-label="Desplegar menú lateral"
+            title="Desplegar menú lateral"
+          >
+            <Icon name="menu" size={20} />
+          </button>
+          <button
             className="abrir-menu"
             onClick={() => setMenuAbierto(true)}
             aria-label="Abrir menú"

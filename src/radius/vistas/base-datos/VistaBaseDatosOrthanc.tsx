@@ -299,6 +299,30 @@ export default function VistaBaseDatosOrthanc() {
   };
   return (
     <div className="orthanc-vista">
+      <div className="orthanc-vistas">
+        <button
+          type="button"
+          className={vista === "estudios" ? "activo" : ""}
+          onClick={() => {
+            setVista("estudios");
+            setPagina(1);
+          }}
+        >
+          <Icon name="image" size={17} />
+          Estudios <b>{filtrados.length}</b>
+        </button>
+        <button
+          type="button"
+          className={vista === "pacientes" ? "activo" : ""}
+          onClick={() => {
+            setVista("pacientes");
+            setPagina(1);
+          }}
+        >
+          <Icon name="patient" size={17} />
+          Pacientes <b>{pacientes.length}</b>
+        </button>
+      </div>
       <section className="orthanc-estado">
         <div className={`orthanc-conexion ${estado ? "conectado" : "desconectado"}`}>
           <i />
@@ -343,30 +367,6 @@ export default function VistaBaseDatosOrthanc() {
         </button>
       </section>
       {error && <div className="orthanc-mensaje error">{error}</div>}
-      <div className="orthanc-vistas">
-        <button
-          type="button"
-          className={vista === "estudios" ? "activo" : ""}
-          onClick={() => {
-            setVista("estudios");
-            setPagina(1);
-          }}
-        >
-          <Icon name="image" size={17} />
-          Estudios <b>{filtrados.length}</b>
-        </button>
-        <button
-          type="button"
-          className={vista === "pacientes" ? "activo" : ""}
-          onClick={() => {
-            setVista("pacientes");
-            setPagina(1);
-          }}
-        >
-          <Icon name="patient" size={17} />
-          Pacientes <b>{pacientes.length}</b>
-        </button>
-      </div>
       <div className="orthanc-filtros">
         <label className="orthanc-buscar">
           <Icon name="search" size={18} />

@@ -11,23 +11,34 @@ type Paciente = {
   responsableNombre: string; responsableTelefono: string; responsableParentesco: string; procedencia: string; observaciones: string; habilitado: boolean; factura?: DatosFactura;
 };
 type MetodoPago = 'efectivo' | 'qr' | 'tarjeta' | 'transferencia';
+type AnalisisLaboratorio = { nombre: string; precio: number };
+const hojaLaboratorio: Record<string, AnalisisLaboratorio[]> = {
+  'Hematologia': [{ nombre: 'Grupo sanguineo y factor RH', precio: 35 }, { nombre: 'Hemoglobina', precio: 35 }, { nombre: 'Hemograma completo', precio: 50 }, { nombre: 'Prueba de Coombs directo', precio: 90 }, { nombre: 'VES', precio: 30 }],
+  'Coagulograma': [{ nombre: 'A.P.T.T.', precio: 50 }, { nombre: 'Anticardiolipinas IgG IgM', precio: 540 }, { nombre: 'Dimero - D', precio: 260 }, { nombre: 'Tiempo de coagulacion', precio: 30 }, { nombre: 'Tiempo de protrombina PT INR', precio: 50 }],
+  'Quimica metabolica': [{ nombre: 'Acido urico', precio: 35 }, { nombre: 'Perfil lipidico', precio: 80 }, { nombre: 'Glucosa', precio: 30 }, { nombre: 'Creatinina', precio: 35 }, { nombre: 'Pruebas hepaticas', precio: 120 }],
+  'Electrolitos': [{ nombre: 'Calcio', precio: 40 }, { nombre: 'Calcio ionico', precio: 40 }, { nombre: 'Electrolitos Na - K - Cl - iC', precio: 130 }, { nombre: 'Fosforo', precio: 40 }, { nombre: 'Magnesio', precio: 50 }],
+  'Serologia': [{ nombre: 'ANA', precio: 150 }, { nombre: 'Anti-DNA', precio: 150 }, { nombre: 'Anti CCP', precio: 150 }, { nombre: 'C3', precio: 200 }, { nombre: 'Factor RA cuantitativo', precio: 35 }],
+  'Uroanalisis': [{ nombre: 'Calcio en orina 24 Hrs', precio: 40 }, { nombre: 'Cociente PCR', precio: 30 }, { nombre: 'Creatinina en orina casual', precio: 80 }, { nombre: 'Examen completo de orina', precio: 30 }, { nombre: 'Urea en orina casual', precio: 45 }],
+};
 
 const pacientesIniciales: Paciente[] = [
   { id: 1, nombres: 'Maria', apellidoPaterno: 'Fernandez', apellidoMaterno: 'Lopez', ci: '4839201', complemento: '', expedidoEn: 'Cochabamba', celular: '71234567', correo: '', fechaNacimiento: '', genero: 'Femenino', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true, factura: { nit: '4839201', razonSocial: 'Maria Fernandez Lopez' } },
   { id: 2, nombres: 'Carlos', apellidoPaterno: 'Mendoza', apellidoMaterno: '', ci: '7281044', complemento: '', expedidoEn: 'Cochabamba', celular: '76543210', correo: '', fechaNacimiento: '', genero: 'Masculino', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true },
   { id: 3, nombres: 'Ana', apellidoPaterno: 'Rodriguez', apellidoMaterno: 'Vargas', ci: '6102837', complemento: '', expedidoEn: 'Cochabamba', celular: '70012345', correo: '', fechaNacimiento: '', genero: 'Femenino', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true },
+  { id: 4, nombres: 'Paciente', apellidoPaterno: 'Prueba', apellidoMaterno: 'Historial', ci: '9999001', complemento: '', expedidoEn: 'Cochabamba', celular: '70000000', correo: '', fechaNacimiento: '1990-06-15', genero: 'Otro', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: 'Prueba', observaciones: 'Paciente demo para validar el historial de consumos.', habilitado: true },
 ];
 const catalogoCaja: ItemCaja[] = [
-  { id: 1, nombre: 'Consulta medica general', categoria: 'Consultas', tipo: 'Servicio', precio: 50, detalle: 'Atencion de consulta externa' },
-  { id: 2, nombre: 'Radiografia panoramica', categoria: 'Imagenologia', tipo: 'Servicio', precio: 80, detalle: 'Estudio radiologico digital' },
-  { id: 3, nombre: 'Laboratorio basico', categoria: 'Laboratorio', tipo: 'Servicio', precio: 45, detalle: 'Procesamiento de muestra basica' },
+  { id: 1, nombre: 'Consulta medica general', categoria: 'Procedimientos', tipo: 'Servicio', precio: 50, detalle: 'Atencion de consulta externa' },
+  { id: 2, nombre: 'Radiografia panoramica', categoria: 'Procedimientos', tipo: 'Servicio', precio: 80, detalle: 'Estudio radiologico digital' },
+  { id: 3, nombre: 'Laboratorio basico', categoria: 'Laboratorios', tipo: 'Servicio', precio: 45, detalle: 'Procesamiento de muestra basica' },
   { id: 4, nombre: 'Gasa esteril 10 x 10 cm', categoria: 'Insumos', tipo: 'Producto', precio: 12, detalle: 'Caja por 100 unidades', stock: 32 },
   { id: 5, nombre: 'Venda elastica 10 cm', categoria: 'Insumos', tipo: 'Producto', precio: 35, detalle: 'Paquete por 12 rollos', stock: 18 },
-  { id: 6, nombre: 'Certificado medico', categoria: 'Documentos', tipo: 'Servicio', precio: 25, detalle: 'Emision de certificado medico' },
+  { id: 6, nombre: 'Certificado medico', categoria: 'Servicios', tipo: 'Servicio', precio: 25, detalle: 'Emision de certificado medico' },
 ];
 const historialPorPaciente: Record<number, { id: number; numero: string; fecha: string; servicio: string; total: number; estado: 'Pagado' | 'Preventa' | 'Anulado'; cajero: string }[]> = {
   1: [{ id: 1, numero: '131932', fecha: '10/05/2026 10:56', servicio: 'Consulta general', total: 50, estado: 'Pagado', cajero: 'Recepcion central' }, { id: 2, numero: '131910', fecha: '15/02/2026 19:17', servicio: 'Limpieza dental', total: 30, estado: 'Preventa', cajero: 'Recepcion central' }, { id: 4, numero: '131885', fecha: '03/01/2026 11:05', servicio: 'Radiografia panoramica', total: 80, estado: 'Anulado', cajero: 'Recepcion central' }],
   2: [{ id: 3, numero: '131872', fecha: '02/07/2026 09:20', servicio: 'Laboratorio basico', total: 45, estado: 'Pagado', cajero: 'Caja laboratorio' }],
+  4: [{ id: 5, numero: 'PR-001', fecha: '12/09/2026 09:15', servicio: 'Consulta medica general', total: 50, estado: 'Pagado', cajero: 'Recepcion central' }, { id: 6, numero: 'PR-002', fecha: '14/09/2026 11:40', servicio: 'Radiografia panoramica', total: 80, estado: 'Preventa', cajero: 'Recepcion central' }, { id: 7, numero: 'PR-003', fecha: '15/09/2026 16:20', servicio: 'Laboratorio basico', total: 45, estado: 'Anulado', cajero: 'Caja laboratorio' }],
 };
 const metodosPago: { id: MetodoPago; nombre: string }[] = [{ id: 'efectivo', nombre: 'Efectivo' }, { id: 'qr', nombre: 'QR' }, { id: 'tarjeta', nombre: 'Tarjeta' }, { id: 'transferencia', nombre: 'Transferencia' }];
 const formularioPacienteInicial = { nombres: '', apellidoPaterno: '', apellidoMaterno: '', ci: '', complemento: '', expedidoEn: 'Cochabamba', nit: '', razonSocial: '', fechaNacimiento: '', correo: '', celular: '', genero: '', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true };
@@ -56,7 +67,9 @@ export function CajaRecepcionView() {
   const [emitirFactura, setEmitirFactura] = useState(false);
   const [datosFactura, setDatosFactura] = useState<DatosFactura>(facturaInicial);
   const [busquedaCatalogo, setBusquedaCatalogo] = useState('');
-  const [categoriaCatalogo, setCategoriaCatalogo] = useState('Todos');
+  const [categoriaCatalogo, setCategoriaCatalogo] = useState('Servicios');
+  const [hojaAbierta, setHojaAbierta] = useState(false);
+  const [analisisMarcados, setAnalisisMarcados] = useState<string[]>([]);
   const [vistaCatalogo, setVistaCatalogo] = useState<'listado' | 'galeria'>('listado');
   const [consumo, setConsumo] = useState<Consumo[]>([]);
   const [metodoPago, setMetodoPago] = useState<MetodoPago>('efectivo');
@@ -69,7 +82,7 @@ export function CajaRecepcionView() {
     if (!termino) return [];
     return pacientesRegistrados.filter((item) => `${nombreCompleto(item)} ${item.ci}`.toLocaleLowerCase().includes(termino)).slice(0, 6);
   }, [busqueda, pacientesRegistrados]);
-  const categoriasCatalogo = useMemo(() => ['Todos', ...new Set(catalogoCaja.map((item) => item.categoria))], []);
+  const categoriasCatalogo = ['Servicios', 'Productos', 'Insumos', 'Laboratorios', 'Procedimientos'];
   const itemsCatalogo = useMemo(() => {
     const termino = busquedaCatalogo.trim().toLocaleLowerCase();
     return catalogoCaja.filter((item) => (categoriaCatalogo === 'Todos' || item.categoria === categoriaCatalogo) && (!termino || `${item.nombre} ${item.categoria} ${item.tipo}`.toLocaleLowerCase().includes(termino)));
@@ -115,11 +128,13 @@ export function CajaRecepcionView() {
   });
   const cambiarCantidad = (id: number, cambioCantidad: number) => setConsumo((actual) => actual.map((item) => item.id === id ? { ...item, cantidad: Math.max(0, item.cantidad + cambioCantidad) } : item).filter((item) => item.cantidad > 0));
 
-  return <section className={`recepcion-caja caja-con-catalogo ${historialReplegado ? 'historial-replegado' : ''}`}>
+  return <section className={`recepcion-caja caja-con-catalogo ${historialReplegado ? 'historial-replegado' : ''} ${registroAbierto ? 'registro-paciente-activo' : ''}`}>
     {!historialReplegado ? <aside className="panel caja-historial"><div className="panel-cabecera"><div><span>HISTORIAL</span><h2>Consumos previos</h2></div><button className="secundario caja-historial-control" type="button" onClick={() => setHistorialReplegado(true)} aria-label="Replegar historial" title="Replegar historial"><Icon name="chevronLeft" size={15} /></button></div><label className="caja-historial-filtro"><span>Estado</span><select value={filtroHistorial} onChange={(event) => setFiltroHistorial(event.target.value as typeof filtroHistorial)}><option>Todos</option><option>Pagado</option><option>Preventa</option><option>Anulado</option></select></label><div className="caja-historial-lista">{historialPaciente.length > 0 && historialFiltrado.length > 0 ? historialFiltrado.map((item) => <article className={`estado-${item.estado.toLocaleLowerCase()}`} key={item.id}><header><strong>N. {item.numero}</strong><em>{item.estado}</em></header><span>HOSPITAL</span><p>{item.cajero}</p><p>{item.servicio}</p><footer><small>{item.fecha}</small><b>{formatoBs(item.total)}</b></footer></article>) : <div className="caja-historial-vacio"><Icon name="fileText" size={20} /><strong>{historialPaciente.length ? 'Sin resultados para este filtro' : 'Sin consumos previos'}</strong><small>{historialPaciente.length ? 'Prueba con otro estado.' : 'El historial del paciente aparecera aqui.'}</small></div>}</div></aside> : <button className="secundario caja-mostrar-historial" type="button" onClick={() => setHistorialReplegado(false)} aria-label="Desplegar historial" title="Desplegar historial"><Icon name="chevronRight" size={15} /></button>}
     <section className="panel caja-catalogo-operativo">
       <div className="caja-catalogo-cabecera"><label className="buscador-local"><Icon name="search" size={16} /><input value={busquedaCatalogo} onChange={(event) => setBusquedaCatalogo(event.target.value)} placeholder="Buscar producto o servicio" /></label><div className="caja-vista-catalogo"><button className={vistaCatalogo === 'listado' ? 'activo' : ''} type="button" onClick={() => setVistaCatalogo('listado')}><Icon name="menu" size={15} /> Listado</button><button className={vistaCatalogo === 'galeria' ? 'activo' : ''} type="button" onClick={() => setVistaCatalogo('galeria')}><Icon name="package" size={15} /> Galeria</button></div></div>
-      <div className="caja-categorias" aria-label="Categorias del catalogo">{categoriasCatalogo.map((categoria) => <button className={categoriaCatalogo === categoria ? 'activo' : ''} type="button" key={categoria} onClick={() => setCategoriaCatalogo(categoria)}>{categoria}</button>)}</div>
+      <div className="caja-categorias" aria-label="Categorias del catalogo">{categoriasCatalogo.map((categoria) => <button className={categoriaCatalogo === categoria ? 'activo' : ''} type="button" key={categoria} onClick={() => { setCategoriaCatalogo(categoria); setHojaAbierta(false); }}>{categoria}</button>)}</div>
+      {categoriaCatalogo === 'Laboratorios' && <div className="caja-hoja-accion"><button className="primario" type="button" onClick={() => setHojaAbierta((actual) => !actual)}><Icon name="fileText" size={15} /> {hojaAbierta ? 'Ocultar hoja de laboratorio' : 'Tickear laboratorio'}</button></div>}
+      {categoriaCatalogo === 'Laboratorios' && hojaAbierta && <section className="caja-hoja-laboratorio"><header><div><span>ORDEN DE LABORATORIO</span><h3>Seleccion de analisis</h3></div><strong>{analisisMarcados.length} marcados</strong></header><div className="caja-hoja-columnas">{Object.entries(hojaLaboratorio).map(([grupo, analisis]) => <fieldset key={grupo}><legend>{grupo}</legend>{analisis.map((item) => <label key={item.nombre}><input type="checkbox" checked={analisisMarcados.includes(item.nombre)} onChange={(event) => setAnalisisMarcados((actual) => event.target.checked ? [...actual, item.nombre] : actual.filter((nombre) => nombre !== item.nombre))} /><span>{item.precio.toFixed(2)}</span><b>{item.nombre}</b></label>)}</fieldset>)}</div><footer><small>Los analisis marcados se agregaran como laboratorios al consumo.</small><button className="primario" type="button" disabled={!analisisMarcados.length} onClick={() => { analisisMarcados.forEach((nombre, index) => agregarItem({ id: 100 + index, nombre, categoria: 'Laboratorios', tipo: 'Servicio', precio: hojaLaboratorio ? Object.values(hojaLaboratorio).flat().find((item) => item.nombre === nombre)?.precio ?? 0 : 0, detalle: 'Analisis de laboratorio' })); setHojaAbierta(false); }}>Agregar seleccionados</button></footer></section>}
       <div className={`caja-items ${vistaCatalogo}`}>
         {itemsCatalogo.map((item) => <button className="caja-item" type="button" key={item.id} onClick={() => agregarItem(item)}><span>{item.tipo} · {item.categoria}</span><strong>{item.nombre}</strong><small>{item.detalle}</small><div><b>{formatoBs(item.precio)}</b>{item.stock !== undefined && <em>{item.stock} disponibles</em>}<Icon name="plus" size={16} /></div></button>)}
         {itemsCatalogo.length === 0 && <p className="caja-catalogo-vacio">No hay productos o servicios que coincidan con la busqueda.</p>}

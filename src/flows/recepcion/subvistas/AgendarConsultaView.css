@@ -1,0 +1,210 @@
+.agendar-vista {
+  width: 100%;
+  color: #123d62;
+}
+.agendar-vista > header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+.agendar-vista > header > div {
+  order: -1;
+  flex: 1;
+}
+.agendar-vista > header span {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  color: #4e80ae;
+}
+.agendar-vista h1 {
+  margin: 5px 0 0;
+  font-size: 24px;
+  color: #064773;
+}
+.agendar-columnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+}
+.agendar-datos,
+.agendar-cobro {
+  padding: 20px;
+}
+.agendar-seccion-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.agendar-seccion-titulo > b {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #087fc0;
+}
+.agendar-seccion-titulo > div {
+  flex: 1;
+}
+.agendar-seccion-titulo strong,
+.agendar-seccion-titulo small {
+  display: block;
+}
+.agendar-seccion-titulo small {
+  margin-top: 3px;
+  color: #71899a;
+  font-size: 9px;
+}
+.agendar-seccion-titulo > button {
+  height: 32px;
+  padding: 0 10px;
+}
+.agendar-buscar {
+  height: 42px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #bfd8e9;
+  border-radius: 8px;
+  background: #f8fcff;
+}
+.agendar-buscar input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+.agendar-resultados {
+  margin: 5px 0 14px;
+  padding: 5px;
+  border: 1px solid #c9deeb;
+  border-radius: 8px;
+}
+.agendar-resultados button {
+  width: 100%;
+  padding: 9px;
+  border: 0;
+  border-radius: 5px;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  background: #fff;
+}
+.agendar-resultados button:hover {
+  background: #edf7fc;
+}
+.agendar-resultados small {
+  color: #71899a;
+}
+.agendar-registro,
+.agendar-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 11px;
+  margin-bottom: 20px;
+}
+.agendar-registro label,
+.agendar-campos label,
+.agendar-cobro > label {
+  display: grid;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 800;
+}
+.agendar-registro input,
+.agendar-campos input,
+.agendar-campos select,
+.agendar-cobro input,
+.agendar-cobro select {
+  width: 100%;
+  height: 40px;
+  padding: 0 9px;
+  border: 1px solid #bfd8e9;
+  border-radius: 7px;
+  background: #f8fcff;
+}
+.agendar-registro button {
+  align-self: end;
+  height: 40px;
+}
+.agendar-paciente {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 12px;
+  border: 1px solid #9ed6bf;
+  border-radius: 8px;
+  background: #e9f7f2;
+}
+.agendar-paciente span,
+.agendar-paciente small {
+  display: block;
+  font-size: 9px;
+}
+.agendar-paciente strong {
+  display: block;
+  margin: 4px 0;
+}
+.agendar-paciente button {
+  border: 0;
+  background: transparent;
+}
+.agendar-error {
+  padding: 9px;
+  color: #87343e;
+  background: #fff0f1;
+}
+.agendar-cobro {
+  align-self: start;
+  display: grid;
+  gap: 14px;
+}
+.agendar-resumen,
+.agendar-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 13px 0;
+  border-bottom: 1px solid #dceaf2;
+}
+.agendar-total {
+  margin-top: 8px;
+  border-top: 1px solid #dceaf2;
+}
+.agendar-total strong {
+  font-size: 20px;
+  color: #087fc0;
+}
+.agendar-cobro > button {
+  height: 44px;
+}
+.agendar-cobro > button:disabled {
+  opacity: 0.45;
+}
+@media (max-width: 900px) {
+  .agendar-columnas {
+    grid-template-columns: 1fr;
+  }
+  .agendar-cobro {
+    width: 100%;
+  }
+}
+@media (max-width: 560px) {
+  .agendar-registro,
+  .agendar-campos {
+    grid-template-columns: 1fr;
+  }
+  .agendar-vista > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .agendar-vista > header > div {
+    order: 0;
+  }
+}

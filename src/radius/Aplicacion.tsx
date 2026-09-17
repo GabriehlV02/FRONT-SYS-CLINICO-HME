@@ -55,7 +55,7 @@ const modulos: Modulo[] = [
 
 export default function Aplicacion() {
   const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
-  const [modulo, setModulo] = useState("imagenologia");
+  const [modulo, setModulo] = useState("");
   const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
   const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>("caja");
   const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
@@ -97,6 +97,9 @@ export default function Aplicacion() {
     window.addEventListener("sesion-expirada", expirar);
     return () => window.removeEventListener("sesion-expirada", expirar);
   }, []);
+  useEffect(() => {
+    if (!sesion) setModulo("");
+  }, [sesion]);
   useEffect(() => {
     if (!sesion) return;
     let activo = true;
@@ -167,9 +170,9 @@ export default function Aplicacion() {
     return () => window.removeEventListener("radiuus:navegar", navegar);
   }, []);
   if (!sesion) return <VistaInicioSesion onLogin={setSesion} />;
-  const moduloActual = modulos.find((item) => item.id === modulo) ?? modulos[0];
+  const moduloActual = modulos.find((item) => item.id === modulo);
   const subvistaActual = subvistasImagenologia.find((item) => item.id === subvistaImagenologia) ?? subvistasImagenologia[0];
-  const actual = modulo === "imagenologia"
+  const actual = moduloActual && modulo === "imagenologia"
     ? { ...moduloActual, nombre: subvistaActual.nombre, icono: subvistaActual.icono }
     : moduloActual;
   const opcionesBusqueda = [...modulos, ...subvistasImagenologia];
@@ -186,6 +189,7 @@ export default function Aplicacion() {
     setAvisos([]);
     setVerAvisos(false);
     setBusqueda('');
+    setModulo('');
   };
   const alternarSidebar = () =>
     setSidebarReplegado((valor) => {
@@ -193,7 +197,6 @@ export default function Aplicacion() {
       localStorage.setItem("pulso_sidebar_replegado", siguiente ? "1" : "0");
       return siguiente;
     });
-  const alternarTema = () => setTema((valor) => valor === "dark" ? "light" : "dark");
   return (
     <main
       className={`sistema-app ${sidebarReplegado ? "sidebar-replegado" : ""}`}
@@ -295,12 +298,12 @@ export default function Aplicacion() {
           >
             <Icon name="menu" />
           </button>
-          <span className="topbar-icono">
+          {actual && <><span className="topbar-icono">
             <Icon name={actual.icono} size={20} />
           </span>
           <div className="topbar-titulo">
             <h1>{actual.nombre}</h1>
-          </div>
+          </div></>}
           <label className="busqueda-global">
             <Icon name="search" size={18} />
             <input aria-label="Buscar módulo" placeholder="Buscar un módulo" value={busqueda} onChange={e => setBusqueda(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setBusqueda(''); }}/>
@@ -308,14 +311,6 @@ export default function Aplicacion() {
           </label>
           <button className="topbar-boton" aria-label="Notificaciones" aria-expanded={verAvisos} onClick={() => setVerAvisos(!verAvisos)}>
             <Icon name="bell" size={20} />
-          </button>
-          <button
-            className="topbar-boton tema-boton"
-            aria-label={tema === "dark" ? "Cambiar a vista clara" : "Cambiar a vista oscura"}
-            title={tema === "dark" ? "Vista clara" : "Vista oscura"}
-            onClick={alternarTema}
-          >
-            <Icon name={tema === "dark" ? "eye" : "eyeOff"} size={20} />
           </button>
           {verAvisos && <section className="pulso-avisos" aria-label="Notificaciones recientes"><h2>Notificaciones</h2><button onClick={() => setVerAvisos(false)}>Cerrar</button>{avisos.length ? avisos.map((a, i) => <article key={i}><strong>{a.titulo}</strong><p>{a.mensaje}</p></article>) : <p>No hay notificaciones en esta sesión.</p>}</section>}
           <div className="perfil">
@@ -374,7 +369,7 @@ export default function Aplicacion() {
             <VistaConfiguracion initialSection={subvistaConfiguracion} />
           ) : modulo === "auditorias" ? (
             <VistaAuditorias sesion={sesion} />
-          ) : (
+          ) : actual ? (
             <div className="modulo-vacio">
               <span>
                 <Icon name={actual.icono} size={28} />
@@ -385,7 +380,7 @@ export default function Aplicacion() {
                 Este módulo está listo para incorporar su contenido.
               </small>
             </div>
-          )}
+          ) : null}
         </div>
       </section>
     </main>

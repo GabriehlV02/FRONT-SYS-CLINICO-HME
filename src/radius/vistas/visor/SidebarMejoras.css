@@ -1,4 +1,4 @@
-.sistema-sidebar{width:270px;border-right:1px solid #d9e3f2;background:#fff;box-shadow:none}
+.sistema-sidebar{width:270px;overflow:visible;border-right:1px solid #d9e3f2;background:#fff;box-shadow:none}
 .sistema-sidebar:after{display:none}
 .sistema-marca{height:96px;padding:18px 20px;gap:12px}
 .marca-icono{width:188px;height:64px;flex:0 0 188px;border:0;border-radius:0;background:transparent;box-shadow:none}
@@ -37,7 +37,7 @@
 .boton-salir:hover{color:#001db8;background:#eaf1ff}
 .boton-salir:hover .nav-icono{color:#fff;border-color:#1d4ed8;background:#2563eb}
 .sistema-nav{flex:1}.boton-salir{margin-top:4px}
-.replegar-menu{z-index:2;border-radius:50%}
+.replegar-menu{right:-14px;width:28px;height:28px;z-index:50;border-radius:50%;box-shadow:0 3px 10px rgba(7,85,139,.16)}
 .sidebar-replegado .sistema-sidebar{width:80px}
 .sidebar-replegado .sistema-cuerpo{width:calc(100% - 80px);margin-left:80px}
 .sidebar-replegado .sistema-marca{height:86px;padding:16px 14px}

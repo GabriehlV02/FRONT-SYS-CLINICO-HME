@@ -1,0 +1,84 @@
+.citas-vista{width:100%;max-width:none;margin:0;color:#123d62}
+.citas-controles{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:15px 18px}
+.citas-periodo,.citas-periodo button{display:flex;align-items:center;gap:10px}
+.citas-icono{width:34px;height:34px;padding:0}
+.citas-hoy{height:34px;padding:0 13px;margin-left:5px}
+.citas-calendario{position:relative}
+.citas-calendario-panel{position:absolute;z-index:30;top:43px;left:0;width:292px;padding:12px;border:1px solid #bcd8e8;border-radius:8px;background:#fff;box-shadow:0 14px 32px rgba(20,72,105,.18)}
+.citas-calendario-panel header{height:34px;display:grid;grid-template-columns:32px 1fr 32px;align-items:center;margin-bottom:7px}
+.citas-calendario-panel header strong{color:#174f73;font-size:12px;text-align:center;text-transform:capitalize}
+.citas-calendario-panel header button{width:30px;height:30px;padding:0;display:grid;place-items:center;border:0;border-radius:6px;color:#168ac7;background:transparent}
+.citas-calendario-panel header button:hover{background:#edf7fc}
+.citas-calendario-semana,.citas-calendario-dias{display:grid;grid-template-columns:repeat(7,1fr)}
+.citas-calendario-semana span{height:28px;display:grid;place-items:center;color:#7892a5;font-size:9px;font-weight:900}
+.citas-calendario-dias{gap:2px}
+.citas-calendario-dias button{position:relative;width:36px;height:34px;padding:0;border:0;border-radius:6px;color:#274f69;background:transparent;font-size:11px;font-weight:700}
+.citas-calendario-dias button:hover{color:#0879af;background:#e8f5fb}
+.citas-calendario-dias button.otro-mes{color:#afc0cb}
+.citas-calendario-dias button.hoy:after{content:'';position:absolute;bottom:4px;left:50%;width:4px;height:4px;border-radius:50%;background:#1495d0;transform:translateX(-50%)}
+.citas-calendario-dias button.seleccionado{color:#fff;background:#087fc0;box-shadow:0 3px 8px rgba(8,127,192,.25)}
+.citas-calendario-dias button.seleccionado:after{background:#fff}
+.citas-doctor{display:flex;align-items:center;gap:10px;color:#52738b;font-size:10px;font-weight:800}
+.citas-agendar{height:36px;padding:0 13px;gap:6px;white-space:nowrap}
+.citas-agendar:disabled{cursor:not-allowed;opacity:.45;box-shadow:none}
+.citas-doctor-selector{position:relative;min-width:210px}
+.citas-doctor-selector>button{width:100%;height:36px;padding:0 11px;display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid #bfd8e9;border-radius:8px;color:#173d60;background:#f8fcff;font-size:11px;text-align:left}
+.citas-doctor-selector>button:hover,.citas-doctor-selector>button[aria-expanded="true"]{border-color:#55aee0;background:#fff;box-shadow:0 0 0 3px rgba(58,157,216,.13)}
+.citas-doctor-selector>button svg{color:#168ac7;transition:transform .18s}
+.citas-doctor-selector>button[aria-expanded="true"] svg{transform:rotate(180deg)}
+.citas-doctor-opciones{position:absolute;z-index:20;top:43px;right:0;width:100%;padding:5px;border:1px solid #bcd8e8;border-radius:8px;background:#fff;box-shadow:0 12px 28px rgba(20,72,105,.16)}
+.citas-doctor-opciones button{width:100%;min-height:34px;padding:0 9px;display:flex;align-items:center;justify-content:space-between;border:0;border-radius:5px;color:#365f7d;background:transparent;font-size:11px;text-align:left}
+.citas-doctor-opciones button:hover{background:#edf7fc;color:#0879af}
+.citas-doctor-opciones button.activo{color:#056fa9;background:#e3f3fb;font-weight:800}
+.citas-doctor-opciones button svg{visibility:hidden;color:#0790cb}
+.citas-doctor-opciones button.activo svg{visibility:visible}
+.citas-resumen{display:flex;align-items:center;gap:18px;min-height:48px;color:#52738b;font-size:11px}
+.citas-resumen span{display:flex;align-items:center;gap:6px}
+.citas-resumen i{width:8px;height:8px;border-radius:50%}
+.citas-resumen .confirmada{background:#15966b}
+.citas-resumen .por-confirmar{background:#e1a72e}
+.citas-resumen .cancelada{background:#c45c68}
+.citas-resumen small{margin-left:auto;color:#7791a5}
+.citas-agenda{overflow:auto;padding:0}
+.agenda-tabla{min-width:1180px}
+.agenda-encabezado{display:grid;grid-template-columns:72px repeat(6,minmax(180px,1fr))}
+.agenda-esquina,.agenda-dia{height:46px;display:flex;align-items:center;border-bottom:1px solid #d6e6f0;background:#f2f8fc;color:#365f7d;font-size:11px;font-weight:900}
+.agenda-esquina{padding-left:14px}
+.agenda-dia{justify-content:center;border-left:1px solid #d6e6f0}
+.agenda-fila{display:grid;grid-template-columns:72px repeat(6,minmax(180px,1fr));min-height:88px;border-bottom:1px solid #e1edf4}
+.agenda-fila time{padding:12px 14px;color:#4d7591;font-size:12px;font-weight:800}
+.agenda-celda{position:relative;border-left:1px solid #e1edf4;background:#fff}
+.agenda-celda:hover{background:#f8fcff}
+.agenda-celda.libre{cursor:pointer}
+.agenda-celda.libre:hover,.agenda-celda.libre:focus-visible{outline:0;background:#eef8fd;box-shadow:inset 0 0 0 2px #8fcde9}
+.agenda-celda.libre:after{content:'+';position:absolute;inset:0;display:grid;place-items:center;color:#168ac7;font-size:20px;font-weight:500;opacity:0;transition:opacity .15s}
+.agenda-celda.libre:hover:after,.agenda-celda.libre:focus-visible:after{opacity:.7}
+.cita-bloque{position:absolute;z-index:1;inset:6px 7px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;overflow:hidden;padding:8px 10px;border:1px solid #a8dec7;border-left:4px solid #15966b;border-radius:7px;background:#e7f7f1;color:#104d39;font-size:11px;line-height:1.2;box-shadow:0 3px 10px rgba(17,91,69,.08)}
+.cita-bloque{cursor:pointer}.cita-bloque:hover,.cita-bloque:focus-visible{outline:0;transform:translateY(-1px);box-shadow:0 6px 15px rgba(17,91,69,.16)}
+.cita-bloque strong{overflow:hidden;color:#073d2c;font-size:13px;font-weight:900;line-height:1.2;text-overflow:ellipsis;white-space:nowrap}
+.cita-bloque small{overflow:hidden;color:#2e6d57;font-size:11px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.cita-bloque em{width:max-content;margin-top:auto;padding:3px 7px;border:1px solid #86cfb3;border-radius:4px;background:#bfead9;color:#0c5039;font-size:10px;font-style:normal;font-weight:900}
+.cita-bloque.por-confirmar{border-color:#f0cf78;border-left-color:#d79b1f;background:#fff6dc;color:#6d4c05;box-shadow:0 5px 14px rgba(151,103,8,.09)}
+.cita-bloque.por-confirmar strong{color:#5a3e02}
+.cita-bloque.por-confirmar small{color:#7f641c}
+.cita-bloque.por-confirmar em{border-color:#dcbf62;background:#f4dc95;color:#604301}
+.cita-bloque.cancelada{border-color:#e8b2b8;border-left-color:#be5b67;background:#fff0f1;color:#74303a;box-shadow:0 5px 14px rgba(145,58,69,.08)}
+.cita-bloque.cancelada strong{color:#682631}
+.cita-bloque.cancelada small{color:#8b4a54}
+.cita-bloque.cancelada em{border-color:#dda0a8;background:#f2cbd0;color:#71313a}
+.citas-modal-fondo{position:fixed;inset:0;z-index:80;padding:20px;display:grid;place-items:center;background:rgba(7,43,68,.38)}
+.citas-modal{width:min(520px,100%);padding:22px;border:1px solid #bcd8e8;border-radius:12px;background:#fff;box-shadow:0 22px 55px rgba(8,52,82,.22)}
+.citas-modal header{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid #dceaf2}
+.citas-modal header span{color:#4e80ae;font-size:9px;font-weight:900;letter-spacing:1.2px}.citas-modal h2{margin:6px 0 0;color:#064773;font-size:19px}.citas-modal header button{width:32px;height:32px;padding:0;display:grid;place-items:center;border:0;border-radius:6px;color:#52738b;background:#edf6fb}
+.citas-modal-campos{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px}.citas-modal-campos label{display:grid;gap:6px;color:#365f7d;font-size:10px;font-weight:800}.citas-modal-campos input,.citas-modal-campos select{width:100%;height:40px;padding:0 10px;border:1px solid #bfd8e9;border-radius:7px;outline:0;color:#173d60;background:#f8fcff;font-size:11px}.citas-modal-campos input:focus,.citas-modal-campos select:focus{border-color:#55aee0;box-shadow:0 0 0 3px rgba(58,157,216,.12)}.citas-modal-estado{grid-column:1/-1}.citas-modal-error{margin:14px 0 0;padding:9px;border:1px solid #e8b2b8;border-radius:6px;color:#74303a;background:#fff0f1;font-size:10px}.citas-modal footer{margin-top:18px;padding-top:15px;display:flex;justify-content:flex-end;gap:9px;border-top:1px solid #dceaf2}.citas-modal footer button{height:38px;padding-block:0}
+.cita-detalle-modal{width:min(560px,100%);padding:22px;border:1px solid #bcd8e8;border-radius:12px;background:#fff;box-shadow:0 22px 55px rgba(8,52,82,.22)}.cita-detalle-modal>header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:16px;border-bottom:1px solid #dceaf2}.cita-detalle-modal>header span{color:#4e80ae;font-size:9px;font-weight:900;letter-spacing:1.2px}.cita-detalle-modal h2{margin:6px 0 0;color:#064773;font-size:20px}.cita-detalle-modal>header button{width:32px;height:32px;padding:0;display:grid;place-items:center;border:0;border-radius:6px;color:#52738b;background:#edf6fb}.cita-detalle-modal dl{margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:12px}.cita-detalle-modal dl div{padding:11px;border:1px solid #dceaf2;border-radius:7px;background:#f8fcff}.cita-detalle-modal dt{margin-bottom:5px;color:#71899a;font-size:9px;font-weight:800}.cita-detalle-modal dd{margin:0;color:#173d60;font-size:11px;font-weight:700}.cita-detalle-modal dd em{display:inline-block;padding:4px 7px;border-radius:4px;font-style:normal}.cita-detalle-modal dd em.confirmada{color:#0c5039;background:#bfead9}.cita-detalle-modal dd em.por-confirmar{color:#604301;background:#f4dc95}.cita-detalle-acciones{display:flex;justify-content:flex-end;gap:9px;padding-top:16px;border-top:1px solid #dceaf2}.cita-detalle-acciones button{height:39px;padding:0 14px}.cita-cancelar,.cita-confirmar-cancelacion{border:1px solid #dc9da5;border-radius:8px;color:#9b3441;background:#fff4f5;font-weight:800}.cita-cancelar-aviso{padding:15px;border:1px solid #e3a2aa;border-radius:8px;color:#7d303a;background:#fff1f2;display:grid;grid-template-columns:28px 1fr;gap:10px}.cita-cancelar-aviso p{margin:6px 0 0;font-size:10px;line-height:1.5}.cita-cancelar-aviso footer{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px;margin-top:5px}.cita-cancelar-aviso button{height:36px;padding:0 12px}.cita-confirmar-cancelacion{color:#fff;background:#b94452}
+@media(max-width:700px){
+  .citas-controles{align-items:flex-start;flex-direction:column}
+  .citas-doctor{width:100%;justify-content:space-between}
+  .citas-doctor-selector{flex:1;min-width:0}
+  .citas-agendar{flex-shrink:0}
+  .citas-resumen{flex-wrap:wrap;gap:10px}
+  .citas-resumen small{width:100%;margin-left:0}
+  .agenda-tabla{min-width:1080px}
+  .citas-modal-campos{grid-template-columns:1fr}.citas-modal-estado{grid-column:auto}
+}

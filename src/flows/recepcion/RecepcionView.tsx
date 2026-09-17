@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Icon, { type IconName } from '../../radius/componentes/Icono';
 import './RecepcionView.css';
+import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
 import { CajaRecepcionView } from './subvistas/CajaRecepcionView';
 import { CitasRecepcionView } from './subvistas/CitasRecepcionView';
 import { CuentasRecepcionView } from './subvistas/CuentasRecepcionView';
@@ -21,13 +22,13 @@ export function RecepcionView({ initialAgenda = false, initialSubview }: { initi
   const [subvista, setSubvista] = useState<SubvistaRecepcion>(initialSubview ?? (initialAgenda ? 'citas' : 'caja'));
 
   return <section className="recepcion-vista">
-    <nav className="recepcion-subvistas" aria-label="Subvistas de Recepcion">
+    <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Recepcion">
       {subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}>
         <span><Icon name={item.icono} size={17}/></span>
         <strong>{item.nombre}</strong>
         <small>{item.descripcion}</small>
       </button>)}
-    </nav>
+    </HorizontalSubvistaNav>
 
     {subvista === 'caja' && <CajaRecepcionView/>}
     {subvista === 'citas' && <CitasRecepcionView/>}

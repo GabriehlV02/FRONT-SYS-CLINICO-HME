@@ -853,6 +853,23 @@ button:focus-visible{
   background:linear-gradient(135deg,var(--primary-700),var(--primary-600));
 }
 
+/* Al ocultar el menú en escritorio, la cabecera y el contenido ocupan todo el ancho. */
+@media (min-width:761px){
+  .sidebar-replegado .sistema-sidebar{
+    width:var(--clinico-sidebar);
+    transform:translateX(-105%);
+    visibility:hidden;
+  }
+  .sidebar-replegado .sistema-cuerpo{
+    width:100%;
+    margin-left:0;
+  }
+  .sidebar-replegado .desplegar-sidebar-escritorio{
+    display:grid;
+    flex:0 0 38px;
+  }
+}
+
 /* Pacientes: reemplaza la herencia oscura de RADIUS por el tema claro actual. */
 .pacientes-vista{
   color:#061b35;
@@ -2015,4 +2032,115 @@ button:focus-visible{
 .login-page-clinico .login-presentacion-onda {
   background: #67b5e9;
   box-shadow: 0 -22px 0 rgba(255,255,255,.74), 0 -44px 0 rgba(31,119,194,.52);
+}
+
+/* Escala de lectura compartida para las vistas del sistema. */
+.sistema-app{
+  font-family:Inter,"Segoe UI",Arial,sans-serif;
+}
+.sistema-app .area-trabajo{
+  font-size:14px;
+  line-height:1.5;
+}
+.sistema-app .area-trabajo :is(button,input,select,textarea){
+  font-family:inherit;
+  font-size:14px;
+}
+.sistema-app .area-trabajo :is(p,li,dt,dd,td,th,label,legend){
+  font-size:14px;
+  line-height:1.45;
+}
+.sistema-app .area-trabajo small{
+  font-size:12px;
+  line-height:1.4;
+}
+.sistema-app .area-trabajo :is(input,select,textarea){
+  min-height:40px;
+}
+.sistema-app .area-trabajo :is(.usuarios-fila,.orthanc-fila,.estudio-fila,.agenda-fila,.recepcion-tabla>div,.auditorias-aviso,.orthanc-paginacion){
+  font-size:14px;
+  line-height:1.45;
+}
+.sistema-app .area-trabajo :is(.usuarios-columnas,.orthanc-fila.columnas,.agenda-fila:first-child,.recepcion-tabla>div:first-child){
+  font-size:12px;
+}
+.sistema-app .area-trabajo :is(.usuarios-fila,.orthanc-fila,.estudio-fila,.agenda-fila) strong{
+  font-size:14px;
+  line-height:1.4;
+}
+
+/* Recepción: pestañas, catálogo, historial y detalle de cobro. */
+.sistema-app .recepcion-subvistas{
+  gap:6px;
+  padding:5px 8px;
+  margin-bottom:20px;
+}
+.sistema-app .recepcion-subvistas button{
+  flex:0 0 auto;
+  min-width:140px;
+  min-height:54px;
+  padding:0 16px;
+  gap:10px;
+}
+.sistema-app .recepcion-subvistas strong{font-size:14px}
+.sistema-app .recepcion-caja.caja-con-catalogo{
+  grid-template-columns:minmax(250px,280px) minmax(0,1fr) minmax(360px,400px);
+  gap:18px;
+}
+.sistema-app .recepcion-caja.caja-con-catalogo.historial-replegado{
+  grid-template-columns:40px minmax(0,1fr) minmax(360px,400px);
+}
+.sistema-app .caja-historial .panel-cabecera h2{font-size:20px;line-height:1.25}
+.sistema-app .caja-historial .panel-cabecera span,
+.sistema-app .caja-historial-filtro,
+.sistema-app .caja-historial-lista article>span{font-size:12px;letter-spacing:.5px}
+.sistema-app .caja-historial-filtro select{height:42px;font-size:14px}
+.sistema-app .caja-historial-vacio{min-height:185px;padding:22px 14px}
+.sistema-app .caja-historial-vacio strong,
+.sistema-app .caja-historial-lista article header strong{font-size:14px}
+.sistema-app .caja-historial-vacio small,
+.sistema-app .caja-historial-lista article :is(small,p,em){font-size:12px;line-height:1.45}
+.sistema-app .caja-historial-lista article b{font-size:15px}
+.sistema-app .caja-catalogo-operativo{padding:18px}
+.sistema-app .caja-catalogo-cabecera .buscador-local{height:44px}
+.sistema-app .caja-vista-catalogo button{min-height:36px;padding:0 11px;font-size:13px}
+.sistema-app .caja-categorias{gap:8px;margin:16px 0}
+.sistema-app .caja-categorias button{height:36px;padding:0 13px;font-size:13px}
+.sistema-app .caja-item{padding:15px;gap:7px 12px}
+.sistema-app .caja-item>span{font-size:11px;padding:4px 7px}
+.sistema-app .caja-item strong{font-size:15px;line-height:1.35}
+.sistema-app .caja-item small{font-size:12px}
+.sistema-app .caja-item b{font-size:16px}
+.sistema-app .caja-item em{font-size:11px}
+.sistema-app .caja-detalle{gap:16px;padding:18px}
+.sistema-app .caja-consumo-titulo{min-height:48px}
+.sistema-app .caja-consumo-titulo strong,
+.sistema-app .caja-consumo article strong,
+.sistema-app .caja-factura strong{font-size:14px}
+.sistema-app .caja-consumo-titulo span,
+.sistema-app .caja-consumo article small,
+.sistema-app .caja-factura small{font-size:12px}
+.sistema-app .caja-pago label,
+.sistema-app .caja-campos-paciente label,
+.sistema-app .caja-factura-campos label{font-size:13px}
+.sistema-app .caja-pago :is(input,select){height:42px}
+.sistema-app .caja-factura>button{height:38px;font-size:13px}
+.sistema-app .caja-resumen div{font-size:13px}
+.sistema-app .caja-resumen .total{font-size:15px}
+.sistema-app .caja-resumen .total strong{font-size:22px}
+.sistema-app .caja-cobrar{height:48px}
+.sistema-app .caja-hoja-columnas label{font-size:13px;line-height:1.35}
+.sistema-app .caja-hoja-columnas legend{font-size:12px}
+
+@media(max-width:1180px){
+  .sistema-app .recepcion-caja.caja-con-catalogo,
+  .sistema-app .recepcion-caja.caja-con-catalogo.historial-replegado{
+    grid-template-columns:minmax(0,1fr);
+  }
+}
+@media(max-width:620px){
+  .sistema-app .recepcion-subvistas button{min-width:120px;padding:0 12px}
+  .sistema-app .caja-catalogo-operativo,
+  .sistema-app .caja-detalle{padding:14px}
+  .sistema-app .caja-vista-catalogo button{padding:0 8px}
 }

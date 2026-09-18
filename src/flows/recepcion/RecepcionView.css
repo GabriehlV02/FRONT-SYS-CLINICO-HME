@@ -40,9 +40,7 @@
 .caja-historial-lista article small{color:#647f9b;font-size:9px}
 .caja-historial-lista article b{color:#064773;font-size:13px}
 .caja-catalogo-operativo{min-width:0;padding:14px;overflow:hidden}
-.registro-paciente-activo .caja-catalogo-operativo{visibility:hidden;pointer-events:none}
-.recepcion-caja.registro-paciente-activo .caja-detalle .caja-form-paciente{width:calc(100cqw - 672px);min-width:0}
-.recepcion-caja.registro-paciente-activo.historial-replegado .caja-detalle .caja-form-paciente{width:calc(100cqw - 454px)}
+.registro-paciente-activo .caja-catalogo-operativo> :not(.caja-form-paciente){display:none}
 .caja-catalogo-cabecera{display:flex;gap:10px;align-items:center}
 .caja-catalogo-cabecera .buscador-local{height:40px;flex:1}
 .caja-vista-catalogo{display:flex;padding:3px;border:1px solid #c8dfeb;border-radius:8px;background:#f6fbfe}
@@ -79,11 +77,7 @@
 .caja-resultados button strong{color:#12384d;font-size:11px}
 .caja-resultados button small{color:#647f9b;font-size:10px}
 .caja-sin-coincidencias{margin:0;padding:9px 11px;border:1px dashed #bdd8e8;border-radius:8px;color:#647f9b;background:#f8fcff;font-size:10px;line-height:1.45}
-.caja-form-paciente{display:grid;gap:12px;padding:13px;border:1px solid #c8dfeb;border-radius:10px;background:#f8fcff}
-@media(min-width:1181px){
-  .caja-detalle:has(.caja-form-paciente){overflow:visible}
-  .caja-form-paciente{position:absolute;right:calc(100% + 16px);top:0;width:min(560px,calc(100vw - 470px));max-height:calc(100dvh - 112px);overflow-y:auto;z-index:2;box-shadow:0 12px 28px rgba(7,89,133,.12)}
-}
+.caja-form-paciente{width:100%;min-width:0;max-height:calc(100dvh - 240px);display:grid;align-content:start;gap:12px;padding:16px;border:1px solid #c8dfeb;border-radius:10px;background:#f8fcff;overflow-y:auto}
 .caja-grupo-paciente{min-width:0;margin:0;padding:11px;border:1px solid #d7e7f1;border-radius:8px;background:#fff}
 .caja-grupo-paciente legend{padding:0 5px;color:#315b7b;font-size:10px;font-weight:900}
 .caja-form-cabecera{display:flex;align-items:center;justify-content:space-between;color:#12384d;font-size:12px}

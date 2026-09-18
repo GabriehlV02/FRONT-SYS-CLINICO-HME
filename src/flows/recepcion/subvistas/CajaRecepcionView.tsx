@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from 'react';
+import { createPortal } from 'react-dom';
 import Icon from '../../../radius/componentes/Icono';
 
 type DatosFactura = { nit: string; razonSocial: string };
@@ -62,6 +63,7 @@ export function CajaRecepcionView() {
   const [pacientesRegistrados, setPacientesRegistrados] = useState<Paciente[]>(leerPacientes);
   const [paciente, setPaciente] = useState<Paciente | null>(null);
   const [registroAbierto, setRegistroAbierto] = useState(false);
+  const [catalogoNodo, setCatalogoNodo] = useState<HTMLElement | null>(null);
   const [formularioPaciente, setFormularioPaciente] = useState(formularioPacienteInicial);
   const [errorPaciente, setErrorPaciente] = useState('');
   const [emitirFactura, setEmitirFactura] = useState(false);
@@ -129,8 +131,9 @@ export function CajaRecepcionView() {
   const cambiarCantidad = (id: number, cambioCantidad: number) => setConsumo((actual) => actual.map((item) => item.id === id ? { ...item, cantidad: Math.max(0, item.cantidad + cambioCantidad) } : item).filter((item) => item.cantidad > 0));
 
   return <section className={`recepcion-caja caja-con-catalogo ${historialReplegado ? 'historial-replegado' : ''} ${registroAbierto ? 'registro-paciente-activo' : ''}`}>
+    <div className="caja-columna-principal">
     {!historialReplegado ? <aside className="panel caja-historial"><div className="panel-cabecera"><div><span>HISTORIAL</span><h2>Consumos previos</h2></div><button className="secundario caja-historial-control" type="button" onClick={() => setHistorialReplegado(true)} aria-label="Replegar historial" title="Replegar historial"><Icon name="chevronLeft" size={15} /></button></div><label className="caja-historial-filtro"><span>Estado</span><select value={filtroHistorial} onChange={(event) => setFiltroHistorial(event.target.value as typeof filtroHistorial)}><option>Todos</option><option>Pagado</option><option>Preventa</option><option>Anulado</option></select></label><div className="caja-historial-lista">{historialPaciente.length > 0 && historialFiltrado.length > 0 ? historialFiltrado.map((item) => <article className={`estado-${item.estado.toLocaleLowerCase()}`} key={item.id}><header><strong>N. {item.numero}</strong><em>{item.estado}</em></header><span>HOSPITAL</span><p>{item.cajero}</p><p>{item.servicio}</p><footer><small>{item.fecha}</small><b>{formatoBs(item.total)}</b></footer></article>) : <div className="caja-historial-vacio"><Icon name="fileText" size={20} /><strong>{historialPaciente.length ? 'Sin resultados para este filtro' : 'Sin consumos previos'}</strong><small>{historialPaciente.length ? 'Prueba con otro estado.' : 'El historial del paciente aparecera aqui.'}</small></div>}</div></aside> : <button className="secundario caja-mostrar-historial" type="button" onClick={() => setHistorialReplegado(false)} aria-label="Desplegar historial" title="Desplegar historial"><Icon name="chevronRight" size={15} /></button>}
-    <section className="panel caja-catalogo-operativo">
+    <section ref={setCatalogoNodo} className="panel caja-catalogo-operativo">
       <div className="caja-catalogo-cabecera"><label className="buscador-local"><Icon name="search" size={16} /><input value={busquedaCatalogo} onChange={(event) => setBusquedaCatalogo(event.target.value)} placeholder="Buscar producto o servicio" /></label><div className="caja-vista-catalogo"><button className={vistaCatalogo === 'listado' ? 'activo' : ''} type="button" onClick={() => setVistaCatalogo('listado')}><Icon name="menu" size={15} /> Listado</button><button className={vistaCatalogo === 'galeria' ? 'activo' : ''} type="button" onClick={() => setVistaCatalogo('galeria')}><Icon name="package" size={15} /> Galeria</button></div></div>
       <div className="caja-categorias" aria-label="Categorias del catalogo">{categoriasCatalogo.map((categoria) => <button className={categoriaCatalogo === categoria ? 'activo' : ''} type="button" key={categoria} onClick={() => { setCategoriaCatalogo(categoria); setHojaAbierta(false); }}>{categoria}</button>)}</div>
       {categoriaCatalogo === 'Laboratorios' && <div className="caja-hoja-accion"><button className="primario" type="button" onClick={() => setHojaAbierta((actual) => !actual)}><Icon name="fileText" size={15} /> {hojaAbierta ? 'Ocultar hoja de laboratorio' : 'Tickear laboratorio'}</button></div>}
@@ -140,6 +143,7 @@ export function CajaRecepcionView() {
         {itemsCatalogo.length === 0 && <p className="caja-catalogo-vacio">No hay productos o servicios que coincidan con la busqueda.</p>}
       </div>
     </section>
+    </div>
     <aside className="panel caja-detalle">
       <div className="panel-cabecera"><div><span>CAJA</span><h2>Detalle de cobro</h2></div><button className="secundario" type="button" onClick={limpiarCuenta}>Limpiar</button></div>
       <div className="caja-paciente">
@@ -147,7 +151,7 @@ export function CajaRecepcionView() {
         <label className="buscador-local"><Icon name="search" size={16} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por CI, nombre o apellido" /></label>
         {pacientesFiltrados.length > 0 && <div className="search-results caja-resultados">{pacientesFiltrados.map((item) => <button key={item.id} type="button" onClick={() => seleccionarPaciente(item)}><strong>{nombreCompleto(item)}</strong><small>CI {item.ci} · {item.celular}</small></button>)}</div>}
         {busqueda.trim() && pacientesFiltrados.length === 0 && <p className="caja-sin-coincidencias">No encontramos coincidencias. Puedes registrar al paciente.</p>}
-        {registroAbierto && <form className="caja-form-paciente" onSubmit={registrarPaciente}>
+        {registroAbierto && catalogoNodo && createPortal(<form className="caja-form-paciente" onSubmit={registrarPaciente}>
           <div className="caja-form-cabecera"><strong>Registro de paciente</strong><button type="button" onClick={() => setRegistroAbierto(false)} aria-label="Cerrar registro"><Icon name="close" size={15} /></button></div>
           {errorPaciente && <p className="caja-form-error">{errorPaciente}</p>}
           <fieldset className="caja-grupo-paciente"><legend>Datos personales</legend><div className="caja-campos-paciente">
@@ -169,7 +173,7 @@ export function CajaRecepcionView() {
           <fieldset className="caja-grupo-paciente"><legend>Persona responsable</legend><div className="caja-campos-paciente"><label>Nombre completo<input value={formularioPaciente.responsableNombre} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, responsableNombre: event.target.value })} /></label><label>Telefono de contacto<input type="tel" value={formularioPaciente.responsableTelefono} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, responsableTelefono: event.target.value })} /></label><label className="campo-completo">Parentesco<input value={formularioPaciente.responsableParentesco} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, responsableParentesco: event.target.value })} placeholder="Ej. Padre, madre o tutor" /></label></div></fieldset>
           <fieldset className="caja-grupo-paciente"><legend>Registro</legend><div className="caja-campos-paciente"><label className="campo-completo">Como se entero de nosotros? *<select required value={formularioPaciente.procedencia} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, procedencia: event.target.value })}><option value="">Seleccionar</option><option>Recomendacion</option><option>Redes sociales</option><option>Internet</option><option>Otro</option></select></label><label className="campo-completo">Observaciones<textarea value={formularioPaciente.observaciones} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, observaciones: event.target.value })} rows={2} /></label><label className="campo-completo caja-opciones"><span><input type="checkbox" checked={formularioPaciente.habilitado} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, habilitado: event.target.checked })} /> Paciente habilitado</span></label></div></fieldset>
           <button className="primario caja-guardar-paciente" type="submit"><Icon name="check" size={15} /> Guardar paciente</button>
-        </form>}
+        </form>, catalogoNodo)}
         {paciente && <div className="caja-paciente-seleccionado"><div><span>Paciente seleccionado</span><strong>{nombreCompleto(paciente)}</strong><small>CI {paciente.ci} · {paciente.celular}</small></div><button type="button" onClick={() => { setPaciente(null); setEmitirFactura(false); setDatosFactura(facturaInicial); }} aria-label="Quitar paciente"><Icon name="close" size={15} /></button></div>}
       </div>
       <div className="caja-consumo"><div className="caja-consumo-titulo"><strong>Consumo actual</strong><span>{consumo.length ? `${consumo.length} item(s)` : 'Sin prestaciones'}</span></div>{consumo.length === 0 ? <p className="modulo-vacio">Selecciona un producto o servicio del catalogo.</p> : consumo.map((item) => <article key={item.id}><div><strong>{item.nombre}</strong><small>{formatoBs(item.precio)} unitario</small></div><div className="caja-cantidad"><button type="button" onClick={() => cambiarCantidad(item.id, -1)} aria-label={`Quitar ${item.nombre}`}>-</button><span>{item.cantidad}</span><button type="button" onClick={() => cambiarCantidad(item.id, 1)} aria-label={`Agregar ${item.nombre}`}>+</button></div><b>{formatoBs(item.precio * item.cantidad)}</b></article>)}</div>

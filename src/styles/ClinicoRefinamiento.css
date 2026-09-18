@@ -1,0 +1,239 @@
+/* Jerarquia visual comun para las vistas clinicas. */
+.sistema-app[data-theme="light"]{
+  --ui-bg:#edf5fc;
+  --ui-surface:#fff;
+  --ui-surface-soft:#f5faff;
+  --ui-border:#cbdfee;
+  --ui-border-strong:#a8cce6;
+  --ui-heading:#10375d;
+  --ui-text:#1d3b56;
+  --ui-muted:#526e85;
+  --ui-blue:#1769b5;
+  --ui-blue-dark:#10548f;
+  --ui-blue-soft:#e5f2fb;
+  --blue-page:var(--ui-bg);
+  --blue-surface:var(--ui-surface-soft);
+  --blue-line:var(--ui-border);
+  --primary:#1769b5;
+  --primary-strong:#10548f;
+  --primary-soft:#e5f2fb;
+  --primary-gradient:linear-gradient(135deg,#10548f,#1875c4);
+  --text:var(--ui-text);
+  --heading:var(--ui-heading);
+  --muted:var(--ui-muted);
+  --border:var(--ui-border);
+  --border-strong:var(--ui-border-strong);
+  --field:var(--ui-surface-soft);
+  --panel:var(--ui-surface);
+  --panel-2:var(--ui-surface-soft);
+}
+
+.sistema-app{
+  font-family:Inter,"Segoe UI",Arial,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+}
+.sistema-app[data-theme="light"] :is(.sistema-app,.sistema-cuerpo,.area-trabajo){background:var(--ui-bg)}
+.sistema-app[data-theme="light"] .sistema-topbar{background:var(--ui-surface);border-color:var(--ui-border)}
+.sistema-app[data-theme="light"] .sistema-sidebar{background:var(--ui-surface);border-color:var(--ui-border)}
+.sistema-app[data-theme="light"] .sistema-nav .nav-modulo.activo{
+  color:#fff;
+  border-color:var(--ui-blue-dark);
+  background:var(--primary-gradient);
+}
+.sistema-app[data-theme="light"] .sistema-nav .nav-modulo:hover:not(.activo){
+  color:var(--ui-blue-dark);
+  border-color:var(--ui-border-strong);
+  background:var(--ui-blue-soft);
+}
+.sistema-app[data-theme="light"] :is(.topbar-titulo h1,.perfil strong){color:var(--ui-heading)}
+.sistema-app[data-theme="light"] :is(.perfil small,.topbar-titulo small){color:var(--ui-muted)}
+
+.sistema-app .area-trabajo{
+  font-size:14px;
+  line-height:1.5;
+}
+.sistema-app .area-trabajo :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea),
+.sistema-app :is(.usuario-modal,.orthanc-modal,.citas-modal) :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+  min-height:42px;
+  font-family:inherit;
+  font-size:14px;
+  line-height:1.4;
+}
+.sistema-app .area-trabajo :is(button,label,legend,td,th),
+.sistema-app :is(.usuario-modal,.orthanc-modal,.citas-modal) :is(button,label,legend){
+  font-family:inherit;
+  font-size:14px;
+  line-height:1.4;
+}
+.sistema-app .area-trabajo :is(p,li,dt,dd),
+.sistema-app :is(.usuario-modal,.orthanc-modal,.citas-modal) p{
+  font-size:14px;
+  line-height:1.55;
+}
+.sistema-app .area-trabajo small,
+.sistema-app :is(.usuario-modal,.orthanc-modal,.citas-modal) small{
+  font-size:12px;
+  line-height:1.45;
+}
+.sistema-app .area-trabajo :is(.pagina-cabecera h2,.recepcion-cabecera h1,.usuarios-cabecera h2,.orthanc-cabecera h2,.rx-cabecera h2,.auditorias-cabecera h2,.config-seccion-titulo h2){
+  font-size:clamp(23px,2vw,29px);
+  line-height:1.2;
+  letter-spacing:-.025em;
+}
+.sistema-app .area-trabajo :is(.panel-cabecera h2,.config-tarjeta h3,.citas-modal h2){font-size:18px;line-height:1.25}
+.sistema-app .area-trabajo :is(.usuarios-fila,.orthanc-fila,.estudio-fila,.agenda-fila,.recepcion-tabla>div){font-size:14px;line-height:1.45}
+.sistema-app .area-trabajo :is(.usuarios-columnas,.orthanc-fila.columnas,.recepcion-tabla>div:first-child){font-size:12px}
+.sistema-app .area-trabajo :is(.usuario-identidad,.orthanc-paciente,.agenda-cita) strong{font-size:14px;line-height:1.4}
+.sistema-app .area-trabajo :is(.citas-doctor,.orthanc-paginacion,.usuarios-paginacion,.auditorias-aviso){font-size:13px}
+.sistema-app .area-trabajo :is(.config-pestanas,.recepcion-subvistas,.imagenologia-subvistas,.subvistas-nav) strong{font-size:14px}
+.sistema-app .area-trabajo :is(.config-pestanas,.recepcion-subvistas,.imagenologia-subvistas,.subvistas-nav) small{font-size:12px}
+.sistema-app .area-trabajo :is(.caja-detalle,.caja-historial,.caja-catalogo-operativo) .panel-cabecera>div>span{font-size:11px;letter-spacing:.1em}
+
+.sistema-app[data-theme="light"] .area-trabajo :is(.panel,.config-tarjeta,.usuarios-tabla,.orthanc-tabla,.auditorias-panel,.citas-controles,.agenda-tabla,.pagina-cabecera,.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera){
+  border-color:var(--ui-border);
+  background:var(--ui-surface);
+  box-shadow:0 6px 22px rgba(22,78,123,.055);
+}
+.sistema-app[data-theme="light"] .area-trabajo :is(.caja-form-paciente,.caja-grupo-paciente,.caja-consumo,.caja-factura,.caja-resumen,.caja-item,.config-servicio,.orthanc-estado,.orthanc-filtros,.usuarios-herramientas){
+  border-color:var(--ui-border);
+}
+.sistema-app[data-theme="light"] .area-trabajo :is(.caja-form-paciente,.caja-factura,.caja-resumen,.usuarios-columnas,.orthanc-fila.columnas){background:var(--ui-surface-soft)}
+.sistema-app[data-theme="light"] .area-trabajo :is(.caja-item strong,.caja-consumo strong,.caja-resumen strong,.config-tarjeta h3,.auditorias-panel h3){color:var(--ui-heading)}
+.sistema-app[data-theme="light"] .area-trabajo :is(.caja-item small,.caja-factura small,.caja-consumo small,.config-tarjeta dt,.usuarios-fila small,.orthanc-fila small){color:var(--ui-muted)}
+.sistema-app[data-theme="light"] .area-trabajo :is(.usuarios-herramientas input,.orthanc-filtros input,.buscador-local input)::placeholder{color:var(--ui-muted);opacity:1}
+.sistema-app[data-theme="light"] .area-trabajo :is(.recepcion-subvistas button.activo,.imagenologia-subvistas button.activo,.config-pestanas button.activo){color:var(--ui-blue-dark);border-color:var(--ui-blue)}
+.sistema-app[data-theme="light"] .area-trabajo :is(.recepcion-subvistas button:hover,.imagenologia-subvistas button:hover,.config-pestanas button:hover){background:var(--ui-blue-soft)}
+.sistema-app[data-theme="light"] .area-trabajo :is(.primario,.boton-principal,.usuarios-crear,.caja-registrar-paciente,.caja-cobrar){
+  color:#fff;
+  border-color:var(--ui-blue-dark);
+  background:var(--primary-gradient);
+  box-shadow:0 5px 13px rgba(16,84,143,.16);
+}
+
+.sistema-app[data-theme="dark"]{
+  --ui-bg:#081d30;
+  --ui-surface:#102b42;
+  --ui-surface-soft:#0d253a;
+  --ui-border:#31516b;
+  --ui-border-strong:#49718e;
+  --ui-heading:#f3f9fd;
+  --ui-text:#dcebf5;
+  --ui-muted:#a8c0d2;
+  --ui-blue:#73c5f4;
+  --ui-blue-dark:#42a5e0;
+  --ui-blue-soft:#17405d;
+  --blue-page:var(--ui-bg);
+  --blue-surface:var(--ui-surface-soft);
+  --blue-line:var(--ui-border);
+  --primary:var(--ui-blue);
+  --primary-strong:var(--ui-blue-dark);
+  --primary-soft:var(--ui-blue-soft);
+  --primary-gradient:linear-gradient(135deg,#125f99,#1c80bf);
+  --text:var(--ui-text);
+  --heading:var(--ui-heading);
+  --muted:var(--ui-muted);
+  --border:var(--ui-border);
+  --field:var(--ui-surface-soft);
+  --panel:var(--ui-surface);
+  --panel-2:var(--ui-surface-soft);
+  color:var(--ui-text);
+}
+.sistema-app[data-theme="dark"] :is(.sistema-cuerpo,.area-trabajo){background:var(--ui-bg);background-image:none}
+.sistema-app[data-theme="dark"] .sistema-sidebar{background:var(--ui-surface-soft);border-color:var(--ui-border)}
+.sistema-app[data-theme="dark"] .sistema-marca{background:#fff;border-color:var(--ui-border)}
+.sistema-app[data-theme="dark"] .sistema-topbar{background:var(--ui-surface);border-color:var(--ui-border)}
+.sistema-app[data-theme="dark"] :is(.topbar-titulo h1,.perfil strong,.sistema-nav .nav-modulo,.boton-salir){color:var(--ui-text)}
+.sistema-app[data-theme="dark"] :is(.topbar-titulo small,.perfil small,.sistema-nav section p){color:var(--ui-muted)}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo{color:#fff;border-color:#398fca;background:var(--primary-gradient)}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo:hover:not(.activo){color:#fff;border-color:var(--ui-border-strong);background:var(--ui-blue-soft)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.panel,.config-tarjeta,.usuarios-tabla,.orthanc-tabla,.auditorias-panel,.citas-controles,.agenda-tabla,.pagina-cabecera,.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera,.caja-item,.caja-consumo,.caja-factura,.caja-resumen,.caja-form-paciente,.caja-grupo-paciente,.modulo-vacio){
+  color:var(--ui-text);
+  border-color:var(--ui-border);
+  background:var(--ui-surface);
+  box-shadow:0 6px 24px rgba(0,0,0,.12);
+}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.caja-factura,.caja-resumen,.caja-form-paciente,.usuarios-columnas,.orthanc-fila.columnas,.caja-consumo-titulo){background:var(--ui-surface-soft)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.recepcion-subvistas,.imagenologia-subvistas,.subvistas-nav,.config-pestanas,.caja-vista-catalogo){border-color:var(--ui-border);background:var(--ui-surface-soft)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.recepcion-subvistas button>span,.imagenologia-subvistas button span,.config-pestanas button>svg){color:var(--ui-blue);border-color:var(--ui-border);background:var(--ui-blue-soft)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(h1,h2,h3,h4,strong,b,label,legend,p,span,small,dt,dd,time){color:var(--ui-text)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.caja-item small,.caja-factura small,.caja-consumo small,.config-tarjeta dt,.usuarios-fila small,.orthanc-fila small,.caja-historial-vacio small){color:var(--ui-muted)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.caja-item>span,.rol-etiqueta,.orthanc-modalidad){color:#c8ebff;background:var(--ui-blue-soft)}
+.sistema-app[data-theme="dark"] :is(.busqueda-global,.buscador-local,.usuarios-herramientas label,.usuarios-herramientas select,.orthanc-filtros label,.orthanc-filtros select,.caja-pago input,.caja-pago select,.caja-pago textarea,.caja-campos-paciente input,.caja-campos-paciente select,.caja-campos-paciente textarea,.caja-historial-filtro select,.caja-factura-campos input,.paciente-campos input,.paciente-campos select,.usuario-campos input){
+  color:var(--ui-text);
+  border-color:var(--ui-border);
+  background:var(--ui-surface-soft);
+}
+.sistema-app[data-theme="dark"] :is(input,textarea)::placeholder{color:var(--ui-muted);opacity:1}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.caja-categorias button,.caja-vista-catalogo button,.recepcion-subvistas button,.imagenologia-subvistas button,.config-pestanas button,.secundario,.usuario-accion){
+  color:var(--ui-text);
+  border-color:var(--ui-border);
+  background:var(--ui-surface-soft);
+}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.caja-categorias button.activo,.recepcion-subvistas button.activo,.imagenologia-subvistas button.activo,.config-pestanas button.activo){color:#fff;background:var(--primary-gradient)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.primario,.boton-principal,.usuarios-crear,.caja-registrar-paciente,.caja-cobrar){color:#fff;border-color:#398fca;background:var(--primary-gradient)}
+.sistema-app[data-theme="dark"] .area-trabajo .caja-paciente .caja-registrar-paciente{color:#fff;border-color:#398fca;background:var(--primary-gradient)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.caja-item,.usuarios-fila,.orthanc-fila,.agenda-fila){border-color:var(--ui-border)}
+.sistema-app[data-theme="dark"] .area-trabajo :is(.caja-item>div,.caja-consumo-titulo,.caja-consumo article,.caja-resumen .total){border-color:var(--ui-border)}
+.sistema-app :is(button,input,select,textarea):focus-visible{
+  outline:2px solid var(--primary,#1769b5);
+  outline-offset:2px;
+}
+.sistema-app .caja-columna-principal{display:contents}
+
+@media(min-width:1181px) and (max-width:1650px){
+  .sistema-app .recepcion-caja.caja-con-catalogo,
+  .sistema-app .recepcion-caja.caja-con-catalogo.historial-replegado{
+    grid-template-columns:minmax(0,1fr) minmax(360px,400px);
+  }
+  .sistema-app .caja-columna-principal{
+    min-width:0;
+    display:flex;
+    flex-direction:column-reverse;
+    justify-content:flex-end;
+    gap:18px;
+  }
+  .sistema-app .caja-columna-principal :is(.caja-historial,.caja-mostrar-historial){
+    min-height:0;
+  }
+}
+@media(max-width:1100px){
+  .sistema-app .area-trabajo :is(.citas-controles,.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera){flex-wrap:wrap}
+  .sistema-app .area-trabajo :is(.citas-controles,.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera)>*{min-width:0}
+}
+@media(max-width:760px){
+  .sistema-app .area-trabajo{padding:16px}
+  .sistema-app .subvistas-carrusel>nav.recepcion-subvistas{box-sizing:border-box}
+  .sistema-app .area-trabajo .recepcion-subvistas,
+  .sistema-app .area-trabajo .imagenologia-subvistas,
+  .sistema-app .area-trabajo .config-pestanas{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:6px;
+    overflow:visible;
+    width:100%;
+  }
+  .sistema-app .area-trabajo :is(.recepcion-subvistas,.imagenologia-subvistas,.config-pestanas) button{
+    width:100%;
+    min-width:0;
+    max-width:none;
+    min-height:52px;
+    padding:8px 10px;
+    white-space:normal;
+    text-align:left;
+  }
+  .sistema-app .area-trabajo .citas-controles{gap:12px;padding:14px}
+  .sistema-app .area-trabajo .citas-doctor-selector{min-width:0;width:100%}
+  .sistema-app .area-trabajo :is(.usuarios-herramientas,.orthanc-filtros){gap:10px}
+  .sistema-app .area-trabajo :is(.usuarios-herramientas label,.orthanc-filtros label){min-width:0}
+}
+@media(max-width:480px){
+  .sistema-app .area-trabajo{padding:12px}
+  .sistema-app .caja-catalogo-cabecera{flex-wrap:wrap}
+  .sistema-app .caja-catalogo-cabecera .buscador-local{flex-basis:100%}
+  .sistema-app .caja-vista-catalogo{margin-left:auto}
+  .sistema-app .caja-categorias{flex-wrap:wrap;overflow:visible}
+  .sistema-app .area-trabajo :is(.recepcion-subvistas,.imagenologia-subvistas,.config-pestanas) button{font-size:13px}
+  .sistema-app .area-trabajo :is(.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera){gap:12px}
+  .sistema-app .area-trabajo :is(.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera)>button{max-width:100%}
+}

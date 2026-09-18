@@ -1,5 +1,5 @@
 /* HOSPITAL: azul profundo, superficies blancas y acentos celestes. */
-:root{color:#17364d;background:#f3f8fc;--surface:#fff;--border:#cbdfea;--muted:#526f83;--accent:#064773}
+:root{color:#17364d;background:#087fc0;--surface:#fff;--border:#cbdfea;--muted:#526f83;--accent:#064773}
 button:focus-visible,input:focus-visible{outline-color:#096bb5}
 .sistema-nav .nav-modulo:focus-visible,.sistema-nav button:focus-visible{outline:0;box-shadow:0 0 0 2px #096bb524}
 .login-page{--azul:#096bb5;--azul-oscuro:#064773;color:#17364d;background-color:#f3f8fc;background-image:radial-gradient(#347ca330 .7px,transparent .8px)}
@@ -28,7 +28,7 @@ button:focus-visible,input:focus-visible{outline-color:#096bb5}
 .login-frase,.login-copyright{color:#42647c}
 .login-frase{background:#f3f8fccc}
 .marca-icono{border-color:#c4deed;background:#fff;color:#096bb5;box-shadow:0 6px 16px #06477317;overflow:hidden}
-.sistema-app{background:#f3f8fc}
+.sistema-app{background:#087fc0}
 .sistema-sidebar{background:linear-gradient(180deg,#fff,#f2f8fc 58%,#e1eef7);border-color:#cbdfea;box-shadow:9px 0 28px #06477312}
 .sistema-sidebar:after{background-image:radial-gradient(#2875a316 .65px,transparent .75px)}
 .sistema-marca,.sistema-nav section+section,.boton-salir,.perfil,.page-footer,.citas,.cita,.configuracion article{border-color:#d4e4ef}

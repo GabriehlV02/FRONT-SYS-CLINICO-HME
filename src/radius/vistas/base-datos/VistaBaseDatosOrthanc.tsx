@@ -425,6 +425,7 @@ export default function VistaBaseDatosOrthanc() {
           />
         </label>
       </div>
+      <div className="orthanc-tabla-con-paginacion">
       <div className="orthanc-paginacion">
         <span />
         <div>
@@ -464,7 +465,6 @@ export default function VistaBaseDatosOrthanc() {
           <div className="orthanc-fila columnas">
             <span>Paciente DICOM</span>
             <span>Estudio</span>
-            <span>Modalidad</span>
             <span>Fecha</span>
             <span>Series</span>
             <span>Estado</span>
@@ -489,11 +489,6 @@ export default function VistaBaseDatosOrthanc() {
                 <small title={e.studyInstanceUid}>
                   UID: {e.studyInstanceUid || "No registrado"}
                 </small>
-              </div>
-              <div>
-                <span className="orthanc-modalidad">
-                  {e.modalidades.join(", ") || "N/D"}
-                </span>
               </div>
               <div>{fecha(e.fechaEstudio)}</div>
               <div>{e.cantidadSeries}</div>
@@ -542,7 +537,6 @@ export default function VistaBaseDatosOrthanc() {
         <div className="orthanc-tabla">
           <div className="orthanc-fila orthanc-fila-paciente columnas">
             <span>Paciente DICOM</span>
-            <span>Modalidades</span>
             <span>Estudios</span>
             <span>Primera fecha</span>
             <span>Ãšltima fecha</span>
@@ -558,11 +552,6 @@ export default function VistaBaseDatosOrthanc() {
                   <strong>{p.nombre}</strong>
                   <small>Patient ID: {p.patientId || "No registrado"}</small>
                 </div>
-              </div>
-              <div>
-                <span className="orthanc-modalidad">
-                  {p.modalidades.join(", ") || "N/D"}
-                </span>
               </div>
               <div>
                 <strong>{p.estudios.length}</strong>
@@ -634,6 +623,7 @@ export default function VistaBaseDatosOrthanc() {
           </div>
         </div>
       )}
+      </div>
       {editando && (
         <div
           className="orthanc-modal-fondo"

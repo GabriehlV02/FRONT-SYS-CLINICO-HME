@@ -59,3 +59,13 @@
 .orthanc-acciones button:disabled{opacity:.45;cursor:not-allowed}
 
 @media(max-width:760px){.orthanc-paginacion{gap:8px}.orthanc-fila{min-height:0;padding:12px}}
+
+/* La modalidad se consulta desde la ficha del estudio, no ocupa una columna. */
+.orthanc-fila:not(.orthanc-fila-paciente){grid-template-columns:minmax(190px,1.1fr) minmax(220px,1.35fr) 85px 78px 92px 164px}
+.orthanc-fila-paciente{grid-template-columns:minmax(240px,1.4fr) 80px 100px 100px 120px}
+@media(max-width:1100px){.orthanc-fila:not(.orthanc-fila-paciente){grid-template-columns:minmax(180px,1fr) minmax(200px,1.2fr) 80px 75px 170px}}
+
+.orthanc-tabla-con-paginacion{overflow:hidden;border:1px solid #d9e9f5;border-radius:12px;background:#fff;box-shadow:0 10px 24px rgba(6,71,115,.08)}
+.orthanc-tabla-con-paginacion .orthanc-paginacion{margin:0;padding:0 14px;border-bottom:1px solid #d9e9f5;background:#f7fbff}
+.orthanc-tabla-con-paginacion .orthanc-tabla{border:0;border-radius:0;box-shadow:none}
+.orthanc-tabla-con-paginacion .orthanc-paginacion-inferior{border-top:1px solid #d9e9f5;border-bottom:0;background:#fff}

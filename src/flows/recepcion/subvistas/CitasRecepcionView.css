@@ -3,6 +3,7 @@
 .citas-periodo,.citas-periodo button{display:flex;align-items:center;gap:10px}
 .citas-icono{width:34px;height:34px;padding:0}
 .citas-hoy{height:34px;padding:0 13px;margin-left:5px}
+.citas-fecha-hora{display:flex;align-items:flex-end;gap:7px;margin-left:4px;padding-left:10px;border-left:1px solid #d6e6f0}.citas-fecha-hora label{display:grid;gap:3px;color:#52738b;font-size:8px;font-weight:800}.citas-fecha-hora input,.citas-fecha-hora select{height:34px;padding:0 8px;border:1px solid #bfd8e9;border-radius:7px;outline:0;color:#173d60;background:#f8fcff;font-size:10px}.citas-fecha-hora input:focus,.citas-fecha-hora select:focus{border-color:#55aee0;box-shadow:0 0 0 3px rgba(58,157,216,.13)}.citas-fecha-hora input{width:132px}.citas-fecha-hora select{width:75px}.citas-agendar-horario{height:34px;padding:0 10px;gap:5px;white-space:nowrap}
 .citas-calendario{position:relative}
 .citas-calendario-panel{position:absolute;z-index:30;top:43px;left:0;width:292px;padding:12px;border:1px solid #bcd8e8;border-radius:8px;background:#fff;box-shadow:0 14px 32px rgba(20,72,105,.18)}
 .citas-calendario-panel header{height:34px;display:grid;grid-template-columns:32px 1fr 32px;align-items:center;margin-bottom:7px}
@@ -77,6 +78,7 @@
   .citas-doctor{width:100%;justify-content:space-between}
   .citas-doctor-selector{flex:1;min-width:0}
   .citas-agendar{flex-shrink:0}
+  .citas-fecha-hora{width:100%;margin:4px 0 0;padding:10px 0 0;border-top:1px solid #d6e6f0;border-left:0;flex-wrap:wrap}.citas-fecha-hora input{flex:1;min-width:130px}.citas-fecha-hora label:nth-child(2){width:82px}.citas-agendar-horario{margin-left:auto}
   .citas-resumen{flex-wrap:wrap;gap:10px}
   .citas-resumen small{width:100%;margin-left:0}
   .agenda-tabla{min-width:1080px}

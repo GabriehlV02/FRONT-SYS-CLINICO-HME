@@ -4,6 +4,41 @@
 
 .recepcion-subvistas button{flex:0 0 190px}
 
+/* Barra de subvistas compacta: no reserva una franja adicional sobre el contenido. */
+.recepcion-vista > .subvistas-carrusel {
+  position: sticky;
+  top: var(--clinico-topbar, 70px);
+  z-index: 9;
+  width: 100%;
+  padding: 0 0 8px;
+  background: #d4e5fb;
+  box-shadow: 0 7px 10px -10px rgba(7, 63, 113, .55);
+}
+
+.recepcion-vista > .subvistas-carrusel .recepcion-subvistas {
+  width: 100%;
+  margin: 0;
+}
+
+.recepcion-vista > .subvistas-carrusel .recepcion-subvistas button {
+  flex: 1 1 0;
+  min-width: 132px;
+}
+
+@media (max-width: 760px) {
+  .recepcion-vista > .subvistas-carrusel {
+    top: 64px;
+  }
+
+  .recepcion-vista > .subvistas-carrusel .recepcion-subvistas {
+    margin-bottom: 8px;
+  }
+
+  .recepcion-vista > .subvistas-carrusel .recepcion-subvistas button {
+    flex: 0 0 150px;
+  }
+}
+
 .comprobantes-panel .panel-cabecera p{margin:7px 0 0;color:#6e849a;font-size:12px}
 .comprobantes-pendiente{display:flex;align-items:center;gap:13px;margin-top:18px;padding:16px;border:1px solid #cbdfea;border-radius:10px;background:#f4f9fd}
 .comprobantes-pendiente>span{display:grid;place-items:center;flex:0 0 44px;width:44px;height:44px;border:1px solid #b9ddea;border-radius:10px;color:#09639b;background:#eaf5fb}
@@ -40,7 +75,7 @@
 .caja-historial-lista article small{color:#647f9b;font-size:9px}
 .caja-historial-lista article b{color:#064773;font-size:13px}
 .caja-catalogo-operativo{min-width:0;padding:14px;overflow:hidden}
-.registro-paciente-activo .caja-catalogo-operativo> :not(.caja-form-paciente){display:none}
+.registro-paciente-activo .caja-catalogo-operativo>:not(.caja-form-paciente){display:none}
 .caja-catalogo-cabecera{display:flex;gap:10px;align-items:center}
 .caja-catalogo-cabecera .buscador-local{height:40px;flex:1}
 .caja-vista-catalogo{display:flex;padding:3px;border:1px solid #c8dfeb;border-radius:8px;background:#f6fbfe}
@@ -139,7 +174,7 @@
 .caja-resumen .pendiente strong{color:#a15c00}
 .caja-cobrar{width:100%;height:46px;justify-content:center}
 @media(max-width:1180px){.recepcion-caja,.recepcion-caja.con-historial,.recepcion-caja.sin-catalogo,.recepcion-caja.sin-catalogo.con-historial,.recepcion-caja.sin-catalogo.historial-replegado,.recepcion-caja.caja-con-catalogo.historial-replegado{grid-template-columns:1fr;justify-content:stretch}.caja-detalle{position:static}.caja-historial{order:3;min-height:0}.caja-mostrar-historial{position:static;width:30px}}
-@media(max-width:620px){.caja-pago,.caja-campos-paciente,.caja-factura-campos{grid-template-columns:1fr}.caja-consumo article{grid-template-columns:1fr;align-items:start}.caja-consumo article b{text-align:left}.recepcion-caja{gap:12px}}
+@media(max-width:620px){.caja-pago,.caja-campos-paciente,.caja-factura-campos{grid-template-columns:1fr}.caja-consumo article{grid-template-columns:1fr;align-items:start}.caja-consumo article b{text-align:left}.recepcion-caja{gap:12px}.caja-catalogo-cabecera{align-items:stretch;flex-direction:column}.caja-vista-catalogo{justify-content:stretch}.caja-vista-catalogo button{flex:1;justify-content:center}.caja-factura{grid-template-columns:1fr}.caja-factura>button{width:100%}}
 
 /* La caja prioriza densidad para mantener el catalogo y el detalle visibles. */
 .caja-historial .panel-cabecera{padding:12px 12px 8px;gap:10px}.caja-historial .panel-cabecera>div:first-child{min-width:0}.caja-historial .panel-cabecera span{margin-bottom:7px;font-size:9px}.caja-historial .panel-cabecera h2{margin:8px 0;font-size:19px;line-height:1.12;letter-spacing:-.3px}.caja-historial-control{width:28px;height:28px}.caja-historial-filtro{gap:4px;margin:0 12px 10px;font-size:8px}.caja-historial-filtro select{height:34px;font-size:10px}.caja-historial-lista{gap:8px;padding:0 12px 12px}.caja-historial-lista article{gap:4px;padding:10px}.caja-historial-lista article header strong{font-size:10px}.caja-historial-lista article header em,.caja-historial-lista article>span,.caja-historial-lista article p,.caja-historial-lista article small{font-size:8px}.caja-historial-lista article b{font-size:11px}.caja-historial-vacio{min-height:170px;padding:20px 12px;gap:6px}.caja-historial-vacio strong{font-size:10px}.caja-historial-vacio small{font-size:9px}

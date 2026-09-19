@@ -1,4 +1,4 @@
-.sistema-sidebar{width:270px;overflow:visible;border-right:1px solid #d9e3f2;background:#fff;box-shadow:none}
+.sistema-sidebar{width:270px;overflow:visible;z-index:110;border-right:1px solid #d9e3f2;background:#fff;box-shadow:none}
 .sistema-sidebar:after{display:none}
 .sistema-marca{height:96px;padding:18px 20px;gap:12px}
 .marca-icono{width:188px;height:64px;flex:0 0 188px;border:0;border-radius:0;background:transparent;box-shadow:none}
@@ -37,10 +37,11 @@
 .boton-salir:hover{color:#001db8;background:#eaf1ff}
 .boton-salir:hover .nav-icono{color:#fff;border-color:#1d4ed8;background:#2563eb}
 .sistema-nav{flex:1}.boton-salir{margin-top:4px}
-.replegar-menu{right:-14px;width:28px;height:28px;z-index:50;border-radius:50%;box-shadow:0 3px 10px rgba(7,85,139,.16)}
+.replegar-menu{position:fixed;top:18px;left:253px;right:auto;width:34px;height:34px;z-index:300;border-radius:50%;box-shadow:0 4px 14px rgba(7,85,139,.22)}
 .sidebar-replegado .sistema-sidebar{width:80px}
 .sidebar-replegado .sistema-cuerpo{width:calc(100% - 80px);margin-left:80px}
 .sidebar-replegado .sistema-marca{height:86px;padding:16px 14px}
+.sidebar-replegado .replegar-menu{left:63px}
 .sidebar-replegado .marca-icono{width:46px;height:46px;flex-basis:46px;border-radius:14px}
 .sidebar-replegado .sistema-nav{padding:10px}
 .sidebar-replegado .sistema-nav section+section{border-top:0}
@@ -59,7 +60,8 @@
 
 /* Barra superior compacta: conserva controles cómodos sin desperdiciar altura. */
 .sistema-cuerpo{width:calc(100% - 270px);margin-left:270px;background:#eaf1ff}
-.sistema-topbar{height:70px;gap:10px;padding:0 20px 0 24px;border-bottom:1px solid #d9e3f2;background:#fff}
+/* La barra permanece visible aunque el contenido de la vista se desplace. */
+.sistema-topbar{position:fixed;top:0;left:270px;right:0;z-index:100;height:70px;gap:10px;padding:0 20px 0 24px;border-bottom:1px solid #d9e3f2;background:#fff}
 .topbar-icono,.topbar-boton{width:38px;height:38px;border-radius:10px}
 .topbar-titulo h1{font-size:18px}
 .topbar-titulo small{margin-top:3px;font-size:9px}
@@ -72,15 +74,16 @@
 .perfil-avatar{width:36px;height:36px}
 .perfil .perfil-avatar svg{width:32px;height:32px}
 .perfil small{margin-top:3px}
-.area-trabajo{min-height:calc(100vh - 70px);padding:28px clamp(20px,4.4vw,82px);background:#eaf1ff;background-image:none}
+.area-trabajo{min-height:100vh;padding:98px clamp(20px,4.4vw,82px) 28px;background:#eaf1ff;background-image:none}
 .area-trabajo>.imagenologia-subvistas{width:100%;max-width:none;margin-bottom:14px}
 .imagenologia-subvistas button{flex:1;justify-content:flex-start}
 .usuarios-vista,.orthanc-vista,.rx-vista,.gestion-usuarios,.config-vista{max-width:none;width:100%}
-@media(max-width:760px){.sistema-topbar{height:58px;padding:0 12px}.area-trabajo{min-height:calc(100vh - 58px);padding:14px 12px}.topbar-boton{width:36px;height:36px}.area-trabajo>.imagenologia-subvistas{overflow-x:auto}.imagenologia-subvistas button{flex:0 0 auto}}
+@media(max-width:760px){.sistema-topbar{left:0;height:58px;padding:0 12px}.area-trabajo{min-height:100vh;padding:72px 12px 14px}.topbar-boton{width:36px;height:36px}.area-trabajo>.imagenologia-subvistas{overflow-x:auto}.imagenologia-subvistas button{flex:0 0 auto}}
 .desplegar-sidebar-escritorio{display:none;width:38px;height:38px;padding:0;place-items:center;border:1px solid #b9d8ea;border-radius:50%;color:#087fc0;background:#fff;box-shadow:0 3px 10px rgba(7,85,139,.14)}
 @media (min-width:761px) and (hover:hover) and (pointer:fine), (min-width:1200px){
   .sistema-sidebar{transition:transform .2s ease,width .2s ease}
   .sidebar-replegado .sistema-sidebar{width:270px;transform:translateX(-105%);visibility:hidden}
   .sidebar-replegado .sistema-cuerpo{width:100%;margin-left:0}
+  .sidebar-replegado .sistema-topbar{left:0}
   .sidebar-replegado .desplegar-sidebar-escritorio{display:grid;flex:0 0 38px}
 }

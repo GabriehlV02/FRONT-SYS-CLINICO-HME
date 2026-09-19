@@ -242,7 +242,7 @@ export default function Aplicacion() {
             }
             title={sidebarReplegado ? "Desplegar menú" : "Replegar menú"}
           >
-            <Icon name={sidebarReplegado ? "chevronRight" : "chevronLeft"} size={17} />
+            <Icon name="chevronLeft" size={17} />
           </button>
           <button
             className="cerrar-menu"

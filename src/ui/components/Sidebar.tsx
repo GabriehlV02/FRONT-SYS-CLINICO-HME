@@ -1,6 +1,6 @@
 import Icon from './Icon';
 import { Brand } from './Brand';
-import type { SystemConfig } from '../types';
+import type { AuthSession, SystemConfig } from '../types';
 type Props = {
   config: SystemConfig;
   active: string;
@@ -10,6 +10,7 @@ type Props = {
   onClose: () => void;
   onCollapse: () => void;
   onLogout: () => void;
+  session: AuthSession;
 };
 export function Sidebar({
   config,
@@ -20,6 +21,7 @@ export function Sidebar({
   onClose,
   onCollapse,
   onLogout,
+  session,
 }: Props) {
   const modules = config.modules;
   const groups = [
@@ -86,6 +88,13 @@ export function Sidebar({
               </section>
             ))}
           </nav>
+          <section className="sidebar-sesion" aria-label="Sesión actual">
+            <span className="sidebar-sesion-avatar"><Icon name="users" size={19} /></span>
+            <div>
+              <strong title={session.user}>{session.user === 'demo' ? 'Usuario de prueba' : session.user}</strong>
+              <small>{session.role || config.role}</small>
+            </div>
+          </section>
           <button
             className="boton-salir"
             onClick={onLogout}

@@ -11,7 +11,6 @@ export default function VistaGestionUsuarios(){
  const [conteos,setConteos]=useState({usuarios:0,roles:0});
  useEffect(()=>{Promise.all([apiFetch('/api/usuarios').then(r=>r.ok?r.json():[]),apiFetch('/api/roles').then(r=>r.ok?r.json():[])]).then(([usuarios,roles])=>setConteos({usuarios:usuarios.length,roles:roles.length})).catch(()=>undefined)},[subvista]);
  return <div className="gestion-usuarios">
-  <header className="gestion-encabezado"><p>CONTROL DE ACCESOS</p><h2>Usuarios</h2><small>Administra las cuentas registradas y sus niveles de acceso.</small></header>
   <nav className="subvistas-nav" aria-label="Secciones de usuarios">
    <button className={subvista==='usuarios'?'activo':''} onClick={()=>setSubvista('usuarios')}><Icon name="users" size={19}/><span>Usuarios</span><b>{conteos.usuarios}</b></button>
    <button className={subvista==='roles'?'activo':''} onClick={()=>setSubvista('roles')}><Icon name="asset" size={19}/><span>Roles y permisos</span><b>{conteos.roles}</b></button>

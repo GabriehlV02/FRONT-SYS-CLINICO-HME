@@ -1,0 +1,236 @@
+/* Patrón visual del sidebar de productos, adaptado al sistema clínico. */
+.sistema-sidebar { width:270px; background:#fff !important; border-right:1px solid #dce5f1 !important; box-shadow:8px 0 26px rgba(28,42,76,.07) !important; }
+.sistema-sidebar::before,.sistema-sidebar::after { display:none !important; }
+.sistema-marca { height:104px !important; padding:18px 20px !important; border-bottom:0 !important; }
+.sidebar-scroll { display:flex; flex:1; min-height:0; flex-direction:column; }
+.sistema-nav { padding:18px 12px 10px; }
+.sistema-nav section { padding-bottom:12px; }
+.sistema-nav section + section { margin-top:0; padding-top:0; border-top:0; }
+.sistema-nav section p { display:block; margin:8px -3px 5px; padding-top:8px; border-top:1px dotted #d7dbe3; color:#0084bd; font-size:10px; font-weight:850; letter-spacing:1.35px; }
+.sistema-nav section:first-child p { padding-top:0; border-top:0; }
+.sistema-nav .nav-modulo { height:48px; margin:5px 0; padding:0 16px; gap:13px; border:0; border-radius:13px; color:#142b4c; background:transparent; font-family:inherit; }
+.sistema-nav .nav-modulo:hover { color:#076bb7; border:0; background:#eef8ff; box-shadow:none; }
+.sistema-nav .nav-modulo.activo { color:#075da8; border:0; background:#e8f5ff; box-shadow:none; }
+.sistema-nav .nav-modulo.activo:before { display:block; left:0; top:0; bottom:0; width:5px; border-radius:8px 0 0 8px; background:linear-gradient(#159fe5,#075da8); }
+.nav-icono,.nav-modulo.activo .nav-icono,.nav-modulo:hover .nav-icono { width:20px; height:20px; flex-basis:20px; border:0; border-radius:0; color:currentColor; background:transparent; box-shadow:none; }
+.nav-texto { font-size:14px; font-weight:650; }
+.nav-indicador { display:none; }
+.sidebar-sesion { display:flex; align-items:center; gap:11px; margin:auto 16px 12px; padding:12px; border:1px solid #aee4ee; border-radius:16px; color:#132947; background:linear-gradient(110deg,#f1fbff,#e6fbfd); box-shadow:0 8px 19px rgba(20,161,187,.08); }
+.sidebar-sesion-avatar { width:42px; height:42px; display:grid; place-items:center; border:2px solid #fff; border-radius:50%; color:#fff; background:linear-gradient(145deg,#2078e9,#11c6c1); box-shadow:0 3px 10px rgba(25,151,184,.23); }
+.sidebar-sesion div { min-width:0; display:grid; gap:2px; }
+.sidebar-sesion strong { overflow:hidden; color:#10223e; font-size:13px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
+.sidebar-sesion small { color:#526a8a; font-size:11px; }
+.boton-salir { height:44px; margin:0 16px 22px; width:calc(100% - 32px); padding:0 14px; border:1px solid #dfe5ee; border-radius:13px; color:#253653; background:#fff; }
+.boton-salir:hover { color:#075da8; background:#eef8ff; }
+.boton-salir .nav-icono { width:20px; height:20px; flex-basis:20px; color:currentColor; background:transparent; }
+.replegar-menu { width:46px !important; height:46px !important; border:3px solid #fff !important; border-radius:50% !important; color:#fff !important; background:linear-gradient(145deg,#20aae1,#009cae) !important; box-shadow:0 8px 20px rgba(3,134,158,.3) !important; }
+.replegar-menu:hover { color:#fff !important; transform:scale(1.04); }
+
+/* Control flotante: no debe quedar oculto por la barra superior ni por el sidebar. */
+@media (min-width: 761px) {
+  .sistema-sidebar,.marca-container { overflow:visible !important; }
+  .replegar-menu { position:fixed !important; top:17px !important; left:247px !important; right:auto !important; z-index:1001 !important; display:grid !important; place-items:center !important; width:46px !important; height:46px !important; border:3px solid #fff !important; border-radius:50% !important; color:#fff !important; background:linear-gradient(145deg,#20aae1,#009cae) !important; box-shadow:0 9px 22px rgba(3,134,158,.38) !important; }
+  .sidebar-replegado .replegar-menu { left:63px !important; }
+}
+@media (min-width:761px) { .sidebar-replegado .sidebar-sesion { display:none; } }
+@media (max-width:760px) { .sidebar-sesion { margin-bottom:10px; } }
+
+/* Ajuste final de proporción y ritmo visual del menú clínico. */
+.sistema-sidebar{width:270px!important}.sistema-marca{height:108px!important;padding:18px 18px 14px!important;display:flex!important;align-items:center!important}.sistema-marca .marca-logo-completo{width:218px!important;height:66px!important;flex-basis:218px!important}.sistema-marca .marca-logo-completo img{width:100%!important;height:100%!important;object-fit:contain!important}.sistema-nav{padding:10px 12px 12px!important}.sistema-nav section{padding:0 0 5px!important}.sistema-nav section+section{margin-top:5px!important}.sistema-nav section p{margin:7px 2px 5px!important;padding-top:8px!important;font-size:10px!important;line-height:1.2!important;letter-spacing:1.25px!important;color:#0084bd!important}.sistema-nav section:first-child p{padding-top:0!important}.sistema-nav .nav-modulo{height:46px!important;min-height:46px!important;margin:3px 0!important;padding:0 14px!important;gap:12px!important;border-radius:12px!important;color:#12365c!important;font-size:14px!important;font-weight:750!important}.sistema-nav .nav-modulo:hover{color:#075da8!important;background:#eef8ff!important}.sistema-nav .nav-modulo.activo{color:#075da8!important;background:#e7f5ff!important;box-shadow:0 5px 13px rgba(7,105,181,.1)!important}.sistema-nav .nav-modulo.activo:before{top:7px!important;bottom:7px!important;width:4px!important;border-radius:0 9px 9px 0!important;background:linear-gradient(180deg,#20aae1,#075da8)!important}.sistema-nav .nav-icono{width:22px!important;height:22px!important;flex-basis:22px!important;color:currentColor!important}.sistema-nav .nav-icono svg{width:20px!important;height:20px!important}.sistema-nav .nav-texto{font-size:14px!important;font-weight:750!important}.boton-salir{height:46px!important;margin:8px 16px 18px!important;width:calc(100% - 32px)!important;border-color:#cfe1f1!important;border-radius:12px!important;color:#12365c!important;font-size:14px!important;font-weight:800!important}.boton-salir:hover{color:#075da8!important;background:#eef8ff!important}.sidebar-sesion{margin:14px 16px 10px!important;padding:12px!important;border-radius:14px!important}.sidebar-estado{margin:0 16px 10px!important;border-radius:13px!important}@media(max-width:760px){.sistema-marca .marca-logo-completo{width:218px!important;height:66px!important;flex-basis:218px!important}.sistema-nav{padding:12px!important}}
+
+/* Retícula compacta y alineada: las separaciones siguen un único ritmo de 4 px. */
+.sistema-marca {
+  min-height: 108px !important;
+  box-shadow: inset 0 -1px 0 #edf3f8;
+}
+
+.sistema-nav {
+  display: grid;
+  gap: 4px;
+}
+
+.sistema-nav section {
+  display: grid;
+  gap: 2px;
+  padding: 4px 0 6px !important;
+}
+
+.sistema-nav section + section {
+  margin-top: 2px !important;
+}
+
+.sistema-nav section p {
+  display: flex;
+  align-items: center;
+  min-height: 26px;
+  margin: 0 2px 2px !important;
+  padding: 9px 0 4px !important;
+  border-top: 1px dashed #d6e4ef;
+  color: #0077b6 !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+  letter-spacing: 1.3px !important;
+}
+
+.sistema-nav section:first-child p {
+  padding-top: 2px !important;
+  border-top: 0;
+}
+
+.sistema-nav .nav-modulo {
+  justify-content: flex-start;
+  height: 48px !important;
+  min-height: 48px !important;
+  margin: 1px 0 !important;
+  padding: 0 15px !important;
+  border-radius: 14px !important;
+  line-height: 1;
+}
+
+.sistema-nav .nav-modulo.activo {
+  background: linear-gradient(90deg, #e5f5ff, #f5fbff) !important;
+  box-shadow: inset 0 0 0 1px #c8e8f8, 0 5px 14px rgba(7, 105, 181, .09) !important;
+}
+
+.sistema-nav .nav-modulo.activo:before {
+  left: 0 !important;
+  top: 8px !important;
+  bottom: 8px !important;
+}
+
+.sistema-nav .nav-texto {
+  font-size: 14.5px !important;
+  font-weight: 780 !important;
+  letter-spacing: -.1px;
+}
+
+.sistema-nav .nav-icono {
+  display: grid;
+  place-items: center;
+}
+
+.sidebar-sesion {
+  min-height: 66px;
+  margin-top: 10px !important;
+}
+
+/* Al contraer el menú, la cabecera acompaña el nuevo estado con azul clínico. */
+@media (min-width: 761px) {
+  .sidebar-replegado .sistema-topbar {
+    border-bottom-color: #075a9f !important;
+    background: linear-gradient(105deg, #075b9f, #0879bd 58%, #1596d2) !important;
+    box-shadow: 0 6px 18px rgba(5, 84, 150, .22) !important;
+  }
+
+  .sidebar-replegado .topbar-titulo h1,
+  .sidebar-replegado .topbar-titulo small,
+  .sidebar-replegado .topbar-icono {
+    color: #ffffff !important;
+  }
+
+  .sidebar-replegado .topbar-icono {
+    border-color: rgba(255, 255, 255, .38) !important;
+    background: rgba(255, 255, 255, .13) !important;
+  }
+
+  .sidebar-replegado .perfil {
+    min-height: 48px;
+    padding: 5px 12px 5px 7px !important;
+    border: 1px solid rgba(255, 255, 255, .56) !important;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .95) !important;
+  }
+
+  .sidebar-replegado .perfil strong {
+    color: #123a5f !important;
+  }
+
+  .sidebar-replegado .perfil small {
+    color: #54748e !important;
+  }
+
+  .sidebar-replegado .perfil-avatar {
+    border-color: #b9dff2 !important;
+    color: #0874b8 !important;
+    background: #edf9ff !important;
+  }
+
+  .sidebar-replegado .notificaciones-boton,
+  .sidebar-replegado .salir-rapido {
+    border: 1px solid rgba(255, 255, 255, .56) !important;
+    color: #0874b8 !important;
+    background: rgba(255, 255, 255, .95) !important;
+  }
+
+  .sidebar-replegado .notificaciones-boton {
+    border-radius: 12px !important;
+  }
+
+  .sidebar-replegado .busqueda-global {
+    border-color: rgba(255, 255, 255, .55) !important;
+    background: rgba(255, 255, 255, .96) !important;
+    box-shadow: none !important;
+  }
+
+  .sidebar-replegado .busqueda-global input {
+    color: #163b5c !important;
+  }
+
+  .sidebar-replegado .busqueda-global input::placeholder {
+    color: #5e7e99 !important;
+  }
+
+  .sidebar-replegado .busqueda-global svg {
+    color: #0872b4 !important;
+  }
+
+  .sidebar-replegado .salir-rapido:hover,
+  .sidebar-replegado .notificaciones-boton:hover {
+    background: #eaf8ff !important;
+  }
+}
+
+/* Regla común de capas para todas las navegaciones secundarias del clínico. */
+@media (min-width: 761px) {
+  .sistema-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--clinico-topbar, 70px);
+  }
+
+  .area-trabajo {
+    padding-top: 14px !important;
+  }
+
+  .area-trabajo > .imagenologia-subvistas,
+  .gestion-usuarios > .subvistas-nav {
+    position: sticky;
+    top: var(--clinico-topbar, 70px);
+    z-index: 9;
+    margin-top: 0 !important;
+    margin-bottom: 14px !important;
+    padding: 0 0 8px !important;
+    background: #d4e5fb;
+    box-shadow: 0 7px 10px -10px rgba(7, 63, 113, .55);
+  }
+
+  .area-trabajo > .imagenologia-subvistas {
+    width: 100% !important;
+  }
+
+  .recepcion-vista > .subvistas-carrusel {
+    margin-bottom: 14px;
+  }
+
+  .recepcion-vista > .subvistas-carrusel .recepcion-subvistas {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .area-trabajo > .imagenologia-subvistas,
+  .gestion-usuarios > .subvistas-nav {
+    margin-bottom: 12px !important;
+  }
+}

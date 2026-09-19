@@ -150,7 +150,7 @@ export function SystemApp({ config }: { config: SystemConfig }) {
   const moduleId = modules.find(item => item.id === active || active.startsWith(`${item.id}-`))?.id ?? active;
   const moduleContent = config.renderModule?.(moduleId, select, active, session);
   return <div className={`sistema-app sistema-${config.id} ${collapsed ? 'sidebar-replegado' : ''}`}>
-    <Sidebar config={config} active={active} open={open} collapsed={collapsed} onSelect={select} onClose={closeMenu} onCollapse={() => setCollapsed(!collapsed)} onLogout={logout}/>
+    <Sidebar config={config} active={active} open={open} collapsed={collapsed} onSelect={select} onClose={closeMenu} onCollapse={() => setCollapsed(!collapsed)} onLogout={logout} session={session}/>
     <div className="sistema-cuerpo" inert={open}>
       <header className="sistema-topbar">
         <button ref={menuButton} className="abrir-menu" onClick={() => setOpen(true)} aria-label="Abrir menú" aria-expanded={open} aria-controls="system-sidebar"><Icon name="menu"/></button>

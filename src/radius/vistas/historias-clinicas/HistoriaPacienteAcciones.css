@@ -1,0 +1,13 @@
+.historia-paciente-tabla{min-width:1160px}
+.historia-paciente-fila{grid-template-columns:120px 175px minmax(250px,1.35fr) 170px 90px 190px}
+.historia-paciente-acciones{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.historia-paciente-acciones button{height:32px;min-width:0;padding:0 7px;border:1px solid #c6dfed;border-radius:7px;color:#075985;background:#f8fcff;font-size:9px;font-weight:800;white-space:nowrap}
+.historia-paciente-acciones button:first-child{background:#eef8fd}
+.historia-paciente-acciones button:hover{border-color:#77b9db;background:#dff2fb}
+.historia-paciente-aviso{margin:12px 17px;padding:10px 12px;border:1px solid #b9dcea;border-radius:8px;color:#075985;background:#eef8fd;font-size:11px}
+.historia-paciente-identidad>div{display:flex;align-items:baseline;gap:12px;min-width:0}
+.historia-paciente-identidad h2,.historia-paciente-identidad small{margin:0;color:#064773;font-family:inherit;font-size:17px;font-weight:800;letter-spacing:-.25px;line-height:1.3}
+.historia-paciente-identidad h2{flex:0 0 auto}
+.historia-paciente-identidad small{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:760px){.historia-paciente-tabla{min-width:1120px}}
+@media(max-width:620px){.historia-paciente-identidad>div{display:block}.historia-paciente-identidad h2,.historia-paciente-identidad small{font-size:15px}.historia-paciente-identidad small{display:block;margin-top:6px;overflow:visible;white-space:normal}}

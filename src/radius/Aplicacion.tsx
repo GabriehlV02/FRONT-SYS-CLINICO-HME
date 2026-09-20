@@ -10,6 +10,7 @@ import VistaRayosX from "./vistas/visor-rayos-x/VistaRayosX";
 import VistaBaseDatosOrthanc from "./vistas/base-datos/VistaBaseDatosOrthanc";
 import VistaConfiguracion from "./vistas/configuracion/VistaConfiguracion";
 import VistaAuditorias from "./vistas/auditorias/VistaAuditorias";
+import { VistaHistoriasClinicas } from './vistas/historias-clinicas/VistaHistoriasClinicas';
 import "./vistas/visor/BibliotecaImagenes.css";
 import "./vistas/visor/PaletaClara.css";
 import "./vistas/visor/PaletaPlomo.css";
@@ -26,6 +27,7 @@ type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
 type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecocardiogramas" | "informes" | "visor";
 type SubvistaRadiografias = "estudios" | "base-datos";
 type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
+type SubvistaHistoriasClinicas = "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
 type TemaSistema = "light" | "dark";
 
@@ -41,13 +43,18 @@ const subvistasRadiografias: { id: SubvistaRadiografias; nombre: string; icono: 
   { id: "estudios", nombre: "Estudios", icono: "image" },
   { id: "base-datos", nombre: "Base de datos", icono: "package" },
 ];
+const subvistasHistoriasClinicas: { id: SubvistaHistoriasClinicas; nombre: string; icono: IconName }[] = [
+  { id: "historias", nombre: "Historias clínicas", icono: "fileText" },
+  { id: "estudios", nombre: "Estudios del paciente", icono: "image" },
+];
 
 const modulos: Modulo[] = [
   { id: 'recepcion', nombre: 'Recepción', icono: 'patient', grupo: 'ATENCIÓN CLÍNICA' },
   { id: 'laboratorio', nombre: 'Laboratorio', icono: 'lab', grupo: 'ATENCIÓN CLÍNICA' },
-  { id: 'atencion-medica', nombre: 'Atención médica', icono: 'userCheck', grupo: 'ATENCIÓN MÉDICA' },
+  { id: 'atencion-medica', nombre: 'Atención médica', icono: 'userCheck', grupo: 'ATENCIÓN AMBULATORIA' },
+  { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'patient', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-emergencias', nombre: 'Triaje de enfermería', icono: 'patient', grupo: 'EMERGENCIAS' },
-  { id: 'atencion-urgencias', nombre: 'Atención médica de urgencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
+  { id: 'atencion-urgencias', nombre: 'Atención médica urgente', icono: 'userCheck', grupo: 'EMERGENCIAS' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   {
     id: "configuracion",
@@ -61,6 +68,12 @@ const modulos: Modulo[] = [
     icono: "audit",
     grupo: "ADMINISTRACIÓN",
   },
+  {
+    id: "historias-clinicas",
+    nombre: "Historias clínicas",
+    icono: "fileText",
+    grupo: "ADMINISTRACIÓN",
+  },
 ];
 
 export default function Aplicacion() {
@@ -69,6 +82,7 @@ export default function Aplicacion() {
   const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
   const [subvistaRadiografias, setSubvistaRadiografias] = useState<SubvistaRadiografias>("estudios");
   const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>("caja");
+  const [subvistaHistoriasClinicas, setSubvistaHistoriasClinicas] = useState<SubvistaHistoriasClinicas>("historias");
   const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
   const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0 });
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -242,7 +256,7 @@ export default function Aplicacion() {
             }
             title={sidebarReplegado ? "Desplegar menú" : "Replegar menú"}
           >
-            <Icon name="chevronLeft" size={17} />
+            <Icon name={sidebarReplegado ? "chevronRight" : "chevronLeft"} size={17} />
           </button>
           <button
             className="cerrar-menu"
@@ -382,6 +396,20 @@ export default function Aplicacion() {
               ))}
             </nav>
           )}
+          {modulo === "historias-clinicas" && (
+            <nav className="subvistas-nav" aria-label="Subvistas de Historias clínicas">
+              {subvistasHistoriasClinicas.map(vista => (
+                <button
+                  key={vista.id}
+                  className={subvistaHistoriasClinicas === vista.id ? "activo" : ""}
+                  onClick={() => setSubvistaHistoriasClinicas(vista.id)}
+                >
+                  <Icon name={vista.icono} size={16} />
+                  {vista.nombre}
+                </button>
+              ))}
+            </nav>
+          )}
           {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'laboratorio' ? (
             <div className="modulo-vacio">
               <span>
@@ -399,11 +427,23 @@ export default function Aplicacion() {
               <span>
                 <Icon name="userCheck" size={28} />
               </span>
-              <p>ATENCIÓN MÉDICA</p>
+              <p>ATENCIÓN AMBULATORIA</p>
               <h2>Atención médica</h2>
               <small>
                 Espacio de trabajo para consultas, historia clínica,
                 diagnósticos, indicaciones y recetas del médico.
+              </small>
+            </div>
+          ) : modulo === 'triaje-ambulatorio' ? (
+            <div className="modulo-vacio">
+              <span>
+                <Icon name="patient" size={28} />
+              </span>
+              <p>ATENCIÓN AMBULATORIA</p>
+              <h2>Triaje y signos vitales</h2>
+              <small>
+                Registro inicial de signos vitales y valoración previa a la
+                consulta médica.
               </small>
             </div>
           ) : modulo === 'triaje-emergencias' ? (
@@ -424,12 +464,14 @@ export default function Aplicacion() {
                 <Icon name="userCheck" size={28} />
               </span>
               <p>EMERGENCIAS</p>
-              <h2>Atención médica de urgencias</h2>
+              <h2>Atención médica urgente</h2>
               <small>
                 Evaluación, diagnóstico, tratamiento e indicaciones médicas
                 para pacientes atendidos en emergencias.
               </small>
             </div>
+          ) : modulo === 'historias-clinicas' ? (
+            <VistaHistoriasClinicas vista={subvistaHistoriasClinicas} />
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "base-datos" ? (
             <VistaBaseDatosOrthanc />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (

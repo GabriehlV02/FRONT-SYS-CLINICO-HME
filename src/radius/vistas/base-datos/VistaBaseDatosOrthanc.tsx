@@ -330,7 +330,7 @@ export default function VistaBaseDatosOrthanc() {
             <strong>
               {estado
                 ? `${estado.nombre} conectado`
-                : "Sin conexiÃ³n confirmada"}
+                : "Sin conexión confirmada"}
             </strong>
             <small>
               {estado

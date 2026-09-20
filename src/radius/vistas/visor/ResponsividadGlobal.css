@@ -110,3 +110,49 @@ img,svg,canvas,video{max-width:100%}
   button,.nav-modulo,.subvistas-nav button{min-height:44px}
   .imagen-boton span{opacity:1}
 }
+
+/* Tipografía de datos: lectura descansada y jerarquía reservada para encabezados y acciones. */
+:is(.historias-fila:not(.historias-columnas),.historia-paciente-fila:not(.historia-paciente-columnas),.recepcion-tabla>div:not(:first-child),.usuarios-fila,.orthanc-fila:not(.columnas),.estudio-fila){color:#1b1f24;font-size:13px;font-weight:400}
+:is(.historias-fila:not(.historias-columnas),.historia-paciente-fila:not(.historia-paciente-columnas),.recepcion-tabla>div:not(:first-child),.usuarios-fila,.orthanc-fila:not(.columnas),.estudio-fila) :is(strong,small,time,p,span,em){color:#1b1f24;font-size:inherit;font-weight:400;line-height:1.45}
+:is(.historias-columnas,.historia-paciente-columnas,.recepcion-tabla>div:first-child,.usuarios-columnas,.orthanc-fila.columnas,.estudio-columnas){color:#12384d;font-size:10px;font-weight:800}
+:is(.historias-columnas,.historia-paciente-columnas,.recepcion-tabla>div:first-child,.usuarios-columnas,.orthanc-fila.columnas,.estudio-columnas) :is(strong,small,time,p,span,em){color:inherit;font-size:inherit;font-weight:800}
+.historia-paciente-fila em,.historias-medicos>div span,.historias-conteo{font-size:11px!important;font-weight:400!important}
+
+/* Filas compactas: más información visible sin comprometer la lectura. */
+.historias-fila:not(.historias-columnas),.historia-paciente-fila:not(.historia-paciente-columnas){min-height:54px;padding-block:7px}
+.historias-columnas,.historia-paciente-columnas{min-height:36px;padding-block:6px}
+.recepcion-tabla>div:not(:first-child){min-height:46px;padding-block:6px}
+.recepcion-tabla>div:first-child{min-height:36px}
+.usuarios-fila,.orthanc-fila:not(.columnas),.estudio-fila{min-height:56px;padding-block:7px}
+.usuarios-columnas,.orthanc-fila.columnas,.estudio-columnas{min-height:36px;padding-block:6px}
+.historia-tipo>span{width:28px;height:28px}
+.historia-paciente-acciones button,.historias-acciones button{height:30px}
+@media(max-width:760px){.historias-fila:not(.historias-columnas),.historia-paciente-fila:not(.historia-paciente-columnas){min-height:50px}.usuarios-fila,.orthanc-fila:not(.columnas),.estudio-fila{min-height:52px}}
+
+/* Ajustes finales de densidad: una sola columna utilizable en pantallas tactiles. */
+@media (max-width: 760px) {
+  .area-trabajo { padding-top: 110px; }
+  .content-limit,.recepcion-vista,.biblioteca,.orthanc-vista,.rx-vista,.gestion-usuarios,.config-vista { width:100%; min-width:0; }
+  .recepcion-cabecera,.auditorias-cabecera,.orthanc-cabecera,.estudios-cabecera,.usuarios-cabecera,.rx-cabecera { flex-direction:column; align-items:stretch; }
+  .recepcion-cabecera h1,.orthanc-cabecera h2,.estudios-cabecera h2,.usuarios-cabecera h2,.rx-cabecera h2 { font-size:clamp(22px,7vw,28px); }
+  .recepcion-cabecera p,.pagina-cabecera small,.orthanc-cabecera small { max-width:62ch; }
+  .recepcion-subvistas,.subvistas-nav,.imagenologia-subvistas { scrollbar-width:thin; scroll-padding-inline:12px; }
+  .recepcion-subvistas button,.subvistas-nav button,.imagenologia-subvistas button { min-height:48px; }
+  .panel,.config-tarjeta,.caja-historial,.caja-catalogo,.caja-detalle { min-width:0; }
+  .modal-fondo,.orthanc-modal-fondo,.citas-modal-fondo,.usuario-modal-fondo { padding:10px; align-items:end; }
+  .modal-fondo > *, .orthanc-modal,.usuario-modal,.citas-modal-fondo > * { width:100%; max-width:100%; border-radius:14px 14px 10px 10px; }
+  .orthanc-modal-campos,.paciente-campos,.usuario-campos { grid-template-columns:1fr; }
+  .orthanc-modal-campos .ancho,.paciente-campos .ancho { grid-column:auto; }
+  .clinica-tabla,.recepcion-tabla,.usuarios-tabla,.orthanc-tabla,.estudios-tabla { max-width:100%; overscroll-behavior-inline:contain; -webkit-overflow-scrolling:touch; }
+}
+
+@media (max-width: 480px) {
+  .area-trabajo { padding-right:max(10px,env(safe-area-inset-right)); padding-left:max(10px,env(safe-area-inset-left)); }
+  .topbar-titulo h1 { font-size:13px; }
+  .topbar-titulo small { font-size:8px; }
+  .recepcion-cabecera h1,.orthanc-cabecera h2,.estudios-cabecera h2,.usuarios-cabecera h2,.rx-cabecera h2 { font-size:22px; }
+  .panel,.config-tarjeta { padding:14px; border-radius:11px; }
+  .recepcion-subvistas button,.subvistas-nav button,.imagenologia-subvistas button { min-width:136px; padding-inline:12px; font-size:10px; }
+  .caja-paciente-seleccionado,.comprobantes-pendiente { align-items:flex-start; }
+  .caja-consumo-titulo { align-items:flex-start; min-height:0; padding-block:11px; }
+}

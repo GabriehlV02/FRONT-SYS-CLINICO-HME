@@ -29,7 +29,7 @@
 /* Control flotante: no debe quedar oculto por la barra superior ni por el sidebar. */
 @media (min-width: 761px) {
   .sistema-sidebar,.marca-container { overflow:visible !important; }
-  .replegar-menu { position:fixed !important; top:17px !important; left:247px !important; right:auto !important; z-index:1001 !important; display:grid !important; place-items:center !important; width:46px !important; height:46px !important; border:3px solid #fff !important; border-radius:50% !important; color:#fff !important; background:linear-gradient(145deg,#20aae1,#009cae) !important; box-shadow:0 9px 22px rgba(3,134,158,.38) !important; }
+  .replegar-menu { position:fixed !important; top:32px !important; left:247px !important; right:auto !important; z-index:1001 !important; display:grid !important; place-items:center !important; width:46px !important; height:46px !important; border:3px solid #fff !important; border-radius:50% !important; color:#fff !important; background:linear-gradient(145deg,#20aae1,#009cae) !important; box-shadow:0 9px 22px rgba(3,134,158,.38) !important; }
   .sidebar-replegado .replegar-menu { left:63px !important; }
 }
 @media (min-width:761px) { .sidebar-replegado .sidebar-sesion { display:none; } }

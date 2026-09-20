@@ -1,0 +1,22 @@
+.historias-medicos{position:relative;min-width:0}
+.historias-medicos summary{display:flex;align-items:center;gap:6px;width:max-content;max-width:100%;padding:6px 8px;border:1px solid #c6e5dc;border-radius:8px;color:#216757;background:#f4fbf8;font-size:9px;font-weight:800;cursor:pointer;list-style:none}
+.historias-medicos summary::-webkit-details-marker{display:none}
+.historias-medicos summary>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.historias-medicos-flecha{margin-left:2px;transition:transform .18s}
+.historias-medicos[open] .historias-medicos-flecha{transform:rotate(180deg)}
+.historias-medicos>div{position:absolute;z-index:5;top:calc(100% + 6px);left:0;display:grid;gap:5px;min-width:190px;padding:9px;border:1px solid #b9dcea;border-radius:9px;background:#fff;box-shadow:0 10px 22px rgba(7,71,115,.16)}
+.historias-medicos>div span{padding:5px 7px;border-radius:6px;color:#216757;background:#e5f4f1;font-size:9px;font-weight:800;white-space:nowrap}
+.historias-tabla:not(.historias-tabla-estudios){min-width:1000px}
+.historias-fila:not(.historias-fila-estudios){grid-template-columns:145px minmax(120px,.8fr) minmax(130px,.9fr) 150px minmax(220px,1.4fr) 166px}
+.historias-acciones{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:158px}
+.historias-acciones button{min-width:0;height:32px;padding:0 7px;border:1px solid #c6dfed;border-radius:7px;color:#075985;background:#fff;font-size:10px;font-weight:800;white-space:nowrap;box-shadow:none}
+.historias-acciones button:first-child{border-color:#b7ddec;background:#eef8fd}
+.historias-acciones button:last-child{color:#315b7b;background:#f8fcff}
+.historias-acciones button:hover{color:#075985;border-color:#77b9db;background:#dff2fb;transform:translateY(-1px)}
+.historias-tabla-estudios{min-width:1160px}
+.historias-fila-estudios{grid-template-columns:145px minmax(105px,.75fr) minmax(120px,.85fr) 140px minmax(180px,1.2fr) 112px 100px 166px}
+.historias-conteo{justify-self:start;min-width:32px;padding:5px 8px;border-radius:999px;color:#075985;background:#e8f5ff;font-size:10px;font-weight:900;text-align:center}
+.historias-filtros:has(.historias-fecha){grid-template-columns:minmax(230px,1fr) 170px 170px 145px 145px}
+.historias-fecha{position:relative;display:grid;align-content:center}.historias-fecha span{position:absolute;z-index:1;top:3px;left:10px;color:#6e849a;font-size:8px;font-weight:800;pointer-events:none}.historias-fecha input{width:100%;height:42px;padding:10px 9px 0;border:1px solid #bfd9e8;border-radius:9px;outline:0;color:#42647c;background:#fff;font-size:11px}
+@media(max-width:900px){.historias-filtros:has(.historias-fecha){grid-template-columns:1fr 1fr}.historias-filtros:has(.historias-fecha) .historias-buscador{grid-column:1/-1}}@media(max-width:480px){.historias-filtros:has(.historias-fecha){grid-template-columns:1fr}.historias-fecha input{font-size:16px}}
+@media(max-width:760px){.historias-vista{min-width:0}.historias-cabecera{margin-bottom:14px}.historias-filtros{gap:8px}.historias-tabla-contenedor{scrollbar-width:thin;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}.historias-medicos>div{position:fixed;left:12px;right:12px;top:auto;bottom:12px;min-width:0;max-height:50dvh;overflow:auto}.historias-medicos[open] summary{position:relative;z-index:6}.historias-acciones{width:158px}.historias-conteo{justify-self:center}}@media(max-width:480px){.historias-cabecera p{font-size:9px}.historias-cabecera h2{font-size:22px}.historias-panel{padding:10px}.historias-filtros{grid-template-columns:1fr!important}.historias-buscador{grid-column:auto!important}.historias-tabla-contenedor{margin-inline:-10px}.historias-aviso{font-size:10px}}

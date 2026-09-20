@@ -27,7 +27,7 @@
 
 @media (max-width: 760px) {
   .recepcion-vista > .subvistas-carrusel {
-    top: 64px;
+    top: 104px;
   }
 
   .recepcion-vista > .subvistas-carrusel .recepcion-subvistas {
@@ -37,6 +37,14 @@
   .recepcion-vista > .subvistas-carrusel .recepcion-subvistas button {
     flex: 0 0 150px;
   }
+}
+
+@media (max-width: 480px) {
+  .recepcion-vista > .subvistas-carrusel { top: 104px; }
+  .recepcion-vista > .subvistas-carrusel .recepcion-subvistas button { flex-basis:136px; min-width:136px; }
+  .caja-campos-paciente .caja-opciones { gap:9px; }
+  .caja-paciente-seleccionado { align-items:flex-start; flex-direction:column; }
+  .caja-paciente-seleccionado>button { align-self:flex-end; margin-top:-38px; }
 }
 
 .comprobantes-panel .panel-cabecera p{margin:7px 0 0;color:#6e849a;font-size:12px}

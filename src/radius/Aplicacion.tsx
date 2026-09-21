@@ -50,11 +50,12 @@ const subvistasHistoriasClinicas: { id: SubvistaHistoriasClinicas; nombre: strin
 
 const modulos: Modulo[] = [
   { id: 'recepcion', nombre: 'Recepción', icono: 'patient', grupo: 'ATENCIÓN CLÍNICA' },
-  { id: 'laboratorio', nombre: 'Laboratorio', icono: 'lab', grupo: 'ATENCIÓN CLÍNICA' },
   { id: 'atencion-medica', nombre: 'Atención médica', icono: 'userCheck', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'patient', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-emergencias', nombre: 'Triaje de enfermería', icono: 'patient', grupo: 'EMERGENCIAS' },
   { id: 'atencion-urgencias', nombre: 'Atención médica urgente', icono: 'userCheck', grupo: 'EMERGENCIAS' },
+  { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
+  { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   {
     id: "configuracion",
@@ -410,13 +411,13 @@ export default function Aplicacion() {
               ))}
             </nav>
           )}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'laboratorio' ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo.startsWith('laboratorio-') ? (
             <div className="modulo-vacio">
               <span>
                 <Icon name="lab" size={28} />
               </span>
               <p>LABORATORIO</p>
-              <h2>Laboratorio</h2>
+              <h2>{modulo === 'laboratorio-internados' ? 'Internados' : 'Ambulatorios'}</h2>
               <small>
                 Este apartado está listo para incorporar solicitudes, muestras,
                 resultados y reportes de laboratorio.

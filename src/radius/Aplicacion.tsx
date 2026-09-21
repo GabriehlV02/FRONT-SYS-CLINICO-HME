@@ -53,7 +53,7 @@ const modulos: Modulo[] = [
   { id: 'atencion-medica', nombre: 'Atención médica', icono: 'userCheck', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'patient', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-emergencias', nombre: 'Triaje de enfermería', icono: 'patient', grupo: 'EMERGENCIAS' },
-  { id: 'atencion-urgencias', nombre: 'Atención médica urgente', icono: 'userCheck', grupo: 'EMERGENCIAS' },
+  { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },

@@ -147,7 +147,6 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
           </> : <>
             <select value={periodo} onChange={(evento) => setPeriodo(evento.target.value)} aria-label="Filtrar por fecha de modificación"><option value="todos">Todas las fechas</option><option value="7">Últimos 7 días</option><option value="30">Últimos 30 días</option><option value="90">Últimos 90 días</option></select>
             <select value={orden} onChange={(evento) => setOrden(evento.target.value)} aria-label="Ordenar pacientes"><option value="az">Apellido: A a Z</option><option value="za">Apellido: Z a A</option></select>
-            <select aria-label="Filtro adicional" defaultValue=""><option value=""> </option></select>
           </>}
         </div>
 
@@ -177,8 +176,8 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
                 </details>
                 {esEstudios && <><span className="historias-conteo">{paciente.estudiosImagen}</span><span className="historias-conteo">{paciente.laboratorios}</span></>}
                 <div className="historias-acciones">
-                  <button type="button" onClick={() => setMensaje(`Edición de ${paciente.nombre} ${paciente.apellido} preparada.`)} aria-label={`Editar historia de ${paciente.nombre} ${paciente.apellido}`}>✏️ Editar</button>
-                  <button type="button" onClick={() => setPacienteRevisado(paciente)} aria-label={`Revisar historia de ${paciente.nombre} ${paciente.apellido}`}>📋 Revisar</button>
+                  <button type="button" onClick={() => setMensaje(`Edición de ${paciente.nombre} ${paciente.apellido} preparada.`)} aria-label={`Editar historia de ${paciente.nombre} ${paciente.apellido}`}><Icon name="edit" size={15} /> Editar</button>
+                  <button type="button" onClick={() => setPacienteRevisado(paciente)} aria-label={`Revisar historia de ${paciente.nombre} ${paciente.apellido}`}><Icon name="fileText" size={15} /> Revisar</button>
                 </div>
               </div>
             ))}

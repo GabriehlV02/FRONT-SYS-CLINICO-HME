@@ -21,19 +21,23 @@ type Orthanc = {
   apiVersion: string;
 };
 
-type SeccionConfiguracion = 'usuario' | 'usuarios' | 'sistema';
+type SeccionConfiguracion = 'usuario' | 'sistema';
 
 export default function VistaConfiguracion({
   initialSection = 'usuario',
 }: {
-  initialSection?: SeccionConfiguracion;
+  initialSection?: SeccionConfiguracion | 'usuarios';
 }) {
-  const [seccion, setSeccion] = useState<SeccionConfiguracion>(initialSection);
+  const [seccion, setSeccion] = useState<SeccionConfiguracion>(initialSection === 'usuarios' ? 'sistema' : initialSection);
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [orthanc, setOrthanc] = useState<Orthanc | null>(null);
   const [probando, setProbando] = useState(false);
   const [error, setError] = useState('');
   const sesion = leerSesion();
+
+  useEffect(() => {
+    setSeccion(initialSection === 'usuarios' ? 'sistema' : initialSection);
+  }, [initialSection]);
 
   useEffect(() => {
     void apiFetch('/api/mi-perfil')
@@ -65,32 +69,29 @@ export default function VistaConfiguracion({
 
   return (
     <div className="config-vista">
-      <nav className="config-pestanas" aria-label="Subvistas de configuracion">
-        <button className={seccion === 'usuario' ? 'activo' : ''} onClick={() => setSeccion('usuario')}>
+      <nav className="config-pestanas" aria-label="Subvistas de configuración">
+        <button type="button" aria-current={seccion === 'usuario' ? 'page' : undefined} className={seccion === 'usuario' ? 'activo' : ''} onClick={() => setSeccion('usuario')}>
           <Icon name="users" size={18} />
           <span>
-            <strong>Usuario</strong>
+            <strong>Configuración de usuario</strong>
             <small>Cuenta y preferencias personales</small>
           </span>
         </button>
-        <button className={seccion === 'usuarios' ? 'activo' : ''} onClick={() => setSeccion('usuarios')}>
-          <Icon name="userCheck" size={18} />
-          <span>
-            <strong>Usuarios y roles</strong>
-            <small>Cuentas, permisos y accesos</small>
-          </span>
-        </button>
-        <button className={seccion === 'sistema' ? 'activo' : ''} onClick={() => setSeccion('sistema')}>
+        <button type="button" aria-current={seccion === 'sistema' ? 'page' : undefined} className={seccion === 'sistema' ? 'activo' : ''} onClick={() => setSeccion('sistema')}>
           <Icon name="settings" size={18} />
           <span>
-            <strong>Sistema</strong>
-            <small>Servidor e integracion Orthanc</small>
+            <strong>Configuración del sistema</strong>
+            <small>Servicios, usuarios y roles</small>
           </span>
         </button>
       </nav>
 
       {seccion === 'usuario' && (
         <section className="config-contenido">
+          <div className="config-seccion-titulo">
+            <h2>Configuración de usuario</h2>
+            <p>Datos de tu cuenta, sesión y permisos asignados.</p>
+          </div>
           <div className="config-grid">
             <article className="config-tarjeta config-perfil">
               <div className="config-icono">
@@ -123,16 +124,10 @@ export default function VistaConfiguracion({
         </section>
       )}
 
-      {seccion === 'usuarios' && (
-        <section className="config-contenido">
-          <VistaGestionUsuarios />
-        </section>
-      )}
-
       {seccion === 'sistema' && (
         <section className="config-contenido">
           <div className="config-seccion-titulo">
-            <h2>Configuracion del sistema</h2>
+            <h2>Configuración del sistema</h2>
             <p>Estado de los servicios que permiten consultar y visualizar estudios.</p>
           </div>
           {error && <div className="config-error">{error}</div>}
@@ -165,6 +160,9 @@ export default function VistaConfiguracion({
               </dl>
             </article>
           </div>
+          <section className="config-gestion-usuarios" aria-label="Usuarios y roles">
+            <VistaGestionUsuarios />
+          </section>
         </section>
       )}
     </div>

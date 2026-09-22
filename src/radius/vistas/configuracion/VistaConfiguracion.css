@@ -20,7 +20,7 @@
 
 .config-pestanas button{
   position:relative;
-  flex:0 0 220px;
+  flex:0 0 270px;
   min-width:0;
   min-height:56px;
   padding:0 18px;
@@ -73,6 +73,7 @@
 .config-pestanas button.activo small{color:#395574}
 
 .config-contenido{padding-top:0}
+.config-gestion-usuarios{margin-top:24px}
 
 .config-seccion-titulo{
   margin-bottom:16px;

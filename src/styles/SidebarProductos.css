@@ -114,6 +114,19 @@
   margin-top: 10px !important;
 }
 
+.sistema-topbar .perfil {
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+.sistema-topbar .perfil-avatar {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+
 /* Al contraer el menú, la cabecera acompaña el nuevo estado con azul clínico. */
 @media (min-width: 761px) {
   .sidebar-replegado .sistema-topbar {
@@ -135,24 +148,28 @@
 
   .sidebar-replegado .perfil {
     min-height: 48px;
-    padding: 5px 12px 5px 7px !important;
-    border: 1px solid rgba(255, 255, 255, .56) !important;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, .95) !important;
+    padding: 2px 12px 2px 7px !important;
+    border: 0 !important;
+    border-radius: 0;
+    background: transparent !important;
   }
 
   .sidebar-replegado .perfil strong {
-    color: #123a5f !important;
+    color: #ffffff !important;
   }
 
   .sidebar-replegado .perfil small {
-    color: #54748e !important;
+    color: #dceefa !important;
   }
 
   .sidebar-replegado .perfil-avatar {
-    border-color: #b9dff2 !important;
-    color: #0874b8 !important;
-    background: #edf9ff !important;
+    border-color: transparent !important;
+    color: #ffffff !important;
+    background: transparent !important;
+  }
+
+  .sidebar-replegado .perfil i {
+    background: #dceefa;
   }
 
   .sidebar-replegado .notificaciones-boton,
@@ -193,14 +210,16 @@
 /* Regla común de capas para todas las navegaciones secundarias del clínico. */
 @media (min-width: 761px) {
   .sistema-topbar {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 20;
+    left: 0;
+    right: 0;
+    z-index: 100;
     height: var(--clinico-topbar, 70px);
   }
 
   .area-trabajo {
-    padding-top: 14px !important;
+    padding-top: calc(var(--clinico-topbar, 62px) + 14px) !important;
   }
 
   .area-trabajo > .imagenologia-subvistas,
@@ -233,4 +252,95 @@
   .gestion-usuarios > .subvistas-nav {
     margin-bottom: 12px !important;
   }
+}
+
+/* La navegación lateral se despliega debajo de la cabecera permanente. */
+.sistema-app .sistema-sidebar {
+  top: var(--clinico-topbar);
+  height: calc(100dvh - var(--clinico-topbar));
+}
+
+@media (min-width: 761px) {
+  .sistema-app .desplegar-sidebar-escritorio {
+    display: grid;
+    flex: 0 0 38px;
+  }
+
+  .sistema-app .replegar-menu {
+    display: grid !important;
+    position: absolute !important;
+    top: 32px !important;
+    left: auto !important;
+    right: -23px !important;
+  }
+
+  .sistema-app:not(.sidebar-replegado) .sistema-cuerpo {
+    width: calc(100% - 270px);
+    margin-left: 270px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sistema-app { --clinico-topbar: 100px; }
+  .sistema-app .sistema-topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--clinico-topbar);
+    z-index: 100;
+  }
+  .sistema-app .menu-fondo { top: var(--clinico-topbar); }
+  .sistema-app .area-trabajo {
+    padding-top: calc(var(--clinico-topbar) + 14px) !important;
+  }
+}
+
+/* Controles proporcionados a la altura compacta de la cabecera. */
+@media (min-width: 761px) {
+  .sistema-app .sistema-topbar { gap: 12px; }
+
+  .sistema-topbar :is(.topbar-icono,.topbar-boton,.salir-rapido,.desplegar-sidebar-escritorio) {
+    width: 36px;
+    height: 36px;
+    min-height: 36px;
+    flex: 0 0 36px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .sistema-app .sistema-topbar .desplegar-sidebar-escritorio { flex-basis: 36px; }
+  .sistema-topbar :is(.topbar-icono,.topbar-boton,.salir-rapido) { border-radius: 9px; }
+  .sistema-topbar :is(.topbar-icono,.topbar-boton,.salir-rapido,.desplegar-sidebar-escritorio) > svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sistema-topbar .topbar-titulo h1 { font-size: 20px; line-height: 1.2; }
+  .sistema-topbar .busqueda-global {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 12px;
+    gap: 10px;
+    border-radius: 10px;
+  }
+  .sistema-topbar .busqueda-global input { font-size: 13px; line-height: 1.3; }
+  .sistema-topbar .busqueda-global > svg { width: 16px; height: 16px; }
+
+  .sistema-app .sistema-topbar .perfil {
+    min-height: 36px;
+    gap: 8px;
+    padding: 0 8px !important;
+  }
+  .sistema-topbar .perfil-avatar {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-width: 2px;
+  }
+  .sistema-topbar .perfil .perfil-avatar svg { width: 28px; height: 28px; }
+  .sistema-topbar .perfil strong { font-size: 12px; line-height: 1.2; }
+  .sistema-topbar .perfil small { margin-top: 3px; font-size: 10px; line-height: 1.2; }
+  .sistema-topbar .perfil i { width: 5px; height: 5px; }
 }

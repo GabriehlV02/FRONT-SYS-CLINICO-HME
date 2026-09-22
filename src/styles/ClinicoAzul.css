@@ -544,7 +544,7 @@ button:focus-visible,input:focus-visible{outline-color:#096bb5}
 .sistema-app{
   --clinico-sidebar:280px;
   --clinico-sidebar-collapsed:80px;
-  --clinico-topbar:70px;
+  --clinico-topbar:53px;
 }
 .sistema-sidebar{
   width:var(--clinico-sidebar);

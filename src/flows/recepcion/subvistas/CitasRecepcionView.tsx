@@ -134,7 +134,7 @@ const citas: Cita[] = [
   },
 ];
 
-export function CitasRecepcionView() {
+export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string } = {}) {
   const [modoAgendar, setModoAgendar] = useState(false);
   const [horarioElegido, setHorarioElegido] = useState<{
     fecha: string;
@@ -143,7 +143,7 @@ export function CitasRecepcionView() {
   const [citaInspeccionada, setCitaInspeccionada] = useState<Cita | null>(null);
   const [citaPorCobrar, setCitaPorCobrar] = useState<Cita | null>(null);
   const [confirmarCancelacion, setConfirmarCancelacion] = useState(false);
-  const [doctor, setDoctor] = useState(doctores[0]);
+  const [doctor, setDoctor] = useState(medicoInicial || doctores[0]);
   const [citasProgramadas, setCitasProgramadas] = useState(citas);
   const [agendarAbierto, setAgendarAbierto] = useState(false);
   const [errorAgenda, setErrorAgenda] = useState('');
@@ -481,7 +481,7 @@ export function CitasRecepcionView() {
         </div>
         <div className="citas-doctor">
           <span>Doctor</span>
-          <div className="citas-doctor-selector" ref={selectorDoctorRef}>
+          {medicoInicial ? <strong className="citas-medico-sesion">{medicoInicial}</strong> : <div className="citas-doctor-selector" ref={selectorDoctorRef}>
             <button
               type="button"
               aria-haspopup="listbox"
@@ -515,7 +515,7 @@ export function CitasRecepcionView() {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
           <button
             className="primario citas-agendar"
             type="button"

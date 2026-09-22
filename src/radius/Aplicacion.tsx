@@ -22,6 +22,7 @@ import "./vistas/visor/ResponsividadGlobal.css";
 
 import { RecepcionView } from '../flows/recepcion/RecepcionView';
 import { VistaInformes } from './vistas/clinica/Complementos';
+import { ConsultorioView } from '../flows/consultorio/ConsultorioView';
 
 type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
 type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecocardiogramas" | "informes" | "visor";
@@ -50,7 +51,7 @@ const subvistasHistoriasClinicas: { id: SubvistaHistoriasClinicas; nombre: strin
 
 const modulos: Modulo[] = [
   { id: 'recepcion', nombre: 'Recepción', icono: 'patient', grupo: 'ATENCIÓN CLÍNICA' },
-  { id: 'atencion-medica', nombre: 'Atención médica', icono: 'userCheck', grupo: 'ATENCIÓN AMBULATORIA' },
+  { id: 'atencion-medica', nombre: 'Consultorio médico', icono: 'userCheck', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'patient', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-emergencias', nombre: 'Triaje de enfermería', icono: 'patient', grupo: 'EMERGENCIAS' },
   { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
@@ -327,8 +328,9 @@ export default function Aplicacion() {
           <button
             className="desplegar-sidebar-escritorio"
             onClick={alternarSidebar}
-            aria-label="Desplegar menú lateral"
-            title="Desplegar menú lateral"
+            aria-label={sidebarReplegado ? "Desplegar menú lateral" : "Replegar menú lateral"}
+            title={sidebarReplegado ? "Desplegar menú lateral" : "Replegar menú lateral"}
+            aria-expanded={!sidebarReplegado}
           >
             <Icon name="menu" size={20} />
           </button>
@@ -424,17 +426,7 @@ export default function Aplicacion() {
               </small>
             </div>
           ) : modulo === 'atencion-medica' ? (
-            <div className="modulo-vacio">
-              <span>
-                <Icon name="userCheck" size={28} />
-              </span>
-              <p>ATENCIÓN AMBULATORIA</p>
-              <h2>Atención médica</h2>
-              <small>
-                Espacio de trabajo para consultas, historia clínica,
-                diagnósticos, indicaciones y recetas del médico.
-              </small>
-            </div>
+            <ConsultorioView medico={sesion.usuario.nombre} />
           ) : modulo === 'triaje-ambulatorio' ? (
             <div className="modulo-vacio">
               <span>

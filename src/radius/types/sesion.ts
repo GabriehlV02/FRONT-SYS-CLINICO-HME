@@ -28,7 +28,7 @@ export type Sesion = {
     usuarios: string[];
     estado: 'activo' | 'revocado';
   };
-  usuario: { nombre: string; rol: string; permisos: Permiso[]; tipoInicio?:'ventas'|'administracion'|'almacenes'|'admin_sistema'|'atencion_clinica';todosAlmacenes?:boolean;accesosAlmacenes?:{almacenId:string;acciones:('ver'|'editar'|'movimientos'|'traspasos')[]}[] };
+    usuario: { nombre: string; rol: string; permisos: Permiso[]; tipoInicio?:'ventas'|'administracion'|'almacenes'|'admin_sistema'|'atencion_clinica';perfilAtencion?:'medico'|'consultorio'|'internacion'|'quirofano'|'imagenologia'|'anestesiologo';todosAlmacenes?:boolean;accesosAlmacenes?:{almacenId:string;acciones:('ver'|'editar'|'movimientos'|'traspasos')[]}[] };
 };
 
 export const TODOS_LOS_PERMISOS: Permiso[] = [

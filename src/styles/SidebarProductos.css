@@ -40,17 +40,68 @@
 
 /* Retícula compacta y alineada: las separaciones siguen un único ritmo de 4 px. */
 .sistema-marca {
-  min-height: 108px !important;
+  min-height: 72px !important;
   box-shadow: inset 0 -1px 0 #edf3f8;
+}
+
+/* El logo ocupa la cabecera sin el relleno vertical del contenedor anterior. */
+.sistema-sidebar .marca-container {
+  min-height: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+}
+
+.sistema-sidebar .sistema-marca {
+  height: 72px !important;
+  min-height: 72px !important;
+  padding: 0 10px !important;
+}
+
+.sistema-sidebar .sistema-marca .marca-logo-completo {
+  width: 250px !important;
+  height: 72px !important;
+  flex: 0 1 250px !important;
+  min-width: 0;
+}
+
+@media (min-width: 761px) {
+  .sistema-app .marca-container .replegar-menu {
+    top: 20px !important;
+    right: -16px !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-width: 2px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .sistema-sidebar .sistema-marca {
+    padding-right: 40px !important;
+  }
 }
 
 .sistema-nav {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 4px;
+}
+
+.sistema-sidebar .sistema-nav {
+  padding-top: 2px !important;
+}
+
+.sistema-sidebar .sistema-nav section:first-child {
+  padding-top: 0 !important;
+}
+
+.sistema-sidebar .sistema-nav section:first-child > p {
+  margin-top: 2px !important;
 }
 
 .sistema-nav section {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 2px;
   padding: 4px 0 6px !important;
 }
@@ -68,8 +119,8 @@
   border-top: 1px dashed #d6e4ef;
   color: #0077b6 !important;
   font-size: 10px !important;
-  font-weight: 850 !important;
-  letter-spacing: 1.3px !important;
+  font-weight: 700 !important;
+  letter-spacing: .9px !important;
 }
 
 .sistema-nav section:first-child p {
@@ -79,12 +130,17 @@
 
 .sistema-nav .nav-modulo {
   justify-content: flex-start;
-  height: 48px !important;
-  min-height: 48px !important;
+  height: auto !important;
+  min-height: 44px !important;
   margin: 1px 0 !important;
-  padding: 0 15px !important;
-  border-radius: 14px !important;
-  line-height: 1;
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+  line-height: 1.35;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .sistema-nav .nav-modulo.activo {
@@ -99,9 +155,81 @@
 }
 
 .sistema-nav .nav-texto {
-  font-size: 14.5px !important;
-  font-weight: 780 !important;
-  letter-spacing: -.1px;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0;
+  line-height: 1.4;
+  min-width: 0;
+  flex: 1;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.sistema-sidebar {
+  --sidebar-control-blue: #096bb5;
+}
+
+.sistema-sidebar .replegar-menu {
+  background: var(--sidebar-control-blue) !important;
+  box-shadow: 0 8px 20px rgba(9, 107, 181, .3) !important;
+}
+
+.sistema-sidebar :is(.sidebar-scroll, .sistema-nav) {
+  scrollbar-color: var(--sidebar-control-blue) transparent;
+}
+
+.sistema-sidebar :is(.sidebar-scroll, .sistema-nav)::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sistema-sidebar :is(.sidebar-scroll, .sistema-nav)::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sistema-sidebar :is(.sidebar-scroll, .sistema-nav)::-webkit-scrollbar-thumb {
+  background: var(--sidebar-control-blue);
+  border-radius: 999px;
+}
+
+.sistema-sidebar .sidebar-scroll {
+  min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-control-blue) transparent;
+  font-family: 'Segoe UI', Inter, Arial, sans-serif;
+}
+
+.sistema-sidebar .sistema-nav {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding-inline: 10px !important;
+}
+
+.sistema-sidebar .sistema-nav .nav-modulo {
+  font-family: inherit;
+  gap: 10px !important;
+}
+
+.sistema-sidebar .sistema-nav .nav-icono {
+  width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 20px !important;
+}
+
+.sistema-sidebar .sistema-nav .nav-icono svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.sistema-sidebar .sistema-nav .nav-modulo.activo .nav-texto {
+  font-weight: 700 !important;
+}
+
+.sistema-sidebar .boton-salir .nav-texto {
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 .sistema-nav .nav-icono {
@@ -123,8 +251,13 @@
 
 .sistema-topbar .perfil-avatar {
   border-color: transparent !important;
+  color: #0879bd !important;
   background: transparent !important;
   box-shadow: none;
+}
+
+.sistema-topbar .perfil i {
+  background: #0879bd;
 }
 
 /* Al contraer el menú, la cabecera acompaña el nuevo estado con azul clínico. */

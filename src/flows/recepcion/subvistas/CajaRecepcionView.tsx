@@ -1,186 +1,478 @@
-import { useMemo, useState, type FormEvent } from 'react';
-import { createPortal } from 'react-dom';
+import { useMemo, useState } from 'react';
 import Icon from '../../../radius/componentes/Icono';
-
-type DatosFactura = { nit: string; razonSocial: string };
-type ItemCaja = { id: number; nombre: string; categoria: string; tipo: 'Producto' | 'Servicio'; precio: number; detalle: string; stock?: number };
-type Consumo = ItemCaja & { cantidad: number };
-type Paciente = {
-  id: number; nombres: string; apellidoPaterno: string; apellidoMaterno: string; ci: string; complemento: string; expedidoEn: string;
-  celular: string; correo: string; fechaNacimiento: string; genero: string; ciConQr: boolean; afroamericano: boolean;
-  pais: string; departamento: string; ciudad: string; zona: string; direccion: string;
-  responsableNombre: string; responsableTelefono: string; responsableParentesco: string; procedencia: string; observaciones: string; habilitado: boolean; factura?: DatosFactura;
+type Tipo = 'Producto' | 'Insumo' | 'Servicio';
+type Item = {
+  id: string;
+  nombre: string;
+  tipo: Tipo;
+  codigo: string;
+  precio: number;
+  stock?: number;
 };
-type MetodoPago = 'efectivo' | 'qr' | 'tarjeta' | 'transferencia';
-type AnalisisLaboratorio = { nombre: string; precio: number };
-const hojaLaboratorio: Record<string, AnalisisLaboratorio[]> = {
-  'Hematologia': [{ nombre: 'Grupo sanguineo y factor RH', precio: 35 }, { nombre: 'Hemoglobina', precio: 35 }, { nombre: 'Hemograma completo', precio: 50 }, { nombre: 'Prueba de Coombs directo', precio: 90 }, { nombre: 'VES', precio: 30 }],
-  'Coagulograma': [{ nombre: 'A.P.T.T.', precio: 50 }, { nombre: 'Anticardiolipinas IgG IgM', precio: 540 }, { nombre: 'Dimero - D', precio: 260 }, { nombre: 'Tiempo de coagulacion', precio: 30 }, { nombre: 'Tiempo de protrombina PT INR', precio: 50 }],
-  'Quimica metabolica': [{ nombre: 'Acido urico', precio: 35 }, { nombre: 'Perfil lipidico', precio: 80 }, { nombre: 'Glucosa', precio: 30 }, { nombre: 'Creatinina', precio: 35 }, { nombre: 'Pruebas hepaticas', precio: 120 }],
-  'Electrolitos': [{ nombre: 'Calcio', precio: 40 }, { nombre: 'Calcio ionico', precio: 40 }, { nombre: 'Electrolitos Na - K - Cl - iC', precio: 130 }, { nombre: 'Fosforo', precio: 40 }, { nombre: 'Magnesio', precio: 50 }],
-  'Serologia': [{ nombre: 'ANA', precio: 150 }, { nombre: 'Anti-DNA', precio: 150 }, { nombre: 'Anti CCP', precio: 150 }, { nombre: 'C3', precio: 200 }, { nombre: 'Factor RA cuantitativo', precio: 35 }],
-  'Uroanalisis': [{ nombre: 'Calcio en orina 24 Hrs', precio: 40 }, { nombre: 'Cociente PCR', precio: 30 }, { nombre: 'Creatinina en orina casual', precio: 80 }, { nombre: 'Examen completo de orina', precio: 30 }, { nombre: 'Urea en orina casual', precio: 45 }],
-};
-
-const pacientesIniciales: Paciente[] = [
-  { id: 1, nombres: 'Maria', apellidoPaterno: 'Fernandez', apellidoMaterno: 'Lopez', ci: '4839201', complemento: '', expedidoEn: 'Cochabamba', celular: '71234567', correo: '', fechaNacimiento: '', genero: 'Femenino', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true, factura: { nit: '4839201', razonSocial: 'Maria Fernandez Lopez' } },
-  { id: 2, nombres: 'Carlos', apellidoPaterno: 'Mendoza', apellidoMaterno: '', ci: '7281044', complemento: '', expedidoEn: 'Cochabamba', celular: '76543210', correo: '', fechaNacimiento: '', genero: 'Masculino', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true },
-  { id: 3, nombres: 'Ana', apellidoPaterno: 'Rodriguez', apellidoMaterno: 'Vargas', ci: '6102837', complemento: '', expedidoEn: 'Cochabamba', celular: '70012345', correo: '', fechaNacimiento: '', genero: 'Femenino', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true },
-  { id: 4, nombres: 'Paciente', apellidoPaterno: 'Prueba', apellidoMaterno: 'Historial', ci: '9999001', complemento: '', expedidoEn: 'Cochabamba', celular: '70000000', correo: '', fechaNacimiento: '1990-06-15', genero: 'Otro', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: 'Prueba', observaciones: 'Paciente demo para validar el historial de consumos.', habilitado: true },
+type Linea = Item & { cantidad: number };
+type Pago = { id: number; metodo: string; monto: string };
+const catalogo: Item[] = [
+  {
+    id: 'consulta',
+    nombre: 'Consulta médica general',
+    tipo: 'Servicio',
+    codigo: 'SRV-001',
+    precio: 80,
+  },
+  {
+    id: 'hemograma',
+    nombre: 'Hemograma completo',
+    tipo: 'Servicio',
+    codigo: 'LAB-009',
+    precio: 50,
+  },
+  {
+    id: 'rayos',
+    nombre: 'Radiografía panorámica',
+    tipo: 'Servicio',
+    codigo: 'IMG-014',
+    precio: 120,
+  },
+  {
+    id: 'gasa',
+    nombre: 'Gasa estéril 10 × 10 cm',
+    tipo: 'Insumo',
+    codigo: 'INS-021',
+    precio: 12,
+    stock: 84,
+  },
+  {
+    id: 'venda',
+    nombre: 'Venda elástica 10 cm',
+    tipo: 'Insumo',
+    codigo: 'INS-034',
+    precio: 18,
+    stock: 35,
+  },
+  {
+    id: 'paracetamol',
+    nombre: 'Paracetamol 500 mg',
+    tipo: 'Producto',
+    codigo: 'PRD-104',
+    precio: 8,
+    stock: 146,
+  },
 ];
-const catalogoCaja: ItemCaja[] = [
-  { id: 1, nombre: 'Consulta medica general', categoria: 'Procedimientos', tipo: 'Servicio', precio: 50, detalle: 'Atencion de consulta externa' },
-  { id: 2, nombre: 'Radiografia panoramica', categoria: 'Procedimientos', tipo: 'Servicio', precio: 80, detalle: 'Estudio radiologico digital' },
-  { id: 3, nombre: 'Laboratorio basico', categoria: 'Laboratorios', tipo: 'Servicio', precio: 45, detalle: 'Procesamiento de muestra basica' },
-  { id: 4, nombre: 'Gasa esteril 10 x 10 cm', categoria: 'Insumos', tipo: 'Producto', precio: 12, detalle: 'Caja por 100 unidades', stock: 32 },
-  { id: 5, nombre: 'Venda elastica 10 cm', categoria: 'Insumos', tipo: 'Producto', precio: 35, detalle: 'Paquete por 12 rollos', stock: 18 },
-  { id: 6, nombre: 'Certificado medico', categoria: 'Servicios', tipo: 'Servicio', precio: 25, detalle: 'Emision de certificado medico' },
-];
-const historialPorPaciente: Record<number, { id: number; numero: string; fecha: string; servicio: string; total: number; estado: 'Pagado' | 'Preventa' | 'Anulado'; cajero: string }[]> = {
-  1: [{ id: 1, numero: '131932', fecha: '10/05/2026 10:56', servicio: 'Consulta general', total: 50, estado: 'Pagado', cajero: 'Recepcion central' }, { id: 2, numero: '131910', fecha: '15/02/2026 19:17', servicio: 'Limpieza dental', total: 30, estado: 'Preventa', cajero: 'Recepcion central' }, { id: 4, numero: '131885', fecha: '03/01/2026 11:05', servicio: 'Radiografia panoramica', total: 80, estado: 'Anulado', cajero: 'Recepcion central' }],
-  2: [{ id: 3, numero: '131872', fecha: '02/07/2026 09:20', servicio: 'Laboratorio basico', total: 45, estado: 'Pagado', cajero: 'Caja laboratorio' }],
-  4: [{ id: 5, numero: 'PR-001', fecha: '12/09/2026 09:15', servicio: 'Consulta medica general', total: 50, estado: 'Pagado', cajero: 'Recepcion central' }, { id: 6, numero: 'PR-002', fecha: '14/09/2026 11:40', servicio: 'Radiografia panoramica', total: 80, estado: 'Preventa', cajero: 'Recepcion central' }, { id: 7, numero: 'PR-003', fecha: '15/09/2026 16:20', servicio: 'Laboratorio basico', total: 45, estado: 'Anulado', cajero: 'Caja laboratorio' }],
-};
-const metodosPago: { id: MetodoPago; nombre: string }[] = [{ id: 'efectivo', nombre: 'Efectivo' }, { id: 'qr', nombre: 'QR' }, { id: 'tarjeta', nombre: 'Tarjeta' }, { id: 'transferencia', nombre: 'Transferencia' }];
-const formularioPacienteInicial = { nombres: '', apellidoPaterno: '', apellidoMaterno: '', ci: '', complemento: '', expedidoEn: 'Cochabamba', nit: '', razonSocial: '', fechaNacimiento: '', correo: '', celular: '', genero: '', ciConQr: false, afroamericano: false, pais: 'Bolivia', departamento: 'Cochabamba', ciudad: '', zona: '', direccion: '', responsableNombre: '', responsableTelefono: '', responsableParentesco: '', procedencia: '', observaciones: '', habilitado: true };
-const facturaInicial = { nit: '', razonSocial: '' };
-const formatoBs = (valor: number) => `Bs ${valor.toFixed(2)}`;
-const nombreCompleto = (item: Paciente) => [item.nombres, item.apellidoPaterno, item.apellidoMaterno].filter(Boolean).join(' ');
-const calcularEdad = (fecha: string) => {
-  if (!fecha) return '';
-  const nacimiento = new Date(`${fecha}T00:00:00`);
-  const hoy = new Date();
-  let edad = hoy.getFullYear() - nacimiento.getFullYear();
-  if (hoy.getMonth() < nacimiento.getMonth() || (hoy.getMonth() === nacimiento.getMonth() && hoy.getDate() < nacimiento.getDate())) edad -= 1;
-  return `${Math.max(edad, 0)} anos`;
-};
-const leerPacientes = (): Paciente[] => { try { const guardados = window.localStorage.getItem('clinica-caja-pacientes'); return guardados ? JSON.parse(guardados) as Paciente[] : pacientesIniciales; } catch { return pacientesIniciales; } };
-
+const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
+const pagoNuevo = (id: number): Pago => ({ id, metodo: 'Efectivo', monto: '' });
 export function CajaRecepcionView() {
-  const [historialReplegado, setHistorialReplegado] = useState(false);
-  const [filtroHistorial, setFiltroHistorial] = useState<'Todos' | 'Pagado' | 'Preventa' | 'Anulado'>('Todos');
-  const [busqueda, setBusqueda] = useState('');
-  const [pacientesRegistrados, setPacientesRegistrados] = useState<Paciente[]>(leerPacientes);
-  const [paciente, setPaciente] = useState<Paciente | null>(null);
-  const [registroAbierto, setRegistroAbierto] = useState(false);
-  const [catalogoNodo, setCatalogoNodo] = useState<HTMLElement | null>(null);
-  const [formularioPaciente, setFormularioPaciente] = useState(formularioPacienteInicial);
-  const [errorPaciente, setErrorPaciente] = useState('');
-  const [emitirFactura, setEmitirFactura] = useState(false);
-  const [datosFactura, setDatosFactura] = useState<DatosFactura>(facturaInicial);
-  const [busquedaCatalogo, setBusquedaCatalogo] = useState('');
-  const [categoriaCatalogo, setCategoriaCatalogo] = useState('Servicios');
-  const [hojaAbierta, setHojaAbierta] = useState(false);
-  const [analisisMarcados, setAnalisisMarcados] = useState<string[]>([]);
-  const [vistaCatalogo, setVistaCatalogo] = useState<'listado' | 'galeria'>('listado');
-  const [consumo, setConsumo] = useState<Consumo[]>([]);
-  const [metodoPago, setMetodoPago] = useState<MetodoPago>('efectivo');
-  const [descuento, setDescuento] = useState(0);
-  const [montoRecibido, setMontoRecibido] = useState('');
-  const [observacion, setObservacion] = useState('');
-
-  const pacientesFiltrados = useMemo(() => {
-    const termino = busqueda.trim().toLocaleLowerCase();
-    if (!termino) return [];
-    return pacientesRegistrados.filter((item) => `${nombreCompleto(item)} ${item.ci}`.toLocaleLowerCase().includes(termino)).slice(0, 6);
-  }, [busqueda, pacientesRegistrados]);
-  const categoriasCatalogo = ['Servicios', 'Productos', 'Insumos', 'Laboratorios', 'Procedimientos'];
-  const itemsCatalogo = useMemo(() => {
-    const termino = busquedaCatalogo.trim().toLocaleLowerCase();
-    return catalogoCaja.filter((item) => (categoriaCatalogo === 'Todos' || item.categoria === categoriaCatalogo) && (!termino || `${item.nombre} ${item.categoria} ${item.tipo}`.toLocaleLowerCase().includes(termino)));
-  }, [busquedaCatalogo, categoriaCatalogo]);
-  const subtotal = consumo.reduce((total, item) => total + item.precio * item.cantidad, 0);
-  const descuentoAplicado = Math.min(Math.max(descuento, 0), subtotal);
-  const total = Math.max(subtotal - descuentoAplicado, 0);
-  const recibido = Number(montoRecibido) || 0;
-  const cambio = metodoPago === 'efectivo' ? Math.max(recibido - total, 0) : 0;
-  const faltante = metodoPago === 'efectivo' ? Math.max(total - recibido, 0) : 0;
-  const historialPaciente = paciente ? historialPorPaciente[paciente.id] ?? [] : [];
-  const historialFiltrado = filtroHistorial === 'Todos' ? historialPaciente : historialPaciente.filter((item) => item.estado === filtroHistorial);
-  const puedeCobrar = consumo.length > 0 && (metodoPago !== 'efectivo' || recibido >= total);
-
-  const persistirPacientes = (actualizados: Paciente[]) => { setPacientesRegistrados(actualizados); window.localStorage.setItem('clinica-caja-pacientes', JSON.stringify(actualizados)); };
-  const seleccionarPaciente = (item: Paciente) => { setPaciente(item); setBusqueda(''); setRegistroAbierto(false); setErrorPaciente(''); setEmitirFactura(Boolean(item.factura)); setDatosFactura(item.factura ?? facturaInicial); };
-  const registrarPaciente = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const ci = formularioPaciente.ci.trim();
-    if (pacientesRegistrados.some((item) => item.ci === ci)) { setErrorPaciente('Ya existe un paciente registrado con este CI.'); return; }
-    const nuevoPaciente: Paciente = {
-      id: Date.now(), nombres: formularioPaciente.nombres.trim(), apellidoPaterno: formularioPaciente.apellidoPaterno.trim(), apellidoMaterno: formularioPaciente.apellidoMaterno.trim(), ci,
-      complemento: formularioPaciente.complemento.trim(), expedidoEn: formularioPaciente.expedidoEn, celular: formularioPaciente.celular.trim(), correo: formularioPaciente.correo.trim(), fechaNacimiento: formularioPaciente.fechaNacimiento,
-      genero: formularioPaciente.genero, ciConQr: formularioPaciente.ciConQr, afroamericano: formularioPaciente.afroamericano, pais: formularioPaciente.pais, departamento: formularioPaciente.departamento,
-      ciudad: formularioPaciente.ciudad, zona: formularioPaciente.zona, direccion: formularioPaciente.direccion.trim(), responsableNombre: formularioPaciente.responsableNombre.trim(), responsableTelefono: formularioPaciente.responsableTelefono.trim(),
-      responsableParentesco: formularioPaciente.responsableParentesco.trim(), procedencia: formularioPaciente.procedencia, observaciones: formularioPaciente.observaciones.trim(), habilitado: formularioPaciente.habilitado,
-      factura: formularioPaciente.nit.trim() && formularioPaciente.razonSocial.trim() ? { nit: formularioPaciente.nit.trim(), razonSocial: formularioPaciente.razonSocial.trim() } : undefined,
-    };
-    persistirPacientes([...pacientesRegistrados, nuevoPaciente]);
-    setFormularioPaciente(formularioPacienteInicial);
-    seleccionarPaciente(nuevoPaciente);
+  const [busqueda, setBusqueda] = useState(''),
+    [tipo, setTipo] = useState<'Todos' | Tipo>('Todos'),
+    [vista, setVista] = useState<'galeria' | 'listado'>('galeria'),
+    [lineas, setLineas] = useState<Linea[]>([]),
+    [paciente, setPaciente] = useState(''),
+    [modo, setModo] = useState<'inicio' | 'buscar' | 'registrar'>('inicio'),
+    [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
+    [descuento, setDescuento] = useState(''),
+    [mensaje, setMensaje] = useState('');
+  const resultados = useMemo(
+    () =>
+      catalogo.filter(
+        (i) =>
+          (tipo === 'Todos' || i.tipo === tipo) &&
+          `${i.nombre} ${i.codigo} ${i.tipo}`
+            .toLowerCase()
+            .includes(busqueda.toLowerCase()),
+      ),
+    [busqueda, tipo],
+  );
+  const subtotal = lineas.reduce((t, i) => t + i.precio * i.cantidad, 0),
+    rebaja = Math.min(Math.max(Number(descuento) || 0, 0), subtotal),
+    total = subtotal - rebaja,
+    pagado = pagos.reduce((t, p) => t + Math.max(Number(p.monto) || 0, 0), 0),
+    pendiente = Math.max(total - pagado, 0),
+    cambio = Math.max(pagado - total, 0);
+  const agregar = (i: Item) => {
+    setLineas((a) =>
+      a.some((x) => x.id === i.id)
+        ? a.map((x) => (x.id === i.id ? { ...x, cantidad: x.cantidad + 1 } : x))
+        : [...a, { ...i, cantidad: 1 }],
+    );
+    setMensaje(`${i.nombre} agregado al carrito.`);
   };
-  const guardarFactura = () => {
-    if (!paciente || !datosFactura.nit.trim() || !datosFactura.razonSocial.trim()) return;
-    const actualizado = { ...paciente, factura: { nit: datosFactura.nit.trim(), razonSocial: datosFactura.razonSocial.trim() } };
-    persistirPacientes(pacientesRegistrados.map((item) => item.id === paciente.id ? actualizado : item));
-    setPaciente(actualizado);
+  const cantidad = (id: string, d: number) =>
+    setLineas((a) =>
+      a
+        .map((x) =>
+          x.id === id ? { ...x, cantidad: Math.max(0, x.cantidad + d) } : x,
+        )
+        .filter((x) => x.cantidad),
+    );
+  const seleccionar = () => {
+    setPaciente('María Fernández López');
+    setModo('inicio');
   };
-  const limpiarCuenta = () => { setConsumo([]); setDescuento(0); setMontoRecibido(''); setObservacion(''); setEmitirFactura(false); setDatosFactura(paciente?.factura ?? facturaInicial); };
-  const agregarItem = (item: ItemCaja) => setConsumo((actual) => {
-    const existente = actual.find((registro) => registro.id === item.id);
-    return existente ? actual.map((registro) => registro.id === item.id ? { ...registro, cantidad: registro.cantidad + 1 } : registro) : [...actual, { ...item, cantidad: 1 }];
-  });
-  const cambiarCantidad = (id: number, cambioCantidad: number) => setConsumo((actual) => actual.map((item) => item.id === id ? { ...item, cantidad: Math.max(0, item.cantidad + cambioCantidad) } : item).filter((item) => item.cantidad > 0));
-
-  return <section className={`recepcion-caja caja-con-catalogo ${historialReplegado ? 'historial-replegado' : ''} ${registroAbierto ? 'registro-paciente-activo' : ''}`}>
-    <div className="caja-columna-principal">
-    {!historialReplegado ? <aside className="panel caja-historial"><div className="panel-cabecera"><div><span>HISTORIAL</span><h2>Consumos previos</h2></div><button className="secundario caja-historial-control" type="button" onClick={() => setHistorialReplegado(true)} aria-label="Replegar historial" title="Replegar historial"><Icon name="chevronLeft" size={15} /></button></div><label className="caja-historial-filtro"><span>Estado</span><select value={filtroHistorial} onChange={(event) => setFiltroHistorial(event.target.value as typeof filtroHistorial)}><option>Todos</option><option>Pagado</option><option>Preventa</option><option>Anulado</option></select></label><div className="caja-historial-lista">{historialPaciente.length > 0 && historialFiltrado.length > 0 ? historialFiltrado.map((item) => <article className={`estado-${item.estado.toLocaleLowerCase()}`} key={item.id}><header><strong>N. {item.numero}</strong><em>{item.estado}</em></header><span>HOSPITAL</span><p>{item.cajero}</p><p>{item.servicio}</p><footer><small>{item.fecha}</small><b>{formatoBs(item.total)}</b></footer></article>) : <div className="caja-historial-vacio"><Icon name="fileText" size={20} /><strong>{historialPaciente.length ? 'Sin resultados para este filtro' : 'Sin consumos previos'}</strong><small>{historialPaciente.length ? 'Prueba con otro estado.' : 'El historial del paciente aparecera aqui.'}</small></div>}</div></aside> : <button className="secundario caja-mostrar-historial" type="button" onClick={() => setHistorialReplegado(false)} aria-label="Desplegar historial" title="Desplegar historial"><Icon name="chevronRight" size={15} /></button>}
-    <section ref={setCatalogoNodo} className="panel caja-catalogo-operativo">
-      <div className="caja-catalogo-cabecera"><label className="buscador-local"><Icon name="search" size={16} /><input value={busquedaCatalogo} onChange={(event) => setBusquedaCatalogo(event.target.value)} placeholder="Buscar producto o servicio" /></label><div className="caja-vista-catalogo"><button className={vistaCatalogo === 'listado' ? 'activo' : ''} type="button" onClick={() => setVistaCatalogo('listado')}><Icon name="menu" size={15} /> Listado</button><button className={vistaCatalogo === 'galeria' ? 'activo' : ''} type="button" onClick={() => setVistaCatalogo('galeria')}><Icon name="package" size={15} /> Galeria</button></div></div>
-      <div className="caja-categorias" aria-label="Categorias del catalogo">{categoriasCatalogo.map((categoria) => <button className={categoriaCatalogo === categoria ? 'activo' : ''} type="button" key={categoria} onClick={() => { setCategoriaCatalogo(categoria); setHojaAbierta(false); }}>{categoria}</button>)}</div>
-      {categoriaCatalogo === 'Laboratorios' && <div className="caja-hoja-accion"><button className="primario" type="button" onClick={() => setHojaAbierta((actual) => !actual)}><Icon name="fileText" size={15} /> {hojaAbierta ? 'Ocultar hoja de laboratorio' : 'Tickear laboratorio'}</button></div>}
-      {categoriaCatalogo === 'Laboratorios' && hojaAbierta && <section className="caja-hoja-laboratorio"><header><div><span>ORDEN DE LABORATORIO</span><h3>Seleccion de analisis</h3></div><strong>{analisisMarcados.length} marcados</strong></header><div className="caja-hoja-columnas">{Object.entries(hojaLaboratorio).map(([grupo, analisis]) => <fieldset key={grupo}><legend>{grupo}</legend>{analisis.map((item) => <label key={item.nombre}><input type="checkbox" checked={analisisMarcados.includes(item.nombre)} onChange={(event) => setAnalisisMarcados((actual) => event.target.checked ? [...actual, item.nombre] : actual.filter((nombre) => nombre !== item.nombre))} /><span>{item.precio.toFixed(2)}</span><b>{item.nombre}</b></label>)}</fieldset>)}</div><footer><small>Los analisis marcados se agregaran como laboratorios al consumo.</small><button className="primario" type="button" disabled={!analisisMarcados.length} onClick={() => { analisisMarcados.forEach((nombre, index) => agregarItem({ id: 100 + index, nombre, categoria: 'Laboratorios', tipo: 'Servicio', precio: hojaLaboratorio ? Object.values(hojaLaboratorio).flat().find((item) => item.nombre === nombre)?.precio ?? 0 : 0, detalle: 'Analisis de laboratorio' })); setHojaAbierta(false); }}>Agregar seleccionados</button></footer></section>}
-      <div className={`caja-items ${vistaCatalogo}`}>
-        {itemsCatalogo.map((item) => <button className="caja-item" type="button" key={item.id} onClick={() => agregarItem(item)}><span>{item.tipo} · {item.categoria}</span><strong>{item.nombre}</strong><small>{item.detalle}</small><div><b>{formatoBs(item.precio)}</b>{item.stock !== undefined && <em>{item.stock} disponibles</em>}<Icon name="plus" size={16} /></div></button>)}
-        {itemsCatalogo.length === 0 && <p className="caja-catalogo-vacio">No hay productos o servicios que coincidan con la busqueda.</p>}
+  const cobrar = () => {
+    if (!lineas.length || pendiente > 0) return;
+    setMensaje('Venta registrada correctamente. Lista para imprimir factura.');
+    setLineas([]);
+    setPagos([pagoNuevo(Date.now())]);
+    setDescuento('');
+  };
+  return (
+    <section className="punto-pos">
+      <header className="punto-pos-cabecera punto-pos-contexto">
+        <div className="punto-contexto">
+          <label>
+            Sucursal
+            <select defaultValue="Hospital María Esperanza">
+              <option>Hospital María Esperanza</option>
+              <option>Centro de Hemodiálisis</option>
+              <option>Policonsultorio</option>
+            </select>
+          </label>
+          <label>
+            Caja
+            <select defaultValue="Caja 01 · Recepción">
+              <option>Caja 01 · Recepción</option>
+              <option>Caja 02 · Farmacia</option>
+            </select>
+          </label>
+        </div>
+      </header>
+      <div className="punto-pos-layout">
+        <section className="punto-catalogo">
+          <div className="punto-busquedas">
+          <label>
+            <Icon name="search" size={17} />
+            <input
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar producto por nombre, código o categoría…"
+            />
+          </label>
+          <button
+            className="punto-accion-laboratorio"
+            type="button"
+            onClick={() => setMensaje('Catálogo de laboratorio seleccionado.')}
+          >
+            <Icon name="lab" size={16} /> Laboratorio
+          </button>
+          <button
+            className="punto-accion-internacion"
+            type="button"
+            onClick={() => setMensaje('Registro de internación iniciado.')}
+          >
+            <Icon name="plus" size={16} /> Internación
+          </button>
+        </div>
+          <div className="punto-catalogo-filtros">
+            <div className="punto-categorias">
+              {(['Todos', 'Producto', 'Insumo', 'Servicio'] as const).map(
+                (o) => (
+                  <button
+                    type="button"
+                    className={tipo === o ? 'activo' : ''}
+                    key={o}
+                    onClick={() => setTipo(o)}
+                  >
+                    {o}
+                  </button>
+                ),
+              )}
+            </div>
+            <div
+              className="punto-modo-vista"
+              role="group"
+              aria-label="Cambiar vista de catálogo"
+            >
+              <button
+                type="button"
+                className={vista === 'listado' ? 'activo' : ''}
+                onClick={() => setVista('listado')}
+              >
+                <Icon name="menu" size={16} /> Listado
+              </button>
+              <button
+                type="button"
+                className={vista === 'galeria' ? 'activo' : ''}
+                onClick={() => setVista('galeria')}
+              >
+                <Icon name="image" size={16} /> Galería
+              </button>
+            </div>
+          </div>
+          {mensaje && <p className="punto-aviso exito">{mensaje}</p>}
+          {vista === 'galeria' ? (
+            <div className="punto-tarjetas">
+              {resultados.map((i) => (
+                <article key={i.id}>
+                  <div className="punto-tarjeta-avatar">
+                    <span>
+                      {i.nombre
+                        .split(' ')
+                        .slice(0, 2)
+                        .map((p) => p[0])
+                        .join('')}
+                    </span>
+                  </div>
+                  <div className="punto-tarjeta-info">
+                    <small>{i.codigo}</small>
+                    <strong>{i.nombre}</strong>
+                    <span>
+                      {i.tipo}
+                      {i.stock !== undefined ? ` · Stock ${i.stock}` : ''}
+                    </span>
+                  </div>
+                  <footer>
+                    <div>
+                      <b>{dinero(i.precio)}</b>
+                      <small>{i.tipo}</small>
+                    </div>
+                    <button type="button" onClick={() => agregar(i)}>
+                      <Icon name="plus" size={16} /> Agregar
+                    </button>
+                  </footer>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="punto-listado">
+              {resultados.map((i) => (
+                <article key={i.id}>
+                  <div className="punto-listado-avatar">
+                    {i.nombre
+                      .split(' ')
+                      .slice(0, 2)
+                      .map((p) => p[0])
+                      .join('')}
+                  </div>
+                  <div className="punto-listado-info">
+                    <strong>{i.nombre}</strong>
+                    <span>
+                      {i.codigo} · {i.tipo}
+                    </span>
+                  </div>
+                  <b>{dinero(i.precio)}</b>
+                  <button type="button" onClick={() => agregar(i)}>
+                    <Icon name="plus" size={16} /> Agregar
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+        <aside className="punto-carrito">
+          <header>
+            <div>
+              <p>CARRITO DE VENTA</p>
+              <strong>
+                {lineas.reduce((t, i) => t + i.cantidad, 0)} productos
+              </strong>
+            </div>
+            <Icon name="asset" size={24} />
+          </header>
+          <section className="punto-cliente">
+            <header>
+              <strong>Paciente</strong>
+              {paciente && (
+                <button
+                  className="cliente-cambiar"
+                  type="button"
+                  onClick={() => setPaciente('')}
+                >
+                  Cambiar
+                </button>
+              )}
+            </header>
+            {!paciente && modo === 'inicio' && (
+              <div className="cliente-acciones">
+                <button type="button" onClick={() => setModo('buscar')}>
+                  <Icon name="search" size={15} /> Buscar paciente
+                </button>
+                <button type="button" onClick={() => setModo('registrar')}>
+                  <Icon name="plus" size={15} /> Registrar paciente
+                </button>
+              </div>
+            )}
+            {!paciente && modo === 'buscar' && (
+              <div className="cliente-busqueda">
+                <label>
+                  <Icon name="search" size={16} />
+                  <input placeholder="Buscar por nombre o CI" />
+                </label>
+                <button type="button" onClick={seleccionar}>
+                  Seleccionar paciente
+                </button>
+                <button
+                  className="cliente-secundario"
+                  type="button"
+                  onClick={() => setModo('inicio')}
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+            {!paciente && modo === 'registrar' && (
+              <div className="cliente-formulario">
+                <input placeholder="Nombres y apellidos *" />
+                <input placeholder="CI *" />
+                <input placeholder="Número de celular" />
+                <div>
+                  <button type="button" onClick={seleccionar}>
+                    Guardar paciente
+                  </button>
+                  <button
+                    className="cliente-secundario"
+                    type="button"
+                    onClick={() => setModo('inicio')}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            )}
+            {paciente && (
+              <button className="cliente-resumen" type="button">
+                <span>
+                  <small>Paciente</small>
+                  <b>{paciente}</b>
+                </span>
+                <span>
+                  <small>Historia clínica</small>
+                  <b>HC-004821</b>
+                </span>
+                <Icon name="chevronDown" size={18} />
+              </button>
+            )}
+          </section>
+          <div className="punto-carrito-lineas">
+            {lineas.length ? (
+              lineas.map((i) => (
+                <article key={i.id}>
+                  <strong>{i.nombre}</strong>
+                  <small>{dinero(i.precio)} c/u</small>
+                  <div>
+                    <button type="button" onClick={() => cantidad(i.id, -1)}>
+                      −
+                    </button>
+                    <b>{i.cantidad}</b>
+                    <button type="button" onClick={() => cantidad(i.id, 1)}>
+                      +
+                    </button>
+                    <span>{dinero(i.precio * i.cantidad)}</span>
+                    <button
+                      className="punto-quitar"
+                      type="button"
+                      onClick={() =>
+                        setLineas((a) => a.filter((x) => x.id !== i.id))
+                      }
+                    >
+                      ×
+                    </button>
+                  </div>
+                </article>
+              ))
+            ) : (
+              <p>No hay productos en el carrito.</p>
+            )}
+          </div>
+          <section className="punto-resumen">
+            <div>
+              <span>Subtotal</span>
+              <b>{dinero(subtotal)}</b>
+            </div>
+            <label>
+              Descuento
+              <input
+                type="number"
+                min="0"
+                value={descuento}
+                onChange={(e) => setDescuento(e.target.value)}
+                placeholder="0.00"
+              />
+            </label>
+            <div className="punto-total">
+              <span>Total</span>
+              <b>{dinero(total)}</b>
+            </div>
+          </section>
+          <section className="punto-pago-mixto">
+            <header>
+              <div>
+                <strong>Pago mixto</strong>
+                <small>Agrega métodos hasta completar el total</small>
+              </div>
+              <Icon name="asset" size={20} />
+            </header>
+            {pagos.map((p) => (
+              <div className="punto-pago-fila" key={p.id}>
+                <select
+                  value={p.metodo}
+                  onChange={(e) =>
+                    setPagos((a) =>
+                      a.map((x) =>
+                        x.id === p.id ? { ...x, metodo: e.target.value } : x,
+                      ),
+                    )
+                  }
+                >
+                  <option>Efectivo</option>
+                  <option>QR</option>
+                  <option>Tarjeta</option>
+                  <option>Transferencia</option>
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  value={p.monto}
+                  onChange={(e) =>
+                    setPagos((a) =>
+                      a.map((x) =>
+                        x.id === p.id ? { ...x, monto: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  placeholder="Monto"
+                />
+                {pagos.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPagos((a) => a.filter((x) => x.id !== p.id))
+                    }
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              className="punto-agregar-pago"
+              type="button"
+              onClick={() => setPagos((a) => [...a, pagoNuevo(Date.now())])}
+            >
+              <Icon name="plus" size={15} /> Agregar método de pago
+            </button>
+            <div className="punto-pago-totales">
+              <span>
+                Total pagado <b>{dinero(pagado)}</b>
+              </span>
+              <span>
+                Saldo pendiente <b>{dinero(pendiente)}</b>
+              </span>
+              {cambio > 0 && (
+                <span>
+                  Cambio <b>{dinero(cambio)}</b>
+                </span>
+              )}
+            </div>
+          </section>
+          <button
+            className="punto-cobrar"
+            type="button"
+            disabled={!lineas.length || pendiente > 0}
+            onClick={cobrar}
+          >
+            <Icon name="check" size={17} /> Cobrar e imprimir factura
+          </button>
+        </aside>
       </div>
     </section>
-    </div>
-    <aside className="panel caja-detalle">
-      <div className="panel-cabecera"><div><span>CAJA</span><h2>Detalle de cobro</h2></div><button className="secundario" type="button" onClick={limpiarCuenta}>Limpiar</button></div>
-      <div className="caja-paciente">
-        <div className="clinica-acciones"><button className="secundario caja-registrar-paciente" type="button" onClick={() => { setRegistroAbierto((actual) => !actual); setErrorPaciente(''); }}><Icon name="plus" size={15} /> Registrar paciente</button></div>
-        <label className="buscador-local"><Icon name="search" size={16} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por CI, nombre o apellido" /></label>
-        {pacientesFiltrados.length > 0 && <div className="search-results caja-resultados">{pacientesFiltrados.map((item) => <button key={item.id} type="button" onClick={() => seleccionarPaciente(item)}><strong>{nombreCompleto(item)}</strong><small>CI {item.ci} · {item.celular}</small></button>)}</div>}
-        {busqueda.trim() && pacientesFiltrados.length === 0 && <p className="caja-sin-coincidencias">No encontramos coincidencias. Puedes registrar al paciente.</p>}
-        {registroAbierto && catalogoNodo && createPortal(<form className="caja-form-paciente" onSubmit={registrarPaciente}>
-          <div className="caja-form-cabecera"><strong>Registro de paciente</strong><button type="button" onClick={() => setRegistroAbierto(false)} aria-label="Cerrar registro"><Icon name="close" size={15} /></button></div>
-          {errorPaciente && <p className="caja-form-error">{errorPaciente}</p>}
-          <fieldset className="caja-grupo-paciente"><legend>Datos personales</legend><div className="caja-campos-paciente">
-            <label>Nombres *<input required value={formularioPaciente.nombres} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, nombres: event.target.value })} /></label>
-            <label>Apellido paterno *<input required value={formularioPaciente.apellidoPaterno} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, apellidoPaterno: event.target.value })} /></label>
-            <label>Apellido materno *<input required value={formularioPaciente.apellidoMaterno} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, apellidoMaterno: event.target.value })} /></label>
-            <label>CI *<input required value={formularioPaciente.ci} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, ci: event.target.value })} /></label>
-            <label>Complemento<input value={formularioPaciente.complemento} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, complemento: event.target.value })} /></label>
-            <label>Expedido en<select value={formularioPaciente.expedidoEn} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, expedidoEn: event.target.value })}><option>Cochabamba</option><option>La Paz</option><option>Santa Cruz</option><option>Otro</option></select></label>
-            <label>Fecha de nacimiento *<input required type="date" value={formularioPaciente.fechaNacimiento} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, fechaNacimiento: event.target.value })} /></label>
-            <label>Edad<input readOnly value={calcularEdad(formularioPaciente.fechaNacimiento)} placeholder="Se calcula automaticamente" /></label>
-            <label>Genero *<select required value={formularioPaciente.genero} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, genero: event.target.value })}><option value="">Seleccionar</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
-            <label>Correo electronico<input type="email" value={formularioPaciente.correo} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, correo: event.target.value })} /></label>
-            <label>Telefono *<input required type="tel" value={formularioPaciente.celular} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, celular: event.target.value })} /></label>
-            <label className="campo-completo caja-opciones"><span><input type="checkbox" checked={formularioPaciente.ciConQr} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, ciConQr: event.target.checked })} /> CI con QR</span><span><input type="checkbox" checked={formularioPaciente.afroamericano} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, afroamericano: event.target.checked })} /> Afroamericano</span></label>
-          </div></fieldset>
-          <fieldset className="caja-grupo-paciente"><legend>Domicilio</legend><div className="caja-campos-paciente"><label>Pais<select value={formularioPaciente.pais} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, pais: event.target.value })}><option>Bolivia</option></select></label><label>Departamento<select value={formularioPaciente.departamento} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, departamento: event.target.value })}><option>Cochabamba</option><option>La Paz</option><option>Santa Cruz</option><option>Otro</option></select></label><label>Ciudad<input value={formularioPaciente.ciudad} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, ciudad: event.target.value })} /></label><label>Zona<input value={formularioPaciente.zona} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, zona: event.target.value })} /></label><label className="campo-completo">Direccion de domicilio<input value={formularioPaciente.direccion} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, direccion: event.target.value })} /></label></div></fieldset>
-          <fieldset className="caja-grupo-paciente"><legend>Datos de facturacion</legend><div className="caja-campos-paciente"><label>NIT<input value={formularioPaciente.nit} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, nit: event.target.value })} /></label><label>Razon social<input value={formularioPaciente.razonSocial} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, razonSocial: event.target.value })} /></label></div></fieldset>
-          <fieldset className="caja-grupo-paciente"><legend>Persona responsable</legend><div className="caja-campos-paciente"><label>Nombre completo<input value={formularioPaciente.responsableNombre} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, responsableNombre: event.target.value })} /></label><label>Telefono de contacto<input type="tel" value={formularioPaciente.responsableTelefono} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, responsableTelefono: event.target.value })} /></label><label className="campo-completo">Parentesco<input value={formularioPaciente.responsableParentesco} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, responsableParentesco: event.target.value })} placeholder="Ej. Padre, madre o tutor" /></label></div></fieldset>
-          <fieldset className="caja-grupo-paciente"><legend>Registro</legend><div className="caja-campos-paciente"><label className="campo-completo">Como se entero de nosotros? *<select required value={formularioPaciente.procedencia} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, procedencia: event.target.value })}><option value="">Seleccionar</option><option>Recomendacion</option><option>Redes sociales</option><option>Internet</option><option>Otro</option></select></label><label className="campo-completo">Observaciones<textarea value={formularioPaciente.observaciones} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, observaciones: event.target.value })} rows={2} /></label><label className="campo-completo caja-opciones"><span><input type="checkbox" checked={formularioPaciente.habilitado} onChange={(event) => setFormularioPaciente({ ...formularioPaciente, habilitado: event.target.checked })} /> Paciente habilitado</span></label></div></fieldset>
-          <button className="primario caja-guardar-paciente" type="submit"><Icon name="check" size={15} /> Guardar paciente</button>
-        </form>, catalogoNodo)}
-        {paciente && <div className="caja-paciente-seleccionado"><div><span>Paciente seleccionado</span><strong>{nombreCompleto(paciente)}</strong><small>CI {paciente.ci} · {paciente.celular}</small></div><button type="button" onClick={() => { setPaciente(null); setEmitirFactura(false); setDatosFactura(facturaInicial); }} aria-label="Quitar paciente"><Icon name="close" size={15} /></button></div>}
-      </div>
-      <div className="caja-consumo"><div className="caja-consumo-titulo"><strong>Consumo actual</strong><span>{consumo.length ? `${consumo.length} item(s)` : 'Sin prestaciones'}</span></div>{consumo.length === 0 ? <p className="modulo-vacio">Selecciona un producto o servicio del catalogo.</p> : consumo.map((item) => <article key={item.id}><div><strong>{item.nombre}</strong><small>{formatoBs(item.precio)} unitario</small></div><div className="caja-cantidad"><button type="button" onClick={() => cambiarCantidad(item.id, -1)} aria-label={`Quitar ${item.nombre}`}>-</button><span>{item.cantidad}</span><button type="button" onClick={() => cambiarCantidad(item.id, 1)} aria-label={`Agregar ${item.nombre}`}>+</button></div><b>{formatoBs(item.precio * item.cantidad)}</b></article>)}</div>
-      <div className="caja-pago"><label><span>Descuento</span><input type="number" min={0} max={subtotal} value={descuento || ''} onChange={(event) => setDescuento(Number(event.target.value) || 0)} placeholder="0.00" /></label><label><span>Metodo de pago</span><select value={metodoPago} onChange={(event) => setMetodoPago(event.target.value as MetodoPago)}>{metodosPago.map((metodo) => <option key={metodo.id} value={metodo.id}>{metodo.nombre}</option>)}</select></label>{metodoPago === 'efectivo' && <label><span>Monto recibido</span><input type="number" min={0} value={montoRecibido} onChange={(event) => setMontoRecibido(event.target.value)} placeholder="0.00" /></label>}<label className="caja-observacion"><span>Observacion</span><textarea value={observacion} onChange={(event) => setObservacion(event.target.value)} placeholder="Nota interna para caja" rows={2} /></label></div>
-      <section className="caja-factura"><div><strong>Factura</strong><small>Datos tributarios para esta venta.</small></div><button className={emitirFactura ? 'activo' : ''} type="button" onClick={() => setEmitirFactura((actual) => !actual)} aria-pressed={emitirFactura}>{emitirFactura ? 'Factura activada' : 'Emitir factura'}</button>{emitirFactura && <div className="caja-factura-campos"><label>NIT<input value={datosFactura.nit} onChange={(event) => setDatosFactura({ ...datosFactura, nit: event.target.value })} placeholder="Numero de NIT" /></label><label>Razon social<input value={datosFactura.razonSocial} onChange={(event) => setDatosFactura({ ...datosFactura, razonSocial: event.target.value })} placeholder="Nombre o empresa" /></label>{paciente?.factura && <small>Se cargaron los datos guardados de {nombreCompleto(paciente)}.</small>}{paciente && <button className="caja-guardar-factura" type="button" onClick={guardarFactura}>Guardar para proximas ventas</button>}</div>}</section>
-      <div className="caja-resumen"><div><span>Subtotal</span><strong>{formatoBs(subtotal)}</strong></div><div><span>Descuento</span><strong>- {formatoBs(descuentoAplicado)}</strong></div><div className="total"><span>Total a cobrar</span><strong>{formatoBs(total)}</strong></div>{metodoPago === 'efectivo' && <div className={faltante > 0 ? 'pendiente' : 'cambio'}><span>{faltante > 0 ? 'Faltante' : 'Cambio'}</span><strong>{formatoBs(faltante > 0 ? faltante : cambio)}</strong></div>}</div>
-      <button className="primario caja-cobrar" disabled={!puedeCobrar}>Registrar cobro <Icon name="arrowRight" size={16} /></button>
-    </aside>
-  </section>;
+  );
 }

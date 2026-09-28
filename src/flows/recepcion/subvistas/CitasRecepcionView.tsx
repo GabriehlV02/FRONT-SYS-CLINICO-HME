@@ -156,7 +156,6 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
   });
   const [semana, setSemana] = useState(() => new Date());
   const [fechaSeleccionada, setFechaSeleccionada] = useState(() => new Date());
-  const [horaSeleccionada, setHoraSeleccionada] = useState('07:00');
   const [mesVisible, setMesVisible] = useState(
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   );
@@ -248,20 +247,6 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     setFechaSeleccionada(fecha);
     setSemana(fecha);
     setCalendarioAbierto(false);
-  };
-
-  const seleccionarFechaDesdeControl = (valor: string) => {
-    if (!valor) return;
-    const [anio, mes, dia] = valor.split('-').map(Number);
-    seleccionarFecha(new Date(anio, mes - 1, dia));
-  };
-
-  const agendarHorarioSeleccionado = () => {
-    setHorarioElegido({
-      fecha: fechaParaInput(fechaSeleccionada),
-      hora: horaSeleccionada,
-    });
-    setModoAgendar(true);
   };
 
   const irAHoy = () => {
@@ -459,25 +444,6 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
           >
             Hoy
           </button>
-          <div className="citas-fecha-hora" aria-label="Seleccionar día y hora">
-            <label>
-              <span>Día</span>
-              <input
-                type="date"
-                value={fechaParaInput(fechaSeleccionada)}
-                onChange={(event) => seleccionarFechaDesdeControl(event.target.value)}
-              />
-            </label>
-            <label>
-              <span>Hora</span>
-              <select value={horaSeleccionada} onChange={(event) => setHoraSeleccionada(event.target.value)}>
-                {horas.map((hora) => <option key={hora}>{hora}</option>)}
-              </select>
-            </label>
-            <button className="primario citas-agendar-horario" type="button" onClick={agendarHorarioSeleccionado}>
-              <Icon name="calendar" size={15} /> Agendar
-            </button>
-          </div>
         </div>
         <div className="citas-doctor">
           <span>Doctor</span>
@@ -516,16 +482,6 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
               </div>
             )}
           </div>}
-          <button
-            className="primario citas-agendar"
-            type="button"
-            onClick={() => {
-              setHorarioElegido(null);
-              setModoAgendar(true);
-            }}
-          >
-            <Icon name="plus" size={15} /> Agendar consulta
-          </button>
         </div>
       </section>
       <div className="citas-resumen">

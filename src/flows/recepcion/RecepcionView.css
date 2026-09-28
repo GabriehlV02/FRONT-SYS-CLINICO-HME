@@ -1261,6 +1261,108 @@
   font-size: 13px;
   font-weight: 700;
 }
+.punto-accion-laboratorio[aria-pressed='true'] {
+  border-color: #096bb5;
+  color: #fff;
+  background: #096bb5;
+}
+.punto-laboratorio {
+  display: grid;
+  gap: 16px;
+}
+.punto-laboratorio > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 2px 12px;
+  border-bottom: 1px solid #dce6ef;
+}
+.punto-laboratorio > header small {
+  color: #5d7890;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .8px;
+}
+.punto-laboratorio > header h2 {
+  margin: 3px 0 0;
+  color: #193a57;
+  font-size: 20px;
+}
+.punto-laboratorio > header > span {
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: #25618b;
+  background: #e9f5fb;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.punto-laboratorio-grupos {
+  columns: 3 220px;
+  column-gap: 16px;
+}
+.punto-laboratorio-grupos > section {
+  break-inside: avoid;
+  display: grid;
+  gap: 5px;
+  margin: 0 0 15px;
+}
+.punto-laboratorio-grupos h3 {
+  margin: 0 0 3px;
+  padding: 7px 9px;
+  border-radius: 5px;
+  color: #fff;
+  background: #315b7b;
+  font-size: 11px;
+  font-weight: 850;
+  text-align: center;
+  text-transform: uppercase;
+}
+.punto-laboratorio-grupos button {
+  display: grid;
+  grid-template-columns: 17px 52px minmax(0, 1fr) 15px;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: 6px;
+  color: #18334a;
+  background: transparent;
+  text-align: left;
+}
+.punto-laboratorio-grupos button:hover {
+  background: #edf7fb;
+}
+.punto-laboratorio-check {
+  width: 15px;
+  height: 15px;
+  box-sizing: border-box;
+  border: 2px solid #7891a3;
+  border-radius: 3px;
+}
+.punto-laboratorio-grupos button b {
+  color: #096196;
+  font-size: 12px;
+  font-weight: 800;
+}
+.punto-laboratorio-grupos button > span:not(.punto-laboratorio-check) {
+  font-size: 12px;
+  line-height: 1.35;
+}
+.punto-laboratorio-grupos button svg {
+  opacity: 0;
+  color: #087db2;
+}
+.punto-laboratorio-grupos button:hover svg {
+  opacity: 1;
+}
+.punto-laboratorio-vacio {
+  margin: 22px 0;
+  color: #5b7189;
+  text-align: center;
+}
 .punto-tarjetas {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -1605,6 +1707,9 @@
   }
   .punto-tarjetas {
     grid-template-columns: 1fr 1fr;
+  }
+  .punto-laboratorio-grupos {
+    columns: 1;
   }
   .punto-listado article {
     grid-template-columns: 38px minmax(0, 1fr) auto;

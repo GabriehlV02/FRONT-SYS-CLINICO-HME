@@ -21,8 +21,11 @@ import "./vistas/visor/TitulosUnicos.css";
 import "./vistas/visor/ResponsividadGlobal.css";
 
 import { RecepcionView } from '../flows/recepcion/RecepcionView';
+import { CitasRecepcionView } from '../flows/recepcion/subvistas/CitasRecepcionView';
 import { VistaInformes } from './vistas/clinica/Complementos';
 import { ConsultorioView } from '../flows/consultorio/ConsultorioView';
+import { SignosVitalesView } from '../flows/triaje/SignosVitalesView';
+import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
 
 type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
 type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecocardiogramas" | "informes" | "visor";
@@ -30,6 +33,7 @@ type SubvistaRadiografias = "estudios" | "base-datos";
 type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
 type SubvistaHistoriasClinicas = "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
+type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "configuracion";
 type TemaSistema = "light" | "dark";
 
 const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: IconName }[] = [
@@ -55,6 +59,8 @@ const modulos: Modulo[] = [
   { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'patient', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-emergencias', nombre: 'Triaje de enfermería', icono: 'patient', grupo: 'EMERGENCIAS' },
   { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
+  { id: 'enfermera-internacion', nombre: 'Enfermera internación', icono: 'patient', grupo: 'INTERNACIÓN' },
+  { id: 'medico-internacion', nombre: 'Médico internación', icono: 'userCheck', grupo: 'INTERNACIÓN' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
@@ -86,6 +92,7 @@ export default function Aplicacion() {
   const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>("caja");
   const [subvistaHistoriasClinicas, setSubvistaHistoriasClinicas] = useState<SubvistaHistoriasClinicas>("historias");
   const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
+  const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
   const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0 });
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
@@ -287,6 +294,7 @@ export default function Aplicacion() {
                       if (item.id === "imagenologia") setSubvistaImagenologia("pacientes");
                       if (item.id === "recepcion") setSubvistaRecepcion("caja");
                       if (item.id === "configuracion") setSubvistaConfiguracion("usuario");
+                      if (item.id === "triaje-ambulatorio") setSubvistaTriajeAmbulatorio("signos-vitales");
                       setMenuAbierto(false);
                     }}
                   >
@@ -428,17 +436,16 @@ export default function Aplicacion() {
           ) : modulo === 'atencion-medica' ? (
             <ConsultorioView medico={sesion.usuario.nombre} />
           ) : modulo === 'triaje-ambulatorio' ? (
-            <div className="modulo-vacio">
-              <span>
-                <Icon name="patient" size={28} />
-              </span>
-              <p>ATENCIÓN AMBULATORIA</p>
-              <h2>Triaje y signos vitales</h2>
-              <small>
-                Registro inicial de signos vitales y valoración previa a la
-                consulta médica.
-              </small>
-            </div>
+            <section className="triaje-ambulatorio-vista">
+              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Triaje ambulatorio">
+                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('signos-vitales')}><span><Icon name="patient" size={17} /></span><strong>Signos vitales</strong></button>
+                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'agenda' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'agenda' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('agenda')}><span><Icon name="calendar" size={17} /></span><strong>Agenda</strong></button>
+                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'configuracion' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'configuracion' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('configuracion')}><span><Icon name="settings" size={17} /></span><strong>Configuración</strong></button>
+              </HorizontalSubvistaNav>
+              {subvistaTriajeAmbulatorio === 'signos-vitales' && <SignosVitalesView />}
+              {subvistaTriajeAmbulatorio === 'agenda' && <CitasRecepcionView />}
+              {subvistaTriajeAmbulatorio === 'configuracion' && <div className="triaje-ambulatorio-contenido" aria-label="Configuración de signos vitales" />}
+            </section>
           ) : modulo === 'triaje-emergencias' ? (
             <div className="modulo-vacio">
               <span>
@@ -462,6 +469,20 @@ export default function Aplicacion() {
                 Evaluación, diagnóstico, tratamiento e indicaciones médicas
                 para pacientes atendidos en emergencias.
               </small>
+            </div>
+          ) : modulo === 'enfermera-internacion' ? (
+            <div className="modulo-vacio">
+              <span><Icon name="patient" size={28} /></span>
+              <p>INTERNACIÓN</p>
+              <h2>Enfermera internación</h2>
+              <small>Registro de signos vitales, cuidados y seguimiento de pacientes internados.</small>
+            </div>
+          ) : modulo === 'medico-internacion' ? (
+            <div className="modulo-vacio">
+              <span><Icon name="userCheck" size={28} /></span>
+              <p>INTERNACIÓN</p>
+              <h2>Médico internación</h2>
+              <small>Evolución clínica, indicaciones y atención médica de pacientes internados.</small>
             </div>
           ) : modulo === 'historias-clinicas' ? (
             <VistaHistoriasClinicas vista={subvistaHistoriasClinicas} />

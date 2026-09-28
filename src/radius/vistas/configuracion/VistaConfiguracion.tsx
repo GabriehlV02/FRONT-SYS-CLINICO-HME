@@ -1,18 +1,8 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../../api';
 import Icon from '../../componentes/Icono';
-import { leerSesion } from '../../types/sesion';
 import VistaGestionUsuarios from '../usuarios/VistaGestionUsuarios';
 import './VistaConfiguracion.css';
-
-type Perfil = {
-  nombre?: string;
-  apellido?: string;
-  email?: string;
-  usuario?: string;
-  ci?: string;
-  telefono?: string;
-};
 
 type Orthanc = {
   conectado: boolean;
@@ -20,6 +10,7 @@ type Orthanc = {
   version: string;
   apiVersion: string;
 };
+type EventoCuenta = { id: string; tipo: 'inicio_sesion' | 'cierre_sesion' | 'perfil_actualizado' | 'contrasena_actualizada'; creadoEn: string; detalle: string; ip?: string };
 
 type SeccionConfiguracion = 'usuario' | 'sistema';
 
@@ -29,22 +20,17 @@ export default function VistaConfiguracion({
   initialSection?: SeccionConfiguracion | 'usuarios';
 }) {
   const [seccion, setSeccion] = useState<SeccionConfiguracion>(initialSection === 'usuarios' ? 'sistema' : initialSection);
-  const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [orthanc, setOrthanc] = useState<Orthanc | null>(null);
   const [probando, setProbando] = useState(false);
   const [error, setError] = useState('');
-  const sesion = leerSesion();
+  const [eventos, setEventos] = useState<EventoCuenta[]>([]);
 
   useEffect(() => {
     setSeccion(initialSection === 'usuarios' ? 'sistema' : initialSection);
   }, [initialSection]);
 
   useEffect(() => {
-    void apiFetch('/api/mi-perfil')
-      .then(async (respuesta) => {
-        if (respuesta.ok) setPerfil(await respuesta.json());
-      })
-      .catch(() => undefined);
+    void apiFetch('/api/mi-actividad').then(async respuesta => respuesta.ok ? respuesta.json() : { eventos: [] }).then(datos => setEventos(datos.eventos || [])).catch(() => undefined);
   }, []);
 
   const probar = async () => {
@@ -88,39 +74,10 @@ export default function VistaConfiguracion({
 
       {seccion === 'usuario' && (
         <section className="config-contenido">
-          <div className="config-seccion-titulo">
-            <h2>Configuración de usuario</h2>
-            <p>Datos de tu cuenta, sesión y permisos asignados.</p>
-          </div>
-          <div className="config-grid">
-            <article className="config-tarjeta config-perfil">
-              <div className="config-icono">
-                <Icon name="users" size={24} />
-              </div>
-              <div>
-                <small>Usuario conectado</small>
-                <h3>{perfil ? `${perfil.nombre || ''} ${perfil.apellido || ''}`.trim() : sesion?.usuario.nombre || 'Usuario'}</h3>
-                <span className="config-estado"><i />Cuenta activa</span>
-              </div>
-            </article>
-            <article className="config-tarjeta">
-              <h3>Datos de acceso</h3>
-              <dl>
-                <div><dt>Usuario</dt><dd>{perfil?.usuario || 'No registrado'}</dd></div>
-                <div><dt>Correo</dt><dd>{perfil?.email || 'No registrado'}</dd></div>
-                <div><dt>Documento</dt><dd>{perfil?.ci || 'No registrado'}</dd></div>
-                <div><dt>Telefono</dt><dd>{perfil?.telefono || 'No registrado'}</dd></div>
-              </dl>
-            </article>
-            <article className="config-tarjeta">
-              <h3>Sesion y permisos</h3>
-              <dl>
-                <div><dt>Rol</dt><dd>{sesion?.usuario.rol || 'Sin rol'}</dd></div>
-                <div><dt>La sesion finaliza</dt><dd>{sesion ? new Date(sesion.expiresAt).toLocaleString('es-BO') : 'No disponible'}</dd></div>
-                <div><dt>Permisos asignados</dt><dd>{sesion?.usuario.permisos.length || 0}</dd></div>
-              </dl>
-            </article>
-          </div>
+          <section className="config-tarjeta config-actividad">
+            <header><div><h3>Actividad de tu cuenta</h3><p>Accesos y cambios realizados desde esta cuenta.</p></div><span>{eventos.length} registros</span></header>
+            {eventos.length ? <div className="config-actividad-lista">{eventos.map(evento => <article key={evento.id}><span className={`config-actividad-icono ${evento.tipo}`}><Icon name={evento.tipo === 'inicio_sesion' ? 'userCheck' : evento.tipo === 'contrasena_actualizada' ? 'settings' : 'edit'} size={16} /></span><div><strong>{evento.detalle}</strong><small>{new Date(evento.creadoEn).toLocaleString('es-BO')}{evento.ip ? ` · IP ${evento.ip}` : ''}</small></div></article>)}</div> : <p className="config-actividad-vacia">No hay actividad registrada para esta cuenta.</p>}
+          </section>
         </section>
       )}
 

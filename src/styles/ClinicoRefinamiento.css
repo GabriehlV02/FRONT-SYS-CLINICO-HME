@@ -237,3 +237,18 @@
   .sistema-app .area-trabajo :is(.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera){gap:12px}
   .sistema-app .area-trabajo :is(.usuarios-cabecera,.orthanc-cabecera,.rx-cabecera)>button{max-width:100%}
 }
+
+/* El borde del campo basta para mostrar foco: sin halo rectangular exterior. */
+.sistema-app :is(input, select, textarea):focus,
+.sistema-app :is(input, select, textarea):focus-visible,
+.sistema-app :is(.busqueda-global, [class*="buscador"], [class*="busqueda"], [class*="filtro"]):focus-within {
+  outline: none !important;
+}
+
+.sistema-app :is(.busqueda-global, [class*="buscador"], [class*="busqueda"], [class*="filtro"]):focus-within,
+.login-page .login-input:focus-within,
+.login-page .login-input input:focus,
+.login-page .login-input input:focus-visible {
+  box-shadow: none !important;
+  outline: none !important;
+}

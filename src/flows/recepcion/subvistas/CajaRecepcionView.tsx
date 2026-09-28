@@ -8,6 +8,8 @@ type Item = {
   codigo: string;
   precio: number;
   stock?: number;
+  categoria?: string;
+  subcategoria?: string;
 };
 type Linea = Item & { cantidad: number };
 type Pago = { id: number; metodo: string; monto: string };
@@ -25,6 +27,8 @@ const catalogo: Item[] = [
     tipo: 'Servicio',
     codigo: 'LAB-009',
     precio: 50,
+    categoria: 'Laboratorio',
+    subcategoria: 'Hematología',
   },
   {
     id: 'rayos',
@@ -58,6 +62,28 @@ const catalogo: Item[] = [
     stock: 146,
   },
 ];
+const serviciosLaboratorio: Item[] = [
+  { id: 'lab-grupo-sanguineo', nombre: 'Grupo sanguíneo y factor RH', tipo: 'Servicio', codigo: 'LAB-001', precio: 35, categoria: 'Laboratorio', subcategoria: 'Hematología' },
+  { id: 'lab-hemoglobina', nombre: 'Hemoglobina', tipo: 'Servicio', codigo: 'LAB-002', precio: 35, categoria: 'Laboratorio', subcategoria: 'Hematología' },
+  { id: 'lab-hemograma', nombre: 'Hemograma completo', tipo: 'Servicio', codigo: 'LAB-009', precio: 50, categoria: 'Laboratorio', subcategoria: 'Hematología' },
+  { id: 'lab-coombs-directo', nombre: 'Prueba de Coombs directo', tipo: 'Servicio', codigo: 'LAB-010', precio: 90, categoria: 'Laboratorio', subcategoria: 'Hematología' },
+  { id: 'lab-coagulograma', nombre: 'A.P.T.T.', tipo: 'Servicio', codigo: 'LAB-011', precio: 50, categoria: 'Laboratorio', subcategoria: 'Hemostasia - Coagulograma' },
+  { id: 'lab-dimero', nombre: 'Dímero D', tipo: 'Servicio', codigo: 'LAB-012', precio: 260, categoria: 'Laboratorio', subcategoria: 'Hemostasia - Coagulograma' },
+  { id: 'lab-calcio', nombre: 'Calcio', tipo: 'Servicio', codigo: 'LAB-020', precio: 40, categoria: 'Laboratorio', subcategoria: 'Electrolitos' },
+  { id: 'lab-calcio-ionico', nombre: 'Calcio iónico', tipo: 'Servicio', codigo: 'LAB-021', precio: 40, categoria: 'Laboratorio', subcategoria: 'Electrolitos' },
+  { id: 'lab-electrolitos', nombre: 'Electrolitos Na - K - Cl - IC', tipo: 'Servicio', codigo: 'LAB-022', precio: 130, categoria: 'Laboratorio', subcategoria: 'Electrolitos' },
+  { id: 'lab-gasometria-a', nombre: 'Gasometría arterial', tipo: 'Servicio', codigo: 'LAB-030', precio: 360, categoria: 'Laboratorio', subcategoria: 'Gasometría' },
+  { id: 'lab-gasometria-v', nombre: 'Gasometría venosa', tipo: 'Servicio', codigo: 'LAB-031', precio: 360, categoria: 'Laboratorio', subcategoria: 'Gasometría' },
+  { id: 'lab-ana', nombre: 'ANA', tipo: 'Servicio', codigo: 'LAB-040', precio: 150, categoria: 'Laboratorio', subcategoria: 'Serología' },
+  { id: 'lab-anca', nombre: 'ANCA C (PR3 anti proteinasa 3)', tipo: 'Servicio', codigo: 'LAB-041', precio: 200, categoria: 'Laboratorio', subcategoria: 'Serología' },
+  { id: 'lab-anti-dna', nombre: 'Anti - DNA', tipo: 'Servicio', codigo: 'LAB-042', precio: 150, categoria: 'Laboratorio', subcategoria: 'Serología' },
+  { id: 'lab-iga', nombre: 'IgA', tipo: 'Servicio', codigo: 'LAB-050', precio: 130, categoria: 'Laboratorio', subcategoria: 'Inmunoglobulinas' },
+  { id: 'lab-igg', nombre: 'IgG', tipo: 'Servicio', codigo: 'LAB-051', precio: 130, categoria: 'Laboratorio', subcategoria: 'Inmunoglobulinas' },
+  { id: 'lab-examen-orina', nombre: 'Examen completo de orina', tipo: 'Servicio', codigo: 'LAB-060', precio: 30, categoria: 'Laboratorio', subcategoria: 'Uroanálisis' },
+  { id: 'lab-creatinina-orina', nombre: 'Creatinina en orina casual', tipo: 'Servicio', codigo: 'LAB-061', precio: 80, categoria: 'Laboratorio', subcategoria: 'Uroanálisis' },
+  { id: 'lab-coprologico', nombre: 'Coproparasitológico directo', tipo: 'Servicio', codigo: 'LAB-070', precio: 30, categoria: 'Laboratorio', subcategoria: 'Parasitología / Examen en heces' },
+  { id: 'lab-sangre-oculta', nombre: 'Sangre oculta', tipo: 'Servicio', codigo: 'LAB-071', precio: 80, categoria: 'Laboratorio', subcategoria: 'Parasitología / Examen en heces' },
+];
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
 const pagoNuevo = (id: number): Pago => ({ id, metodo: 'Efectivo', monto: '' });
 export function CajaRecepcionView() {
@@ -66,6 +92,7 @@ export function CajaRecepcionView() {
     [vista, setVista] = useState<'galeria' | 'listado'>('galeria'),
     [lineas, setLineas] = useState<Linea[]>([]),
     [paciente, setPaciente] = useState(''),
+    [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
     [modo, setModo] = useState<'inicio' | 'buscar' | 'registrar'>('inicio'),
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(''),
@@ -81,6 +108,16 @@ export function CajaRecepcionView() {
       ),
     [busqueda, tipo],
   );
+  const laboratorioAgrupado = useMemo(() => {
+    const filtrados = [...catalogo, ...serviciosLaboratorio].filter((item) =>
+      item.categoria === 'Laboratorio' && `${item.nombre} ${item.codigo} ${item.subcategoria}`.toLowerCase().includes(busqueda.toLowerCase()),
+    );
+    return filtrados.reduce<Record<string, Item[]>>((grupos, item) => {
+      const clave = item.subcategoria || 'Sin subcategoría';
+      (grupos[clave] ||= []).push(item);
+      return grupos;
+    }, {});
+  }, [busqueda]);
   const subtotal = lineas.reduce((t, i) => t + i.precio * i.cantidad, 0),
     rebaja = Math.min(Math.max(Number(descuento) || 0, 0), subtotal),
     total = subtotal - rebaja,
@@ -149,7 +186,8 @@ export function CajaRecepcionView() {
           <button
             className="punto-accion-laboratorio"
             type="button"
-            onClick={() => setMensaje('Catálogo de laboratorio seleccionado.')}
+            aria-pressed={mostrandoLaboratorio}
+            onClick={() => { setMostrandoLaboratorio((abierto) => !abierto); setBusqueda(''); setMensaje(''); }}
           >
             <Icon name="lab" size={16} /> Laboratorio
           </button>
@@ -161,7 +199,7 @@ export function CajaRecepcionView() {
             <Icon name="plus" size={16} /> Internación
           </button>
         </div>
-          <div className="punto-catalogo-filtros">
+          {!mostrandoLaboratorio && <div className="punto-catalogo-filtros">
             <div className="punto-categorias">
               {(['Todos', 'Producto', 'Insumo', 'Servicio'] as const).map(
                 (o) => (
@@ -196,9 +234,24 @@ export function CajaRecepcionView() {
                 <Icon name="image" size={16} /> Galería
               </button>
             </div>
-          </div>
+          </div>}
           {mensaje && <p className="punto-aviso exito">{mensaje}</p>}
-          {vista === 'galeria' ? (
+          {mostrandoLaboratorio ? (
+            <section className="punto-laboratorio" aria-label="Servicios de laboratorio">
+              <header>
+                <div><small>CATÁLOGO DE SERVICIOS</small><h2>Laboratorio</h2></div>
+                <span>{Object.values(laboratorioAgrupado).flat().length} servicios</span>
+              </header>
+              {Object.keys(laboratorioAgrupado).length ? <div className="punto-laboratorio-grupos">
+                {Object.entries(laboratorioAgrupado).map(([subcategoria, servicios]) => <section key={subcategoria}>
+                  <h3>{subcategoria}</h3>
+                  {servicios.map((servicio) => <button type="button" key={servicio.id} onClick={() => agregar(servicio)}>
+                    <span className="punto-laboratorio-check" aria-hidden="true" /><b>{dinero(servicio.precio)}</b><span>{servicio.nombre}</span><Icon name="plus" size={15} />
+                  </button>)}
+                </section>)}
+              </div> : <p className="punto-laboratorio-vacio">No se encontraron servicios de laboratorio.</p>}
+            </section>
+          ) : vista === 'galeria' ? (
             <div className="punto-tarjetas">
               {resultados.map((i) => (
                 <article key={i.id}>

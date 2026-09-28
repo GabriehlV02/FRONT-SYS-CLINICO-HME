@@ -93,12 +93,18 @@ export default function Aplicacion() {
   const [subvistaHistoriasClinicas, setSubvistaHistoriasClinicas] = useState<SubvistaHistoriasClinicas>("historias");
   const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
   const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
+  const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
+  const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
   const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0 });
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [verAvisos, setVerAvisos] = useState(false);
   const [tema, setTema] = useState<TemaSistema>(() => localStorage.getItem("pulso_theme") === "dark" ? "dark" : "light");
   const [avisos, setAvisos] = useState<{titulo: string; mensaje: string}[]>([]);
+  const esMedico = sesion?.usuario.perfilAtencion === 'medico'
+    || /m[eé]dico/i.test(sesion?.usuario.rol ?? '')
+    || /administrador|admin/i.test(sesion?.usuario.rol ?? '')
+    || sesion?.usuario.permisos.some((permiso) => /medico|consulta/.test(permiso));
   useEffect(() => {
     document.documentElement.dataset.theme = tema;
     localStorage.setItem("pulso_theme", tema);
@@ -364,6 +370,7 @@ export default function Aplicacion() {
             <Icon name="bell" size={20} />
           </button>
           {verAvisos && <section className="pulso-avisos" aria-label="Notificaciones recientes"><h2>Notificaciones</h2><button onClick={() => setVerAvisos(false)}>Cerrar</button>{avisos.length ? avisos.map((a, i) => <article key={i}><strong>{a.titulo}</strong><p>{a.mensaje}</p></article>) : <p>No hay notificaciones en esta sesión.</p>}</section>}
+          {esMedico && <button className="cola-atencion-rapida" type="button" onClick={() => setColaAtencionAbierta(true)}><Icon name="userCheck" size={17} /> Cola de atención</button>}
           <div className="perfil">
             <span className="perfil-avatar">
               <Icon name="users" size={21} />
@@ -384,6 +391,19 @@ export default function Aplicacion() {
             <Icon name="logout" size={20} />
           </button>
         </header>
+        {colaAtencionAbierta && <div className="cola-atencion-modal" role="dialog" aria-modal="true" aria-label="Cola de atención">
+          <button className="cola-atencion-fondo" type="button" aria-label="Cerrar cola de atención" onClick={() => setColaAtencionAbierta(false)} />
+          <aside className="cola-atencion-panel">
+            <header><div><p>CONSULTORIO MÉDICO</p><h2>Cola de atención</h2><small>Pacientes confirmados pendientes de atención.</small></div><button type="button" aria-label="Cerrar" onClick={() => setColaAtencionAbierta(false)}>×</button></header>
+            <div className="cola-atencion-lista">{[
+              ['09:15', 'Ana Rodríguez Vargas', 'Consulta ambulatoria'],
+              ['10:00', 'Jorge Quiroga Salinas', 'Seguimiento clínico'],
+              ['11:30', 'Sofía Castillo Flores', 'Consulta general'],
+            ].map(([hora, paciente, especialidad], indice) => <article key={paciente}>
+              <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Por atender</b><strong>{paciente}</strong><small>{especialidad}</small></div><time>{hora}</time><button type="button" onClick={() => { setColaAtencionAbierta(false); setModulo('atencion-medica'); setColaAtencionVersion((actual) => actual + 1); }}>Abrir agenda</button>
+            </article>)}</div>
+          </aside>
+        </div>}
         <div className="area-trabajo">
           {modulo === "imagenologia" && (
             <nav className="imagenologia-subvistas" aria-label="Subvistas de Imagenología">
@@ -434,7 +454,7 @@ export default function Aplicacion() {
               </small>
             </div>
           ) : modulo === 'atencion-medica' ? (
-            <ConsultorioView medico={sesion.usuario.nombre} />
+            <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview={colaAtencionVersion ? 'agenda' : 'consulta'} />
           ) : modulo === 'triaje-ambulatorio' ? (
             <section className="triaje-ambulatorio-vista">
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Triaje ambulatorio">

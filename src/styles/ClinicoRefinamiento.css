@@ -252,3 +252,18 @@
   box-shadow: none !important;
   outline: none !important;
 }
+
+/* Barra superior institucional: azul constante con el menú abierto o replegado. */
+.sistema-app .sistema-topbar,
+.sistema-app.sidebar-replegado .sistema-topbar {
+  color:#fff;
+  border-color:#056aab;
+  background:#087fc0;
+}
+.sistema-app .sistema-topbar :is(.topbar-titulo h1,.topbar-titulo small,.perfil strong,.perfil small){color:#fff}
+.sistema-app .sistema-topbar :is(.abrir-menu,.desplegar-sidebar-escritorio,.salir-rapido){color:#fff}
+.sistema-app .sistema-topbar :is(.topbar-icono,.topbar-boton,.notificaciones-boton,.salir-rapido,.desplegar-sidebar-escritorio){border-color:#b9e5f6;background:#fff;color:#0870ae}
+.sistema-app .sistema-topbar .busqueda-global{border-color:#b9e5f6;background:#fff;color:#0870ae}
+.sistema-app .sistema-topbar .busqueda-global input{color:#173d60}
+.sistema-app .sistema-topbar .busqueda-global input::placeholder{color:#69869b}
+.sistema-app .sistema-topbar .perfil{border-color:#72bfe3}

@@ -1,6 +1,7 @@
 .recepcion-vista {
-  max-width: 1420px;
-  margin: auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 .recepcion-cabecera {
   display: flex;
@@ -1119,8 +1120,9 @@
 }
 /* Réplica de la vista POS de Ventas para Caja clínica. */
 .punto-pos {
-  max-width: 1380px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
 }
 .punto-pos-cabecera {
   display: flex;

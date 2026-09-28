@@ -482,6 +482,17 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
               </div>
             )}
           </div>}
+          <button
+            className="primario citas-agendar"
+            type="button"
+            onClick={() => {
+              setHorarioElegido(null);
+              setModoAgendar(true);
+            }}
+          >
+            <Icon name="calendar" size={16} />
+            Agendar consulta
+          </button>
         </div>
       </section>
       <div className="citas-resumen">

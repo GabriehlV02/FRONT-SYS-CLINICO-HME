@@ -11,9 +11,9 @@ const subvistas: { id: Subvista; nombre: string; icono: IconName }[] = [
   { id: 'historias', nombre: 'Historias clínicas', icono: 'fileText' },
 ];
 
-export function ConsultorioView({ medico, initialSubview = 'consulta' }: { medico: string; initialSubview?: Subvista }) {
+export function ConsultorioView({ medico, initialSubview = 'consulta', initialPatient = null }: { medico: string; initialSubview?: Subvista; initialPatient?: CitaConfirmada | null }) {
   const [subvista, setSubvista] = useState<Subvista>(initialSubview);
-  const [pacienteEnConsulta, setPacienteEnConsulta] = useState<CitaConfirmada | null>(null);
+  const [pacienteEnConsulta, setPacienteEnConsulta] = useState<CitaConfirmada | null>(initialPatient);
   return <section className="consultorio-vista">
     <nav className="consultorio-subvistas" aria-label="Subvistas de Consultorio médico">
       {subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}>

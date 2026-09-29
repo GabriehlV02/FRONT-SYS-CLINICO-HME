@@ -1,0 +1,44 @@
+.recepcion-internacion-modal {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(1500px, 94vw);
+  height: 90dvh;
+  max-width: calc(100vw - 24px);
+  max-height: calc(100dvh - 24px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #cedfeb;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 24px 80px #102b4b40;
+}
+
+.recepcion-internacion-modal::backdrop {
+  background: #102b4b80;
+}
+
+.recepcion-internacion-modal .recepcion-internacion-cerrar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid #d5e2ed;
+  border-radius: 9px;
+  background: #fff;
+  color: #285778;
+  cursor: pointer;
+}
+
+.recepcion-internacion-modal .recepcion-internacion-cerrar:hover {
+  background: #eef7fd;
+}
+
+.recepcion-internacion-modal .recepcion-internacion-cerrar:focus-visible {
+  outline: 2px solid #087fb7;
+  outline-offset: 3px;
+}

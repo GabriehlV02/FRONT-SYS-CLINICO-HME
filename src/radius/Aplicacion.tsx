@@ -24,6 +24,7 @@ import { RecepcionView } from '../flows/recepcion/RecepcionView';
 import { CitasRecepcionView } from '../flows/recepcion/subvistas/CitasRecepcionView';
 import { VistaInformes } from './vistas/clinica/Complementos';
 import { ConsultorioView } from '../flows/consultorio/ConsultorioView';
+import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
 import { SignosVitalesView } from '../flows/triaje/SignosVitalesView';
 import { TriajeEmergenciasView } from '../flows/emergencias/TriajeEmergenciasView';
 import { AtencionMedicaEmergenciasView } from '../flows/emergencias/AtencionMedicaEmergenciasView';
@@ -97,6 +98,7 @@ export default function Aplicacion() {
   const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
+  const [pacienteColaAtencion, setPacienteColaAtencion] = useState<CitaConfirmada | null>(null);
   const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0 });
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
@@ -398,11 +400,11 @@ export default function Aplicacion() {
           <aside className="cola-atencion-panel">
             <header><div><p>CONSULTORIO MÉDICO</p><h2>Cola de atención</h2><small>Pacientes confirmados pendientes de atención.</small></div><button type="button" aria-label="Cerrar" onClick={() => setColaAtencionAbierta(false)}>×</button></header>
             <div className="cola-atencion-lista">{[
-              ['09:15', 'Ana Rodríguez Vargas', 'Consulta ambulatoria'],
-              ['10:00', 'Jorge Quiroga Salinas', 'Seguimiento clínico'],
-              ['11:30', 'Sofía Castillo Flores', 'Consulta general'],
-            ].map(([hora, paciente, especialidad], indice) => <article key={paciente}>
-              <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Por atender</b><strong>{paciente}</strong><small>{especialidad}</small></div><time>{hora}</time><button type="button" onClick={() => { setColaAtencionAbierta(false); setModulo('atencion-medica'); setColaAtencionVersion((actual) => actual + 1); }}>Abrir agenda</button>
+              { id: 'cola-ana', hora: '09:15', paciente: 'Ana Rodríguez Vargas', ci: '6102837', especialidad: 'Consulta ambulatoria' },
+              { id: 'cola-jorge', hora: '10:00', paciente: 'Jorge Quiroga Salinas', ci: '5948216', especialidad: 'Seguimiento clínico' },
+              { id: 'cola-sofia', hora: '11:30', paciente: 'Sofía Castillo Flores', ci: '7013659', especialidad: 'Consulta general' },
+            ].map((cita, indice) => <article key={cita.id}>
+              <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Por atender</b><strong>{cita.paciente}</strong><small>{cita.especialidad}</small></div><time>{cita.hora}</time><button type="button" onClick={() => { setPacienteColaAtencion({ ...cita, doctor: sesion?.usuario.nombre || 'Consultorio médico', fecha: new Date().toLocaleDateString('en-CA') }); setColaAtencionAbierta(false); setModulo('atencion-medica'); setColaAtencionVersion((actual) => actual + 1); }}>Atender paciente</button>
             </article>)}</div>
           </aside>
         </div>}
@@ -456,7 +458,7 @@ export default function Aplicacion() {
               </small>
             </div>
           ) : modulo === 'atencion-medica' ? (
-            <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview={colaAtencionVersion ? 'agenda' : 'consulta'} />
+            <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview="consulta" initialPatient={pacienteColaAtencion} />
           ) : modulo === 'triaje-ambulatorio' ? (
             <section className="triaje-ambulatorio-vista">
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Triaje ambulatorio">

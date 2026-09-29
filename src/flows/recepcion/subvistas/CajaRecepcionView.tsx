@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Icon from '../../../radius/componentes/Icono';
+import { InternacionModal } from './InternacionModal';
 type Tipo = 'Producto' | 'Insumo' | 'Servicio';
 type Item = {
   id: string;
@@ -93,6 +94,7 @@ export function CajaRecepcionView() {
     [lineas, setLineas] = useState<Linea[]>([]),
     [paciente, setPaciente] = useState(''),
     [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
+    [mostrandoInternacion, setMostrandoInternacion] = useState(false),
     [modo, setModo] = useState<'inicio' | 'buscar' | 'registrar'>('inicio'),
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(''),
@@ -153,6 +155,7 @@ export function CajaRecepcionView() {
   };
   return (
     <section className="punto-pos">
+      {mostrandoInternacion && <InternacionModal onCerrar={() => setMostrandoInternacion(false)} />}
       <header className="punto-pos-cabecera punto-pos-contexto">
         <div className="punto-contexto">
           <label>
@@ -194,7 +197,8 @@ export function CajaRecepcionView() {
           <button
             className="punto-accion-internacion"
             type="button"
-            onClick={() => setMensaje('Registro de internación iniciado.')}
+            aria-haspopup="dialog"
+            onClick={() => { setMensaje(''); setMostrandoInternacion(true); }}
           >
             <Icon name="plus" size={16} /> Internación
           </button>

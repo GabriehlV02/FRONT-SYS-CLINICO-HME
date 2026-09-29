@@ -87,12 +87,19 @@ const serviciosLaboratorio: Item[] = [
 ];
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
 const pagoNuevo = (id: number): Pago => ({ id, metodo: 'Efectivo', monto: '' });
-export function CajaRecepcionView() {
+const pacientesEjemplo = [
+  { nombre: 'Luis Escobar', ci: '6845210' }, { nombre: 'Luis Alberto Escobar Rojas', ci: '4982157' },
+  { nombre: 'María Fernández López', ci: '7351842' }, { nombre: 'Ana Rodríguez Vargas', ci: '6129478' },
+];
+export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 'emergencias' | 'internacion', paciente: string) => void }) {
   const [busqueda, setBusqueda] = useState(''),
     [tipo, setTipo] = useState<'Todos' | Tipo>('Todos'),
     [vista, setVista] = useState<'galeria' | 'listado'>('galeria'),
     [lineas, setLineas] = useState<Linea[]>([]),
     [paciente, setPaciente] = useState(''),
+    [busquedaPaciente, setBusquedaPaciente] = useState(''),
+    [historialAbierto, setHistorialAbierto] = useState(true),
+    [filtroHistorial, setFiltroHistorial] = useState('Todos'),
     [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
     [mostrandoInternacion, setMostrandoInternacion] = useState(false),
     [modo, setModo] = useState<'inicio' | 'buscar' | 'registrar'>('inicio'),
@@ -142,7 +149,16 @@ export function CajaRecepcionView() {
         )
         .filter((x) => x.cantidad),
     );
-  const seleccionar = () => {
+  const coincidenciasPaciente = useMemo(() => {
+    const termino = busquedaPaciente.trim().toLocaleLowerCase('es');
+    return termino ? pacientesEjemplo.filter(p => `${p.nombre} ${p.ci}`.toLocaleLowerCase('es').includes(termino)).slice(0, 6) : [];
+  }, [busquedaPaciente]);
+  const historialPaciente = paciente === 'Luis Escobar'
+    ? [{ n: 'EM-000318', fecha: '29 de septiembre de 2026 09:08', total: '238.00', estado: 'A cuenta', detalle: 'Emergencias · Oxígeno y materiales' }, { n: 'EM-000317', fecha: '29 de septiembre de 2026 08:45', total: '95.00', estado: 'A cuenta', detalle: 'Emergencias · Medicamentos e insumos' }, { n: '131909', fecha: '18 de agosto de 2026 19:02', total: '160.00', estado: 'Pagado', detalle: 'Descargos Ambulatorios 510' }]
+    : [{ n: '131932', fecha: '19 de agosto de 2026 10:56', total: '160.00', estado: 'Pagado', detalle: 'Descargos Ambulatorios 510' }, { n: '131910', fecha: '18 de agosto de 2026 19:17', total: '780.00', estado: 'A cuenta', detalle: 'Descargos Ambulatorios 510' }, { n: '131912', fecha: '18 de agosto de 2026 21:02', total: '2.400.00', estado: 'Pre venta', detalle: 'Descargos Ambulatorios 510' }, { n: '131909', fecha: '18 de agosto de 2026 19:02', total: '160.00', estado: 'Anulado', detalle: 'Descargos Ambulatorios 510' }];
+  const seleccionar = (nombre?: string) => {
+    if (nombre) { setPaciente(nombre); setHistorialAbierto(true); setBusquedaPaciente(''); setModo('inicio'); return; }
+    setHistorialAbierto(true);
     setPaciente('María Fernández López');
     setModo('inicio');
   };
@@ -175,7 +191,11 @@ export function CajaRecepcionView() {
           </label>
         </div>
       </header>
-      <div className="punto-pos-layout">
+      <div className={`punto-pos-layout ${paciente ? (historialAbierto ? 'con-historial' : 'historial-plegado') : ''}`}>
+        {paciente && <aside className="punto-historial-paciente">
+          <button className="punto-historial-control" type="button" aria-expanded={historialAbierto} aria-label={historialAbierto ? 'Ocultar historial del paciente' : 'Mostrar historial del paciente'} title={historialAbierto ? 'Ocultar historial' : 'Mostrar historial'} onClick={() => setHistorialAbierto(abierto => !abierto)}><Icon name={historialAbierto ? 'chevronLeft' : 'chevronRight'} size={16} />{historialAbierto && <span>Ocultar</span>}</button>
+          {historialAbierto && <div className="punto-historial-contenido punto-historial-nuevo"><header><div><p>CUENTAS ANTERIORES</p><h3>{paciente}</h3></div><b>HC-004821</b></header>{paciente === 'Luis Escobar' && <section className="punto-acceso-internacion"><strong>Internado</strong><button type="button" onClick={() => onAbrirCuenta?.('internacion', paciente)}>Ver cuenta <Icon name="arrowRight" size={14} /></button></section>}<select value={filtroHistorial} onChange={e => setFiltroHistorial(e.target.value)} aria-label="Filtrar cuentas históricas"><option>Todos</option><option>Pagado</option><option>A cuenta</option><option>Anulado</option><option>Pre venta</option></select><div className="punto-historial-lista">{historialPaciente.filter(c => filtroHistorial === 'Todos' || c.estado === filtroHistorial).map(c => <article key={c.n} className={`estado-${c.estado.toLowerCase().replace(' ', '-')}`}><div><strong>N.º {c.n}</strong><small>HOSPITAL</small></div><span className="punto-historial-estado">{c.estado}</span><p><Icon name="chevronRight" size={14} /> Cajero/a: farmacia test farmacia test<br /><em>{c.detalle}</em></p><footer><small>{c.fecha}</small><b>Bs. {c.total}</b></footer></article>)}</div></div>}
+        </aside>}
         <section className="punto-catalogo">
           <div className="punto-busquedas">
           <label>
@@ -351,15 +371,13 @@ export function CajaRecepcionView() {
               <div className="cliente-busqueda">
                 <label>
                   <Icon name="search" size={16} />
-                  <input placeholder="Buscar por nombre o CI" />
+                  <input autoFocus value={busquedaPaciente} onChange={e => setBusquedaPaciente(e.target.value)} placeholder="Buscar por nombre o CI" />
                 </label>
-                <button type="button" onClick={seleccionar}>
-                  Seleccionar paciente
-                </button>
+                {!!busquedaPaciente && <div className="cliente-coincidencias" role="listbox" aria-label="Coincidencias de pacientes">{coincidenciasPaciente.length ? coincidenciasPaciente.map(p => <button type="button" role="option" key={p.ci} onClick={() => seleccionar(p.nombre)}><span><b>{p.nombre}</b><small>CI: {p.ci}</small></span><Icon name="chevronRight" size={15} /></button>) : <p>No se encontraron coincidencias.</p>}</div>}
                 <button
                   className="cliente-secundario"
                   type="button"
-                  onClick={() => setModo('inicio')}
+                  onClick={() => { setBusquedaPaciente(''); setModo('inicio'); }}
                 >
                   Cancelar
                 </button>
@@ -371,7 +389,7 @@ export function CajaRecepcionView() {
                 <input placeholder="CI *" />
                 <input placeholder="Número de celular" />
                 <div>
-                  <button type="button" onClick={seleccionar}>
+                  <button type="button" onClick={() => seleccionar()}>
                     Guardar paciente
                   </button>
                   <button

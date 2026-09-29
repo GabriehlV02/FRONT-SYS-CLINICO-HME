@@ -37,7 +37,8 @@
 .boton-salir:hover{color:#001db8;background:#eaf1ff}
 .boton-salir:hover .nav-icono{color:#fff;border-color:#1d4ed8;background:#2563eb}
 .sistema-nav{flex:1}.boton-salir{margin-top:4px}
-.replegar-menu{position:fixed;top:18px;left:253px;right:auto;width:34px;height:34px;z-index:300;border-radius:50%;box-shadow:0 4px 14px rgba(7,85,139,.22)}
+.replegar-menu{position:fixed;top:18px;left:253px;right:auto;width:34px;height:34px;z-index:300;border:2px solid #fff;border-radius:50%;color:#fff;background:linear-gradient(145deg,#18b9e8,#0579b7);box-shadow:0 5px 15px rgba(7,113,177,.4);transition:transform .2s ease,background .2s ease,box-shadow .2s ease}
+.replegar-menu:hover{color:#fff;background:linear-gradient(145deg,#3acbef,#0789c7);box-shadow:0 7px 19px rgba(7,113,177,.5)}.replegar-menu:active{transform:scale(.94);box-shadow:0 3px 9px rgba(7,113,177,.45)}
 .sidebar-replegado .sistema-sidebar{width:80px}
 .sidebar-replegado .sistema-cuerpo{width:calc(100% - 80px);margin-left:80px}
 .sidebar-replegado .sistema-marca{height:86px;padding:16px 14px}

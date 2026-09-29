@@ -267,3 +267,122 @@
 .sistema-app .sistema-topbar .busqueda-global input{color:#173d60}
 .sistema-app .sistema-topbar .busqueda-global input::placeholder{color:#69869b}
 .sistema-app .sistema-topbar .perfil{border-color:#72bfe3}
+
+/* Todas las barras de subvistas se convierten en carrusel en pantallas compactas. */
+@media (max-width:1280px), (pointer:coarse) {
+  .sistema-app .area-trabajo .subvistas-carrusel > :is(.recepcion-subvistas,.consultorio-subvistas,.imagenologia-subvistas,.subvistas-nav,.config-pestanas) {
+    display:flex !important;
+    flex-wrap:nowrap !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x proximity;
+    -webkit-overflow-scrolling:touch;
+  }
+  .sistema-app .area-trabajo .subvistas-carrusel > :is(.recepcion-subvistas,.consultorio-subvistas,.imagenologia-subvistas,.subvistas-nav,.config-pestanas) > button {
+    flex:0 0 154px !important;
+    width:154px !important;
+    min-width:154px !important;
+    scroll-snap-align:start;
+  }
+}
+
+/* Experiencia móvil: diseñada para anchos reales de teléfono (incluido iPhone Pro Max). */
+@media (max-width:760px) {
+  html,body,#root{max-width:100%;overflow-x:hidden}
+  .sistema-app{min-width:0}.sistema-app .area-trabajo{width:100%;min-width:0;padding:76px 12px 18px}
+  .sistema-app .sistema-topbar{height:58px;padding:0 10px}.sistema-app .topbar-titulo h1{font-size:14px}.sistema-app .topbar-titulo small,.sistema-app .perfil small{display:none}.sistema-app .busqueda-global{display:none}.sistema-app .perfil{padding:4px 7px}.sistema-app .perfil strong{font-size:10px}
+  .sistema-app :is(.recepcion-vista,.emergencias-vista,.consultorio-vista){min-width:0}.sistema-app .recepcion-vista{padding:0}.sistema-app .emergencias-vista{padding:12px;gap:12px}
+  .sistema-app .subvistas-carrusel{margin-inline:-12px}.sistema-app .subvistas-carrusel>nav{padding-inline:12px;scroll-padding-inline:12px}.sistema-app .subvistas-flecha{display:none}
+  .sistema-app .area-trabajo .subvistas-carrusel> :is(.recepcion-subvistas,.consultorio-subvistas,.imagenologia-subvistas,.subvistas-nav,.config-pestanas)>button{flex-basis:142px!important;width:142px!important;min-width:142px!important;min-height:46px!important}
+  .sistema-app .recepcion-subvistas button small{display:none}.sistema-app .recepcion-subvistas button{gap:7px!important}
+  .sistema-app :is(.punto-pos-layout,.em-distribucion,.em-medica-layout,.em-medica-atencion){display:grid;grid-template-columns:minmax(0,1fr)!important;gap:12px}.sistema-app .punto-carrito,.sistema-app .punto-historial-paciente{position:static}.sistema-app :is(.punto-pos-layout.con-historial,.punto-pos-layout.historial-plegado){grid-template-columns:minmax(0,1fr)!important}.sistema-app .historial-plegado .punto-historial-paciente{display:none}
+  .sistema-app :is(.punto-catalogo,.punto-carrito,.em-panel){min-width:0;border-radius:12px}.sistema-app .punto-catalogo{padding:12px}.sistema-app .punto-busquedas{flex-wrap:wrap}.sistema-app .punto-busquedas>label{flex:1 1 100%}.sistema-app :is(.punto-accion-laboratorio,.punto-accion-internacion){flex:1 1 auto;justify-content:center}
+  .sistema-app :is(.punto-tarjetas,.punto-listado){grid-template-columns:repeat(2,minmax(0,1fr))}.sistema-app .punto-tarjetas article{min-width:0}.sistema-app .punto-tarjeta-avatar{height:70px}.sistema-app .punto-tarjeta-info{padding:10px}.sistema-app .punto-tarjetas footer{padding:9px}.sistema-app .punto-tarjetas footer button{padding:7px 8px;font-size:11px}
+  .sistema-app :is(.em-form-grid,.em-signos,.em-evaluacion-lectura,.em-medica-vitales){grid-template-columns:minmax(0,1fr)!important}.sistema-app .em-resumen{flex-direction:column;gap:12px}.sistema-app .em-resumen-fila{grid-template-columns:1fr!important}.sistema-app .em-resumen-fila>div+div{padding-left:0;border-left:0;border-top:1px solid #e2edf4}.sistema-app .em-total{text-align:left}.sistema-app .em-cubiculos{max-height:230px;overflow:auto}.sistema-app .em-listado-descargos-tabla{overflow-x:auto}.sistema-app .em-listado-descargos-tabla>article{min-width:620px}
+  .sistema-app .em-medica-datos{display:grid;grid-template-columns:minmax(0,1fr);order:-1}.sistema-app .em-accesos-orden{display:grid;grid-template-columns:1fr 1fr}.sistema-app .em-accesos-orden button{justify-content:center;min-height:42px}.sistema-app .em-medica-cabecera h2{font-size:20px}
+  .sistema-app .em-modal-orden{align-items:flex-end;padding:0;background:#12314b99}.sistema-app .em-modal-orden .em-orden-estudio{width:100%;max-height:88dvh;border-radius:18px 18px 0 0}.sistema-app .em-laboratorios{grid-template-columns:1fr 1fr;max-height:48dvh}.sistema-app .em-acciones{flex-wrap:wrap;justify-content:stretch}.sistema-app .em-acciones button{flex:1 1 130px;min-height:42px}
+  .sistema-app :is(.recepcion-internacion-modal){width:calc(100% - 20px);min-height:70dvh;border-radius:16px 16px 0 0;align-self:end}
+  .sistema-app :is(input,select,textarea,button){font-size:16px}.sistema-app button{min-height:40px}.sistema-app small{line-height:1.45}
+}
+
+@media (min-width:761px) {
+}
+@media (max-width:430px) {
+  .sistema-app .area-trabajo{padding-inline:10px}.sistema-app .topbar-boton{width:34px;height:34px}.sistema-app .perfil{display:none}
+  .sistema-app .punto-tarjetas{grid-template-columns:1fr}.sistema-app .punto-tarjeta-avatar{height:80px}.sistema-app .punto-categorias{overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.sistema-app .punto-categorias button{flex:0 0 auto}
+  .sistema-app .em-accesos-orden{grid-template-columns:1fr}.sistema-app .em-laboratorios{grid-template-columns:1fr}.sistema-app .em-paginacion-clinica button{font-size:11px;padding-inline:8px}.sistema-app .em-paginacion-clinica button span{display:none}
+}
+
+/* Selector de pacientes de Emergencias: evita tarjetas comprimidas o texto superpuesto. */
+@media (max-width:760px) {
+  .sistema-app .em-medica-layout>.em-cubiculos {
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    max-height:none !important;
+    overflow:visible !important;
+    padding:12px !important;
+  }
+  .sistema-app .em-medica-layout>.em-cubiculos :is(h3,small,.em-check,.em-buscar) { margin:0; }
+  .sistema-app .em-medica-layout>.em-cubiculos>h3 { font-size:15px; }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-buscar { min-height:42px; }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-check { min-height:30px; align-items:center; font-size:13px; }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-cubiculo {
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:flex-start !important;
+    width:100% !important;
+    min-height:108px !important;
+    height:auto !important;
+    gap:7px !important;
+    padding:13px 14px !important;
+    overflow:visible !important;
+    text-align:left !important;
+    white-space:normal !important;
+  }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-cubiculo :is(strong,span,small) {
+    display:block !important;
+    width:100% !important;
+    min-height:0 !important;
+    margin:0 !important;
+    overflow:visible !important;
+    line-height:1.35 !important;
+    white-space:normal !important;
+  }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-cubiculo strong { font-size:15px !important; }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-cubiculo span { font-size:13px !important; }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-cubiculo small { color:#637f95 !important; font-size:11px !important; }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-cubiculo b { margin-top:auto; font-size:13px; }
+  .sistema-app .em-medica-inicio { min-height:220px; padding:22px 16px; }
+  .sistema-app .em-medica-inicio h3 { font-size:16px; text-align:center; }
+  .sistema-app .em-medica-inicio p { max-width:32ch; text-align:center; }
+}
+@media (min-width:480px) and (max-width:760px) {
+  .sistema-app .em-medica-layout>.em-cubiculos { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-buscar,
+  .sistema-app .em-medica-layout>.em-cubiculos>h3,
+  .sistema-app .em-medica-layout>.em-cubiculos>small,
+  .sistema-app .em-medica-layout>.em-cubiculos>.em-check { grid-column:span 2; }
+}
+
+/* Barra superior móvil: cada acceso conserva una posición fija, sin saltar de fila. */
+@media (max-width:760px) {
+  .sistema-app .sistema-topbar {
+    display:grid !important;
+    grid-template-columns:38px minmax(0,1fr) 38px 40px !important;
+    grid-template-rows:42px 40px !important;
+    min-height:96px !important;
+    height:96px !important;
+    gap:4px 7px !important;
+    padding:6px 10px 7px !important;
+  }
+  .sistema-app .abrir-menu { display:grid !important; grid-column:1 !important; grid-row:1 !important; width:38px;height:38px;place-items:center;border-radius:9px;color:#fff;background:#0874b1; }
+  .sistema-app .topbar-titulo { display:block !important; grid-column:2 !important; grid-row:1 !important; min-width:0;max-width:none !important; }
+  .sistema-app .topbar-titulo h1 { overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;font-size:15px !important;line-height:42px !important;color:#fff !important; }
+  .sistema-app .topbar-boton { display:grid !important; grid-column:3 !important; grid-row:1 !important; width:38px;height:38px;margin:0 !important;border-radius:9px; }
+  .sistema-app .sistema-topbar .cola-atencion-rapida { display:grid !important; place-items:center;grid-column:4 !important;grid-row:1 !important;width:40px;height:38px;min-height:38px;padding:0 !important;border-radius:9px;font-size:0 !important; }
+  .sistema-app .sistema-topbar .cola-atencion-rapida svg { width:18px;height:18px; }
+  .sistema-app .busqueda-global { display:flex !important; grid-column:1/-1 !important;grid-row:2 !important;width:100% !important;height:40px;min-width:0;margin:0 !important;border-radius:9px; }
+  .sistema-app .busqueda-global input { font-size:14px !important; }
+  .sistema-app .area-trabajo { padding-top:112px !important; }
+}

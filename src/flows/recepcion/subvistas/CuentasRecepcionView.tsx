@@ -19,6 +19,7 @@ type CuentaPaciente = {
 
 // Fuente temporal: será reemplazada por los consumos de internación expuestos por la API clínica.
 const cuentasIniciales: CuentaPaciente[] = [
+  { id: 'CTA-24019', paciente: 'Luis Escobar', historia: 'HC-004821', ubicacion: 'Internación · Habitación por asignar', ingreso: '29/09/2026', responsable: 'Sin registro', total: 333, pagado: 0, estado: 'Pendiente', consumos: [{ concepto: 'Emergencias · Oxígeno y materiales', fecha: '29 Sep', importe: 238 }, { concepto: 'Emergencias · Medicamentos e insumos', fecha: '29 Sep', importe: 95 }] },
   {
     id: 'CTA-24018',
     paciente: 'María Fernández López',
@@ -103,18 +104,15 @@ const cuentasIniciales: CuentaPaciente[] = [
 const dinero = (valor: number) =>
   `Bs ${valor.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export function CuentasRecepcionView() {
-  const [origen, setOrigen] = useState('emergencias');
+export function CuentasRecepcionView({ origenInicial = 'emergencias', pacienteInicial = '' }: { origenInicial?: 'emergencias' | 'internacion'; pacienteInicial?: string }) {
+  const [origen, setOrigen] = useState(origenInicial);
   return <><div className="em-cuentas-tabs"><button className={origen === 'emergencias' ? 'activo' : ''} onClick={() => setOrigen('emergencias')}>Emergencias</button><button className={origen === 'internacion' ? 'activo' : ''} onClick={() => setOrigen('internacion')}>Internación</button></div>{origen === 'emergencias' ? <TriajeEmergenciasView recepcion /> : <CuentasInternacionView />}</>;
 }
 
-function CuentasInternacionView() {
-  const [busqueda, setBusqueda] = useState('');
-  const [tipoCuenta, setTipoCuenta] = useState<
-    'Internados' | 'Deudas' | 'Cirugías'
-  >('Internados');
+function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: string }) {
+  const [busqueda, setBusqueda] = useState(pacienteInicial);
   const [cuentaActiva, setCuentaActiva] = useState<string | null>(
-    cuentasIniciales[0].id,
+    cuentasIniciales.find((cuenta) => cuenta.paciente === pacienteInicial)?.id ?? cuentasIniciales[0].id,
   );
   const cuentas = useMemo(() => {
     const termino = busqueda.trim().toLocaleLowerCase();
@@ -194,22 +192,6 @@ function CuentasInternacionView() {
             placeholder="Buscar por paciente, historia o cuenta"
           />
         </label>
-        <div
-          className="cuentas-tipo-switch"
-          role="group"
-          aria-label="Tipo de cuentas"
-        >
-          {(['Internados', 'Deudas', 'Cirugías'] as const).map((tipo) => (
-            <button
-              type="button"
-              className={tipoCuenta === tipo ? 'activo' : ''}
-              onClick={() => setTipoCuenta(tipo)}
-              key={tipo}
-            >
-              {tipo}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div className="cuentas-contenido">

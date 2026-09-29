@@ -25,6 +25,8 @@ import { CitasRecepcionView } from '../flows/recepcion/subvistas/CitasRecepcionV
 import { VistaInformes } from './vistas/clinica/Complementos';
 import { ConsultorioView } from '../flows/consultorio/ConsultorioView';
 import { SignosVitalesView } from '../flows/triaje/SignosVitalesView';
+import { TriajeEmergenciasView } from '../flows/emergencias/TriajeEmergenciasView';
+import { AtencionMedicaEmergenciasView } from '../flows/emergencias/AtencionMedicaEmergenciasView';
 import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
 
 type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
@@ -467,29 +469,9 @@ export default function Aplicacion() {
               {subvistaTriajeAmbulatorio === 'configuracion' && <div className="triaje-ambulatorio-contenido" aria-label="Configuración de signos vitales" />}
             </section>
           ) : modulo === 'triaje-emergencias' ? (
-            <div className="modulo-vacio">
-              <span>
-                <Icon name="patient" size={28} />
-              </span>
-              <p>EMERGENCIAS</p>
-              <h2>Triaje de enfermería</h2>
-              <small>
-                Valoración inicial, registro de signos vitales y priorización
-                clínica de pacientes de emergencias.
-              </small>
-            </div>
+            <TriajeEmergenciasView />
           ) : modulo === 'atencion-urgencias' ? (
-            <div className="modulo-vacio">
-              <span>
-                <Icon name="userCheck" size={28} />
-              </span>
-              <p>EMERGENCIAS</p>
-              <h2>Atención médica urgente</h2>
-              <small>
-                Evaluación, diagnóstico, tratamiento e indicaciones médicas
-                para pacientes atendidos en emergencias.
-              </small>
-            </div>
+            <AtencionMedicaEmergenciasView />
           ) : modulo === 'enfermera-internacion' ? (
             <div className="modulo-vacio">
               <span><Icon name="patient" size={28} /></span>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Icon from '../../../radius/componentes/Icono';
+import { TriajeEmergenciasView } from '../../emergencias/TriajeEmergenciasView';
 
 type EstadoCuenta = 'Pendiente' | 'Parcial' | 'Al día';
 
@@ -103,6 +104,11 @@ const dinero = (valor: number) =>
   `Bs ${valor.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function CuentasRecepcionView() {
+  const [origen, setOrigen] = useState('emergencias');
+  return <><div className="em-cuentas-tabs"><button className={origen === 'emergencias' ? 'activo' : ''} onClick={() => setOrigen('emergencias')}>Emergencias</button><button className={origen === 'internacion' ? 'activo' : ''} onClick={() => setOrigen('internacion')}>Internación</button></div>{origen === 'emergencias' ? <TriajeEmergenciasView recepcion /> : <CuentasInternacionView />}</>;
+}
+
+function CuentasInternacionView() {
   const [busqueda, setBusqueda] = useState('');
   const [tipoCuenta, setTipoCuenta] = useState<
     'Internados' | 'Deudas' | 'Cirugías'

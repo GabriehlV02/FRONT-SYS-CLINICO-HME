@@ -13,6 +13,7 @@ import {
 } from "../../datos/almacenDemo";
 import "../usuarios/VistaUsuarios.css";
 import "./VistaPacientes.css";
+import "./TablaPacientes.css";
 import "./InformesPaciente.css";
 
 const inicial = {

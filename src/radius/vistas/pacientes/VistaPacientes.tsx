@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../componentes/Icono";
+import { apiFetch } from "../../api";
 import {
   guardarArchivoEstudio,
   guardarEstudios,
@@ -24,6 +25,7 @@ const inicial = {
   sexo: "no_especifica",
   telefono: "",
   direccion: "",
+  sucursal: "Central",
 };
 const calcularEdad = (fecha: string) => {
   if (!fecha) return null;
@@ -41,11 +43,12 @@ const calcularEdad = (fecha: string) => {
 const nombreCompleto = (p: Paciente) =>
   `${p.nombres} ${p.primerApellido} ${p.segundoApellido}`.trim();
 
-export default function VistaPacientes({ modalidad, soloConEstudio = false }: { modalidad?: "Radiografía" | "Tomografía" | "Ecocardiograma"; soloConEstudio?: boolean }) {
+export default function VistaPacientes({ modalidad, soloConEstudio = false, modoClinico = false }: { modalidad?: "Radiografía" | "Tomografía" | "Ecocardiograma"; soloConEstudio?: boolean; modoClinico?: boolean }) {
   const [pacientes, setPacientes] = useState<Paciente[]>([]),
     [estudios, setEstudios] = useState<EstudioDemo[]>([]),
     [busqueda, setBusqueda] = useState(""),
-    [sexo, setSexo] = useState("todos");
+    [sexo, setSexo] = useState("todos"),
+    [sucursal, setSucursal] = useState("todas");
   const [pagina, setPagina] = useState(1),
     [tamano, setTamano] = useState(10),
     [cargando, setCargando] = useState(true),
@@ -68,6 +71,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
       setCargando(false);
     };
     actualizar();
+    void apiFetch('/api/pacientes').then(async (respuesta) => respuesta.ok ? respuesta.json() as Promise<Paciente[]> : null).then((datos) => { if (datos) setPacientes(datos); }).catch(() => undefined);
     window.addEventListener("radiuus:datos-demo", actualizar);
     return () => window.removeEventListener("radiuus:datos-demo", actualizar);
   }, []);
@@ -86,9 +90,10 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
           `${nombreCompleto(p)} ${p.numeroDocumento} ${p.telefono} ${p.direccion}`
             .toLowerCase()
             .includes(busqueda.toLowerCase()) &&
-          (sexo === "todos" || p.sexo === sexo),
+          (sexo === "todos" || p.sexo === sexo) &&
+          (sucursal === "todas" || (p.sucursal || "Central") === sucursal),
       ),
-    [pacientesVisibles, busqueda, sexo],
+    [pacientesVisibles, busqueda, sexo, sucursal],
   );
   const paginas = Math.max(1, Math.ceil(filtrados.length / tamano)),
     actual = Math.min(pagina, paginas),
@@ -116,6 +121,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
       sexo: p.sexo,
       telefono: p.telefono,
       direccion: p.direccion,
+      sucursal: p.sucursal || "Central",
     });
     setAbierto(true);
   };
@@ -129,9 +135,11 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
         id: editando?.id || `pac-${crypto.randomUUID()}`,
         creadoEn: editando?.creadoEn || new Date().toISOString(),
       };
-      const nuevos = editando
-        ? pacientes.map((p) => (p.id === d.id ? d : p))
-        : [d, ...pacientes];
+      const respuesta = await apiFetch(editando ? `/api/pacientes/${editando.id}` : '/api/pacientes', { method: editando ? 'PUT' : 'POST', body: JSON.stringify(d) });
+      const datos = await respuesta.json();
+      if (!respuesta.ok) throw new Error(datos.message || 'No se pudo guardar el paciente.');
+      const guardado: Paciente = { ...datos, sucursal: d.sucursal };
+      const nuevos = editando ? pacientes.map((p) => (p.id === guardado.id ? guardado : p)) : [guardado, ...pacientes];
       guardarPacientes(nuevos);
       setPacientes(nuevos);
       cerrar();
@@ -252,6 +260,10 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
           <option value="otro">Otro</option>
           <option value="no_especifica">No especifica</option>
         </select>
+        {modoClinico && <select value={sucursal} onChange={(e) => filtrar(() => setSucursal(e.target.value))} aria-label="Filtrar por sucursal">
+          <option value="todas">Todas las sucursales</option><option value="Central">Sucursal Central</option><option value="Norte">Sucursal Norte</option><option value="Sur">Sucursal Sur</option>
+        </select>}
+        {modoClinico && <button className="usuarios-crear pacientes-registrar" type="button" onClick={() => setAbierto(true)}><Icon name="plus" size={17} />Registrar nuevo paciente</button>}
       </div>
       <Paginacion tam />
       <div className="usuarios-tabla pacientes-tabla">
@@ -260,7 +272,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
           <span>Documento</span>
           <span>Edad / sexo</span>
           <span>Celular</span>
-          <span>{modalidad || "Pacientes"}</span>
+          <span>{modoClinico ? "Sucursal" : (modalidad || "Pacientes")}</span>
           <span>Acciones</span>
         </div>
         {cargando ? (
@@ -305,7 +317,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
                   <strong className="dato-movil">Celular</strong>
                   <span>{p.telefono || "No registrado"}</span>
                 </div>
-                <div className="radiografia-estado">
+                {modoClinico ? <div className="radiografia-estado"><strong className="dato-movil">Sucursal</strong><span className="estado-cargado">{p.sucursal || "Central"}</span></div> : <div className="radiografia-estado">
                   <strong className="dato-movil">{modalidad || "Estudio"}</strong>
                   <span
                     className={estudio ? "estado-cargado" : "estado-pendiente"}
@@ -317,15 +329,15 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
                       {estudio.titulo}
                     </small>
                   )}
-                </div>
+                </div>}
                 <div className="acciones-tabla">
-                  <button
+                  {!modoClinico && <button
                     className="usuario-accion"
                     onClick={() => setViendo(p)}
                     title="Ver paciente"
                   >
                     <Icon name="eye" size={18} />
-                  </button>
+                  </button>}
                   <button
                     className="usuario-accion"
                     onClick={() => abrirEditar(p)}
@@ -491,6 +503,12 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false }: { 
                     setForm({ ...form, direccion: e.target.value })
                   }
                 />
+              </label>
+              <label>
+                Sucursal
+                <select value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })}>
+                  <option value="Central">Sucursal Central</option><option value="Norte">Sucursal Norte</option><option value="Sur">Sucursal Sur</option>
+                </select>
               </label>
             </div>
             <div className="usuario-form-acciones">

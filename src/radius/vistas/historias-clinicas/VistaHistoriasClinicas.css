@@ -29,4 +29,20 @@
 .historias-acciones button:hover{color:#fff;border-color:#064f7d;background:#064f7d;box-shadow:0 5px 12px rgba(6,79,125,.18)}
 @media(max-width:900px){.historias-filtros{grid-template-columns:minmax(240px,1fr) 170px 170px}}
 @media(max-width:760px){.historias-panel{padding:11px}.historias-filtros{grid-template-columns:1fr 1fr}.historias-buscador{grid-column:1/-1}.historias-filtros select:last-child{display:block}.historias-tabla-contenedor{margin-inline:-11px;border-radius:0}}
+
+/* Misma familia visual que el listado principal de Pacientes. */
+.historias-tabla-contenedor{border-color:#244c72;background:#082846;box-shadow:0 12px 30px rgba(0,8,20,.16)}
+.historias-columnas{color:#8da6be;background:#061f3b}
+.historias-fila{border-bottom-color:#1f4566;color:#e8f2fb}
+.historias-fila:not(.historias-columnas):nth-child(odd),.historias-fila:not(.historias-columnas):nth-child(even){background:#082846}
+.historias-fila:not(.historias-columnas):hover{background:#0b3459}
+.historias-fila>*{border-right:0}
+.historias-fila>div:first-child strong{color:#eff8ff}
+.historias-fila>div:first-child small,.historias-fila time{color:#8da6be}
+.historias-medicos summary{border-color:#315775;color:#cfe7fb;background:#061f3b}
+.historias-medicos summary:hover{border-color:#52baff;background:#082d50}
+.historias-medicos span{color:#a9f2dc;background:#10453f}
+.historias-acciones button{border-color:#35658c;color:#70c9ff;background:#092d50}
+.historias-acciones button:hover{border-color:#52baff;color:#eaf7ff;background:#0b3c68}
+.historias-conteo{color:#e8f2fb}
 @media(max-width:480px){.historias-filtros{grid-template-columns:1fr}.historias-buscador{grid-column:auto}}

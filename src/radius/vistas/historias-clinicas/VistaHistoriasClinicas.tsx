@@ -125,14 +125,6 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
 
   return (
     <section className="historias-vista" aria-label={esEstudios ? 'Estudios del paciente' : 'Historias clínicas'}>
-      <header className="historias-cabecera">
-        <div>
-          <p>HISTORIAS CLÍNICAS</p>
-          <h2>{esEstudios ? 'Estudios del paciente' : 'Historias clínicas'}</h2>
-          <small>{esEstudios ? 'Localice al paciente para consultar sus estudios asociados.' : 'Consulte y gestione la información clínica de los pacientes.'}</small>
-        </div>
-      </header>
-
       <section className="historias-panel">
         <div className="historias-filtros">
           <label className="historias-buscador">

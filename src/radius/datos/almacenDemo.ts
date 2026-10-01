@@ -1,13 +1,24 @@
-export type PacienteDemo={id:string;nombres:string;primerApellido:string;segundoApellido:string;tipoDocumento:string;numeroDocumento:string;fechaNacimiento:string;sexo:string;telefono:string;direccion:string;creadoEn:string};
+export type PacienteDemo={id:string;nombres:string;primerApellido:string;segundoApellido:string;tipoDocumento:string;numeroDocumento:string;fechaNacimiento:string;sexo:string;telefono:string;direccion:string;sucursal?:string;creadoEn:string};
 export type EstudioDemo={id:string;pacienteId:string;paciente:string;titulo:string;categoria:string;descripcion:string;nombreArchivo:string;mime:string;archivoUrl?:string;creadaEn:string};
 export type InformeDemo={pacienteId:string;nombreArchivo:string;mime:string;creadoEn:string};
 
-const PACIENTES='pulso_local_pacientes_v1',ESTUDIOS='pulso_local_estudios_v1',SELECCION='radiuus_estudio_seleccionado',INFORMES='pulso_local_informes_v1';
-export const pacientesIniciales:PacienteDemo[]=[];
+const PACIENTES='pulso_local_pacientes_v1',ESTUDIOS='pulso_local_estudios_v1',SELECCION='radiuus_estudio_seleccionado',INFORMES='pulso_local_informes_v1',MUESTRA_PACIENTES='pulso_local_pacientes_muestra_v1';
+export const pacientesIniciales:PacienteDemo[]=[
+  {id:'demo-pac-001',nombres:'María Fernanda',primerApellido:'López',segundoApellido:'García',tipoDocumento:'CI',numeroDocumento:'6845210',fechaNacimiento:'1988-04-12',sexo:'femenino',telefono:'70712345',direccion:'Av. Blanco Galindo, zona central',sucursal:'Central',creadoEn:'2026-10-01T08:00:00.000Z'},
+  {id:'demo-pac-002',nombres:'Carlos Alberto',primerApellido:'Mendoza',segundoApellido:'Rojas',tipoDocumento:'CI',numeroDocumento:'5987412',fechaNacimiento:'1975-09-23',sexo:'masculino',telefono:'76423018',direccion:'Barrio Queru Queru',sucursal:'Central',creadoEn:'2026-10-01T08:05:00.000Z'},
+  {id:'demo-pac-003',nombres:'Ana Sofía',primerApellido:'Quispe',segundoApellido:'Vargas',tipoDocumento:'CI',numeroDocumento:'7319845',fechaNacimiento:'1995-02-18',sexo:'femenino',telefono:'69984021',direccion:'Zona Norte',sucursal:'Norte',creadoEn:'2026-10-01T08:10:00.000Z'},
+  {id:'demo-pac-004',nombres:'Jorge Luis',primerApellido:'Torrez',segundoApellido:'Flores',tipoDocumento:'CI',numeroDocumento:'4567812',fechaNacimiento:'1969-11-05',sexo:'masculino',telefono:'70356219',direccion:'Av. Petrolera',sucursal:'Sur',creadoEn:'2026-10-01T08:15:00.000Z'},
+  {id:'demo-pac-005',nombres:'Lucía',primerApellido:'Fernández',segundoApellido:'Arce',tipoDocumento:'CI',numeroDocumento:'8201456',fechaNacimiento:'2001-07-29',sexo:'femenino',telefono:'74561802',direccion:'Tiquipaya',sucursal:'Norte',creadoEn:'2026-10-01T08:20:00.000Z'},
+  {id:'demo-pac-006',nombres:'Diego Andrés',primerApellido:'Salazar',segundoApellido:'Cruz',tipoDocumento:'CI',numeroDocumento:'6120934',fechaNacimiento:'1983-01-16',sexo:'masculino',telefono:'72139450',direccion:'Cala Cala',sucursal:'Central',creadoEn:'2026-10-01T08:25:00.000Z'},
+  {id:'demo-pac-007',nombres:'Elena Patricia',primerApellido:'Castillo',segundoApellido:'Mamani',tipoDocumento:'CI',numeroDocumento:'7942018',fechaNacimiento:'1992-05-08',sexo:'femenino',telefono:'76824591',direccion:'Valle Hermoso',sucursal:'Sur',creadoEn:'2026-10-01T08:30:00.000Z'},
+  {id:'demo-pac-008',nombres:'Roberto',primerApellido:'Paredes',segundoApellido:'Soto',tipoDocumento:'CI',numeroDocumento:'5371649',fechaNacimiento:'1958-12-14',sexo:'masculino',telefono:'71456038',direccion:'Sacaba',sucursal:'Central',creadoEn:'2026-10-01T08:35:00.000Z'},
+  {id:'demo-pac-009',nombres:'Valentina',primerApellido:'Ramos',segundoApellido:'Molina',tipoDocumento:'CI',numeroDocumento:'8923751',fechaNacimiento:'1998-03-27',sexo:'femenino',telefono:'79018342',direccion:'Colcapirhua',sucursal:'Norte',creadoEn:'2026-10-01T08:40:00.000Z'},
+  {id:'demo-pac-010',nombres:'Miguel Ángel',primerApellido:'Herrera',segundoApellido:'Pérez',tipoDocumento:'CI',numeroDocumento:'4692830',fechaNacimiento:'1980-08-31',sexo:'masculino',telefono:'73502916',direccion:'Zona Sud',sucursal:'Sur',creadoEn:'2026-10-01T08:45:00.000Z'},
+];
 export const estudiosIniciales:EstudioDemo[]=[];
 
 function leer<T>(clave:string,inicial:T):T{try{const valor=localStorage.getItem(clave);if(valor)return JSON.parse(valor) as T;localStorage.setItem(clave,JSON.stringify(inicial));}catch{}return inicial}
-export const obtenerPacientes=()=>leer(PACIENTES,pacientesIniciales);
+export const obtenerPacientes=()=>{const pacientes=leer(PACIENTES,pacientesIniciales);try{if(!pacientes.length&&!localStorage.getItem(MUESTRA_PACIENTES)){localStorage.setItem(PACIENTES,JSON.stringify(pacientesIniciales));localStorage.setItem(MUESTRA_PACIENTES,'1');return pacientesIniciales}}catch{}return pacientes};
 export const guardarPacientes=(datos:PacienteDemo[])=>{localStorage.setItem(PACIENTES,JSON.stringify(datos));window.dispatchEvent(new Event('radiuus:datos-demo'))};
 export const obtenerEstudios=()=>leer(ESTUDIOS,estudiosIniciales);
 export const guardarEstudios=(datos:EstudioDemo[])=>{localStorage.setItem(ESTUDIOS,JSON.stringify(datos));window.dispatchEvent(new Event('radiuus:datos-demo'))};

@@ -1171,6 +1171,132 @@ button:focus-visible{
   outline:2px solid var(--primary-500);
   outline-offset:-2px;
 }
+
+/* Navegación del flujo Pacientes: iconos y color para reconocer cada sección. */
+.sistema-app .pacientes-subvistas {
+  gap: 10px;
+  padding: 9px 14px;
+  border-color: #b9dcf5;
+  background: linear-gradient(100deg, #eef9ff, #f7fbff);
+}
+.sistema-app .pacientes-subvistas > button {
+  display: flex;
+  flex: 1 1 190px;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: #245170;
+  background: transparent;
+  text-align: left;
+}
+.sistema-app .pacientes-subvistas > button:hover { background: #e1f3ff; }
+.sistema-app .pacientes-subvista-icono {
+  display: grid !important;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: 11px;
+  color: #087dbb;
+  background: #cfeeff;
+}
+.sistema-app .pacientes-subvista-texto { display: grid; gap: 2px; }
+.sistema-app .pacientes-subvista-texto strong { color: #124d73; font-size: 13px !important; }
+.sistema-app .pacientes-subvista-texto small { color: #64819a; font-size: 10px !important; }
+.sistema-app .pacientes-subvistas > button.activo {
+  border-color: #75c7f3;
+  color: #004f82;
+  background: #fff;
+  box-shadow: 0 5px 13px rgba(25, 117, 174, .14);
+}
+.sistema-app .pacientes-subvistas > button.activo .pacientes-subvista-icono {
+  color: #fff;
+  background: linear-gradient(135deg, #09a9e8, #2563eb);
+  box-shadow: 0 4px 9px rgba(37, 99, 235, .24);
+}
+.sistema-app .pacientes-subvistas > button:nth-child(2) .pacientes-subvista-icono { color: #7c3aed; background: #ede9fe; }
+.sistema-app .pacientes-subvistas > button:nth-child(3) .pacientes-subvista-icono { color: #047857; background: #d1fae5; }
+.sistema-app .pacientes-subvistas > button.activo .pacientes-subvista-icono { color: #fff; }
+
+/* Variante compacta: pestañas horizontales como el resto de flujos clínicos. */
+.sistema-app .pacientes-subvistas {
+  display: flex;
+  gap: 0;
+  padding: 0 10px;
+  overflow-x: auto;
+  border: 0;
+  border-bottom: 1px solid #b9d7ed;
+  border-radius: 0;
+  background: #eef7ff;
+  box-shadow: none;
+}
+.sistema-app .pacientes-subvistas > button,
+.sistema-app .pacientes-subvistas > button.activo {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 0;
+  color: #255574;
+  background: transparent;
+  box-shadow: none;
+}
+.sistema-app .pacientes-subvistas > button::after {
+  position: absolute;
+  right: 12px;
+  bottom: 0;
+  left: 12px;
+  height: 3px;
+  content: "";
+  border-radius: 3px 3px 0 0;
+  background: transparent;
+}
+.sistema-app .pacientes-subvistas > button.activo { color: #006eb8; background: transparent; }
+.sistema-app .pacientes-subvistas > button.activo::after { background: #098ddd; }
+.sistema-app .pacientes-subvistas > button:hover { background: #e1f2ff; }
+.sistema-app .pacientes-subvista-icono,
+.sistema-app .pacientes-subvistas > button.activo .pacientes-subvista-icono,
+.sistema-app .pacientes-subvistas > button:nth-child(2) .pacientes-subvista-icono,
+.sistema-app .pacientes-subvistas > button:nth-child(3) .pacientes-subvista-icono {
+  flex: 0 0 auto;
+  width: auto;
+  height: auto;
+  color: currentColor;
+  background: transparent;
+  box-shadow: none;
+}
+.sistema-app .pacientes-subvista-texto { display: block; }
+.sistema-app .pacientes-subvista-texto strong { color: currentColor; font-size: 13px !important; }
+.sistema-app .pacientes-subvista-texto small { display: none; }
+
+/* Evita que los estilos globales conviertan el icono y el texto en dos cápsulas. */
+.sistema-app .pacientes-subvistas > button > .pacientes-subvista-icono,
+.sistema-app .pacientes-subvistas > button.activo > .pacientes-subvista-icono {
+  display: grid !important;
+  width: 22px !important;
+  height: 22px !important;
+  flex: 0 0 22px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  color: currentColor !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.sistema-app .pacientes-subvistas > button > .pacientes-subvista-texto {
+  display: block !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: inherit !important;
+  background: transparent !important;
+  font-style: normal;
+}
 @media(max-width:620px){
   .area-trabajo>.imagenologia-subvistas,
   .recepcion-subvistas,

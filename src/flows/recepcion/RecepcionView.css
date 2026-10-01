@@ -930,7 +930,7 @@
 }
 .caja-consumo article {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   gap: 12px;
   align-items: center;
   padding: 12px 13px;
@@ -1136,11 +1136,13 @@
   gap: 10px;
 }
 .punto-contexto label {
-  display: grid;
-  gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #52738b;
   font-size: 10px;
   font-weight: 800;
+  white-space: nowrap;
 }
 .punto-contexto select {
   height: 37px;
@@ -1199,11 +1201,12 @@
 }
 .punto-busquedas {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(180px, 1fr) repeat(3, 150px);
   gap: 10px;
 }
 .punto-accion-laboratorio,
-.punto-accion-internacion {
+.punto-accion-internacion,
+.punto-accion-nuevo-paciente {
   height: 41px;
   display: inline-flex;
   align-items: center;
@@ -1223,6 +1226,23 @@
   border: 1px solid #096bb5;
   color: #fff;
   background: #096bb5;
+}
+.punto-accion-nuevo-paciente {
+  border: 1px solid #f59e0b;
+  color: #fff;
+  background: #f59e0b;
+  box-shadow: 0 5px 12px rgba(109, 66, 0, .22);
+}
+.punto-accion-nuevo-paciente:hover { background: #d97706; }
+.punto-nuevo-paciente-fondo{position:fixed;z-index:220;inset:0;display:grid;place-items:center;padding:20px;background:rgba(7,34,56,.5);backdrop-filter:blur(3px)}
+.punto-nuevo-paciente-modal{width:min(960px,100%);max-height:calc(100dvh - 40px);display:flex;flex-direction:column;overflow:hidden;border:1px solid #b9d8eb;border-radius:14px;color:#173d60;background:#fff;box-shadow:0 24px 70px rgba(4,30,52,.3)}
+.punto-nuevo-paciente-modal>header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid #d7e7f1}.punto-nuevo-paciente-modal>header>div{display:flex;align-items:center;gap:10px}.punto-nuevo-paciente-modal header span{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;color:#d97706;background:#fff1c7}.punto-nuevo-paciente-modal header p{margin:0 0 3px;color:#d97706;font-size:10px;font-weight:900;letter-spacing:.08em}.punto-nuevo-paciente-modal header h2{margin:0;font-size:17px}.punto-nuevo-paciente-modal header>button{display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #c8dce9;border-radius:8px;color:#315b7b;background:#f7fbfe}.punto-nuevo-paciente-contenido{min-height:155px}.punto-nuevo-paciente-modal footer{display:flex;justify-content:flex-end;gap:10px;padding:15px 20px;border-top:1px solid #d7e7f1}.punto-nuevo-paciente-modal footer button{height:38px;padding:0 17px;border:1px solid #bcd4e5;border-radius:8px;color:#315b7b;background:#fff;font-size:12px;font-weight:800}.punto-nuevo-paciente-modal footer button[type="submit"]{border-color:#f59e0b;color:#fff;background:#f59e0b}.punto-nuevo-paciente-modal footer button[type="submit"]:hover{background:#d97706}
+.punto-busquedas :is(.punto-accion-laboratorio,.punto-accion-internacion,.punto-accion-nuevo-paciente) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  justify-content: center;
+  padding-inline: 10px;
 }
 .punto-busquedas input {
   width: 100%;
@@ -1568,6 +1588,47 @@
   font-size: 11px;
   font-weight: 800;
 }
+/* Acciones del paciente: jerarquía visual para búsqueda y registro. */
+.punto-cliente {
+  position: relative;
+  overflow: hidden;
+  border-color: #b9daf5;
+  background: linear-gradient(145deg, #f8fcff 0%, #edf7ff 100%);
+}
+.punto-cliente::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  content: "";
+  background: linear-gradient(#0ea5e9, #2563eb);
+}
+.punto-cliente > header strong { color: #075985; }
+.cliente-acciones button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 37px;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.cliente-acciones button:first-child {
+  border-color: #7dc8f3;
+  color: #0369a1;
+  background: #fff;
+}
+.cliente-acciones button:last-child {
+  border-color: #0b8dd2;
+  color: #fff;
+  background: linear-gradient(100deg, #0b91d2, #2563eb);
+  box-shadow: 0 5px 12px rgba(37, 99, 235, .22);
+}
+.cliente-acciones button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 15px rgba(14, 116, 184, .22);
+}
+.cliente-acciones button:first-child:hover { background: #e0f2fe; }
 .cliente-busqueda {
   display: grid;
   gap: 8px;
@@ -1742,7 +1803,8 @@
     grid-template-columns: 1fr;
   }
   .punto-accion-laboratorio,
-  .punto-accion-internacion {
+  .punto-accion-internacion,
+  .punto-accion-nuevo-paciente {
     justify-content: center;
   }
   .punto-pos-cabecera,
@@ -2582,3 +2644,8 @@
     scroll-snap-align: start;
   }
 }
+
+/* Formulario completo para el alta de un paciente desde caja. */
+.punto-nuevo-paciente-contenido{display:grid;gap:14px;overflow:auto;padding:18px 20px;background:#f8fcff}.nuevo-paciente-busqueda{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:12px;padding:12px;border:1px solid #d6e6f0;border-radius:10px;background:#fff}.nuevo-paciente-busqueda label{display:flex;align-items:center;gap:8px;height:40px;padding:0 11px;border:1px solid #bcd4e5;border-radius:8px;color:#087fc0}.nuevo-paciente-busqueda input{width:100%;border:0;outline:0;color:#173d60;background:transparent}.nuevo-paciente-busqueda button{border:0;border-radius:8px;color:#fff;background:#0b91d2;font-size:12px;font-weight:800}.nuevo-paciente-seccion{min-width:0;margin:0;padding:15px;border:1px solid #d6e6f0;border-radius:10px;background:#fff}.nuevo-paciente-seccion legend{padding:0 8px;color:#087fc0;font-size:12px;font-weight:900}.nuevo-paciente-campos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px}.nuevo-paciente-campos label{display:grid;gap:5px;color:#5c7488;font-size:10px;font-weight:800}.nuevo-paciente-campos input,.nuevo-paciente-campos select,.nuevo-paciente-campos textarea{box-sizing:border-box;width:100%;height:38px;padding:0 10px;border:1px solid #bdd4e4;border-radius:7px;outline:0;color:#183d55;background:#fbfdff;font:12px inherit}.nuevo-paciente-campos textarea{height:62px;padding-top:9px;resize:vertical}.nuevo-paciente-campos :is(input,select,textarea):focus{border-color:#0b91d2;box-shadow:0 0 0 3px rgba(11,145,210,.12)}.nuevo-paciente-opciones{display:flex;gap:28px;margin-top:14px;color:#315b7b;font-size:12px}.nuevo-paciente-opciones label,.nuevo-paciente-habilitado{display:flex;align-items:center;gap:7px}.nuevo-paciente-opciones input,.nuevo-paciente-habilitado input{accent-color:#f59e0b}.nuevo-paciente-domicilio .campo-ancho{grid-column:span 2}.nuevo-paciente-responsable{grid-template-columns:1.4fr .8fr .8fr}.nuevo-paciente-preguntas{grid-template-columns:1fr}.campo-ancho{grid-column:1/-1}.nuevo-paciente-habilitado{margin-top:12px;color:#315b7b;font-size:12px;font-weight:800}
+@media(max-width:700px){.punto-nuevo-paciente-fondo{padding:10px;align-items:end}.punto-nuevo-paciente-modal{max-height:92dvh;border-radius:14px 14px 8px 8px}.nuevo-paciente-campos,.nuevo-paciente-responsable{grid-template-columns:1fr}.nuevo-paciente-domicilio .campo-ancho{grid-column:auto}.nuevo-paciente-busqueda{grid-template-columns:1fr}.punto-nuevo-paciente-contenido{padding:14px}.punto-nuevo-paciente-modal footer{padding:12px 14px}}
+.punto-nuevo-paciente-contenido{flex:1;min-height:0}

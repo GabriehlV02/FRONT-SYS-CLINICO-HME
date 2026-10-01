@@ -10,7 +10,6 @@ import VistaRayosX from "./vistas/visor-rayos-x/VistaRayosX";
 import VistaBaseDatosOrthanc from "./vistas/base-datos/VistaBaseDatosOrthanc";
 import VistaConfiguracion from "./vistas/configuracion/VistaConfiguracion";
 import VistaAuditorias from "./vistas/auditorias/VistaAuditorias";
-import { VistaHistoriasClinicas } from './vistas/historias-clinicas/VistaHistoriasClinicas';
 import "./vistas/visor/BibliotecaImagenes.css";
 import "./vistas/visor/PaletaClara.css";
 import "./vistas/visor/PaletaPlomo.css";
@@ -34,7 +33,7 @@ type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
 type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecocardiogramas" | "informes" | "visor";
 type SubvistaRadiografias = "estudios" | "base-datos";
 type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
-type SubvistaHistoriasClinicas = "historias" | "estudios";
+type SubvistaPacientes = "pacientes" | "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
 type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "configuracion";
 type TemaSistema = "light" | "dark";
@@ -51,13 +50,15 @@ const subvistasRadiografias: { id: SubvistaRadiografias; nombre: string; icono: 
   { id: "estudios", nombre: "Estudios", icono: "image" },
   { id: "base-datos", nombre: "Base de datos", icono: "package" },
 ];
-const subvistasHistoriasClinicas: { id: SubvistaHistoriasClinicas; nombre: string; icono: IconName }[] = [
+const subvistasPacientes: { id: SubvistaPacientes; nombre: string; icono: IconName }[] = [
+  { id: "pacientes", nombre: "Pacientes", icono: "users" },
   { id: "historias", nombre: "Historias clínicas", icono: "fileText" },
   { id: "estudios", nombre: "Estudios del paciente", icono: "image" },
 ];
 
 const modulos: Modulo[] = [
   { id: 'recepcion', nombre: 'Recepción', icono: 'patient', grupo: 'ATENCIÓN CLÍNICA' },
+  { id: 'pacientes', nombre: 'Pacientes', icono: 'users', grupo: 'ATENCIÓN CLÍNICA' },
   { id: 'atencion-medica', nombre: 'Consultorio médico', icono: 'userCheck', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'patient', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-emergencias', nombre: 'Triaje de enfermería', icono: 'patient', grupo: 'EMERGENCIAS' },
@@ -79,13 +80,19 @@ const modulos: Modulo[] = [
     icono: "audit",
     grupo: "ADMINISTRACIÓN",
   },
-  {
-    id: "historias-clinicas",
-    nombre: "Historias clínicas",
-    icono: "fileText",
-    grupo: "ADMINISTRACIÓN",
-  },
 ];
+
+function TablaSubvistaPaciente({ vista }: { vista: 'historias' | 'estudios' }) {
+  const esEstudios = vista === 'estudios';
+  return <section className="usuarios-vista pacientes-vista tabla-subvista-paciente" aria-label={esEstudios ? 'Estudios del paciente' : 'Historias clínicas'}>
+    <div className="usuarios-paginacion"><small>0 resultados</small><div><button disabled aria-label="Página anterior"><Icon name="chevronLeft" size={16} /></button><span>Página <strong>1</strong> de 1</span><button disabled aria-label="Página siguiente"><Icon name="chevronRight" size={16} /></button></div></div>
+    <div className="usuarios-tabla pacientes-tabla tabla-subvista-vacia">
+      <div className="usuarios-fila usuarios-columnas"><span>Paciente</span><span>Documento</span><span>Edad / sexo</span><span>Celular</span><span>{esEstudios ? 'Estudios' : 'Historia clínica'}</span><span>Acciones</span></div>
+      <div className="usuarios-mensaje"><span><Icon name={esEstudios ? 'image' : 'fileText'} size={25} /></span><strong>No hay pacientes para mostrar</strong><small>{esEstudios ? 'Los estudios del paciente aparecerán aquí.' : 'Las historias clínicas aparecerán aquí.'}</small></div>
+    </div>
+    <div className="usuarios-paginacion"><small>0 resultados</small><div><button disabled aria-label="Página anterior"><Icon name="chevronLeft" size={16} /></button><span>Página <strong>1</strong> de 1</span><button disabled aria-label="Página siguiente"><Icon name="chevronRight" size={16} /></button></div></div>
+  </section>;
+}
 
 export default function Aplicacion() {
   const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
@@ -93,7 +100,7 @@ export default function Aplicacion() {
   const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
   const [subvistaRadiografias, setSubvistaRadiografias] = useState<SubvistaRadiografias>("estudios");
   const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>("caja");
-  const [subvistaHistoriasClinicas, setSubvistaHistoriasClinicas] = useState<SubvistaHistoriasClinicas>("historias");
+  const [subvistaPacientes, setSubvistaPacientes] = useState<SubvistaPacientes>("pacientes");
   const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
   const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
@@ -303,6 +310,7 @@ export default function Aplicacion() {
                       setModulo(item.id);
                       if (item.id === "imagenologia") setSubvistaImagenologia("pacientes");
                       if (item.id === "recepcion") setSubvistaRecepcion("caja");
+                      if (item.id === "pacientes") setSubvistaPacientes("pacientes");
                       if (item.id === "configuracion") setSubvistaConfiguracion("usuario");
                       if (item.id === "triaje-ambulatorio") setSubvistaTriajeAmbulatorio("signos-vitales");
                       setMenuAbierto(false);
@@ -431,21 +439,21 @@ export default function Aplicacion() {
               ))}
             </nav>
           )}
-          {modulo === "historias-clinicas" && (
-            <nav className="subvistas-nav" aria-label="Subvistas de Historias clínicas">
-              {subvistasHistoriasClinicas.map(vista => (
+          {modulo === "pacientes" && (
+            <nav className="subvistas-nav pacientes-subvistas" aria-label="Subvistas de Pacientes">
+              {subvistasPacientes.map(vista => (
                 <button
                   key={vista.id}
-                  className={subvistaHistoriasClinicas === vista.id ? "activo" : ""}
-                  onClick={() => setSubvistaHistoriasClinicas(vista.id)}
+                  className={subvistaPacientes === vista.id ? "activo" : ""}
+                  onClick={() => setSubvistaPacientes(vista.id)}
                 >
-                  <Icon name={vista.icono} size={16} />
-                  {vista.nombre}
+                  <span className="pacientes-subvista-icono"><Icon name={vista.icono} size={18} /></span>
+                  <i className="pacientes-subvista-texto"><strong>{vista.nombre}</strong><small>{vista.id === 'pacientes' ? 'Registro y búsqueda' : vista.id === 'historias' ? 'Expediente clínico' : 'Resultados médicos'}</small></i>
                 </button>
               ))}
             </nav>
           )}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo.startsWith('laboratorio-') ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : <TablaSubvistaPaciente vista={subvistaPacientes} />) : modulo.startsWith('laboratorio-') ? (
             <div className="modulo-vacio">
               <span>
                 <Icon name="lab" size={28} />
@@ -488,8 +496,6 @@ export default function Aplicacion() {
               <h2>Médico internación</h2>
               <small>Evolución clínica, indicaciones y atención médica de pacientes internados.</small>
             </div>
-          ) : modulo === 'historias-clinicas' ? (
-            <VistaHistoriasClinicas vista={subvistaHistoriasClinicas} />
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "base-datos" ? (
             <VistaBaseDatosOrthanc />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (

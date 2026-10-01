@@ -102,6 +102,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
     [filtroHistorial, setFiltroHistorial] = useState('Todos'),
     [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
     [mostrandoInternacion, setMostrandoInternacion] = useState(false),
+    [mostrandoNuevoPaciente, setMostrandoNuevoPaciente] = useState(false),
     [modo, setModo] = useState<'inicio' | 'buscar' | 'registrar'>('inicio'),
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(''),
@@ -172,6 +173,21 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
   return (
     <section className="punto-pos">
       {mostrandoInternacion && <InternacionModal onCerrar={() => setMostrandoInternacion(false)} />}
+      {mostrandoNuevoPaciente && <div className="punto-nuevo-paciente-fondo" role="presentation" onClick={() => setMostrandoNuevoPaciente(false)}>
+        <form className="punto-nuevo-paciente-modal" role="dialog" aria-modal="true" aria-label="Nuevo paciente" onClick={(event) => event.stopPropagation()} onSubmit={(event) => { event.preventDefault(); setMostrandoNuevoPaciente(false); }}>
+          <header><div><span><Icon name="users" size={20} /></span><div><p>NUEVO PACIENTE</p><h2>Registrar paciente</h2></div></div><button type="button" aria-label="Cerrar" onClick={() => setMostrandoNuevoPaciente(false)}><Icon name="close" size={18} /></button></header>
+          <div className="punto-nuevo-paciente-contenido">
+            <section className="nuevo-paciente-busqueda"><label><Icon name="search" size={17} /><input placeholder="Buscar paciente registrado" /></label><button type="button"><Icon name="fileText" size={16} /> Imprimir formulario</button></section>
+            <fieldset className="nuevo-paciente-seccion"><legend>Datos del paciente</legend><div className="nuevo-paciente-campos">
+              <label>Nombres *<input required placeholder="Nombres" /></label><label>Apellido paterno *<input required placeholder="Apellido paterno" /></label><label>Apellido materno *<input required placeholder="Apellido materno" /></label><label>CI *<input required placeholder="CI" /></label><label>Complemento<input placeholder="Complemento" /></label><label>Expedido en<select defaultValue=""><option value="" disabled>Seleccionar</option><option>Cochabamba</option><option>La Paz</option><option>Santa Cruz</option></select></label><label>NIT<input placeholder="NIT" /></label><label>Razón social<input placeholder="Razón social" /></label><label>Fecha de nacimiento *<input required type="date" /></label><label>Teléfono<input type="tel" placeholder="+591" /></label><label>Género *<select required defaultValue=""><option value="" disabled>Seleccionar</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
+            </div><div className="nuevo-paciente-opciones"><label><input type="checkbox" /> CI con QR</label><label><input type="checkbox" /> Afroamericano</label></div></fieldset>
+            <fieldset className="nuevo-paciente-seccion"><legend>Domicilio</legend><div className="nuevo-paciente-campos nuevo-paciente-domicilio"><label>País<select defaultValue="Bolivia"><option>Bolivia</option></select></label><label>Departamento<select defaultValue="Cochabamba"><option>Cochabamba</option><option>La Paz</option><option>Santa Cruz</option></select></label><label>Ciudad<input placeholder="Ciudad" /></label><label>Zona / barrio<input placeholder="Zona cardinal" /></label><label className="campo-ancho">Dirección domicilio<input placeholder="Dirección" /></label></div></fieldset>
+            <fieldset className="nuevo-paciente-seccion"><legend>Persona responsable</legend><div className="nuevo-paciente-campos nuevo-paciente-responsable"><label>Nombre completo<input placeholder="Nombre completo" /></label><label>Teléfono de contacto<input type="tel" placeholder="Teléfono" /></label><label>Parentesco<input placeholder="Ej. Padre, madre o tutor" /></label></div></fieldset>
+            <fieldset className="nuevo-paciente-seccion"><legend>Preguntas</legend><div className="nuevo-paciente-campos nuevo-paciente-preguntas"><label className="campo-ancho">¿Cómo se enteró de nosotros? *<select required defaultValue=""><option value="" disabled>Seleccionar una opción</option><option>Recomendación</option><option>Redes sociales</option><option>Otro</option></select></label><label className="campo-ancho">Observaciones<textarea placeholder="Observaciones" /></label></div><label className="nuevo-paciente-habilitado"><input type="checkbox" defaultChecked /> Habilitado</label></fieldset>
+          </div>
+          <footer><button type="button" onClick={() => setMostrandoNuevoPaciente(false)}>Cancelar</button><button type="submit">Guardar paciente</button></footer>
+        </form>
+      </div>}
       <header className="punto-pos-cabecera punto-pos-contexto">
         <div className="punto-contexto">
           <label>
@@ -221,6 +237,13 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
             onClick={() => { setMensaje(''); setMostrandoInternacion(true); }}
           >
             <Icon name="plus" size={16} /> Internación
+          </button>
+          <button
+            className="punto-accion-nuevo-paciente"
+            type="button"
+            onClick={() => { setMostrandoNuevoPaciente(true); setMensaje(''); }}
+          >
+            <Icon name="plus" size={16} /> Nuevo paciente
           </button>
         </div>
           {!mostrandoLaboratorio && <div className="punto-catalogo-filtros">
@@ -363,7 +386,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
                   <Icon name="search" size={15} /> Buscar paciente
                 </button>
                 <button type="button" onClick={() => setModo('registrar')}>
-                  <Icon name="plus" size={15} /> Registrar paciente
+                  <Icon name="plus" size={15} /> Registrar cliente
                 </button>
               </div>
             )}

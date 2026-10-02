@@ -1153,6 +1153,33 @@
   color: #1b304a;
   background: #fff;
 }
+.punto-hacer-cotizacion {
+  width: 360px;
+  min-height: 42px;
+  flex: 0 0 360px;
+  border: 2px solid #096bb5;
+  border-radius: 9px;
+  color: #fff;
+  background: #096bb5;
+  box-shadow: 0 3px 10px #096bb538;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 850;
+  letter-spacing: .3px;
+  cursor: pointer;
+}
+.punto-hacer-cotizacion:hover { background: #075a99; }
+.punto-hacer-cotizacion:focus-visible { outline: 3px solid #55aee0; outline-offset: 2px; }
+.punto-cotizacion-fondo { position: fixed; z-index: 1000; inset: 0; display: flex; align-items: center; justify-content: center; padding: 20px; background: #122b4380; }
+.punto-cotizacion-modal { width: min(520px, 100%); max-height: calc(100vh - 40px); overflow: auto; padding: 22px; border-radius: 13px; background: #fff; box-shadow: 0 18px 45px #10283c55; color: #193650; }
+.punto-cotizacion-modal header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.punto-cotizacion-modal h2 { margin: 0; font-size: 20px; }
+.punto-cotizacion-modal header button { border: 0; background: transparent; color: #193650; font-size: 27px; cursor: pointer; }
+.punto-cotizacion-modal p { margin: 16px 0; }
+.punto-cotizacion-lineas { display: grid; gap: 10px; padding: 14px 0; border-top: 1px solid #d8e5ef; border-bottom: 1px solid #d8e5ef; }
+.punto-cotizacion-lineas > div { display: flex; justify-content: space-between; gap: 16px; }
+.punto-cotizacion-modal footer { display: grid; gap: 8px; margin-top: 16px; text-align: right; }
+.punto-cotizacion-modal footer strong { font-size: 18px; }
 .punto-pos-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -1728,8 +1755,16 @@
   border-color: #f2c3c3;
   background: #fff0f0;
 }
-.punto-carrito-lineas b {
+.punto-cantidad-input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #12384d;
   text-align: center;
+  font: inherit;
+  font-weight: 700;
+  background: transparent;
 }
 .punto-resumen > div,
 .punto-pago-totales span {
@@ -1767,6 +1802,17 @@
   color: #dc3737;
   background: #fff0f0;
 }
+.punto-generar-qr {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #c7a7e8;
+  border-radius: 999px;
+  color: #70439a;
+  background: #f0e3fc;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: not-allowed;
+}
 .punto-pago-totales {
   display: grid;
   gap: 6px;
@@ -1791,6 +1837,7 @@
   opacity: 0.48;
 }
 @media (max-width: 1040px) {
+  .punto-hacer-cotizacion { width: min(360px, 100%); flex-basis: 360px; }
   .punto-pos-layout {
     grid-template-columns: 1fr;
   }
@@ -1816,6 +1863,7 @@
   .punto-contexto select {
     width: 100%;
   }
+  .punto-hacer-cotizacion { width: 100%; flex-basis: auto; }
   .punto-modo-vista {
     align-self: flex-end;
   }

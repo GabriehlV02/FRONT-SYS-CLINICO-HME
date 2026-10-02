@@ -1,6 +1,6 @@
 import { apiFetch } from '../../radius/api';
 
-export type ItemEmergencia = { id: string; codigo: string; nombre: string; tipo: 'servicio' | 'producto'; unidad: string; precio: number };
+export type ItemEmergencia = { id: string; codigo: string; nombre: string; tipo: 'servicio' | 'producto'; unidad: string; precio: number; categoria?: string; grupo?: string };
 export type OrdenEmergencia = {
   id: string; revision: number; fecha: string; usuario: string; tipo: string; titulo: string;
   indicaciones: string; dosis: string; via: string; frecuencia: string; duracion: string;

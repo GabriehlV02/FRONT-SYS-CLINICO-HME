@@ -116,6 +116,12 @@ export default function Aplicacion() {
     || /m[eé]dico/i.test(sesion?.usuario.rol ?? '')
     || /administrador|admin/i.test(sesion?.usuario.rol ?? '')
     || sesion?.usuario.permisos.some((permiso) => /medico|consulta/.test(permiso));
+  const modulosVisibles = modulos.filter((item) => {
+    const perfil = sesion?.usuario.perfilAtencion;
+    if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion'].includes(item.id);
+    if (perfil === 'medico') return ['pacientes', 'atencion-medica', 'atencion-urgencias', 'medico-internacion'].includes(item.id);
+    return true;
+  });
   useEffect(() => {
     document.documentElement.dataset.theme = tema;
     localStorage.setItem("pulso_theme", tema);
@@ -293,10 +299,10 @@ export default function Aplicacion() {
           </button>
         </div>
         <nav className="sistema-nav" aria-label="Módulos del sistema">
-          {[...new Set(modulos.map((item) => item.grupo))].map((grupo) => (
+          {[...new Set(modulosVisibles.map((item) => item.grupo))].map((grupo) => (
             <section key={grupo}>
               <p>{grupo}</p>
-              {modulos
+              {modulosVisibles
                 .filter((item) => item.grupo === grupo)
                 .map((item) => (
                   <React.Fragment key={item.id}>

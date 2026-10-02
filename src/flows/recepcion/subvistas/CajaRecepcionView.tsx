@@ -103,6 +103,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
     [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
     [mostrandoInternacion, setMostrandoInternacion] = useState(false),
     [mostrandoNuevoPaciente, setMostrandoNuevoPaciente] = useState(false),
+    [mostrandoCotizacion, setMostrandoCotizacion] = useState(false),
     [modo, setModo] = useState<'inicio' | 'buscar' | 'registrar'>('inicio'),
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(''),
@@ -150,6 +151,14 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
         )
         .filter((x) => x.cantidad),
     );
+  const escribirCantidad = (id: string, valor: string) => {
+    // El teclado numérico y los pegados se normalizan a dígitos; no se admiten
+    // signos, decimales ni notación científica para las unidades vendidas.
+    if (!/^\d+$/.test(valor)) return;
+    const nuevaCantidad = Number(valor);
+    if (!Number.isSafeInteger(nuevaCantidad) || nuevaCantidad < 1 || nuevaCantidad > 100000) return;
+    setLineas((actual) => actual.map((linea) => linea.id === id ? { ...linea, cantidad: nuevaCantidad } : linea));
+  };
   const coincidenciasPaciente = useMemo(() => {
     const termino = busquedaPaciente.trim().toLocaleLowerCase('es');
     return termino ? pacientesEjemplo.filter(p => `${p.nombre} ${p.ci}`.toLocaleLowerCase('es').includes(termino)).slice(0, 6) : [];
@@ -179,7 +188,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
           <div className="punto-nuevo-paciente-contenido">
             <section className="nuevo-paciente-busqueda"><label><Icon name="search" size={17} /><input placeholder="Buscar paciente registrado" /></label><button type="button"><Icon name="fileText" size={16} /> Imprimir formulario</button></section>
             <fieldset className="nuevo-paciente-seccion"><legend>Datos del paciente</legend><div className="nuevo-paciente-campos">
-              <label>Nombres *<input required placeholder="Nombres" /></label><label>Apellido paterno *<input required placeholder="Apellido paterno" /></label><label>Apellido materno *<input required placeholder="Apellido materno" /></label><label>CI *<input required placeholder="CI" /></label><label>Complemento<input placeholder="Complemento" /></label><label>Expedido en<select defaultValue=""><option value="" disabled>Seleccionar</option><option>Cochabamba</option><option>La Paz</option><option>Santa Cruz</option></select></label><label>NIT<input placeholder="NIT" /></label><label>Razón social<input placeholder="Razón social" /></label><label>Fecha de nacimiento *<input required type="date" /></label><label>Teléfono<input type="tel" placeholder="+591" /></label><label>Género *<select required defaultValue=""><option value="" disabled>Seleccionar</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
+              <label>Nombres *<input required placeholder="Nombres" /></label><label>Apellido paterno *<input required placeholder="Apellido paterno" /></label><label>Apellido materno *<input required placeholder="Apellido materno" /></label><label>CI *<input required placeholder="CI" /></label><label>Complemento<input placeholder="Complemento" /></label><label>Expedido en<select name="expedidoEn" defaultValue=""><option value="">Ninguno</option><option value="CBBA">CBBA - COCHABAMBA</option><option value="LPZ">LPZ - LA PAZ</option><option value="OR">OR - ORURO</option><option value="POT">POT - POTOSÍ</option><option value="TJA">TJA - TARIJA</option><option value="CHU">CHU - CHUQUISACA</option><option value="SCZ">SCZ - SANTA CRUZ</option><option value="BEN">BEN - BENI</option><option value="PND">PND - PANDO</option><option value="EXTRANJERO">EXTRANJERO</option></select></label><label>NIT<input placeholder="NIT" /></label><label>Razón social<input placeholder="Razón social" /></label><label>Fecha de nacimiento *<input required type="date" /></label><label>Teléfono<input type="tel" placeholder="+591" /></label><label>Género *<select required defaultValue=""><option value="" disabled>Seleccionar</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
             </div><div className="nuevo-paciente-opciones"><label><input type="checkbox" /> CI con QR</label><label><input type="checkbox" /> Afroamericano</label></div></fieldset>
             <fieldset className="nuevo-paciente-seccion"><legend>Domicilio</legend><div className="nuevo-paciente-campos nuevo-paciente-domicilio"><label>País<select defaultValue="Bolivia"><option>Bolivia</option></select></label><label>Departamento<select defaultValue="Cochabamba"><option>Cochabamba</option><option>La Paz</option><option>Santa Cruz</option></select></label><label>Ciudad<input placeholder="Ciudad" /></label><label>Zona / barrio<input placeholder="Zona cardinal" /></label><label className="campo-ancho">Dirección domicilio<input placeholder="Dirección" /></label></div></fieldset>
             <fieldset className="nuevo-paciente-seccion"><legend>Persona responsable</legend><div className="nuevo-paciente-campos nuevo-paciente-responsable"><label>Nombre completo<input placeholder="Nombre completo" /></label><label>Teléfono de contacto<input type="tel" placeholder="Teléfono" /></label><label>Parentesco<input placeholder="Ej. Padre, madre o tutor" /></label></div></fieldset>
@@ -187,6 +196,14 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
           </div>
           <footer><button type="button" onClick={() => setMostrandoNuevoPaciente(false)}>Cancelar</button><button type="submit">Guardar paciente</button></footer>
         </form>
+      </div>}
+      {mostrandoCotizacion && <div className="punto-cotizacion-fondo" role="presentation" onClick={() => setMostrandoCotizacion(false)}>
+        <section className="punto-cotizacion-modal" role="dialog" aria-modal="true" aria-label="Cotización" onClick={(event) => event.stopPropagation()}>
+          <header><h2>Cotización</h2><button type="button" aria-label="Cerrar cotización" onClick={() => setMostrandoCotizacion(false)}>×</button></header>
+          <p>Paciente: {paciente || 'Sin seleccionar'}</p>
+          {lineas.length ? <div className="punto-cotizacion-lineas">{lineas.map((linea) => <div key={linea.id}><span>{linea.cantidad} × {linea.nombre}</span><strong>{dinero(linea.cantidad * linea.precio)}</strong></div>)}</div> : <p>Agrega productos o servicios al carrito para cotizar.</p>}
+          <footer><span>Subtotal: {dinero(subtotal)}</span><span>Descuento: {dinero(rebaja)}</span><strong>Total: {dinero(total)}</strong></footer>
+        </section>
       </div>}
       <header className="punto-pos-cabecera punto-pos-contexto">
         <div className="punto-contexto">
@@ -206,6 +223,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
             </select>
           </label>
         </div>
+        <button className="punto-hacer-cotizacion" type="button" onClick={() => setMostrandoCotizacion(true)}>+COTIZACIÓN</button>
       </header>
       <div className={`punto-pos-layout ${paciente ? (historialAbierto ? 'con-historial' : 'historial-plegado') : ''}`}>
         {paciente && <aside className="punto-historial-paciente">
@@ -449,7 +467,16 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
                     <button type="button" onClick={() => cantidad(i.id, -1)}>
                       −
                     </button>
-                    <b>{i.cantidad}</b>
+                    <input
+                      className="punto-cantidad-input"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      aria-label={`Cantidad de ${i.nombre}`}
+                      value={String(i.cantidad)}
+                      onFocus={(e) => e.currentTarget.select()}
+                      onChange={(e) => escribirCantidad(i.id, e.target.value)}
+                    />
                     <button type="button" onClick={() => cantidad(i.id, 1)}>
                       +
                     </button>
@@ -547,6 +574,16 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
             >
               <Icon name="plus" size={15} /> Agregar método de pago
             </button>
+            {pagos.some((p) => p.metodo === 'QR' && Number(p.monto) > 0) && (
+              <button
+                className="punto-generar-qr"
+                type="button"
+                disabled
+                title="Disponible cuando se integre la API bancaria"
+              >
+                Generar QR
+              </button>
+            )}
             <div className="punto-pago-totales">
               <span>
                 Total pagado <b>{dinero(pagado)}</b>

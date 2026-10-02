@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Icon from '../../radius/componentes/Icono';
+import { HojaLaboratorios } from './HojaLaboratorios';
 import type { CitaConfirmada } from './AgendaAmbulatoriaView';
 import './ConsultaMedicaView.css';
 
@@ -16,10 +17,13 @@ const campos = [
   ['estatura', 'Estatura'], ['imc', 'IMC'], ['perimetroCintura', 'Perímetro cintura'], ['perimetroCadera', 'Perímetro cadera'],
 ] as const;
 
-function OrdenesConsulta() {
+type TipoOrden = 'laboratorio' | 'imagenologia' | 'internacion';
+const titulosOrden: Record<TipoOrden, string> = { laboratorio: 'laboratorio', imagenologia: 'imagenología', internacion: 'internación' };
+
+function OrdenesConsulta({ paciente, onAbrir }: { paciente: CitaConfirmada | null; onAbrir?: (tipo: TipoOrden) => void }) {
   const [mensaje, setMensaje] = useState('');
-  const avisar = () => setMensaje('Selecciona primero un paciente en atención.');
-  return <><nav className="consulta-ordenes"><button className="orden-laboratorio" type="button" onClick={avisar}><Icon name="lab" size={17} /> Orden de laboratorio</button><button className="orden-imagenologia" type="button" onClick={avisar}><Icon name="image" size={17} /> Orden de imagenología</button><button className="orden-internacion" type="button" onClick={avisar}><Icon name="patient" size={17} /> Orden de internación</button></nav>{mensaje && <em className="consulta-aviso">{mensaje}</em>}</>;
+  const abrir = (tipo: TipoOrden) => { if (!paciente) { setMensaje('Selecciona primero un paciente en atención.'); return; } setMensaje(''); onAbrir?.(tipo); };
+  return <><nav className="consulta-ordenes"><button className="orden-laboratorio" type="button" onClick={() => abrir('laboratorio')}><Icon name="lab" size={17} /> Orden de laboratorio</button><button className="orden-imagenologia" type="button" onClick={() => abrir('imagenologia')}><Icon name="image" size={17} /> Orden de imagenología</button><button className="orden-internacion" type="button" onClick={() => abrir('internacion')}><Icon name="patient" size={17} /> Orden de internación</button></nav>{mensaje && <em className="consulta-aviso">{mensaje}</em>}</>;
 }
 
 function HistoriaClinicaButton() {
@@ -39,14 +43,18 @@ function ResumenHistoriaPaciente({ paciente }: { paciente: CitaConfirmada }) {
 export function ConsultaMedicaView({ paciente, onCerrarAtencion }: { paciente: CitaConfirmada | null; onCerrarAtencion?: () => void }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [vitales, setVitales] = useState<Record<string, string>>({});
+  const [tipoOrden, setTipoOrden] = useState<TipoOrden | null>(null);
+  const [detalleOrden, setDetalleOrden] = useState('');
+  const [laboratoriosElegidos, setLaboratoriosElegidos] = useState('');
   const vitalesTriaje = useMemo(() => paciente ? registrosTriaje[paciente.ci] : undefined, [paciente]);
-  if (!paciente) return <section className="consulta-inicio"><aside className="consulta-pacientes panel"><label className="consulta-buscar"><Icon name="search" size={17} /><input placeholder="Buscar paciente o CI" /></label><HistoriaClinicaButton /><header><p>PACIENTES EN ESPERA</p><strong>0 pendientes</strong></header></aside><section className="consulta-area panel"><header><div><p>CONSULTA MÉDICA</p><h2>Sin paciente en atención</h2><small>La información se cargará al pulsar “Atender” desde la Agenda.</small></div><OrdenesConsulta /></header><div className="consulta-area-vacia"><Icon name="userCheck" size={30} /><strong>Aún no hay una consulta iniciada</strong><small>Selecciona “Atender” en la Agenda para cargar los datos del paciente.</small></div></section></section>;
+  if (!paciente) return <section className="consulta-inicio"><aside className="consulta-pacientes panel"><label className="consulta-buscar"><Icon name="search" size={17} /><input placeholder="Buscar paciente o CI" /></label><HistoriaClinicaButton /><header><p>PACIENTES EN ESPERA</p><strong>0 pendientes</strong></header></aside><section className="consulta-area panel"><header><div><p>CONSULTA MÉDICA</p><h2>Sin paciente en atención</h2><small>La información se cargará al pulsar “Atender” desde la Agenda.</small></div><OrdenesConsulta paciente={null} /></header><div className="consulta-area-vacia"><Icon name="userCheck" size={30} /><strong>Aún no hay una consulta iniciada</strong><small>Selecciona “Atender” en la Agenda para cargar los datos del paciente.</small></div></section></section>;
   const datos = Object.keys(vitales).length ? vitales : (vitalesTriaje ?? {});
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
     <button className="consulta-cerrar-atencion consulta-cerrar-encima-historia" type="button" onClick={onCerrarAtencion}><Icon name="close" size={16} /> Cerrar atención</button>
     <aside className="consulta-paciente-activo panel"><label className="consulta-buscar"><Icon name="search" size={17} /><input placeholder="Buscar paciente o CI" /></label><HistoriaClinicaButton /><ResumenHistoriaPaciente paciente={paciente} /></aside>
     <section className="consulta-activa-derecha">
-      <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><h2>{paciente.paciente}</h2><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><OrdenesConsulta /></header>
+      <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><h2>{paciente.paciente}</h2><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} /></header>
+      {tipoOrden === 'laboratorio' && <HojaLaboratorios paciente={paciente.paciente} onCerrar={() => setTipoOrden(null)} onAceptar={items => { setLaboratoriosElegidos(items.map(i => i.nombre).join(' · ')); setTipoOrden(null); }} />}{laboratoriosElegidos && <p className="consulta-aviso">Laboratorios seleccionados: {laboratoriosElegidos}</p>}{tipoOrden && tipoOrden !== 'laboratorio' && <section className="consulta-orden-panel panel" aria-label={`Orden de ${titulosOrden[tipoOrden]}`}><header><div><p>ORDEN DE {titulosOrden[tipoOrden].toUpperCase()}</p><h3>{paciente.paciente}</h3><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><button type="button" onClick={() => setTipoOrden(null)} aria-label="Cerrar orden">×</button></header><label>{tipoOrden === 'imagenologia' ? 'Estudios y regiones solicitados' : 'Motivo e indicaciones de internación'}<textarea value={detalleOrden} onChange={(event) => setDetalleOrden(event.target.value)} placeholder="Escribe las indicaciones para esta paciente" /></label><footer><button type="button" onClick={() => setTipoOrden(null)}>Cancelar</button><button type="button" disabled={!detalleOrden.trim()} onClick={() => window.print()}>Imprimir orden</button></footer></section>}
       <section className="consulta-signos panel"><header><div><p>SIGNOS VITALES</p><h3>{vitalesTriaje ? 'Registrados en triaje' : 'Sin registro de triaje'}</h3><small>{vitalesTriaje ? 'Información completada por enfermería antes de la consulta.' : 'El médico puede registrarlos opcionalmente.'}</small></div><button className="secundario" type="button" onClick={() => { if (!mostrarFormulario) setVitales((actual) => ({ ...(vitalesTriaje ?? {}), ...actual })); setMostrarFormulario((actual) => !actual); }}><Icon name="edit" size={15} /> {mostrarFormulario ? 'Cancelar edición' : 'Editar opcionalmente'}</button></header>{vitalesTriaje || Object.keys(vitales).length ? <div className="consulta-signos-grid">{campos.map(([id, etiqueta]) => <article key={id}><small>{etiqueta}</small><strong>{datos[id] || 'No registrado'}</strong></article>)}</div> : null}{mostrarFormulario && <div className="consulta-signos-form">{campos.map(([id, etiqueta]) => <label key={id}>{etiqueta}<input value={vitales[id] || ''} onChange={(event) => setVitales((actual) => ({ ...actual, [id]: event.target.value }))} placeholder="Opcional" /></label>)}</div>}</section>
     </section>
   </section>;

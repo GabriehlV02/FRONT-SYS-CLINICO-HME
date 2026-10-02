@@ -133,7 +133,7 @@ export function AgendarConsultaView({
       ci: nuevo.ci.trim(),
       celular: nuevo.celular.trim(),
       complemento: '',
-      expedidoEn: 'Cochabamba',
+      expedidoEn: 'CBBA',
       correo: '',
       fechaNacimiento: '',
       genero: '',

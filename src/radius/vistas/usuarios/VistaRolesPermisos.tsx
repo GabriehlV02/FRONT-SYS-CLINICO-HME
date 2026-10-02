@@ -3,7 +3,7 @@ import Icon from '../../componentes/Icono';
 import { apiFetch } from '../../api';
 import './VistaRolesPermisos.css';
 
-type Perfil='medico'|'consultorio'|'internacion'|'quirofano'|'imagenologia'|'anestesiologo';
+type Perfil='medico'|'enfermera'|'consultorio'|'internacion'|'quirofano'|'imagenologia'|'anestesiologo';
 type Rol={id:string;nombre:string;descripcion:string;permisos:string[];tipoInicio?:string;perfilAtencion?:Perfil};
 const perfiles: {id:Perfil;nombre:string}[]=[{id:'medico',nombre:'Médico'},{id:'consultorio',nombre:'Consultorio'},{id:'internacion',nombre:'Internación'},{id:'quirofano',nombre:'Quirófano'},{id:'imagenologia',nombre:'Imagenología'},{id:'anestesiologo',nombre:'Anestesiólogo'}];
 export default function VistaRolesPermisos(){

@@ -40,6 +40,26 @@
 .signos-atendidos-contenido article > button { display: grid; width: 30px; height: 30px; place-items: center; border: 1px solid #bdddeb; border-radius: 7px; color: #0877b7; background: #f5fbff; cursor: pointer; }
 .signos-atendidos-contenido article > button:hover { border-color: #0877b7; color: #fff; background: #0877b7; }
 .signos-atendidos-contenido article > button svg { color: currentColor; }
+/* Paleta naranja del panel de pacientes atendidos. */
+.cola-toggle, .cola-toggle[aria-expanded='true'] { border: 2px solid #ea760b; color: #a84800; background: #fff1e3; }
+.cola-toggle:hover { border-color: #bd5100; }
+.cola-toggle b { color: #a84800; background: #fff8f0; }
+.signos-atendidos-contenido { border: 3px solid #ea760b; background: #fffaf5; box-shadow: 0 8px 20px rgba(179, 85, 0, .12); }
+.signos-atendidos-contenido > header { border-bottom: 2px solid #f2a35d; background: linear-gradient(135deg, #fff4e8, #ffdfbc); }
+.signos-atendidos-contenido header p, .signos-atendidos-contenido header strong, .signos-atendidos-contenido header > b { color: #a84800; }
+.signos-atendidos-contenido header > b { background: #fff8f0; box-shadow: inset 0 0 0 1px #ed9b50; }
+.cola-buscar-atendidos { border: 2px solid #ed9b50; color: #b5570a; background: #fffdf9; }
+.cola-buscar-atendidos input { color: #783a0a; }
+.cola-buscar-atendidos input::placeholder { color: #aa744c; }
+.signos-atendidos-contenido article { border-bottom-color: #f4cfaa; }
+.signos-atendidos-contenido article:hover { background: #fff0dc; }
+.signos-atendidos-contenido article > span { color: #a84800; background: #ffe3c5; }
+.signos-atendidos-contenido article strong { color: #783a0a; }
+.signos-atendidos-contenido article small { color: #a76533; }
+.signos-atendidos-contenido article > button { border: 2px solid #ed9b50; color: #b5570a; background: #fff4e8; }
+.signos-atendidos-contenido article > button:hover { border-color: #bd5100; background: #bd5100; }
+.signos-atendidos-vacio { color: #a76533; }
+.signos-vitales-vista .cola-toggle:focus-visible, .signos-vitales-vista .signos-atendidos input:focus-visible, .signos-vitales-vista .signos-atendidos button:focus-visible { outline-color: #bd5100; }
 .cola-vacio { display: grid; justify-items: center; gap: 10px; padding: 25px 20px; text-align: center; color: #7096ac; }
 .cola-vacio strong { color: #365d76; font-size: 13px; }
 .cola-vacio p { max-width: 230px; margin: 0; font-size: 12px; line-height: 1.6; }

@@ -9,7 +9,8 @@ export type Permiso =
   | 'usuarios.acceder' | 'usuarios.listado' | 'usuarios.crear' | 'usuarios.roles'
   | 'pedidos.ver' | 'pedidos.editar'
   | 'configuracion.tipos' | 'configuracion.marcas' | 'configuracion.almacenes'
-  | 'almacenes.ver' | 'almacenes.movimientos';
+  | 'almacenes.ver' | 'almacenes.movimientos'
+  | 'clinica.enfermeria' | 'clinica.medico';
 
 export type Sesion = {
   token: string;
@@ -28,7 +29,7 @@ export type Sesion = {
     usuarios: string[];
     estado: 'activo' | 'revocado';
   };
-    usuario: { nombre: string; rol: string; permisos: Permiso[]; tipoInicio?:'ventas'|'administracion'|'almacenes'|'admin_sistema'|'atencion_clinica';perfilAtencion?:'medico'|'consultorio'|'internacion'|'quirofano'|'imagenologia'|'anestesiologo';todosAlmacenes?:boolean;accesosAlmacenes?:{almacenId:string;acciones:('ver'|'editar'|'movimientos'|'traspasos')[]}[] };
+    usuario: { nombre: string; rol: string; permisos: Permiso[]; tipoInicio?:'ventas'|'administracion'|'almacenes'|'admin_sistema'|'atencion_clinica';perfilAtencion?:'medico'|'enfermera'|'consultorio'|'internacion'|'quirofano'|'imagenologia'|'anestesiologo';todosAlmacenes?:boolean;accesosAlmacenes?:{almacenId:string;acciones:('ver'|'editar'|'movimientos'|'traspasos')[]}[] };
 };
 
 export const TODOS_LOS_PERMISOS: Permiso[] = [

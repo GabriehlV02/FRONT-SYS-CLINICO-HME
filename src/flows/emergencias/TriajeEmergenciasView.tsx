@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { apiFetch } from '../../radius/api';
+import { sincronizarPaciente } from '../../radius/pacientesCompartidos';
 import Icon from '../../radius/componentes/Icono';
 import './TriajeEmergenciasView.css';
 import { cubiculosEmergencias, nombreCubiculo } from './cubiculos';
@@ -73,10 +74,15 @@ export function TriajeEmergenciasView({ recepcion = false }: { recepcion?: boole
     try {
       const actualizada = await pedir<Cuenta>(ruta, body); ++ultimaLectura.current;
       intentoConsumo.current = null;
-      setCuentas(prev => [actualizada, ...prev.filter(c => c.id !== actualizada.id)]); setActiva(actualizada.id); setAviso(mensaje); return true;
+      setCuentas(prev => [actualizada, ...prev.filter(c => c.id !== actualizada.id)]); setActiva(actualizada.id); setAviso(mensaje); if (ruta.endsWith('/identidad')) void sincronizarFicha(body as Identidad); return true;
     } catch (e) { setError((e as Error).message); return false; } finally { operacionActiva.current = false; setOcupado(false); }
   }
-  async function iniciar(e: FormEvent) { e.preventDefault(); if (!cubiculo) { setErrorCubiculo('Debes seleccionar un cubículo de atención antes de registrar al paciente.'); setSelectorCubiculoAbierto(true); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.em-selector-cubiculo > button')?.focus()); return; } setErrorCubiculo(''); if (await guardar('', { cubiculo, identidad: datosIniciales, solicitudId: solicitud.current }, 'Atención iniciada. La cuenta ya está disponible en Recepción.')) { solicitud.current = crypto.randomUUID(); setNueva(false); setCubiculo(''); setSelectorCubiculoAbierto(false); setDatosIniciales({}); setMostrarAcompanante(false); setIdentidad(null); setValores({}); setObservacion(''); } }
+  async function sincronizarFicha(datos: Identidad) {
+    if (!datos.nombres?.trim() || !datos.documento?.trim()) return;
+    try { await sincronizarPaciente(datos); }
+    catch (e) { setError(`La atención fue guardada, pero no se pudo sincronizar la ficha general: ${(e as Error).message}`); }
+  }
+  async function iniciar(e: FormEvent) { e.preventDefault(); if (!cubiculo) { setErrorCubiculo('Debes seleccionar un cubículo de atención antes de registrar al paciente.'); setSelectorCubiculoAbierto(true); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.em-selector-cubiculo > button')?.focus()); return; } setErrorCubiculo(''); if (await guardar('', { cubiculo, identidad: datosIniciales, solicitudId: solicitud.current }, 'Atención iniciada. La cuenta ya está disponible en Recepción.')) { await sincronizarFicha(datosIniciales); solicitud.current = crypto.randomUUID(); setNueva(false); setCubiculo(''); setSelectorCubiculoAbierto(false); setDatosIniciales({}); setMostrarAcompanante(false); setIdentidad(null); setValores({}); setObservacion(''); } }
   async function registrarSignos(e: FormEvent) { e.preventDefault(); if (!cuenta) return; if (await guardar(`/${cuenta.id}/signos`, { valores: Object.fromEntries(Object.entries(valores).filter(([, v]) => v !== '').map(([k, v]) => [k, Number(v)])), observacion }, 'Signos vitales guardados.')) { setEditarSignos(false); setValores({}); setObservacion(''); } }
   const visibles = cuentas.filter(c => (recepcion || verFinalizadas || !c.fin) && normalizar(`${c.cubiculo} ${c.identidad?.nombres || ''} ${c.identidad?.apellidos || ''} ${c.identidad?.documento || ''}`).includes(normalizar(busquedaCuenta)));
   const total = cuenta?.consumos.reduce((s, c) => s + importe(c, ahora), 0) || 0;

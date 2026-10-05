@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import Icon from '../../../radius/componentes/Icono';
+import { sincronizarPaciente } from '../../../radius/pacientesCompartidos';
 import { InternacionModal } from './InternacionModal';
 type Tipo = 'Producto' | 'Insumo' | 'Servicio';
 type Item = {
@@ -183,7 +184,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
     <section className="punto-pos">
       {mostrandoInternacion && <InternacionModal onCerrar={() => setMostrandoInternacion(false)} />}
       {mostrandoNuevoPaciente && <div className="punto-nuevo-paciente-fondo" role="presentation" onClick={() => setMostrandoNuevoPaciente(false)}>
-        <form className="punto-nuevo-paciente-modal" role="dialog" aria-modal="true" aria-label="Nuevo paciente" onClick={(event) => event.stopPropagation()} onSubmit={(event) => { event.preventDefault(); setMostrandoNuevoPaciente(false); }}>
+        <form className="punto-nuevo-paciente-modal" role="dialog" aria-modal="true" aria-label="Nuevo paciente" onClick={(event) => event.stopPropagation()} onSubmit={async (event) => { event.preventDefault(); const campo = (selector: string) => event.currentTarget.querySelector<HTMLInputElement>(selector)?.value || ''; await sincronizarPaciente({ nombres: campo('input[placeholder="Nombres"]'), primerApellido: campo('input[placeholder="Apellido paterno"]'), segundoApellido: campo('input[placeholder="Apellido materno"]'), numeroDocumento: campo('input[placeholder="CI"]'), fechaNacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), direccion: campo('input[placeholder="Dirección"]') }); setMostrandoNuevoPaciente(false); }}>
           <header><div><span><Icon name="users" size={20} /></span><div><p>NUEVO PACIENTE</p><h2>Registrar paciente</h2></div></div><button type="button" aria-label="Cerrar" onClick={() => setMostrandoNuevoPaciente(false)}><Icon name="close" size={18} /></button></header>
           <div className="punto-nuevo-paciente-contenido">
             <section className="nuevo-paciente-busqueda"><label><Icon name="search" size={17} /><input placeholder="Buscar paciente registrado" /></label><button type="button"><Icon name="fileText" size={16} /> Imprimir formulario</button></section>

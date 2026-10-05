@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import './SignosVitalesView.css';
 import './ColaTriaje.css';
+import type { SignoVitalConfig } from './ConfiguracionSignosVitalesView';
 
 type PacienteEnEspera = {
   id: string;
@@ -27,7 +28,7 @@ const atendidosIniciales: PacienteAtendido[] = [
   { id: 'a-3', hora: '08:00', paciente: 'Elena Torrez', ci: '5418702', edad: 31, doctor: 'Dra. Elena Salazar', especialidad: 'Cardiología', registrado: '08:09', valores: { temperatura: '36.5', frecuenciaCardiaca: '68', frecuenciaRespiratoria: '16', presionSistolica: '110', presionDiastolica: '70', saturacionAmbiente: '99', peso: '58', estatura: '157', imc: '23.5' } },
 ];
 
-const camposVitales = [
+const camposVitalesPredeterminados = [
   ['temperatura', 'Temperatura', '°C'], ['glicemia', 'Glicemia capilar', 'mg/dL'],
   ['frecuenciaCardiaca', 'Frec. cardíaca', 'P/min'], ['frecuenciaRespiratoria', 'Frec. respiratoria', 'Res/min'],
   ['presionSistolica', 'Presión sistólica', 'mmHg'], ['presionDiastolica', 'Presión diastólica', 'mmHg'],
@@ -36,7 +37,7 @@ const camposVitales = [
   ['perimetroCadera', 'Perímetro cadera', 'cm'], ['peso', 'Peso', 'kg'], ['estatura', 'Estatura', 'cm'], ['imc', 'IMC', ''],
 ] as const;
 
-export function SignosVitalesView() {
+export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?: SignoVitalConfig[] }) {
   const [cola, setCola] = useState(colaInicial);
   const [busqueda, setBusqueda] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<PacienteEnEspera | null>(null);
@@ -51,6 +52,7 @@ export function SignosVitalesView() {
   const visibles = cola.filter((paciente) =>
     `${paciente.paciente} ${paciente.ci} ${paciente.doctor}`.toLowerCase().includes(busqueda.toLowerCase()),
   );
+  const camposVitales = camposConfigurados?.map((campo) => [campo.id, campo.nombre, campo.abreviatura] as const) ?? camposVitalesPredeterminados;
 
   const guardar = (evento: React.FormEvent) => {
     evento.preventDefault();
@@ -81,7 +83,13 @@ export function SignosVitalesView() {
         <label className="formulario-paciente">Especialidad<input value={pacienteSeleccionado.especialidad} disabled /></label>
       </section>
       <section className="formulario-signos-campos">
-        {camposVitales.map(([id, etiqueta, unidad]) => <label key={id}>{etiqueta}<span><input inputMode="decimal" value={valores[id] || ''} onChange={(evento) => setValores((actual) => ({ ...actual, [id]: evento.target.value }))} />{unidad && <em>{unidad}</em>}</span></label>)}
+        {camposVitales.map(([id, etiqueta, unidad]) => {
+          const config = camposConfigurados?.find((campo) => campo.id === id);
+          const texto = config?.tipo === 'Texto';
+          const entero = config?.tipo === 'N\u00famero entero';
+          const rango = config?.rangoReferencia;
+          return <label key={id}>{etiqueta}<span><input type={texto ? 'text' : 'number'} step={entero ? '1' : 'any'} inputMode={texto ? 'text' : entero ? 'numeric' : 'decimal'} aria-describedby={rango ? `referencia-${id}` : undefined} value={valores[id] || ''} onChange={(evento) => setValores((actual) => ({ ...actual, [id]: evento.target.value }))} />{unidad && <em>{unidad}</em>}</span>{rango && <small id={`referencia-${id}`}>{rango.nombre || 'Referencia'}: {rango.minimo} - {rango.maximo} {unidad}</small>}</label>;
+        })}
       </section>
       <footer><button className="signos-cancelar" type="button" onClick={() => { setPacienteSeleccionado(null); setValores({}); setEditandoAtendido(false); }}>Cancelar</button><button className="signos-guardar" type="submit"><Icon name="check" size={16} /> {editandoAtendido ? 'Actualizar signos vitales' : 'Guardar signos vitales'}</button></footer>
     </form>

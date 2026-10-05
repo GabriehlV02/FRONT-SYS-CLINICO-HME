@@ -1297,6 +1297,19 @@ button:focus-visible{
   background: transparent !important;
   font-style: normal;
 }
+
+/* Las pestañas de Pacientes usan el mismo patrón lineal que Consulta y Agenda. */
+.sistema-app .pacientes-subvistas > button > svg.pacientes-subvista-icono {
+  display: block !important;
+  width: 17px !important;
+  height: 17px !important;
+  flex: 0 0 17px !important;
+  color: currentColor !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
 @media(max-width:620px){
   .area-trabajo>.imagenologia-subvistas,
   .recepcion-subvistas,

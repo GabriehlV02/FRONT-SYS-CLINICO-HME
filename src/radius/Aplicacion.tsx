@@ -25,6 +25,7 @@ import { VistaInformes } from './vistas/clinica/Complementos';
 import { ConsultorioView } from '../flows/consultorio/ConsultorioView';
 import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
 import { SignosVitalesView } from '../flows/triaje/SignosVitalesView';
+import { ConfiguracionSignosVitalesView, signosVitalesIniciales } from '../flows/triaje/ConfiguracionSignosVitalesView';
 import { TriajeEmergenciasView } from '../flows/emergencias/TriajeEmergenciasView';
 import { AtencionMedicaEmergenciasView } from '../flows/emergencias/AtencionMedicaEmergenciasView';
 import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
@@ -51,7 +52,7 @@ const subvistasRadiografias: { id: SubvistaRadiografias; nombre: string; icono: 
   { id: "base-datos", nombre: "Base de datos", icono: "package" },
 ];
 const subvistasPacientes: { id: SubvistaPacientes; nombre: string; icono: IconName }[] = [
-  { id: "pacientes", nombre: "Pacientes", icono: "users" },
+  { id: "pacientes", nombre: "Pacientes", icono: "patient" },
   { id: "historias", nombre: "Historias clínicas", icono: "fileText" },
   { id: "estudios", nombre: "Estudios del paciente", icono: "image" },
 ];
@@ -103,6 +104,7 @@ export default function Aplicacion() {
   const [subvistaPacientes, setSubvistaPacientes] = useState<SubvistaPacientes>("pacientes");
   const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
   const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
+  const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState(signosVitalesIniciales);
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
   const [pacienteColaAtencion, setPacienteColaAtencion] = useState<CitaConfirmada | null>(null);
@@ -446,14 +448,14 @@ export default function Aplicacion() {
             </nav>
           )}
           {modulo === "pacientes" && (
-            <nav className="subvistas-nav pacientes-subvistas" aria-label="Subvistas de Pacientes">
+            <nav className="pacientes-subvistas" aria-label="Subvistas de Pacientes">
               {subvistasPacientes.map(vista => (
                 <button
                   key={vista.id}
                   className={subvistaPacientes === vista.id ? "activo" : ""}
                   onClick={() => setSubvistaPacientes(vista.id)}
                 >
-                  <span className="pacientes-subvista-icono"><Icon name={vista.icono} size={18} /></span>
+                  <Icon className="pacientes-subvista-icono" name={vista.icono} size={17} />
                   <i className="pacientes-subvista-texto"><strong>{vista.nombre}</strong><small>{vista.id === 'pacientes' ? 'Registro y búsqueda' : vista.id === 'historias' ? 'Expediente clínico' : 'Resultados médicos'}</small></i>
                 </button>
               ))}
@@ -480,9 +482,9 @@ export default function Aplicacion() {
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'agenda' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'agenda' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('agenda')}><span><Icon name="calendar" size={17} /></span><strong>Agenda</strong></button>
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'configuracion' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'configuracion' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('configuracion')}><span><Icon name="settings" size={17} /></span><strong>Configuración</strong></button>
               </HorizontalSubvistaNav>
-              {subvistaTriajeAmbulatorio === 'signos-vitales' && <SignosVitalesView />}
+              {subvistaTriajeAmbulatorio === 'signos-vitales' && <SignosVitalesView camposConfigurados={signosVitalesConfigurados} />}
               {subvistaTriajeAmbulatorio === 'agenda' && <CitasRecepcionView />}
-              {subvistaTriajeAmbulatorio === 'configuracion' && <div className="triaje-ambulatorio-contenido" aria-label="Configuración de signos vitales" />}
+              {subvistaTriajeAmbulatorio === 'configuracion' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={setSignosVitalesConfigurados} />}
             </section>
           ) : modulo === 'triaje-emergencias' ? (
             <TriajeEmergenciasView />

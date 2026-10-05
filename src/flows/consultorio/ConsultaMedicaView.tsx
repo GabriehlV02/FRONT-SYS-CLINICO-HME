@@ -18,7 +18,14 @@ const campos = [
 ] as const;
 
 type TipoOrden = 'laboratorio' | 'imagenologia' | 'internacion';
+type SeccionConsulta = 'atencion' | 'resultados' | 'historia' | 'tratamientos';
 const titulosOrden: Record<TipoOrden, string> = { laboratorio: 'laboratorio', imagenologia: 'imagenología', internacion: 'internación' };
+const seccionesConsulta: { id: SeccionConsulta; nombre: string; icono: 'userCheck' | 'lab' | 'fileText' | 'patient' }[] = [
+  { id: 'atencion', nombre: 'Atención', icono: 'userCheck' },
+  { id: 'resultados', nombre: 'Resultados de estudios', icono: 'lab' },
+  { id: 'historia', nombre: 'Historia clínica', icono: 'fileText' },
+  { id: 'tratamientos', nombre: 'Tratamientos', icono: 'patient' },
+];
 
 function OrdenesConsulta({ paciente, onAbrir }: { paciente: CitaConfirmada | null; onAbrir?: (tipo: TipoOrden) => void }) {
   const [mensaje, setMensaje] = useState('');
@@ -26,36 +33,36 @@ function OrdenesConsulta({ paciente, onAbrir }: { paciente: CitaConfirmada | nul
   return <><nav className="consulta-ordenes"><button className="orden-laboratorio" type="button" onClick={() => abrir('laboratorio')}><Icon name="lab" size={17} /> Orden de laboratorio</button><button className="orden-imagenologia" type="button" onClick={() => abrir('imagenologia')}><Icon name="image" size={17} /> Orden de imagenología</button><button className="orden-internacion" type="button" onClick={() => abrir('internacion')}><Icon name="patient" size={17} /> Orden de internación</button></nav>{mensaje && <em className="consulta-aviso">{mensaje}</em>}</>;
 }
 
-function HistoriaClinicaButton() {
-  return <button className="orden-historia consulta-historia-lateral" type="button"><Icon name="fileText" size={17} /> Historia clínica</button>;
-}
-
-function ResumenHistoriaPaciente({ paciente }: { paciente: CitaConfirmada }) {
-  const [carpetaAbierta, setCarpetaAbierta] = useState<string | null>(null);
-  const carpetas = [
-    { id: 'laboratorio', icono: 'lab' as const, titulo: 'Resultados de laboratorio', nombre: 'Hemograma completo', tipo: 'Laboratorio', fecha: '28 sep. 2026', relevante: 'Resultado validado', detalle: 'Resultado disponible para revisión clínica.' },
-    { id: 'imagenologia', icono: 'image' as const, titulo: 'Resultados de imagenología', nombre: 'Radiografía panorámica', tipo: 'Imagenología', fecha: '27 sep. 2026', relevante: 'Informe emitido', detalle: 'Estudio e informe disponibles en el historial.' },
-    { id: 'ultima-visita', icono: 'fileText' as const, titulo: 'Última visita médica', nombre: 'Consulta ambulatoria', tipo: 'Atención médica', fecha: '15 sep. 2026', relevante: 'Motivo: control clínico', detalle: 'Información principal y motivo de la última atención registrada.' },
-  ];
-  return <section className="consulta-historial-lateral"><header><p>HISTORIA CLÍNICA</p><strong>Carpetas inspeccionables</strong></header>{carpetas.map((carpeta) => <article className="historial-carpeta" key={carpeta.id}><span><Icon name={carpeta.icono} size={17} /></span><div><strong>{carpeta.titulo}</strong><b>{carpeta.nombre}</b><small>{carpeta.tipo} · {carpeta.fecha}</small><em>{carpeta.relevante}</em></div><button type="button" onClick={() => setCarpetaAbierta((actual) => actual === carpeta.id ? null : carpeta.id)}>{carpetaAbierta === carpeta.id ? 'Cerrar' : 'Ver'}</button>{carpetaAbierta === carpeta.id && <p>{carpeta.detalle}</p>}</article>)}<footer>Historial de {paciente.paciente}.</footer></section>;
-}
-
-export function ConsultaMedicaView({ paciente, onCerrarAtencion }: { paciente: CitaConfirmada | null; onCerrarAtencion?: () => void }) {
+export function ConsultaMedicaView({ paciente }: { paciente: CitaConfirmada | null }) {
+  const [seccion, setSeccion] = useState<SeccionConsulta>('atencion');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [vitales, setVitales] = useState<Record<string, string>>({});
+  const [notasMedicas, setNotasMedicas] = useState<Record<string, string>>({});
   const [tipoOrden, setTipoOrden] = useState<TipoOrden | null>(null);
   const [detalleOrden, setDetalleOrden] = useState('');
   const [laboratoriosElegidos, setLaboratoriosElegidos] = useState('');
   const vitalesTriaje = useMemo(() => paciente ? registrosTriaje[paciente.ci] : undefined, [paciente]);
-  if (!paciente) return <section className="consulta-inicio"><aside className="consulta-pacientes panel"><label className="consulta-buscar"><Icon name="search" size={17} /><input placeholder="Buscar paciente o CI" /></label><HistoriaClinicaButton /><header><p>PACIENTES EN ESPERA</p><strong>0 pendientes</strong></header></aside><section className="consulta-area panel"><header><div><p>CONSULTA MÉDICA</p><h2>Sin paciente en atención</h2><small>La información se cargará al pulsar “Atender” desde la Agenda.</small></div><OrdenesConsulta paciente={null} /></header><div className="consulta-area-vacia"><Icon name="userCheck" size={30} /><strong>Aún no hay una consulta iniciada</strong><small>Selecciona “Atender” en la Agenda para cargar los datos del paciente.</small></div></section></section>;
+  if (!paciente) return <section className="consulta-inicio consulta-inicio-sin-lista"><section className="consulta-area panel"><header><div><p>CONSULTA MÉDICA</p><h2>Sin paciente en atención</h2><small>La información se cargará al pulsar “Atender” desde la Agenda.</small></div><OrdenesConsulta paciente={null} /></header><div className="consulta-area-vacia"><Icon name="userCheck" size={30} /><strong>Aún no hay una consulta iniciada</strong><small>Selecciona “Atender” en la Agenda para cargar los datos del paciente.</small></div></section></section>;
   const datos = Object.keys(vitales).length ? vitales : (vitalesTriaje ?? {});
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
-    <button className="consulta-cerrar-atencion consulta-cerrar-encima-historia" type="button" onClick={onCerrarAtencion}><Icon name="close" size={16} /> Cerrar atención</button>
-    <aside className="consulta-paciente-activo panel"><label className="consulta-buscar"><Icon name="search" size={17} /><input placeholder="Buscar paciente o CI" /></label><HistoriaClinicaButton /><ResumenHistoriaPaciente paciente={paciente} /></aside>
     <section className="consulta-activa-derecha">
       <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><h2>{paciente.paciente}</h2><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} /></header>
+      <nav className="consulta-secciones" aria-label="Secciones de la consulta">
+        {seccionesConsulta.map(item => <button key={item.id} type="button" className={seccion === item.id ? 'activo' : ''} aria-current={seccion === item.id ? 'page' : undefined} onClick={() => setSeccion(item.id)}><Icon name={item.icono} size={16} /><span>{item.nombre}</span></button>)}
+      </nav>
+      {seccion === 'atencion' && <>
       {tipoOrden === 'laboratorio' && <HojaLaboratorios paciente={paciente.paciente} onCerrar={() => setTipoOrden(null)} onAceptar={items => { setLaboratoriosElegidos(items.map(i => i.nombre).join(' · ')); setTipoOrden(null); }} />}{laboratoriosElegidos && <p className="consulta-aviso">Laboratorios seleccionados: {laboratoriosElegidos}</p>}{tipoOrden && tipoOrden !== 'laboratorio' && <section className="consulta-orden-panel panel" aria-label={`Orden de ${titulosOrden[tipoOrden]}`}><header><div><p>ORDEN DE {titulosOrden[tipoOrden].toUpperCase()}</p><h3>{paciente.paciente}</h3><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><button type="button" onClick={() => setTipoOrden(null)} aria-label="Cerrar orden">×</button></header><label>{tipoOrden === 'imagenologia' ? 'Estudios y regiones solicitados' : 'Motivo e indicaciones de internación'}<textarea value={detalleOrden} onChange={(event) => setDetalleOrden(event.target.value)} placeholder="Escribe las indicaciones para esta paciente" /></label><footer><button type="button" onClick={() => setTipoOrden(null)}>Cancelar</button><button type="button" disabled={!detalleOrden.trim()} onClick={() => window.print()}>Imprimir orden</button></footer></section>}
-      <section className="consulta-signos panel"><header><div><p>SIGNOS VITALES</p><h3>{vitalesTriaje ? 'Registrados en triaje' : 'Sin registro de triaje'}</h3><small>{vitalesTriaje ? 'Información completada por enfermería antes de la consulta.' : 'El médico puede registrarlos opcionalmente.'}</small></div><button className="secundario" type="button" onClick={() => { if (!mostrarFormulario) setVitales((actual) => ({ ...(vitalesTriaje ?? {}), ...actual })); setMostrarFormulario((actual) => !actual); }}><Icon name="edit" size={15} /> {mostrarFormulario ? 'Cancelar edición' : 'Editar opcionalmente'}</button></header>{vitalesTriaje || Object.keys(vitales).length ? <div className="consulta-signos-grid">{campos.map(([id, etiqueta]) => <article key={id}><small>{etiqueta}</small><strong>{datos[id] || 'No registrado'}</strong></article>)}</div> : null}{mostrarFormulario && <div className="consulta-signos-form">{campos.map(([id, etiqueta]) => <label key={id}>{etiqueta}<input value={vitales[id] || ''} onChange={(event) => setVitales((actual) => ({ ...actual, [id]: event.target.value }))} placeholder="Opcional" /></label>)}</div>}</section>
+      <div className="consulta-atencion-superior">
+        <section className="consulta-signos panel"><header><div><p>SIGNOS VITALES</p><h3>{vitalesTriaje ? 'Registrados en triaje' : 'Sin registro de triaje'}</h3><small>{vitalesTriaje ? 'Información completada por enfermería antes de la consulta.' : 'El médico puede registrarlos opcionalmente.'}</small></div><button className="secundario" type="button" onClick={() => { if (!mostrarFormulario) setVitales((actual) => ({ ...(vitalesTriaje ?? {}), ...actual })); setMostrarFormulario((actual) => !actual); }}><Icon name="edit" size={15} /> {mostrarFormulario ? 'Cancelar edición' : 'Editar opcionalmente'}</button></header>{vitalesTriaje || Object.keys(vitales).length ? <div className="consulta-signos-grid">{campos.map(([id, etiqueta]) => <article key={id}><small>{etiqueta}</small><strong>{datos[id] || 'No registrado'}</strong></article>)}</div> : null}{mostrarFormulario && <div className="consulta-signos-form">{campos.map(([id, etiqueta]) => <label key={id}>{etiqueta}<input value={vitales[id] || ''} onChange={(event) => setVitales((actual) => ({ ...actual, [id]: event.target.value }))} placeholder="Opcional" /></label>)}</div>}</section>
+        <section className="consulta-nota panel">
+          <header><p>NOTAS MÉDICAS</p><h3>Notas Médicas</h3><small>Escribe libremente las observaciones de la consulta.</small></header>
+          <textarea aria-label="Notas Médicas" value={notasMedicas[paciente.ci] ?? ''} onChange={(event) => setNotasMedicas((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Escribe aquí las notas médicas..." />
+        </section>
+      </div>
+      </>}
+      {seccion === 'resultados' && <section className="consulta-seccion-contenido panel"><header><span><Icon name="lab" size={20} /></span><div><p>RESULTADOS DE ESTUDIOS</p><h3>Laboratorio e imagenología</h3><small>Resultados vinculados a la historia clínica de {paciente.paciente}.</small></div></header><div className="consulta-estado-vacio"><Icon name="fileText" size={30} /><strong>No hay resultados disponibles</strong><small>Los informes validados de laboratorio e imagenología aparecerán en esta sección.</small></div></section>}
+      {seccion === 'historia' && <section className="consulta-seccion-contenido panel"><header><span><Icon name="fileText" size={20} /></span><div><p>HISTORIA CLÍNICA</p><h3>Antecedentes y consultas previas</h3><small>Resumen cronológico de atenciones del paciente.</small></div></header><div className="consulta-resumen-clinico"><article><small>Antecedentes patológicos</small><strong>Sin antecedentes registrados</strong></article><article><small>Alergias</small><strong>Sin alergias registradas</strong></article><article><small>Cirugías previas</small><strong>Sin cirugías registradas</strong></article></div><div className="consulta-estado-vacio compacto"><Icon name="calendar" size={27} /><strong>Sin consultas anteriores</strong><small>Las atenciones finalizadas se mostrarán aquí en orden cronológico.</small></div></section>}
+      {seccion === 'tratamientos' && <section className="consulta-seccion-contenido panel"><header><span><Icon name="patient" size={20} /></span><div><p>TRATAMIENTOS</p><h3>Indicaciones y seguimiento</h3><small>Medicación, procedimientos y planes activos del paciente.</small></div></header><div className="consulta-estado-vacio"><Icon name="fileText" size={30} /><strong>No hay tratamientos registrados</strong><small>Los tratamientos indicados durante la consulta quedarán organizados en esta sección.</small><button type="button"><Icon name="plus" size={15} /> Registrar tratamiento</button></div></section>}
     </section>
   </section>;
 }

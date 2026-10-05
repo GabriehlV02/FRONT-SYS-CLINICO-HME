@@ -13,7 +13,7 @@ export type CuentaEmergencia = {
   identidad: Record<string, string> | null;
   signos: { id: string; fecha: string; valores: Record<string, number>; observacion: string }[];
   consumos: (ItemEmergencia & { registroId: string; cantidad: number; porHora: boolean; inicio: string; fin: string | null; ordenId?: string })[];
-  evaluaciones?: { revision: number; fecha: string; usuario: string; campos: Record<string, string> }[];
+  evaluaciones?: { id?: string; revision: number; fecha: string; usuario: string; campos: Record<string, string> }[];
   ordenes?: OrdenEmergencia[];
 };
 export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {

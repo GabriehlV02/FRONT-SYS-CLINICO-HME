@@ -270,6 +270,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
       <div className="usuarios-tabla pacientes-tabla">
         <div className="usuarios-fila usuarios-columnas">
           <span>Paciente</span>
+          <span>Fecha de nacimiento</span>
           <span>Documento</span>
           <span>Edad / sexo</span>
           <span>Celular</span>
@@ -289,15 +290,17 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                   </span>
                   <div>
                     <strong>{nombreCompleto(p)}</strong>
-                    <small>
-                      Nacimiento:{" "}
-                      {p.fechaNacimiento
-                        ? new Date(
-                            `${p.fechaNacimiento}T00:00:00`,
-                          ).toLocaleDateString("es-ES")
-                        : "No registrado"}
-                    </small>
                   </div>
+                </div>
+                <div>
+                  <strong className="dato-movil">Fecha de nacimiento</strong>
+                  <span>
+                    {p.fechaNacimiento
+                      ? new Date(
+                          `${p.fechaNacimiento}T00:00:00`,
+                        ).toLocaleDateString("es-ES")
+                      : "No registrada"}
+                  </span>
                 </div>
                 <div>
                   <strong className="dato-movil">Documento</strong>

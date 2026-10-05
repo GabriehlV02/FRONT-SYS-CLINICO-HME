@@ -1,15 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState } from "react";
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones from "./componentes/Notificaciones";
 import { obtenerInformes, obtenerPacientes } from "./datos/almacenDemo";
 import { leerSesion, type Sesion } from "./types/sesion";
 import VistaInicioSesion from "./vistas/autenticacion/VistaInicioSesion";
-import VistaPacientes from "./vistas/pacientes/VistaPacientes";
-import VistaRayosX from "./vistas/visor-rayos-x/VistaRayosX";
-import VistaBaseDatosOrthanc from "./vistas/base-datos/VistaBaseDatosOrthanc";
-import VistaConfiguracion from "./vistas/configuracion/VistaConfiguracion";
-import VistaAuditorias from "./vistas/auditorias/VistaAuditorias";
 import "./vistas/visor/BibliotecaImagenes.css";
 import "./vistas/visor/PaletaClara.css";
 import "./vistas/visor/PaletaPlomo.css";
@@ -19,16 +14,42 @@ import "./vistas/visor/SubvistasGlobal.css";
 import "./vistas/visor/TitulosUnicos.css";
 import "./vistas/visor/ResponsividadGlobal.css";
 
-import { RecepcionView } from '../flows/recepcion/RecepcionView';
-import { CitasRecepcionView } from '../flows/recepcion/subvistas/CitasRecepcionView';
-import { VistaInformes } from './vistas/clinica/Complementos';
-import { ConsultorioView } from '../flows/consultorio/ConsultorioView';
 import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
-import { SignosVitalesView } from '../flows/triaje/SignosVitalesView';
-import { ConfiguracionSignosVitalesView, signosVitalesIniciales } from '../flows/triaje/ConfiguracionSignosVitalesView';
-import { TriajeEmergenciasView } from '../flows/emergencias/TriajeEmergenciasView';
-import { AtencionMedicaEmergenciasView } from '../flows/emergencias/AtencionMedicaEmergenciasView';
+import type { SignoVitalConfig } from '../flows/triaje/ConfiguracionSignosVitalesView';
 import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
+
+// Cada flujo se descarga solo cuando se abre. Al desmontarse también desaparecen
+// sus efectos, temporizadores y listeners, sin conservar pantallas ocultas.
+const RecepcionView = lazy(() => import('../flows/recepcion/RecepcionView').then(m => ({ default: m.RecepcionView })));
+const CitasRecepcionView = lazy(() => import('../flows/recepcion/subvistas/CitasRecepcionView').then(m => ({ default: m.CitasRecepcionView })));
+const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
+const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
+const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
+const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
+const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
+const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
+const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
+const VistaBaseDatosOrthanc = lazy(() => import('./vistas/base-datos/VistaBaseDatosOrthanc'));
+const VistaConfiguracion = lazy(() => import('./vistas/configuracion/VistaConfiguracion'));
+const VistaAuditorias = lazy(() => import('./vistas/auditorias/VistaAuditorias'));
+const VistaInformes = lazy(() => import('./vistas/clinica/Complementos').then(m => ({ default: m.VistaInformes })));
+
+const signosVitalesIniciales: SignoVitalConfig[] = [
+  ['temperatura', 'Temperatura', 'Grados Celsius', '°C', 'Número decimal'],
+  ['glicemia', 'Glicemia capilar', 'Miligramos por decilitro', 'mg/dL', 'Número entero'],
+  ['frecuenciaCardiaca', 'Frecuencia cardíaca', 'Pulsaciones por minuto', 'P/min', 'Número entero'],
+  ['frecuenciaRespiratoria', 'Frecuencia respiratoria', 'Respiraciones por minuto', 'Res/min', 'Número entero'],
+  ['presionSistolica', 'Presión sistólica', 'Milímetros de mercurio', 'mmHg', 'Número entero'],
+  ['presionDiastolica', 'Presión diastólica', 'Milímetros de mercurio', 'mmHg', 'Número entero'],
+  ['saturacionAmbiente', 'Saturación ambiente', 'Porcentaje', '%', 'Número entero'],
+  ['oxigeno', 'Oxígeno', 'Litros', 'L', 'Número decimal'],
+  ['saturacionOxigeno', 'Saturación con oxígeno', 'Porcentaje', '%', 'Número entero'],
+  ['perimetroCintura', 'Perímetro de cintura', 'Centímetros', 'cm', 'Número decimal'],
+  ['perimetroCadera', 'Perímetro de cadera', 'Centímetros', 'cm', 'Número decimal'],
+  ['peso', 'Peso', 'Kilogramos', 'kg', 'Número decimal'],
+  ['estatura', 'Estatura', 'Centímetros', 'cm', 'Número decimal'],
+  ['imc', 'IMC', 'Índice de masa corporal', 'kg/m²', 'Número decimal'],
+].map(([id, nombre, unidad, abreviatura, tipo]) => ({ id, nombre, unidad, abreviatura, tipo: tipo as SignoVitalConfig['tipo'] }));
 
 type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
 type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecocardiogramas" | "informes" | "visor";
@@ -160,8 +181,9 @@ export default function Aplicacion() {
     if (!sesion) setModulo("");
   }, [sesion]);
   useEffect(() => {
-    if (!sesion) return;
+    if (!sesion || modulo !== "imagenologia") return;
     let activo = true;
+    const controller = new AbortController();
     const actualizarLocales = () => setConteosImagenologia((actual) => ({
       ...actual,
       pacientes: obtenerPacientes().length,
@@ -169,7 +191,7 @@ export default function Aplicacion() {
     }));
     actualizarLocales();
     window.addEventListener("radiuus:datos-demo", actualizarLocales);
-    void apiFetch("/api/orthanc/estudios")
+    void apiFetch("/api/orthanc/estudios", { signal: controller.signal })
       .then(async (r) => (r.ok ? ((await r.json()) as unknown[]) : []))
       .then((estudios) => {
         if (activo) setConteosImagenologia((actual) => ({ ...actual, estudios: estudios.length }));
@@ -177,9 +199,10 @@ export default function Aplicacion() {
       .catch(() => undefined);
     return () => {
       activo = false;
+      controller.abort();
       window.removeEventListener("radiuus:datos-demo", actualizarLocales);
     };
-  }, [sesion?.token, subvistaImagenologia]);
+  }, [sesion?.token, modulo]);
   useEffect(() => {
     if (!sesion) return;
     const restante = sesion.expiresAt - Date.now();
@@ -425,6 +448,7 @@ export default function Aplicacion() {
           </aside>
         </div>}
         <div className="area-trabajo">
+          <Suspense fallback={<div className="modulo-vacio" role="status"><span><Icon name="patient" size={28} /></span><p>CARGANDO</p><h2>Preparando flujo…</h2><small>Activando únicamente los recursos de esta área.</small></div>}>
           {modulo === "imagenologia" && (
             <nav className="imagenologia-subvistas" aria-label="Subvistas de Imagenología">
               {subvistasImagenologia.map(vista => (
@@ -528,6 +552,7 @@ export default function Aplicacion() {
               </small>
             </div>
           ) : null}
+          </Suspense>
         </div>
       </section>
     </main>

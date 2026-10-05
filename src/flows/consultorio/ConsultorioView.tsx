@@ -20,7 +20,7 @@ export function ConsultorioView({ medico, initialSubview = 'consulta', initialPa
         <Icon name={item.icono} size={17} /><span>{item.nombre}</span>
       </button>)}
     </nav>
-    {subvista === 'agenda' ? <AgendaAmbulatoriaView medico={medico} onAtender={(cita) => { setPacienteEnConsulta(cita); setSubvista('consulta'); }} /> : subvista === 'consulta' ? <ConsultaMedicaView paciente={pacienteEnConsulta} onCerrarAtencion={() => setPacienteEnConsulta(null)} /> : <div className="consultorio-vacio">
+    {subvista === 'agenda' ? <AgendaAmbulatoriaView medico={medico} onAtender={(cita) => { setPacienteEnConsulta(cita); setSubvista('consulta'); }} /> : subvista === 'consulta' ? <ConsultaMedicaView paciente={pacienteEnConsulta} /> : <div className="consultorio-vacio">
       <Icon name={subvistas.find((item) => item.id === subvista)?.icono ?? 'userCheck'} size={30} />
       <p>CONSULTORIO MÉDICO</p>
       <h2>Historias clínicas</h2>

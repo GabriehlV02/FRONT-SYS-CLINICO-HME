@@ -199,7 +199,8 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
   }, []);
 
   useEffect(() => {
-    void apiFetch('/api/citas')
+    const controller = new AbortController();
+    void apiFetch('/api/citas', { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) return;
         const remotas = (await response.json()) as Array<{
@@ -232,7 +233,8 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
           })),
         ]);
       })
-      .catch(() => undefined);
+      .catch((error) => { if ((error as Error).name !== 'AbortError') console.error(error); });
+    return () => controller.abort();
   }, []);
 
   const persistirEstado = (cita: Cita, estado: 'confirmada' | 'cancelada') => {

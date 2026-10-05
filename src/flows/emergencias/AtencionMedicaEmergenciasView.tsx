@@ -56,7 +56,7 @@ export function AtencionMedicaEmergenciasView() {
         guardando.current = true; secuencia.current++;
         try { const actualizada = await apiEmergencias<CuentaEmergencia>(ruta, body); secuencia.current++; setCuentas(prev => prev.map(c => c.id === actualizada.id ? actualizada : c)); }
         finally { guardando.current = false; }
-      }} /> : <section className="em-panel em-vacio em-medica-inicio"><Icon name="userCheck" size={34} /><h3>Selecciona un paciente en atención</h3><p>Elige un cubículo para registrar la evaluación, emitir indicaciones y consultar los datos disponibles.</p><small>No se necesita nombre, documento ni cita agendada.</small></section>}
+      }} /> : null}
     </div>
   </section>;
 }

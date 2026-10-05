@@ -3,7 +3,7 @@ import Icon from '../../radius/componentes/Icono';
 import { apiFetch } from '../../radius/api';
 import './AgendaAmbulatoriaView.css';
 
-export type CitaConfirmada = { id: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string };
+export type CitaConfirmada = { id: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
 const fechaHoy = () => new Date().toLocaleDateString('en-CA');
 const citasEjemplo: CitaConfirmada[] = [
   ['agenda-demo-1', '08:00', 'María Fernanda Rojas', '4839201', 'Medicina general'],

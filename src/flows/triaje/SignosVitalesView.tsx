@@ -3,6 +3,7 @@ import Icon from '../../radius/componentes/Icono';
 import './SignosVitalesView.css';
 import './ColaTriaje.css';
 import type { SignoVitalConfig } from './ConfiguracionSignosVitalesView';
+import { guardarSignosVitales } from './registroSignosVitales';
 
 type PacienteEnEspera = {
   id: string;
@@ -57,6 +58,7 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
   const guardar = (evento: React.FormEvent) => {
     evento.preventDefault();
     if (!pacienteSeleccionado) return;
+    guardarSignosVitales(pacienteSeleccionado.ci, valores);
     if (editandoAtendido) {
       setAtendidos((actual) => actual.map((item) => item.id === pacienteSeleccionado.id ? { ...item, valores, registrado: 'Ahora' } : item));
     } else {

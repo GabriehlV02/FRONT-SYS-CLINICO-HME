@@ -8,7 +8,7 @@
 
 /* El formulario se abre como panel lateral para no desplazar la atención. */
 .emergencias-vista{position:relative}
-.em-inicio-atencion{position:absolute;z-index:10;top:62px;left:281px;right:20px;width:auto;max-height:calc(100dvh - 100px);overflow-y:auto;box-shadow:0 16px 42px #173c5b2b}
+.em-modal-inicio{position:fixed;z-index:1000;inset:0;display:flex;align-items:center;justify-content:center;padding:28px;background:#12314b88;backdrop-filter:blur(2px)}.em-inicio-atencion{position:relative;width:min(1120px,100%);max-height:calc(100dvh - 56px);overflow-y:auto;box-shadow:0 20px 50px #06243b55}.em-cerrar-modal{position:absolute;z-index:2;top:13px;right:14px;width:38px;height:38px;padding:0!important;display:grid;place-items:center}.em-inicio-atencion .em-inicio-cabecera{padding-right:48px}
 .em-inicio-atencion .em-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 .em-inicio-atencion .em-inicio-cabecera{align-items:start}
 .em-inicio-atencion .em-inicio-cabecera>label{width:100%}
@@ -46,7 +46,7 @@
 .em-distribucion.formulario-abierto .em-trabajo>.em-vacio{visibility:hidden}
 @media(max-width:1000px){.em-inicio-atencion .em-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.em-listado-descargos-tabla>article{grid-template-columns:1fr;gap:9px}.em-listado-descargos-tabla button{justify-self:start}}
-@media(max-width:760px){.em-inicio-atencion{position:static;width:auto;max-height:none}.em-inicio-atencion .em-form-grid{grid-template-columns:1fr}.em-distribucion.formulario-abierto .em-trabajo>.em-vacio{visibility:visible}}
+@media(max-width:760px){.em-modal-inicio{align-items:stretch;padding:10px}.em-inicio-atencion{width:100%;max-height:calc(100dvh - 20px)}.em-inicio-atencion .em-form-grid{grid-template-columns:1fr}.em-distribucion.formulario-abierto .em-trabajo>.em-vacio{visibility:visible}}
 .em-subvistas{display:flex;gap:0;overflow-x:auto;padding:0;border:0;border-bottom:1px solid #c6deee;border-radius:0;background:transparent}
 .emergencias-vista .em-subvistas button{display:flex;align-items:center;justify-content:center;gap:8px;flex:0 0 auto;min-height:38px;padding:8px 12px;white-space:nowrap;font-size:13px;background:transparent;color:#476983;border:0;border-bottom:2px solid transparent;border-radius:0;box-shadow:none}
 .emergencias-vista .em-subvistas button svg{width:15px;height:15px}

@@ -24,6 +24,7 @@ const RecepcionView = lazy(() => import('../flows/recepcion/RecepcionView').then
 const CitasRecepcionView = lazy(() => import('../flows/recepcion/subvistas/CitasRecepcionView').then(m => ({ default: m.CitasRecepcionView })));
 const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
 const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
+const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTriajeView').then(m => ({ default: m.RegistroUsoTriajeView })));
 const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
 const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
@@ -57,7 +58,7 @@ type SubvistaRadiografias = "estudios" | "base-datos";
 type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
 type SubvistaPacientes = "pacientes" | "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
-type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "configuracion";
+type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "registro-uso" | "configuracion";
 type TemaSistema = "light" | "dark";
 
 const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: IconName }[] = [
@@ -504,10 +505,12 @@ export default function Aplicacion() {
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Triaje ambulatorio">
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('signos-vitales')}><span><Icon name="patient" size={17} /></span><strong>Signos vitales</strong></button>
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'agenda' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'agenda' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('agenda')}><span><Icon name="calendar" size={17} /></span><strong>Agenda</strong></button>
+                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'registro-uso' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'registro-uso' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('registro-uso')}><span><Icon name="audit" size={17} /></span><strong>Registro de uso</strong></button>
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'configuracion' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'configuracion' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('configuracion')}><span><Icon name="settings" size={17} /></span><strong>Configuración</strong></button>
               </HorizontalSubvistaNav>
               {subvistaTriajeAmbulatorio === 'signos-vitales' && <SignosVitalesView camposConfigurados={signosVitalesConfigurados} />}
               {subvistaTriajeAmbulatorio === 'agenda' && <CitasRecepcionView />}
+              {subvistaTriajeAmbulatorio === 'registro-uso' && <RegistroUsoTriajeView />}
               {subvistaTriajeAmbulatorio === 'configuracion' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={setSignosVitalesConfigurados} />}
             </section>
           ) : modulo === 'triaje-emergencias' ? (

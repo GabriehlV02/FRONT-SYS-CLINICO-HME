@@ -55,6 +55,10 @@
 .emergencias-vista .em-subvistas button:focus-visible{outline-offset:-3px}
 .em-trabajo:has(> .em-descargos-indicaciones:not([hidden])){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
 .em-trabajo:has(> .em-descargos-indicaciones:not([hidden]))>.em-resumen,.em-trabajo:has(> .em-descargos-indicaciones:not([hidden]))>.subvistas-carrusel{grid-column:1/-1}
+.em-trabajo:has(> .em-descargos-indicaciones:not([hidden]))>.em-atencion-clinica{grid-column:1/-1;grid-row:2}
+.em-trabajo:has(> .em-descargos-indicaciones:not([hidden]))>.em-descargos-indicaciones{grid-column:1;grid-row:3}
+.em-trabajo:has(> .em-descargos-indicaciones:not([hidden]))>.em-descargos-consumo>.em-panel:first-child{grid-column:2;grid-row:3}
+.em-trabajo:has(> .em-descargos-indicaciones:not([hidden]))>.em-descargos-consumo>.em-tabla-consumos{grid-column:1/-1;grid-row:4}
 .em-descargos-indicaciones{display:flex;flex-direction:column;gap:16px;min-width:0}
 .em-descargos-indicaciones{grid-column:1}
 .em-descargos-consumo{display:contents}
@@ -66,8 +70,6 @@
 .em-tabla-consumos th{color:#56748d;font-size:10px;text-transform:uppercase;letter-spacing:.35px;white-space:nowrap}
 .em-tabla-consumos td>strong,.em-tabla-consumos td>small{display:block}.em-tabla-consumos td>small{margin-top:4px}
 .em-tipo-consumo{display:inline-block;padding:5px 8px;border-radius:12px;color:#17658f;background:#eaf5fb;white-space:nowrap}
-.em-descargos-evolucion{grid-column:1/-1}
-.em-evolucion-lista{display:flex;flex-direction:column;gap:14px}.em-evolucion-lista article{padding:16px;border:1px solid #e0eaf2;border-radius:9px}.em-evolucion-lista time{display:block;margin-bottom:12px;color:#5f7c93;font-size:12px}.em-evolucion-lista p{display:grid;grid-template-columns:minmax(130px,.3fr) minmax(0,1fr);gap:12px;padding:8px 0;border-top:1px solid #edf2f6;font-size:13px}.em-evolucion-lista p span{white-space:pre-wrap}
 .em-listado-descargos-encabezado,.em-listado-descargos-tabla>article{display:grid;grid-template-columns:minmax(155px,.85fr) minmax(170px,1fr) minmax(95px,.55fr) minmax(190px,1.25fr) auto;align-items:center;gap:16px}.em-listado-descargos-encabezado{padding:13px 4px 10px;border-bottom:1px solid #dce8f0;color:#56748d;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.35px}.em-listado-descargos-tabla>article{padding:16px 4px;border-bottom:1px solid #e5edf4}.em-listado-descargos-tabla>article>div{min-width:0}.em-listado-descargos-tabla strong,.em-listado-descargos-tabla span{overflow-wrap:anywhere}.em-listado-descargos-tabla span{font-size:13px;line-height:1.45}
 @media(max-width:1200px){.em-distribucion{grid-template-columns:210px minmax(0,1fr)}.em-signos{grid-template-columns:repeat(2,minmax(0,1fr))}.em-columnas{grid-template-columns:minmax(0,1fr)}.em-panel{padding:14px}}
 @media(max-width:1000px){.em-trabajo:has(> .em-descargos-indicaciones:not([hidden])){grid-template-columns:minmax(0,1fr)}.em-trabajo:has(> .em-descargos-indicaciones:not([hidden]))>.em-resumen,.em-descargos-indicaciones,.em-descargos-consumo>.em-panel:first-child,.em-tabla-consumos{grid-column:1}}

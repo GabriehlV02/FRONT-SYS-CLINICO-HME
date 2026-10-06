@@ -4,10 +4,9 @@ import { AgendaAmbulatoriaView, type CitaConfirmada } from './AgendaAmbulatoriaV
 import { ConsultaMedicaView } from './ConsultaMedicaView';
 import './ConsultorioView.css';
 
-type Subvista = 'consulta' | 'agenda' | 'historias';
+type Subvista = 'consulta' | 'historias';
 const subvistas: { id: Subvista; nombre: string; icono: IconName }[] = [
   { id: 'consulta', nombre: 'Consulta', icono: 'userCheck' },
-  { id: 'agenda', nombre: 'Agenda', icono: 'calendar' },
   { id: 'historias', nombre: 'Historias clínicas', icono: 'fileText' },
 ];
 
@@ -16,11 +15,11 @@ export function ConsultorioView({ medico, initialSubview = 'consulta', initialPa
   const [pacienteEnConsulta, setPacienteEnConsulta] = useState<CitaConfirmada | null>(initialPatient);
   return <section className="consultorio-vista">
     <nav className="consultorio-subvistas" aria-label="Subvistas de Consultorio médico">
-      {subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}>
+      {subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => { setSubvista(item.id); if (item.id === 'consulta') setPacienteEnConsulta(null); }}>
         <Icon name={item.icono} size={17} /><span>{item.nombre}</span>
       </button>)}
     </nav>
-    {subvista === 'agenda' ? <AgendaAmbulatoriaView medico={medico} onAtender={(cita) => { setPacienteEnConsulta(cita); setSubvista('consulta'); }} /> : subvista === 'consulta' ? <ConsultaMedicaView paciente={pacienteEnConsulta} /> : <div className="consultorio-vacio">
+    {subvista === 'consulta' ? (pacienteEnConsulta ? <ConsultaMedicaView paciente={pacienteEnConsulta} /> : <AgendaAmbulatoriaView medico={medico} onAtender={(cita) => setPacienteEnConsulta(cita)} />) : <div className="consultorio-vacio">
       <Icon name={subvistas.find((item) => item.id === subvista)?.icono ?? 'userCheck'} size={30} />
       <p>CONSULTORIO MÉDICO</p>
       <h2>Historias clínicas</h2>

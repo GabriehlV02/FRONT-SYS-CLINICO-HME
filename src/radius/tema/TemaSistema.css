@@ -131,3 +131,120 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:760px){
   .orthanc-modal>footer,.usuario-form-acciones{background:var(--panel)}
 }
+
+/* Ajuste de contraste para el tema azul noche en recepción y sus tarjetas. */
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo{color:#e9f7ff;border-color:#1a9ddd;background:#0d4c76}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo .nav-icono{border-color:#55c8ff}
+.sistema-app[data-theme="dark"] .recepcion-vista,
+.sistema-app[data-theme="dark"] .recepcion-vista h1,
+.sistema-app[data-theme="dark"] .recepcion-vista h2,
+.sistema-app[data-theme="dark"] .recepcion-vista h3,
+.sistema-app[data-theme="dark"] .recepcion-vista strong,
+.sistema-app[data-theme="dark"] .recepcion-vista b{color:var(--heading)}
+.sistema-app[data-theme="dark"] .recepcion-vista p,
+.sistema-app[data-theme="dark"] .recepcion-vista small,
+.sistema-app[data-theme="dark"] .recepcion-vista label{color:var(--muted)}
+.sistema-app[data-theme="dark"] .recepcion-subvistas,
+.sistema-app[data-theme="dark"] .caja-catalogo-operativo,
+.sistema-app[data-theme="dark"] .caja-detalle,
+.sistema-app[data-theme="dark"] .caja-historial,
+.sistema-app[data-theme="dark"] .caja-catalogo,
+.sistema-app[data-theme="dark"] .caja-item,
+.sistema-app[data-theme="dark"] .caja-vista-catalogo,
+.sistema-app[data-theme="dark"] .caja-categorias button,
+.sistema-app[data-theme="dark"] .caja-paciente,
+.sistema-app[data-theme="dark"] .caja-form-paciente,
+.sistema-app[data-theme="dark"] .caja-detalle-factura,
+.sistema-app[data-theme="dark"] .caja-carrito,
+.sistema-app[data-theme="dark"] .punto-carrito{border-color:var(--border)!important;background:var(--panel)!important;color:var(--text)!important}
+.sistema-app[data-theme="dark"] .caja-item:hover,
+.sistema-app[data-theme="dark"] .caja-vista-catalogo button.activo,
+.sistema-app[data-theme="dark"] .caja-categorias button:hover{background:var(--panel-3)!important}
+.sistema-app[data-theme="dark"] .caja-item > span{color:#9edfff;background:#123f61}
+.sistema-app[data-theme="dark"] .caja-item > div{border-color:var(--border)}
+.sistema-app[data-theme="dark"] .caja-item small{color:var(--muted)}
+.sistema-app[data-theme="dark"] .caja-item b{color:#b8eaff}
+.sistema-app[data-theme="dark"] .caja-categorias button,
+.sistema-app[data-theme="dark"] .caja-vista-catalogo button{color:var(--muted)}
+.sistema-app[data-theme="dark"] .caja-categorias button.activo{color:#fff;background:var(--primary)!important;border-color:var(--primary)}
+.sistema-app[data-theme="dark"] .caja-vista-catalogo button.activo{color:#fff;background:var(--primary)!important}
+.sistema-app[data-theme="dark"] .caja-catalogo input,
+.sistema-app[data-theme="dark"] .caja-paciente input,
+.sistema-app[data-theme="dark"] .caja-paciente select,
+.sistema-app[data-theme="dark"] .caja-paciente textarea,
+.sistema-app[data-theme="dark"] .caja-form-paciente input,
+.sistema-app[data-theme="dark"] .caja-form-paciente select,
+.sistema-app[data-theme="dark"] .caja-form-paciente textarea{border-color:var(--border)!important;background:var(--field)!important;color:var(--text)!important}
+.sistema-app[data-theme="dark"] .caja-catalogo input::placeholder,
+.sistema-app[data-theme="dark"] .caja-paciente input::placeholder{color:var(--subtle)}
+
+@media(max-width:900px){
+  .sistema-app[data-theme="dark"] .caja-items.galeria{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}
+}
+
+/* Capa global: todos los flujos del sistema deben consumir la misma paleta. */
+.sistema-app[data-theme="dark"] .area-trabajo,
+.sistema-app[data-theme="dark"] .area-trabajo *{--ui-surface:var(--panel);--ui-surface-2:var(--panel-2);--ui-field:var(--field);--ui-line:var(--border);--ui-text:var(--text);--ui-muted:var(--muted)}
+.sistema-app[data-theme="dark"] .area-trabajo h1,
+.sistema-app[data-theme="dark"] .area-trabajo h2,
+.sistema-app[data-theme="dark"] .area-trabajo h3,
+.sistema-app[data-theme="dark"] .area-trabajo h4,
+.sistema-app[data-theme="dark"] .area-trabajo strong,
+.sistema-app[data-theme="dark"] .area-trabajo b{color:var(--heading)}
+.sistema-app[data-theme="dark"] .area-trabajo p,
+.sistema-app[data-theme="dark"] .area-trabajo small,
+.sistema-app[data-theme="dark"] .area-trabajo label,
+.sistema-app[data-theme="dark"] .area-trabajo dt,
+.sistema-app[data-theme="dark"] .area-trabajo dd{color:var(--muted)}
+.sistema-app[data-theme="dark"] .area-trabajo table,
+.sistema-app[data-theme="dark"] .area-trabajo article,
+.sistema-app[data-theme="dark"] .area-trabajo section,
+.sistema-app[data-theme="dark"] .area-trabajo .panel,
+.sistema-app[data-theme="dark"] .area-trabajo [class*="tarjeta"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="card"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="panel"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="tabla"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="formulario"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="form-"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="modal"]{border-color:var(--border);color:var(--text)}
+.sistema-app[data-theme="dark"] .area-trabajo table,
+.sistema-app[data-theme="dark"] .area-trabajo [class*="tarjeta"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="card"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="panel"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="tabla"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="formulario"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="form-"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="modal"]{background-color:var(--panel)}
+.sistema-app[data-theme="dark"] .area-trabajo thead,
+.sistema-app[data-theme="dark"] .area-trabajo th,
+.sistema-app[data-theme="dark"] .area-trabajo [class*="cabecera"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="header"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="encabezado"]{border-color:var(--border);background-color:var(--panel-2);color:var(--muted)}
+.sistema-app[data-theme="dark"] .area-trabajo tr,
+.sistema-app[data-theme="dark"] .area-trabajo td,
+.sistema-app[data-theme="dark"] .area-trabajo li{border-color:var(--border);color:var(--text)}
+.sistema-app[data-theme="dark"] .area-trabajo input,
+.sistema-app[data-theme="dark"] .area-trabajo select,
+.sistema-app[data-theme="dark"] .area-trabajo textarea,
+.sistema-app[data-theme="dark"] .area-trabajo [contenteditable="true"]{border-color:var(--border)!important;background:var(--field)!important;color:var(--text)!important;color-scheme:dark}
+.sistema-app[data-theme="dark"] .area-trabajo input::placeholder,
+.sistema-app[data-theme="dark"] .area-trabajo textarea::placeholder{color:var(--subtle)}
+.sistema-app[data-theme="dark"] .area-trabajo button:not(.boton-principal):not(.usuarios-crear):not(.primario){border-color:var(--border);color:var(--text);background:var(--field)}
+.sistema-app[data-theme="dark"] .area-trabajo button:not(.boton-principal):not(.usuarios-crear):not(.primario):hover{border-color:var(--primary);color:var(--heading);background:var(--panel-3)}
+.sistema-app[data-theme="dark"] .area-trabajo a{color:#6dccff}
+.sistema-app[data-theme="dark"] .area-trabajo [class*="vacio"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="mensaje"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="empty"]{color:var(--muted);background:var(--panel-2);border-color:var(--border)}
+.sistema-app[data-theme="dark"] .area-trabajo [class*="badge"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="estado"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="etiqueta"]{border-color:var(--border);color:#b8eaff;background:var(--primary-soft)}
+.sistema-app[data-theme="dark"] .area-trabajo [role="dialog"]{color:var(--text)}
+.sistema-app[data-theme="dark"] .area-trabajo [role="dialog"]::backdrop{background:#000b}
+.sistema-app[data-theme="dark"] .area-trabajo [class*="fondo"],
+.sistema-app[data-theme="dark"] .area-trabajo [class*="overlay"]{background:#020b16b8}
+
+@media(max-width:760px){
+  .sistema-app[data-theme="dark"] .area-trabajo{overflow-x:hidden}
+  .sistema-app[data-theme="dark"] .area-trabajo [class*="tabla"]{max-width:100%;overflow-x:auto}
+  .sistema-app[data-theme="dark"] .area-trabajo [class*="modal"]{max-width:calc(100vw - 24px)}
+}

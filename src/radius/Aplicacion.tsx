@@ -22,6 +22,7 @@ import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
 // sus efectos, temporizadores y listeners, sin conservar pantallas ocultas.
 const RecepcionView = lazy(() => import('../flows/recepcion/RecepcionView').then(m => ({ default: m.RecepcionView })));
 const CitasRecepcionView = lazy(() => import('../flows/recepcion/subvistas/CitasRecepcionView').then(m => ({ default: m.CitasRecepcionView })));
+const FarmaciaView = lazy(() => import('../flows/farmacia/FarmaciaView').then(m => ({ default: m.FarmaciaView })));
 const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
 const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
 const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTriajeView').then(m => ({ default: m.RegistroUsoTriajeView })));
@@ -88,6 +89,8 @@ const modulos: Modulo[] = [
   { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
   { id: 'enfermera-internacion', nombre: 'Enfermera internación', icono: 'patient', grupo: 'INTERNACIÓN' },
   { id: 'medico-internacion', nombre: 'Médico internación', icono: 'userCheck', grupo: 'INTERNACIÓN' },
+  { id: 'enfermera-terapia-intensiva', nombre: 'Enfermera terapia intensiva', icono: 'patient', grupo: 'TERAPIA INTENSIVA' },
+  { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'userCheck', grupo: 'TERAPIA INTENSIVA' },
   { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'patient', grupo: 'QUIRÓFANO' },
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'userCheck', grupo: 'QUIRÓFANO' },
   { id: 'esterilizacion-quirofano', nombre: 'Esterilización', icono: 'lab', grupo: 'QUIRÓFANO' },
@@ -494,7 +497,7 @@ export default function Aplicacion() {
               ))}
             </nav>
           )}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : <TablaSubvistaPaciente vista={subvistaPacientes} />) : modulo.startsWith('laboratorio-') ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : <TablaSubvistaPaciente vista={subvistaPacientes} />) : modulo.startsWith('laboratorio-') ? (
             <div className="modulo-vacio">
               <span>
                 <Icon name="lab" size={28} />
@@ -554,7 +557,7 @@ export default function Aplicacion() {
           ) : modulo === "imagenologia" && subvistaImagenologia === "visor" ? (
             <VistaRayosX />
           ) : modulo === "configuracion" ? (
-            <VistaConfiguracion initialSection={subvistaConfiguracion} />
+            <VistaConfiguracion initialSection={subvistaConfiguracion} tema={tema} onCambiarTema={setTema} usuario={sesion.usuario} />
           ) : modulo === "auditorias" ? (
             <VistaAuditorias sesion={sesion} />
           ) : actual ? (

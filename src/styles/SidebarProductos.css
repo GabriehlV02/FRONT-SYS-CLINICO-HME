@@ -169,6 +169,66 @@
   --sidebar-control-blue: #096bb5;
 }
 
+/* Overrides finales del tema oscuro: este archivo se carga después de la
+   paleta general y contiene las reglas visuales del sidebar. */
+.sistema-app[data-theme="dark"] .sistema-sidebar{background:linear-gradient(180deg,#092f55 0%,#08233e 52%,#061728 100%)!important;border-right-color:#244763!important;box-shadow:10px 0 30px #00000045!important}
+.sistema-app[data-theme="dark"] .sistema-marca{border-color:#244763!important}.sistema-app[data-theme="dark"] .sistema-marca strong{color:#f7fbff!important}.sistema-app[data-theme="dark"] .sistema-marca small{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .sistema-marca{background:linear-gradient(180deg,#0d3559,#08233e)!important}.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo{background:#08233e!important;border-color:#315d7d!important}.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo img{mix-blend-mode:multiply!important}
+.sistema-app[data-theme="dark"] .sistema-nav section+section{border-color:#244763!important}.sistema-app[data-theme="dark"] .sistema-nav section p{color:#70c9ff!important}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo,.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir{color:#b8d0e3!important;background:transparent!important;border-color:transparent!important}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo:hover,.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir:hover{color:#fff!important;background:#0d466d!important;border-color:#315d7d!important}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo{color:#fff!important;background:#0d4c76!important;border-color:#1a9ddd!important;box-shadow:inset 3px 0 #52c7ff,0 6px 16px #0000002e!important}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo:before{background:#52c7ff!important}.sistema-app[data-theme="dark"] .sistema-nav .nav-icono{color:#70c9ff!important;background:#0d3559!important;border-color:#315d7d!important}.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo .nav-icono{color:#fff!important;background:linear-gradient(145deg,#147eb2,#0b4f78)!important;border-color:#52c7ff!important}
+.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion{color:#dff5ff!important;background:linear-gradient(110deg,#0d466d,#082d50)!important;border-color:#315d7d!important;box-shadow:0 8px 19px #0000002e!important}.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion strong{color:#f7fbff!important}.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion small{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .sistema-sidebar .replegar-menu{color:#fff!important;background:#0878bd!important;border-color:#52c7ff!important}.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir{border-top-color:#315d7d!important}.sistema-app[data-theme="dark"] .sistema-sidebar :is(.sidebar-scroll,.sistema-nav){scrollbar-color:#0878bd transparent}
+.sistema-app[data-theme="dark"] .sistema-topbar{background:#087fbd!important;border-color:#0a5e8d!important;color:#fff!important}.sistema-app[data-theme="dark"] .sistema-topbar .topbar-titulo h1{color:#fff!important}.sistema-app[data-theme="dark"] .sistema-topbar :is(.topbar-icono,.topbar-boton,.notificaciones-boton,.salir-rapido,.desplegar-sidebar-escritorio){border-color:#b9e5f6!important;background:#f2fbff!important;color:#0870ae!important}.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global{border-color:#b9e5f6!important;background:#f2fbff!important;color:#0870ae!important}.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global input{color:#12365c!important}.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global input::placeholder{color:#607894!important}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen span,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto header small,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-totales span{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen label,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto strong{color:#f7fbff!important}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen input,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila input,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila select{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen input::placeholder,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila input::placeholder{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-total,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-totales{border-color:#315d7d!important}.sistema-app[data-theme="dark"] .punto-carrito .punto-total b{color:#70c9ff!important}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-agregar-pago{border-color:#52c7ff!important;color:#fff!important;background:#0b72b3!important}.sistema-app[data-theme="dark"] .punto-carrito .punto-cobrar{color:#fff!important;background:linear-gradient(105deg,#126ba0,#087fbd)!important}
+.sistema-app[data-theme="dark"] .punto-catalogo{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .punto-busquedas label{border-color:#315d7d!important;color:#9bb4ca!important;background:#061f38!important}
+.sistema-app[data-theme="dark"] .punto-busquedas input{color:#f3f8fc!important;background:transparent!important}
+.sistema-app[data-theme="dark"] .punto-busquedas input::placeholder{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .punto-accion-laboratorio{border-color:#315d7d!important;color:#dff5ff!important;background:#082d50!important}
+.sistema-app[data-theme="dark"] .punto-modo-vista,.sistema-app[data-theme="dark"] .punto-categorias button{border-color:#315d7d!important;background:#082d50!important}
+.sistema-app[data-theme="dark"] .punto-modo-vista button,.sistema-app[data-theme="dark"] .punto-categorias button{color:#b8d0e3!important;background:transparent!important}
+.sistema-app[data-theme="dark"] .punto-modo-vista button.activo,.sistema-app[data-theme="dark"] .punto-categorias button.activo{color:#fff!important;background:#0878bd!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-items{background:#0b2947!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item{border-color:#315d7d!important;background:#0d3559!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item:hover{background:#12466d!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item > div{border-color:#315d7d!important;background:#08233e!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item strong{color:#f7fbff!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item small{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item b{color:#b8eaff!important}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item em{color:#9be8d0!important;background:#10483f!important}
+.sistema-app[data-theme="dark"] .punto-cliente{border-color:#315d7d!important;background:linear-gradient(145deg,#0b2947,#08233e)!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .punto-cliente > header strong{color:#b8eaff!important}
+.sistema-app[data-theme="dark"] .punto-cliente input{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .cliente-acciones button:first-child{border-color:#52c7ff!important;color:#fff!important;background:#082d50!important}
+.sistema-app[data-theme="dark"] .cliente-acciones button:last-child{border-color:#087fbd!important;background:linear-gradient(100deg,#0b91d2,#2563eb)!important}
+.sistema-app[data-theme="dark"] .cliente-coincidencias{border-color:#315d7d!important;background:#0b2947!important}
+.sistema-app[data-theme="dark"] .cliente-coincidencias button{border-color:#315d7d!important;color:#f3f8fc!important;background:#0b2947!important}
+.sistema-app[data-theme="dark"] .cliente-coincidencias button:hover{background:#12466d!important}
+.sistema-app[data-theme="dark"] .citas-vista{color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .citas-controles,.sistema-app[data-theme="dark"] .citas-calendario-panel,.sistema-app[data-theme="dark"] .citas-doctor-opciones,.sistema-app[data-theme="dark"] .citas-modal{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .citas-doctor-selector>button,.sistema-app[data-theme="dark"] .citas-fecha-hora input,.sistema-app[data-theme="dark"] .citas-fecha-hora select,.sistema-app[data-theme="dark"] .citas-modal-campos input,.sistema-app[data-theme="dark"] .citas-modal-campos select{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .citas-doctor-opciones button,.sistema-app[data-theme="dark"] .citas-calendario-dias button{color:#dff5ff!important;background:transparent!important}
+.sistema-app[data-theme="dark"] .citas-doctor-opciones button:hover,.sistema-app[data-theme="dark"] .citas-calendario-dias button:hover{background:#12466d!important}
+.sistema-app[data-theme="dark"] .agenda-encabezado .agenda-esquina,.sistema-app[data-theme="dark"] .agenda-encabezado .agenda-dia{border-color:#315d7d!important;background:#0d3559!important;color:#b8eaff!important}
+.sistema-app[data-theme="dark"] .agenda-fila{border-color:#315d7d!important}.sistema-app[data-theme="dark"] .agenda-fila time{color:#b8d0e3!important}.sistema-app[data-theme="dark"] .agenda-celda{border-color:#315d7d!important;background:#0b2947!important}.sistema-app[data-theme="dark"] .agenda-celda:hover{background:#12466d!important}
+.sistema-app[data-theme="dark"] .citas-resumen{color:#b8d0e3!important}.sistema-app[data-theme="dark"] .citas-resumen small{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .citas-agenda,.sistema-app[data-theme="dark"] .agenda-tabla{background:#0b2947!important;border-color:#315d7d!important}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque{color:#e8f7ff!important;background:#12466d!important;border-color:#52c7ff!important}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque strong,.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque small{color:#e8f7ff!important}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.confirmada{background:#10483f!important;border-color:#4fd1a5!important}.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.por-confirmar{background:#4b3514!important;border-color:#ffd995!important}.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.cancelada{background:#47202a!important;border-color:#ffb9c1!important}
+.sistema-app[data-theme="dark"] .cuentas-recepcion,.sistema-app[data-theme="dark"] .cuentas-recepcion article,.sistema-app[data-theme="dark"] .cuentas-listado,.sistema-app[data-theme="dark"] .cuentas-contenido{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .cuentas-encabezado h2,.sistema-app[data-theme="dark"] .cuentas-encabezado strong{color:#f7fbff!important}.sistema-app[data-theme="dark"] .cuentas-encabezado p,.sistema-app[data-theme="dark"] .cuentas-recepcion small{color:#9bb4ca!important}
+.sistema-app[data-theme="dark"] .cuentas-api-aviso{border-color:#7d5360!important;background:#47202a!important;color:#ffb9c1!important}.sistema-app[data-theme="dark"] .cuentas-filtros-clinica input{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
+
 .sistema-sidebar .replegar-menu {
   background: var(--sidebar-control-blue) !important;
   box-shadow: 0 8px 20px rgba(9, 107, 181, .3) !important;

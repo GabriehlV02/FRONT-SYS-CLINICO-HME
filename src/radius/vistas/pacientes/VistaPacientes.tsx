@@ -266,8 +266,8 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
         </select>}
         {modoClinico && <button className="usuarios-crear pacientes-registrar" type="button" onClick={() => setAbierto(true)}><Icon name="plus" size={17} />Registrar nuevo paciente</button>}
       </div>
-      <Paginacion tam />
       <div className="usuarios-tabla pacientes-tabla">
+        <Paginacion tam />
         <div className="usuarios-fila usuarios-columnas">
           <span>Paciente</span>
           <span>Fecha de nacimiento</span>

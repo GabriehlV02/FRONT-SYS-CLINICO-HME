@@ -92,7 +92,7 @@ const pacientesEjemplo = [
   { nombre: 'Luis Escobar', ci: '6845210' }, { nombre: 'Luis Alberto Escobar Rojas', ci: '4982157' },
   { nombre: 'María Fernández López', ci: '7351842' }, { nombre: 'Ana Rodríguez Vargas', ci: '6129478' },
 ];
-export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 'emergencias' | 'internacion', paciente: string) => void }) {
+export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrirCuenta?: (origen: 'emergencias' | 'internacion', paciente: string) => void; farmacia?: boolean }) {
   const [busqueda, setBusqueda] = useState(''),
     [tipo, setTipo] = useState<'Todos' | Tipo>('Todos'),
     [vista, setVista] = useState<'galeria' | 'listado'>('galeria'),
@@ -113,12 +113,13 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
     () =>
       catalogo.filter(
         (i) =>
+          (!farmacia || i.tipo === 'Producto' || i.tipo === 'Insumo') &&
           (tipo === 'Todos' || i.tipo === tipo) &&
           `${i.nombre} ${i.codigo} ${i.tipo}`
             .toLowerCase()
             .includes(busqueda.toLowerCase()),
       ),
-    [busqueda, tipo],
+    [busqueda, tipo, farmacia],
   );
   const laboratorioAgrupado = useMemo(() => {
     const filtrados = [...catalogo, ...serviciosLaboratorio].filter((item) =>
@@ -181,7 +182,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
     setDescuento('');
   };
   return (
-    <section className="punto-pos">
+    <section className={`punto-pos ${farmacia ? 'punto-pos-farmacia' : ''}`}>
       {mostrandoInternacion && <InternacionModal onCerrar={() => setMostrandoInternacion(false)} />}
       {mostrandoNuevoPaciente && <div className="punto-nuevo-paciente-fondo" role="presentation" onClick={() => setMostrandoNuevoPaciente(false)}>
         <form className="punto-nuevo-paciente-modal" role="dialog" aria-modal="true" aria-label="Nuevo paciente" onClick={(event) => event.stopPropagation()} onSubmit={async (event) => { event.preventDefault(); const campo = (selector: string) => event.currentTarget.querySelector<HTMLInputElement>(selector)?.value || ''; await sincronizarPaciente({ nombres: campo('input[placeholder="Nombres"]'), primerApellido: campo('input[placeholder="Apellido paterno"]'), segundoApellido: campo('input[placeholder="Apellido materno"]'), numeroDocumento: campo('input[placeholder="CI"]'), fechaNacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), direccion: campo('input[placeholder="Dirección"]') }); setMostrandoNuevoPaciente(false); }}>
@@ -199,11 +200,12 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
         </form>
       </div>}
       {mostrandoCotizacion && <div className="punto-cotizacion-fondo" role="presentation" onClick={() => setMostrandoCotizacion(false)}>
-        <section className="punto-cotizacion-modal" role="dialog" aria-modal="true" aria-label="Cotización" onClick={(event) => event.stopPropagation()}>
-          <header><h2>Cotización</h2><button type="button" aria-label="Cerrar cotización" onClick={() => setMostrandoCotizacion(false)}>×</button></header>
-          <p>Paciente: {paciente || 'Sin seleccionar'}</p>
+        <section className="punto-cotizacion-modal punto-documentos-modal" role="dialog" aria-modal="true" aria-label="Documentos y consentimientos" onClick={(event) => event.stopPropagation()}>
+          <header><div><small>GESTIÓN DOCUMENTAL</small><h2>Documentos y consentimientos</h2><p>Completa los datos una sola vez y reutilízalos en todos los documentos.</p></div><button type="button" aria-label="Cerrar documentos" onClick={() => setMostrandoCotizacion(false)}>×</button></header>
+          <section className="documentos-paciente-form"><div className="documentos-busqueda"><label><Icon name="search" size={16} /><input defaultValue={paciente} placeholder="Buscar paciente por nombre o CI" /></label><button type="button" onClick={() => seleccionar('María Fernández López')}>Buscar paciente</button></div><div className="documentos-campos"><label>Nombre completo<input defaultValue={paciente} placeholder="Nombre y apellidos" /></label><label>CI / documento<input placeholder="Número de documento" /></label><label>Fecha de nacimiento<input type="date" /></label><label>Teléfono<input placeholder="Número de celular" /></label></div></section>
+          <section className="documentos-lista"><div><h3>Documentos disponibles</h3><span>Selecciona los documentos que deseas preparar</span></div><label><input type="checkbox" defaultChecked /> Consentimiento informado</label><label><input type="checkbox" /> Autorización de procedimiento</label><label><input type="checkbox" /> Ficha de datos del paciente</label><label><input type="checkbox" /> Documento personalizado</label></section>
           {lineas.length ? <div className="punto-cotizacion-lineas">{lineas.map((linea) => <div key={linea.id}><span>{linea.cantidad} × {linea.nombre}</span><strong>{dinero(linea.cantidad * linea.precio)}</strong></div>)}</div> : <p>Agrega productos o servicios al carrito para cotizar.</p>}
-          <footer><span>Subtotal: {dinero(subtotal)}</span><span>Descuento: {dinero(rebaja)}</span><strong>Total: {dinero(total)}</strong></footer>
+          <footer><button type="button" className="documentos-cancelar" onClick={() => setMostrandoCotizacion(false)}>Cancelar</button><button type="button" onClick={() => { setMensaje('Datos preparados para los documentos seleccionados.'); setMostrandoCotizacion(false); }}>Preparar documentos</button></footer>
         </section>
       </div>}
       <header className="punto-pos-cabecera punto-pos-contexto">
@@ -224,7 +226,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
             </select>
           </label>
         </div>
-        <button className="punto-hacer-cotizacion" type="button" onClick={() => setMostrandoCotizacion(true)}>+COTIZACIÓN</button>
+        {!farmacia && <button className="punto-hacer-cotizacion" type="button" onClick={() => setMostrandoCotizacion(true)}>DOCUMENTOS Y CONSENTIMIENTOS</button>}
       </header>
       <div className={`punto-pos-layout ${paciente ? (historialAbierto ? 'con-historial' : 'historial-plegado') : ''}`}>
         {paciente && <aside className="punto-historial-paciente">
@@ -241,22 +243,22 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
               placeholder="Buscar producto por nombre, código o categoría…"
             />
           </label>
-          <button
+          {!farmacia && <button
             className="punto-accion-laboratorio"
             type="button"
             aria-pressed={mostrandoLaboratorio}
             onClick={() => { setMostrandoLaboratorio((abierto) => !abierto); setBusqueda(''); setMensaje(''); }}
           >
             <Icon name="lab" size={16} /> Laboratorio
-          </button>
-          <button
+          </button>}
+          {!farmacia && <button
             className="punto-accion-internacion"
             type="button"
             aria-haspopup="dialog"
             onClick={() => { setMensaje(''); setMostrandoInternacion(true); }}
           >
             <Icon name="plus" size={16} /> Internación
-          </button>
+          </button>}
           <button
             className="punto-accion-nuevo-paciente"
             type="button"
@@ -267,7 +269,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
         </div>
           {!mostrandoLaboratorio && <div className="punto-catalogo-filtros">
             <div className="punto-categorias">
-              {(['Todos', 'Producto', 'Insumo', 'Servicio'] as const).map(
+              {(farmacia ? (['Todos', 'Producto', 'Insumo'] as const) : (['Todos', 'Producto', 'Insumo', 'Servicio'] as const)).map(
                 (o) => (
                   <button
                     type="button"
@@ -379,7 +381,7 @@ export function CajaRecepcionView({ onAbrirCuenta }: { onAbrirCuenta?: (origen: 
         <aside className="punto-carrito">
           <header>
             <div>
-              <p>CARRITO DE VENTA</p>
+              <p>{farmacia ? 'CARRITO DE FARMACIA' : 'CARRITO DE VENTA'}</p>
               <strong>
                 {lineas.reduce((t, i) => t + i.cantidad, 0)} productos
               </strong>

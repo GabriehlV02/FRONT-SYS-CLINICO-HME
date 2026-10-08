@@ -80,48 +80,7 @@ export default function VistaConfiguracion({
           </section>
         </section>
       )}
-
-      {seccion === 'sistema' && (
-        <section className="config-contenido">
-          <div className="config-seccion-titulo">
-            <h2>Configuración del sistema</h2>
-            <p>Estado de los servicios que permiten consultar y visualizar estudios.</p>
-          </div>
-          {error && <div className="config-error">{error}</div>}
-          <div className="config-grid">
-            <article className="config-tarjeta config-servicio">
-              <div className="config-servicio-cabecera">
-                <span><Icon name="package" size={22} /></span>
-                <div>
-                  <small>Servidor PACS</small>
-                  <h3>{orthanc?.nombre || 'Orthanc'}</h3>
-                </div>
-                <i className={orthanc ? 'conectado' : ''} />
-              </div>
-              <dl>
-                <div><dt>Direccion interna</dt><dd>Configurado en el servidor</dd></div>
-                <div><dt>Version</dt><dd>{orthanc?.version || 'No comprobada'}</dd></div>
-                <div><dt>API</dt><dd>{orthanc?.apiVersion || 'No comprobada'}</dd></div>
-              </dl>
-              <button disabled={probando} onClick={() => void probar()}>
-                <Icon name="arrowRight" size={16} />
-                {probando ? 'Comprobando...' : 'Probar conexion'}
-              </button>
-            </article>
-            <article className="config-tarjeta">
-              <h3>Aplicacion</h3>
-              <dl>
-                <div><dt>Frontend</dt><dd>HOSPITAL Imagenologia</dd></div>
-                <div><dt>Backend</dt><dd>API clinica activa</dd></div>
-                <div><dt>Almacenamiento DICOM</dt><dd>Administrado por Orthanc</dd></div>
-              </dl>
-            </article>
-          </div>
-          <section className="config-gestion-usuarios" aria-label="Usuarios y roles">
-            <VistaGestionUsuarios />
-          </section>
-        </section>
-      )}
+      {seccion === 'sistema' && <section className="config-contenido" aria-label="Configuración del sistema" />}
     </div>
   );
 }

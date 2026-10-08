@@ -95,6 +95,8 @@ const modulos: Modulo[] = [
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   { id: "farmacia", nombre: "Farmacia", icono: "lab", grupo: "FARMACIA" },
+  { id: "farmacia-internacion", nombre: "Internación", icono: "patient", grupo: "FARMACIA" },
+  { id: "farmacia-movimientos", nombre: "Movimientos", icono: "building", grupo: "FARMACIA" },
   { id: "cocina", nombre: "Cocina", icono: "building", grupo: "COCINA" },
   {
     id: "configuracion",

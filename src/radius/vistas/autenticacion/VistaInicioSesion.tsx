@@ -9,6 +9,12 @@ import type { Sesion } from '../../types/sesion';
 
 type Props = { onLogin: (sesion: Sesion) => void };
 
+function mensajeAmigable(error: unknown): string {
+  const mensaje = error instanceof Error ? error.message : '';
+  if (/api\/login|route .*not be found/i.test(mensaje)) return 'El acceso al sistema aún no está disponible. Intenta nuevamente en unos minutos.';
+  return mensaje || 'No pudimos conectar con el servidor. Verifica tu conexión e intenta otra vez.';
+}
+
 function identificadorDispositivo() {
   const clave = 'pulso_device_id';
   const guardado = localStorage.getItem(clave);
@@ -46,7 +52,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       else localStorage.removeItem('pulso_usuario_recordado');
       localStorage.removeItem('pulso_session'); sessionStorage.removeItem('pulso_session');
       (recordar ? localStorage : sessionStorage).setItem('pulso_session', JSON.stringify(sesion)); onLogin(sesion);
-    } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo conectar con el servidor.'); }
+    } catch (e) { setError(mensajeAmigable(e)); }
     finally { setLoading(false); }
   };
 
@@ -72,7 +78,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
           <p className="login-kicker">ACCESO AL SISTEMA</p>
           <h1>Iniciar sesión</h1>
           <p className="login-subtitulo">Accede al sistema clínico con tu cuenta</p>
-          {error && <div className="login-error" role="alert">{error}</div>}
+          {error && <div className="login-error" role="alert"><Icon name="close" size={17} /><div><strong>No se pudo iniciar sesión</strong><span>{error}</span></div></div>}
           <div className="login-field"><label className="login-label" htmlFor="clinico-usuario">Usuario</label><div className="login-input"><Icon name="users" size={19} /><input id="clinico-usuario" autoFocus required autoComplete="username" value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} placeholder="Ingresa tu usuario" /></div></div>
           <div className="login-field"><label className="login-label" htmlFor="clinico-password">Contraseña</label><div className="login-input"><Icon name="asset" size={18} /><input id="clinico-password" required type={mostrarPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Ingresa tu contraseña" /><button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { const input = e.currentTarget.previousElementSibling as HTMLInputElement; const start = input.selectionStart, end = input.selectionEnd; setMostrarPassword((v) => !v); requestAnimationFrame(() => { input.focus({ preventScroll: true }); input.setSelectionRange(start, end); }); }} aria-pressed={mostrarPassword} aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}><Icon name={mostrarPassword ? 'eyeOff' : 'eye'} size={18} /></button></div></div>
           <div className="login-opciones"><label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Mantener sesión en este equipo</label><span>¿Olvidaste tu contraseña?</span></div>

@@ -71,3 +71,141 @@
   }
   .pacientes-vista .pacientes-tabla .acciones-tabla{justify-content:flex-end}
 }
+
+/* La tabla comparte la superficie oscura del módulo de Radiología; este bloque
+   prevalece sobre un acabado claro anterior que la hacía parecer ajena al sistema. */
+.pacientes-vista .pacientes-tabla{border-color:#244c72;background:#082846;box-shadow:0 14px 34px rgba(0,8,20,.2)}
+.pacientes-vista .pacientes-tabla .usuarios-fila{border-color:#1f4566;color:#e8f2fb;background:transparent;box-shadow:none}
+.pacientes-vista .pacientes-tabla .usuarios-fila:not(.usuarios-columnas):hover{background:#0a3456;box-shadow:inset 3px 0 #24a7ff}
+.pacientes-vista .pacientes-tabla .usuarios-columnas{color:#8da6be;background:#061f3b}
+.pacientes-vista .pacientes-tabla .usuario-identidad>span{border-color:#2d5c83;color:#63beff;background:#092f55}
+.pacientes-vista .pacientes-tabla .usuario-identidad strong,.pacientes-vista .pacientes-tabla .usuarios-fila>div>span{color:#e8f2fb}
+.pacientes-vista .pacientes-tabla .usuario-identidad small,.pacientes-vista .pacientes-tabla .usuarios-fila>div>small{color:#8da6be}
+.pacientes-vista .pacientes-tabla .radiografia-estado .estado-cargado{border-color:#2a7467;color:#a9f2dc;background:#10453f}
+.pacientes-vista .pacientes-tabla .radiografia-estado .estado-pendiente{border-color:#80652b;color:#ffd98b;background:#493916}
+.pacientes-vista .pacientes-tabla .usuario-accion{border-color:#35658c;color:#70c9ff;background:#092d50;transform:none}
+.pacientes-vista .pacientes-tabla .usuario-accion:hover{border-color:#52baff;color:#fff;background:#0b72b3;transform:translateY(-1px)}
+.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{border-color:#35658c;color:#70c9ff;background:#092d50}
+.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child:hover{border-color:#52baff;color:#fff;background:#0b72b3}
+
+/* Patrón visual de Recepción: superficie clara, azul institucional y una vista
+   de ancho completo. No usar la apariencia oscura propia de Imagenología. */
+.pacientes-vista{
+  width:100%;
+  max-width:none;
+  margin:0;
+  color:#526f83;
+}
+.pacientes-vista .usuarios-herramientas{
+  margin-top:0;
+  padding:14px;
+  gap:10px;
+  border-color:#cbdfea;
+  border-radius:10px;
+  background:#fff;
+  box-shadow:0 8px 22px #0647730d;
+}
+.pacientes-vista .usuarios-herramientas label,
+.pacientes-vista .usuarios-herramientas select{
+  height:40px;
+  border-color:#bfd7e7;
+  border-radius:8px;
+  color:#42647c;
+  background:#f4f9fd;
+}
+.pacientes-vista .usuarios-herramientas input{color:#17364d}
+.pacientes-vista .usuarios-herramientas input::placeholder{color:#6e849a}
+.pacientes-vista .usuarios-herramientas label:focus-within,
+.pacientes-vista .usuarios-herramientas select:focus{
+  border-color:#096bb5;
+  box-shadow:0 0 0 3px #096bb51a;
+}
+.pacientes-vista .usuarios-paginacion{
+  min-height:56px;
+  color:#6e849a;
+}
+.pacientes-vista .usuarios-paginacion span{color:#6e849a}
+.pacientes-vista .usuarios-paginacion span strong{color:#315b7b}
+.pacientes-vista .selector-tamano{
+  border-color:#bfd7e7;
+  background:#f4f9fd;
+}
+.pacientes-vista .selector-tamano span{color:#6e849a}
+.pacientes-vista .selector-tamano select{
+  border-left-color:#cbdfea;
+  color:#315b7b;
+  background:#f4f9fd;
+}
+.pacientes-vista .usuarios-paginacion button{
+  border-color:#bfd7e7;
+  color:#09639b;
+  background:#f4f9fd;
+}
+.pacientes-vista .usuarios-paginacion button:not(:disabled):hover{
+  border-color:#096bb5;
+  color:#fff;
+  background:#096bb5;
+}
+.pacientes-vista .pacientes-tabla{
+  width:100%;
+  border-color:#d4e4ef;
+  border-radius:10px;
+  background:#fff;
+  box-shadow:none;
+}
+.pacientes-vista .pacientes-tabla .usuarios-fila{
+  min-height:58px;
+  border-color:#e4eef7;
+  color:#526f83;
+  background:#fff;
+  box-shadow:none;
+}
+.pacientes-vista .pacientes-tabla .usuarios-fila:not(.usuarios-columnas):hover{
+  background:#f7fbfe;
+  box-shadow:inset 3px 0 #096bb5;
+}
+.pacientes-vista .pacientes-tabla .usuarios-columnas{
+  min-height:42px;
+  color:#4b718b;
+  background:#f0f7fc;
+}
+.pacientes-vista .pacientes-tabla .usuario-identidad>span{
+  width:38px;
+  height:38px;
+  border-color:#b9ddea;
+  color:#09639b;
+  background:#eaf5fb;
+}
+.pacientes-vista .pacientes-tabla .usuario-identidad strong,
+.pacientes-vista .pacientes-tabla .usuarios-fila>div>span{color:#17364d}
+.pacientes-vista .pacientes-tabla .usuario-identidad small,
+.pacientes-vista .pacientes-tabla .usuarios-fila>div>small{color:#6e849a}
+.pacientes-vista .pacientes-tabla .radiografia-estado .estado-cargado{
+  border-color:transparent;
+  color:#216757;
+  background:#e5f4f1;
+}
+.pacientes-vista .pacientes-tabla .radiografia-estado .estado-pendiente{
+  border-color:transparent;
+  color:#79551b;
+  background:#fff6e6;
+}
+.pacientes-vista .pacientes-tabla .usuario-accion,
+.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{
+  width:32px;
+  height:32px;
+  border-color:#bfd7e7;
+  color:#09639b;
+  background:#f4f9fd;
+}
+.pacientes-vista .pacientes-tabla .usuario-accion:hover,
+.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child:hover{
+  border-color:#096bb5;
+  color:#fff;
+  background:#096bb5;
+  transform:none;
+}
+@media(max-width:700px){
+  .pacientes-vista .usuarios-herramientas{padding:12px}
+  .pacientes-vista .pacientes-tabla .usuarios-fila{padding:14px}
+}

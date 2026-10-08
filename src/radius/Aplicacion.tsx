@@ -88,9 +88,14 @@ const modulos: Modulo[] = [
   { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
   { id: 'enfermera-internacion', nombre: 'Enfermera internación', icono: 'patient', grupo: 'INTERNACIÓN' },
   { id: 'medico-internacion', nombre: 'Médico internación', icono: 'userCheck', grupo: 'INTERNACIÓN' },
+  { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'patient', grupo: 'QUIRÓFANO' },
+  { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'userCheck', grupo: 'QUIRÓFANO' },
+  { id: 'esterilizacion-quirofano', nombre: 'Esterilización', icono: 'lab', grupo: 'QUIRÓFANO' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
+  { id: "farmacia", nombre: "Farmacia", icono: "lab", grupo: "FARMACIA" },
+  { id: "cocina", nombre: "Cocina", icono: "building", grupo: "COCINA" },
   {
     id: "configuracion",
     nombre: "Configuración",
@@ -144,6 +149,7 @@ export default function Aplicacion() {
     const perfil = sesion?.usuario.perfilAtencion;
     if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion'].includes(item.id);
     if (perfil === 'medico') return ['pacientes', 'atencion-medica', 'atencion-urgencias', 'medico-internacion'].includes(item.id);
+    if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'esterilizacion-quirofano'].includes(item.id);
     return true;
   });
   useEffect(() => {
@@ -531,6 +537,12 @@ export default function Aplicacion() {
               <h2>Médico internación</h2>
               <small>Evolución clínica, indicaciones y atención médica de pacientes internados.</small>
             </div>
+          ) : modulo === 'enfermera-quirofano' ? (
+            <div className="modulo-vacio"><span><Icon name="patient" size={28} /></span><p>QUIRÓFANO</p><h2>Enfermera quirófano</h2><small>Preparación preoperatoria, control de enfermería y registro del procedimiento.</small></div>
+          ) : modulo === 'medico-quirofano' ? (
+            <div className="modulo-vacio"><span><Icon name="userCheck" size={28} /></span><p>QUIRÓFANO</p><h2>Médico quirófano</h2><small>Programación, evaluación quirúrgica y evolución postoperatoria.</small></div>
+          ) : modulo === 'esterilizacion-quirofano' ? (
+            <div className="modulo-vacio"><span><Icon name="lab" size={28} /></span><p>QUIRÓFANO</p><h2>Esterilización</h2><small>Control de instrumental, ciclos de esterilización y trazabilidad de insumos.</small></div>
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "base-datos" ? (
             <VistaBaseDatosOrthanc />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (

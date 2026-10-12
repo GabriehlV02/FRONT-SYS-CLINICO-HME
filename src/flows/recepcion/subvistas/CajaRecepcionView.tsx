@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import Icon from '../../../radius/componentes/Icono';
 import { sincronizarPaciente } from '../../../radius/pacientesCompartidos';
 import { InternacionModal } from './InternacionModal';
+import { SolicitudLaboratorioRecepcion } from './SolicitudLaboratorioRecepcion';
 type Tipo = 'Producto' | 'Insumo' | 'Servicio';
 type Item = {
   id: string;
@@ -64,28 +65,6 @@ const catalogo: Item[] = [
     stock: 146,
   },
 ];
-const serviciosLaboratorio: Item[] = [
-  { id: 'lab-grupo-sanguineo', nombre: 'Grupo sanguíneo y factor RH', tipo: 'Servicio', codigo: 'LAB-001', precio: 35, categoria: 'Laboratorio', subcategoria: 'Hematología' },
-  { id: 'lab-hemoglobina', nombre: 'Hemoglobina', tipo: 'Servicio', codigo: 'LAB-002', precio: 35, categoria: 'Laboratorio', subcategoria: 'Hematología' },
-  { id: 'lab-hemograma', nombre: 'Hemograma completo', tipo: 'Servicio', codigo: 'LAB-009', precio: 50, categoria: 'Laboratorio', subcategoria: 'Hematología' },
-  { id: 'lab-coombs-directo', nombre: 'Prueba de Coombs directo', tipo: 'Servicio', codigo: 'LAB-010', precio: 90, categoria: 'Laboratorio', subcategoria: 'Hematología' },
-  { id: 'lab-coagulograma', nombre: 'A.P.T.T.', tipo: 'Servicio', codigo: 'LAB-011', precio: 50, categoria: 'Laboratorio', subcategoria: 'Hemostasia - Coagulograma' },
-  { id: 'lab-dimero', nombre: 'Dímero D', tipo: 'Servicio', codigo: 'LAB-012', precio: 260, categoria: 'Laboratorio', subcategoria: 'Hemostasia - Coagulograma' },
-  { id: 'lab-calcio', nombre: 'Calcio', tipo: 'Servicio', codigo: 'LAB-020', precio: 40, categoria: 'Laboratorio', subcategoria: 'Electrolitos' },
-  { id: 'lab-calcio-ionico', nombre: 'Calcio iónico', tipo: 'Servicio', codigo: 'LAB-021', precio: 40, categoria: 'Laboratorio', subcategoria: 'Electrolitos' },
-  { id: 'lab-electrolitos', nombre: 'Electrolitos Na - K - Cl - IC', tipo: 'Servicio', codigo: 'LAB-022', precio: 130, categoria: 'Laboratorio', subcategoria: 'Electrolitos' },
-  { id: 'lab-gasometria-a', nombre: 'Gasometría arterial', tipo: 'Servicio', codigo: 'LAB-030', precio: 360, categoria: 'Laboratorio', subcategoria: 'Gasometría' },
-  { id: 'lab-gasometria-v', nombre: 'Gasometría venosa', tipo: 'Servicio', codigo: 'LAB-031', precio: 360, categoria: 'Laboratorio', subcategoria: 'Gasometría' },
-  { id: 'lab-ana', nombre: 'ANA', tipo: 'Servicio', codigo: 'LAB-040', precio: 150, categoria: 'Laboratorio', subcategoria: 'Serología' },
-  { id: 'lab-anca', nombre: 'ANCA C (PR3 anti proteinasa 3)', tipo: 'Servicio', codigo: 'LAB-041', precio: 200, categoria: 'Laboratorio', subcategoria: 'Serología' },
-  { id: 'lab-anti-dna', nombre: 'Anti - DNA', tipo: 'Servicio', codigo: 'LAB-042', precio: 150, categoria: 'Laboratorio', subcategoria: 'Serología' },
-  { id: 'lab-iga', nombre: 'IgA', tipo: 'Servicio', codigo: 'LAB-050', precio: 130, categoria: 'Laboratorio', subcategoria: 'Inmunoglobulinas' },
-  { id: 'lab-igg', nombre: 'IgG', tipo: 'Servicio', codigo: 'LAB-051', precio: 130, categoria: 'Laboratorio', subcategoria: 'Inmunoglobulinas' },
-  { id: 'lab-examen-orina', nombre: 'Examen completo de orina', tipo: 'Servicio', codigo: 'LAB-060', precio: 30, categoria: 'Laboratorio', subcategoria: 'Uroanálisis' },
-  { id: 'lab-creatinina-orina', nombre: 'Creatinina en orina casual', tipo: 'Servicio', codigo: 'LAB-061', precio: 80, categoria: 'Laboratorio', subcategoria: 'Uroanálisis' },
-  { id: 'lab-coprologico', nombre: 'Coproparasitológico directo', tipo: 'Servicio', codigo: 'LAB-070', precio: 30, categoria: 'Laboratorio', subcategoria: 'Parasitología / Examen en heces' },
-  { id: 'lab-sangre-oculta', nombre: 'Sangre oculta', tipo: 'Servicio', codigo: 'LAB-071', precio: 80, categoria: 'Laboratorio', subcategoria: 'Parasitología / Examen en heces' },
-];
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
 const pagoNuevo = (id: number): Pago => ({ id, metodo: 'Efectivo', monto: '' });
 const pacientesEjemplo = [
@@ -98,6 +77,8 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
     [vista, setVista] = useState<'galeria' | 'listado'>('galeria'),
     [lineas, setLineas] = useState<Linea[]>([]),
     [paciente, setPaciente] = useState(''),
+    [ciPaciente, setCiPaciente] = useState(''),
+    [registroPaciente, setRegistroPaciente] = useState({ nombre: '', ci: '', telefono: '' }),
     [busquedaPaciente, setBusquedaPaciente] = useState(''),
     [historialAbierto, setHistorialAbierto] = useState(true),
     [filtroHistorial, setFiltroHistorial] = useState('Todos'),
@@ -121,16 +102,6 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
       ),
     [busqueda, tipo, farmacia],
   );
-  const laboratorioAgrupado = useMemo(() => {
-    const filtrados = [...catalogo, ...serviciosLaboratorio].filter((item) =>
-      item.categoria === 'Laboratorio' && `${item.nombre} ${item.codigo} ${item.subcategoria}`.toLowerCase().includes(busqueda.toLowerCase()),
-    );
-    return filtrados.reduce<Record<string, Item[]>>((grupos, item) => {
-      const clave = item.subcategoria || 'Sin subcategoría';
-      (grupos[clave] ||= []).push(item);
-      return grupos;
-    }, {});
-  }, [busqueda]);
   const subtotal = lineas.reduce((t, i) => t + i.precio * i.cantidad, 0),
     rebaja = Math.min(Math.max(Number(descuento) || 0, 0), subtotal),
     total = subtotal - rebaja,
@@ -169,9 +140,12 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
     ? [{ n: 'EM-000318', fecha: '29 de septiembre de 2026 09:08', total: '238.00', estado: 'A cuenta', detalle: 'Emergencias · Oxígeno y materiales' }, { n: 'EM-000317', fecha: '29 de septiembre de 2026 08:45', total: '95.00', estado: 'A cuenta', detalle: 'Emergencias · Medicamentos e insumos' }, { n: '131909', fecha: '18 de agosto de 2026 19:02', total: '160.00', estado: 'Pagado', detalle: 'Descargos Ambulatorios 510' }]
     : [{ n: '131932', fecha: '19 de agosto de 2026 10:56', total: '160.00', estado: 'Pagado', detalle: 'Descargos Ambulatorios 510' }, { n: '131910', fecha: '18 de agosto de 2026 19:17', total: '780.00', estado: 'A cuenta', detalle: 'Descargos Ambulatorios 510' }, { n: '131912', fecha: '18 de agosto de 2026 21:02', total: '2.400.00', estado: 'Pre venta', detalle: 'Descargos Ambulatorios 510' }, { n: '131909', fecha: '18 de agosto de 2026 19:02', total: '160.00', estado: 'Anulado', detalle: 'Descargos Ambulatorios 510' }];
   const seleccionar = (nombre?: string) => {
-    if (nombre) { setPaciente(nombre); setHistorialAbierto(true); setBusquedaPaciente(''); setModo('inicio'); return; }
+    if (nombre) { setPaciente(nombre); setCiPaciente(pacientesEjemplo.find(p => p.nombre === nombre)?.ci || ''); setHistorialAbierto(true); setBusquedaPaciente(''); setModo('inicio'); return; }
+    if (!registroPaciente.nombre.trim() || !registroPaciente.ci.trim()) { setMensaje('Completa el nombre y CI del paciente.'); return; }
     setHistorialAbierto(true);
-    setPaciente('María Fernández López');
+    setPaciente(registroPaciente.nombre.trim());
+    setCiPaciente(registroPaciente.ci.trim());
+    setRegistroPaciente({ nombre: '', ci: '', telefono: '' });
     setModo('inicio');
   };
   const cobrar = () => {
@@ -183,6 +157,7 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
   };
   return (
     <section className={`punto-pos ${farmacia ? 'punto-pos-farmacia' : ''}`}>
+      {mostrandoLaboratorio && <SolicitudLaboratorioRecepcion paciente={paciente && ciPaciente ? { nombre: paciente, ci: ciPaciente } : null} pacientes={pacientesEjemplo} onSeleccionar={p => { setPaciente(p.nombre); setCiPaciente(p.ci); setHistorialAbierto(true); setBusquedaPaciente(''); setModo('inicio'); }} onCerrar={() => setMostrandoLaboratorio(false)} />}
       {mostrandoInternacion && <InternacionModal onCerrar={() => setMostrandoInternacion(false)} />}
       {mostrandoNuevoPaciente && <div className="punto-nuevo-paciente-fondo" role="presentation" onClick={() => setMostrandoNuevoPaciente(false)}>
         <form className="punto-nuevo-paciente-modal" role="dialog" aria-modal="true" aria-label="Nuevo paciente" onClick={(event) => event.stopPropagation()} onSubmit={async (event) => { event.preventDefault(); const campo = (selector: string) => event.currentTarget.querySelector<HTMLInputElement>(selector)?.value || ''; await sincronizarPaciente({ nombres: campo('input[placeholder="Nombres"]'), primerApellido: campo('input[placeholder="Apellido paterno"]'), segundoApellido: campo('input[placeholder="Apellido materno"]'), numeroDocumento: campo('input[placeholder="CI"]'), fechaNacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), direccion: campo('input[placeholder="Dirección"]') }); setMostrandoNuevoPaciente(false); }}>
@@ -246,8 +221,8 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
           {!farmacia && <button
             className="punto-accion-laboratorio"
             type="button"
-            aria-pressed={mostrandoLaboratorio}
-            onClick={() => { setMostrandoLaboratorio((abierto) => !abierto); setBusqueda(''); setMensaje(''); }}
+            aria-haspopup="dialog"
+            onClick={() => { setMostrandoLaboratorio(true); setMensaje(''); }}
           >
             <Icon name="lab" size={16} /> Laboratorio
           </button>}
@@ -267,7 +242,7 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
             <Icon name="plus" size={16} /> Nuevo paciente
           </button>
         </div>
-          {!mostrandoLaboratorio && <div className="punto-catalogo-filtros">
+          <div className="punto-catalogo-filtros">
             <div className="punto-categorias">
               {(farmacia ? (['Todos', 'Producto', 'Insumo'] as const) : (['Todos', 'Producto', 'Insumo', 'Servicio'] as const)).map(
                 (o) => (
@@ -302,24 +277,9 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
                 <Icon name="image" size={16} /> Galería
               </button>
             </div>
-          </div>}
+          </div>
           {mensaje && <p className="punto-aviso exito">{mensaje}</p>}
-          {mostrandoLaboratorio ? (
-            <section className="punto-laboratorio" aria-label="Servicios de laboratorio">
-              <header>
-                <div><small>CATÁLOGO DE SERVICIOS</small><h2>Laboratorio</h2></div>
-                <span>{Object.values(laboratorioAgrupado).flat().length} servicios</span>
-              </header>
-              {Object.keys(laboratorioAgrupado).length ? <div className="punto-laboratorio-grupos">
-                {Object.entries(laboratorioAgrupado).map(([subcategoria, servicios]) => <section key={subcategoria}>
-                  <h3>{subcategoria}</h3>
-                  {servicios.map((servicio) => <button type="button" key={servicio.id} onClick={() => agregar(servicio)}>
-                    <span className="punto-laboratorio-check" aria-hidden="true" /><b>{dinero(servicio.precio)}</b><span>{servicio.nombre}</span><Icon name="plus" size={15} />
-                  </button>)}
-                </section>)}
-              </div> : <p className="punto-laboratorio-vacio">No se encontraron servicios de laboratorio.</p>}
-            </section>
-          ) : vista === 'galeria' ? (
+          {vista === 'galeria' ? (
             <div className="punto-tarjetas">
               {resultados.map((i) => (
                 <article key={i.id}>
@@ -395,7 +355,7 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
                 <button
                   className="cliente-cambiar"
                   type="button"
-                  onClick={() => setPaciente('')}
+                  onClick={() => { setPaciente(''); setCiPaciente(''); }}
                 >
                   Cambiar
                 </button>
@@ -429,9 +389,9 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
             )}
             {!paciente && modo === 'registrar' && (
               <div className="cliente-formulario">
-                <input placeholder="Nombres y apellidos *" />
-                <input placeholder="CI *" />
-                <input placeholder="Número de celular" />
+                <input placeholder="Nombres y apellidos *" value={registroPaciente.nombre} onChange={e => setRegistroPaciente(actual => ({ ...actual, nombre: e.target.value }))} />
+                <input placeholder="CI *" value={registroPaciente.ci} onChange={e => setRegistroPaciente(actual => ({ ...actual, ci: e.target.value }))} />
+                <input placeholder="Número de celular" value={registroPaciente.telefono} onChange={e => setRegistroPaciente(actual => ({ ...actual, telefono: e.target.value }))} />
                 <div>
                   <button type="button" onClick={() => seleccionar()}>
                     Guardar paciente

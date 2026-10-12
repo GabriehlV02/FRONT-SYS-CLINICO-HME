@@ -25,6 +25,8 @@ const CitasRecepcionView = lazy(() => import('../flows/recepcion/subvistas/Citas
 const FarmaciaView = lazy(() => import('../flows/farmacia/FarmaciaView').then(m => ({ default: m.FarmaciaView })));
 const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
 const HistoriasClinicasView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.HistoriasClinicasView })));
+const LaboratorioView = lazy(() => import('../flows/laboratorio/LaboratorioView').then(m => ({ default: m.LaboratorioView })));
+const ConfiguracionLaboratorioView = lazy(() => import('../flows/laboratorio/ConfiguracionLaboratorioView').then(m => ({ default: m.ConfiguracionLaboratorioView })));
 const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
 const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTriajeView').then(m => ({ default: m.RegistroUsoTriajeView })));
 const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
@@ -98,6 +100,7 @@ const modulos: Modulo[] = [
   { id: 'esterilizacion-quirofano', nombre: 'Esterilización', icono: 'lab', grupo: 'QUIRÓFANO' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
+  { id: 'laboratorio-configuracion', nombre: 'Tipos de laboratorio', icono: 'settings', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   { id: "farmacia", nombre: "Farmacia", icono: "lab", grupo: "FARMACIA" },
   { id: "farmacia-internacion", nombre: "Internación", icono: "patient", grupo: "FARMACIA" },
@@ -500,17 +503,7 @@ export default function Aplicacion() {
             </nav>
           )}
           {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : modulo.startsWith('laboratorio-') ? (
-            <div className="modulo-vacio">
-              <span>
-                <Icon name="lab" size={28} />
-              </span>
-              <p>LABORATORIO</p>
-              <h2>{modulo === 'laboratorio-internados' ? 'Internados' : 'Ambulatorios'}</h2>
-              <small>
-                Este apartado está listo para incorporar solicitudes, muestras,
-                resultados y reportes de laboratorio.
-              </small>
-            </div>
+            modulo === 'laboratorio-configuracion' ? <ConfiguracionLaboratorioView /> : <LaboratorioView key={modulo} origen={modulo === 'laboratorio-internados' ? 'internacion' : 'ambulatorio'} />
           ) : modulo === 'atencion-medica' ? (
             <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview="consulta" initialPatient={pacienteColaAtencion} />
           ) : modulo === 'triaje-ambulatorio' ? (

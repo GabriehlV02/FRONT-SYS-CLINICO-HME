@@ -1,0 +1,122 @@
+/* Navegación principal de Recepción: tarjetas compactas y jerarquía clara. */
+.sistema-app .recepcion-vista>.subvistas-carrusel{
+  position:sticky;
+  top:var(--clinico-topbar,70px);
+  z-index:9;
+  margin:0 0 10px;
+  padding:3px;
+  border:1px solid #c4dfee;
+  border-radius:11px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 8px 22px rgba(6,71,115,.1);
+  backdrop-filter:blur(12px);
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:6px;
+  width:100%;
+  margin:0;
+  padding:0!important;
+  overflow:visible;
+  border:0;
+  background:transparent;
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button{
+  position:relative;
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr);
+  grid-template-rows:auto;
+  align-items:center;
+  justify-content:start;
+  gap:7px!important;
+  width:100%!important;
+  min-width:0!important;
+  height:42px!important;
+  min-height:42px!important;
+  padding:4px 8px!important;
+  overflow:hidden;
+  border:1px solid transparent;
+  border-radius:8px;
+  color:#315d7d;
+  background:transparent;
+  text-align:left;
+  box-shadow:none;
+  transition:color .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button>span{
+  grid-column:1;
+  grid-row:1;
+  display:grid!important;
+  place-items:center;
+  width:28px!important;
+  height:28px!important;
+  border:1px solid #c4e4f2!important;
+  border-radius:7px!important;
+  color:#087fc0!important;
+  background:#eaf7fd!important;
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button strong{
+  grid-column:2;
+  margin:0;
+  color:inherit;
+  font-size:11px!important;
+  font-weight:850;
+  line-height:1.15!important;
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button small{
+  grid-column:2;
+  display:none;
+  min-width:0;
+  overflow:hidden;
+  color:#7892a5;
+  font-size:9px;
+  line-height:1.2;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button:hover{
+  border-color:#b8dcec;
+  color:#075f9d;
+  background:#f1f9fd;
+  transform:translateY(-1px);
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button.activo{
+  border-color:#087fc0;
+  color:#fff;
+  background:linear-gradient(115deg,#086eaf,#0796c6 70%,#19aecb);
+  box-shadow:0 6px 15px rgba(5,111,170,.22);
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button.activo:after{
+  position:absolute;
+  right:9px;
+  bottom:0;
+  left:9px;
+  height:2px;
+  border-radius:3px 3px 0 0;
+  background:#9be9f4;
+  content:"";
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button.activo>span{
+  border-color:rgba(255,255,255,.34)!important;
+  color:#fff!important;
+  background:rgba(255,255,255,.16)!important;
+}
+.sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button.activo small{color:#dbf6ff}
+.sistema-app .recepcion-vista>.subvistas-carrusel>.subvistas-flecha{top:9px;width:28px;height:28px;border-color:#9dccdf;color:#087fc0;box-shadow:0 4px 12px rgba(6,71,115,.17)}
+
+@media(max-width:1280px),(pointer:coarse){
+  .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas{display:flex;gap:6px;overflow-x:auto;scroll-padding-inline:4px}
+  .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button{flex:0 0 190px!important;width:190px!important;min-width:190px!important}
+}
+@media(max-width:760px){
+  .sistema-app .recepcion-vista>.subvistas-carrusel{top:104px;margin-inline:0;padding:3px;border-radius:9px}
+  .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button{flex-basis:140px!important;width:140px!important;min-width:140px!important;height:40px!important;min-height:40px!important;grid-template-columns:27px minmax(0,1fr);padding:4px 7px!important}
+  .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button>span{width:27px!important;height:27px!important;border-radius:7px!important}
+  .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button small{display:none}
+  .sistema-app .recepcion-vista>.subvistas-carrusel>.subvistas-flecha{display:none}
+}
+.sistema-app[data-theme="dark"] .recepcion-vista>.subvistas-carrusel{border-color:#315d7d;background:rgba(7,31,55,.95)}
+.sistema-app[data-theme="dark"] .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button{color:#c4d9e9}
+.sistema-app[data-theme="dark"] .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button small{color:#8eaac0}
+.sistema-app[data-theme="dark"] .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button:hover{border-color:#315d7d;background:#0d3559}

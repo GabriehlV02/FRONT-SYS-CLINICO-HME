@@ -1,1 +1,42 @@
 .libro-fondo{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:8px;background:rgba(12,43,64,.52);backdrop-filter:blur(4px)}.libro-modal{width:min(1440px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto;border:1px solid #b9d9ec;border-radius:14px;background:#f5fbfe;box-shadow:0 28px 70px rgba(5,48,79,.34)}.libro-modal>header{display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #d6e8f1;background:#fff}.libro-modal header span{color:#087fc0;font-size:10px;font-weight:900;letter-spacing:.12em}.libro-modal header h3{margin:4px 0 0;color:#173c57;font-size:18px}.libro-modal header button{display:grid;place-items:center;width:34px;height:34px;border:1px solid #c9dfeb;border-radius:8px;color:#35627d;background:#fff;cursor:pointer}.libro-cuerpo{display:grid;grid-template-columns:46px minmax(0,1fr) 46px;align-items:center;gap:12px;padding:12px 18px}.libro-navegar{display:grid;place-items:center;width:42px;height:42px;border:1px solid #a9d2e6;border-radius:50%;color:#0473bd;background:#fff;cursor:pointer}.libro-navegar:disabled{opacity:.35;cursor:default}.libro{display:grid;grid-template-columns:1fr 1fr;min-height:min(680px,calc(100dvh - 145px));border-radius:5px;overflow:hidden;box-shadow:0 12px 30px rgba(11,64,94,.18);perspective:1600px}.libro-pagina{position:relative;padding:38px 42px 45px;color:#35556a;background:linear-gradient(135deg,#fff 0%,#fbfdfe 100%);font-family:Georgia,'Times New Roman',serif;animation:pasar-hoja .35s ease-out}.libro-pagina.izquierda{border-right:1px solid #d3e3ea;box-shadow:inset -13px 0 20px -20px rgba(8,48,69,.6)}.libro-pagina.derecha{box-shadow:inset 13px 0 20px -20px rgba(8,48,69,.6)}.libro-pagina h3{margin:0 0 22px;color:#164664;font-family:Arial,sans-serif;font-size:19px}.libro-pagina h4{margin:18px 0 8px;color:#1d6189;font-family:Arial,sans-serif;font-size:14px}.libro-pagina p{margin:0 0 12px;font-size:14px;line-height:1.65}.libro-pagina hr{margin:20px 0;border:0;border-top:1px solid #d7e7ee}.libro-numero{position:absolute;right:22px;bottom:16px;color:#82a5b7;font:11px Arial,sans-serif}.libro-fecha{color:#638498!important;font:12px Arial,sans-serif!important}.libro-sello{display:inline-block;margin-top:20px;padding:7px 10px;border:1px solid #8bc8e7;border-radius:4px;color:#087fc0;font:800 10px Arial,sans-serif;letter-spacing:.08em;transform:rotate(-3deg)}.libro-documento{display:flex;align-items:center;gap:10px;margin-top:24px;padding:18px;border:1px dashed #9bcde4;border-radius:8px;color:#53778c;font:12px Arial,sans-serif}.libro-pie{position:absolute;bottom:42px;left:42px;color:#7496a8;font:italic 12px Georgia,serif}.libro-modal>footer{padding:0 20px 12px;color:#64879a;font-size:11px;text-align:center}@keyframes pasar-hoja{from{opacity:.3;transform:rotateY(-7deg)}to{opacity:1;transform:rotateY(0)}}@media(max-width:720px){.libro-cuerpo{grid-template-columns:36px minmax(0,1fr) 36px;gap:5px;padding:12px}.libro{grid-template-columns:1fr;min-height:calc(100dvh - 150px)}.libro-pagina.derecha{display:none}.libro-pagina{padding:30px 26px 45px}.libro-pagina.izquierda{border-right:0}.libro-navegar{width:34px;height:34px}}
+
+
+/* Herramientas de consulta dentro del expediente */
+.libro-modal > .libro-cabecera{
+  display:grid;
+  grid-template-columns:minmax(210px,.7fr) minmax(600px,2.3fr) 34px;
+  align-items:end;
+  gap:16px;
+  padding:12px 20px;
+}
+.libro-identidad{min-width:0;align-self:center}
+.libro-identidad h3{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.libro-filtros{display:grid;grid-template-columns:minmax(190px,1.35fr) repeat(3,minmax(130px,.75fr));gap:8px;min-width:0}
+.libro-filtros label{display:grid;gap:4px;min-width:0;color:#54758a;font:700 10px Arial,sans-serif}
+.libro-filtros label > span{padding-left:2px;color:#39708f;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.libro-filtros input,.libro-filtros select{box-sizing:border-box;width:100%;height:38px;min-width:0;border:1px solid #bddcec;border-radius:9px;outline:none;color:#173f59;background:#f8fcfe;font:600 12px Arial,sans-serif;transition:border-color .18s,box-shadow .18s,background .18s}
+.libro-filtros input{padding:0 11px 0 34px}
+.libro-filtros select{padding:0 30px 0 10px;cursor:pointer}
+.libro-filtros input:focus,.libro-filtros select:focus{border-color:#0b89ca;background:#fff;box-shadow:0 0 0 3px rgba(11,137,202,.12)}
+.libro-buscar{position:relative;align-self:end}
+.libro-buscar > svg{position:absolute;z-index:1;left:11px;bottom:11px;color:#1688c4}
+.libro-indice-vacio{display:grid;justify-items:center;gap:8px;margin-top:34px;padding:28px;border:1px dashed #aed4e6;border-radius:10px;color:#7897a8;text-align:center;font-family:Arial,sans-serif}
+.libro-indice-vacio svg{color:#49a7d3}
+.libro-indice-vacio strong{color:#315f79;font-size:14px}
+.libro-indice-vacio span{font-size:12px}
+
+@media(max-width:1100px){
+  .libro-modal > .libro-cabecera{grid-template-columns:minmax(0,1fr) 34px;align-items:center}
+  .libro-filtros{grid-column:1/-1;grid-row:2}
+  .libro-cabecera > button{grid-column:2;grid-row:1}
+}
+@media(max-width:720px){
+  .libro-modal > .libro-cabecera{gap:8px 12px;padding:9px 12px}
+  .libro-filtros{display:flex;gap:7px;padding:1px 0 3px;overflow-x:auto;scrollbar-width:thin}
+  .libro-filtros label{flex:0 0 145px}
+  .libro-filtros .libro-buscar{flex-basis:205px}
+  .libro-filtros input,.libro-filtros select{height:35px}
+  .libro-buscar > svg{bottom:10px}
+  .libro-modal > .libro-cabecera h3{max-width:calc(100vw - 92px)}
+  .libro{min-height:calc(100dvh - 215px)}
+}

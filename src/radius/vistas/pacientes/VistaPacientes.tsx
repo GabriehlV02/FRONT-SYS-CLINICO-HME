@@ -15,6 +15,7 @@ import "../usuarios/VistaUsuarios.css";
 import "./VistaPacientes.css";
 import "./TablaPacientes.css";
 import "./InformesPaciente.css";
+import "./PacientesHistoriaVisual.css";
 
 const inicial = {
   nombres: "",
@@ -243,7 +244,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
   return (
     <div className="usuarios-vista pacientes-vista">
       <div className="usuarios-herramientas">
-        <label>
+        <label className="pacientes-buscador">
           <Icon name="search" size={18} />
           <input
             value={busqueda}
@@ -251,7 +252,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
             placeholder="Buscar por nombre, documento, celular o dirección..."
           />
         </label>
-        <select
+        <label className="pacientes-filtro"><span>Sexo</span><select
           value={sexo}
           onChange={(e) => filtrar(() => setSexo(e.target.value))}
         >
@@ -260,10 +261,10 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           <option value="masculino">Masculino</option>
           <option value="otro">Otro</option>
           <option value="no_especifica">No especifica</option>
-        </select>
-        {modoClinico && <select value={sucursal} onChange={(e) => filtrar(() => setSucursal(e.target.value))} aria-label="Filtrar por sucursal">
+        </select></label>
+        {modoClinico && <label className="pacientes-filtro"><span>Sucursal</span><select value={sucursal} onChange={(e) => filtrar(() => setSucursal(e.target.value))} aria-label="Filtrar por sucursal">
           <option value="todas">Todas las sucursales</option><option value="Central">Sucursal Central</option><option value="Norte">Sucursal Norte</option><option value="Sur">Sucursal Sur</option>
-        </select>}
+        </select></label>}
         {modoClinico && <button className="usuarios-crear pacientes-registrar" type="button" onClick={() => setAbierto(true)}><Icon name="plus" size={17} />Registrar nuevo paciente</button>}
       </div>
       <div className="usuarios-tabla pacientes-tabla">

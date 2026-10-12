@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Icon, { type IconName } from '../../radius/componentes/Icono';
 import './RecepcionView.css';
+import './RecepcionSubvistas.css';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
 import { CajaRecepcionView } from './subvistas/CajaRecepcionView';
 import { CitasRecepcionView } from './subvistas/CitasRecepcionView';

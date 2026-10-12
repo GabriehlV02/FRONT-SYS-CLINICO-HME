@@ -24,6 +24,7 @@ const RecepcionView = lazy(() => import('../flows/recepcion/RecepcionView').then
 const CitasRecepcionView = lazy(() => import('../flows/recepcion/subvistas/CitasRecepcionView').then(m => ({ default: m.CitasRecepcionView })));
 const FarmaciaView = lazy(() => import('../flows/farmacia/FarmaciaView').then(m => ({ default: m.FarmaciaView })));
 const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
+const HistoriasClinicasView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.HistoriasClinicasView })));
 const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
 const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTriajeView').then(m => ({ default: m.RegistroUsoTriajeView })));
 const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
@@ -93,6 +94,7 @@ const modulos: Modulo[] = [
   { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'userCheck', grupo: 'TERAPIA INTENSIVA' },
   { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'patient', grupo: 'QUIRÓFANO' },
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'userCheck', grupo: 'QUIRÓFANO' },
+  { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'userCheck', grupo: 'QUIRÓFANO' },
   { id: 'esterilizacion-quirofano', nombre: 'Esterilización', icono: 'lab', grupo: 'QUIRÓFANO' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
@@ -497,7 +499,7 @@ export default function Aplicacion() {
               ))}
             </nav>
           )}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : <TablaSubvistaPaciente vista={subvistaPacientes} />) : modulo.startsWith('laboratorio-') ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : modulo.startsWith('laboratorio-') ? (
             <div className="modulo-vacio">
               <span>
                 <Icon name="lab" size={28} />
@@ -546,6 +548,8 @@ export default function Aplicacion() {
             <div className="modulo-vacio"><span><Icon name="patient" size={28} /></span><p>QUIRÓFANO</p><h2>Enfermera quirófano</h2><small>Preparación preoperatoria, control de enfermería y registro del procedimiento.</small></div>
           ) : modulo === 'medico-quirofano' ? (
             <div className="modulo-vacio"><span><Icon name="userCheck" size={28} /></span><p>QUIRÓFANO</p><h2>Médico quirófano</h2><small>Programación, evaluación quirúrgica y evolución postoperatoria.</small></div>
+          ) : modulo === 'anestesiologia-quirofano' ? (
+            <div className="modulo-vacio"><span><Icon name="userCheck" size={28} /></span><p>QUIRÓFANO</p><h2>Anestesiología</h2><small>Evaluación preanestésica, registro anestésico y seguimiento de la recuperación del paciente.</small></div>
           ) : modulo === 'esterilizacion-quirofano' ? (
             <div className="modulo-vacio"><span><Icon name="lab" size={28} /></span><p>QUIRÓFANO</p><h2>Esterilización</h2><small>Control de instrumental, ciclos de esterilización y trazabilidad de insumos.</small></div>
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "base-datos" ? (

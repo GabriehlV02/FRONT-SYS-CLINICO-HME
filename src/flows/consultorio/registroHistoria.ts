@@ -1,6 +1,6 @@
 import type { CitaConfirmada } from './AgendaAmbulatoriaView';
 
-export type TipoEpisodio = 'Consulta médica' | 'Emergencias' | 'Internación' | 'Cirugía';
+export type TipoEpisodio = 'Consulta médica' | 'Emergencias' | 'Internación' | 'Cirugía' | 'Quirófano' | 'Terapia intensiva' | 'Recuperación';
 export type DocumentoEpisodio = { tipo: string; detalle: string; estado?: string };
 export type EpisodioClinico = {
   episodioId: string;

@@ -1,0 +1,35 @@
+.libro-pagina.libro-tapa { padding: 0; background: #fff; }
+.tapa-historia { position: relative; display: flex; flex-direction: column; min-height: 100%; overflow: hidden; color: #174d72; background: linear-gradient(145deg, #fff 0%, #fff 72%, #f0faff 100%); font-family: Arial, sans-serif; }
+.tapa-acento { position: absolute; top: 0; right: -65px; width: 240px; height: 115px; border-radius: 0 0 0 110px; background: linear-gradient(135deg, #dff6ff, #a8e6fb); opacity: .8; }
+.tapa-logo { position: relative; width: min(235px, 60%); height: 96px; margin: 40px auto 16px; object-fit: contain; }
+.tapa-titulo { position: relative; padding: 12px 42px 18px; text-align: center; }
+.tapa-titulo span, .tapa-paciente small, .tapa-alerta span { color: #0783bd; font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.tapa-titulo h2 { margin: 6px 0 13px; color: #075f9d; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.1; }
+.tapa-titulo i { display: block; width: 130px; height: 22px; margin: auto; border-top: 3px solid #12afcb; background: linear-gradient(135deg, transparent 0 16%, #12afcb 17% 21%, transparent 22% 31%, #12afcb 32% 36%, transparent 37% 49%, #12afcb 50% 56%, transparent 57%); }
+.tapa-paciente { position: relative; margin: 4px 42px 0; padding: 19px 20px; border: 1px solid #c5e6f1; border-left: 4px solid #0baac5; border-radius: 8px; background: rgba(245, 252, 255, .85); }
+.tapa-paciente h3 { margin: 6px 0 0; color: #164c73; font-size: 20px; line-height: 1.25; }
+.tapa-datos { display: grid; gap: 10px; margin: 18px 42px 22px; }
+.tapa-datos div { display: flex; justify-content: space-between; gap: 12px; padding-bottom: 9px; border-bottom: 1px solid #dcecf3; }
+.tapa-datos dt { color: #638397; font-size: 12px; }.tapa-datos dd { margin: 0; color: #174d72; font-size: 12px; font-weight: 700; text-align: right; }
+.tapa-alerta { margin: 0 42px 28px; padding: 13px 16px; border-radius: 7px; background: #e9f8fc; }.tapa-alerta span { display: block; margin-bottom: 5px; }.tapa-alerta strong { color: #196284; font-size: 12px; }
+.tapa-historia footer { display: flex; justify-content: space-between; gap: 12px; margin-top: auto; padding: 18px 28px; color: #fff; background: linear-gradient(100deg, #0572b6, #10afc6); font-size: 11px; }.tapa-historia footer span { font-weight: 800; }.tapa-historia footer small { font-size: 10px; opacity: .94; }
+.libro-pagina.libro-presentacion { background: linear-gradient(135deg, #fbfdff, #f2fbff); }.libro-kicker { color: #087fc0 !important; font: 800 10px Arial, sans-serif !important; letter-spacing: .12em; }.libro-ficha { display: grid; gap: 10px; margin: 24px 0; }.libro-ficha div { padding: 11px 12px; border-left: 3px solid #5fc8e4; background: #f0fafe; }.libro-ficha dt { margin-bottom: 4px; color: #5e8195; font: 11px Arial, sans-serif; }.libro-ficha dd { margin: 0; color: #1c5677; font: 700 12px Arial, sans-serif; }.libro-confidencial { position: absolute; right: 42px; bottom: 42px; color: #7195a9; font: italic 12px Georgia, serif !important; }
+@media (max-width: 720px) { .tapa-logo { margin-top: 28px; }.tapa-titulo { padding-right: 26px; padding-left: 26px; }.tapa-paciente, .tapa-datos, .tapa-alerta { margin-right: 26px; margin-left: 26px; }.tapa-historia footer { padding: 15px 18px; }.libro-confidencial { right: 26px; bottom: 42px; } }
+
+.libro-modal-cerrado { width: min(760px, calc(100vw - 32px)); min-height: min(780px, calc(100dvh - 32px)); overflow: hidden; border: 0; background: #fdfefe; }
+.libro-vista-previa { position: relative; display: grid; place-items: center; min-height: min(780px, calc(100dvh - 32px)); padding: 40px 90px; background: radial-gradient(circle at 50% 36%, #fff 0 35%, #f4fbfe 100%); }
+.libro-cerrado { position: relative; display: block; width: min(470px, 100%); min-height: min(650px, calc(100dvh - 150px)); margin: 0; padding: 0; overflow: hidden; border: 0; border-radius: 4px 12px 12px 4px; box-shadow: -10px 0 0 #0a6097, 0 20px 38px rgba(4, 63, 101, .3); background: #fff; text-align: left; transition: transform .2s ease, box-shadow .2s ease; }
+.libro-cerrado .tapa-historia { min-height: min(650px, calc(100dvh - 135px)); }
+.libro-abrir { position: absolute; left: 24px; top: 50%; z-index: 2; display: grid; place-items: center; width: 130px; height: 130px; padding: 14px; border: 0; border-radius: 50%; color: #123f5e; background: rgba(255, 255, 255, .96); box-shadow: 0 10px 30px rgba(8, 74, 105, .16); cursor: pointer; transform: translate(-38%, -50%); transition: transform .2s ease, box-shadow .2s ease; }
+.libro-abrir:hover { box-shadow: 0 15px 34px rgba(8, 74, 105, .24); transform: translate(-38%, -50%) scale(1.04); }.libro-abrir span { color: #0aafc1; font-size: 23px; }.libro-abrir strong { font: 800 13px Arial, sans-serif; }.libro-abrir small { color: #638397; font: 10px Arial, sans-serif; }.libro-abrir:focus-visible { outline: 3px solid #56c8ec; outline-offset: 4px; }
+.libro-cerrar-previa { position: absolute; top: 16px; right: 16px; z-index: 3; display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid #c9dfeb; border-radius: 8px; color: #35627d; background: #fff; cursor: pointer; }
+@media (max-width: 720px) { .libro-modal-cerrado, .libro-vista-previa { min-height: calc(100dvh - 24px); }.libro-vista-previa { padding: 36px 28px; }.libro-cerrado { width: calc(100% - 18px); min-height: calc(100dvh - 135px); }.libro-cerrado .tapa-historia { min-height: calc(100dvh - 135px); }.libro-abrir { left: 8px; width: 104px; height: 104px; transform: translate(0, -50%); }.libro-abrir:hover { transform: translate(0, -50%) scale(1.04); } }
+
+.libro-modal-cerrado { width: min(1440px, calc(100vw - 16px)); min-height: 0; }
+.libro-modal-cerrado .libro-vista-previa { min-height: min(680px, calc(100dvh - 90px)); padding: 24px 90px 34px; }
+.libro-modal-cerrado .libro-cerrado { width: min(470px, 100%); min-height: min(600px, calc(100dvh - 150px)); border: 1px solid #a9d5e8; box-shadow: -11px 0 0 #075f9d, -15px 3px 0 #a9d9ec, 7px 7px 0 #e7f3f9, 0 22px 42px rgba(4, 63, 101, .27); }
+.libro-modal-cerrado .libro-cerrado .tapa-historia { min-height: min(600px, calc(100dvh - 150px)); }
+.libro-modal-cerrado .libro-abrir { left: auto; right: 24px; top: 50%; display: flex; gap: 8px; width: auto; height: auto; padding: 12px 16px; border: 1px solid #a9d2e6; border-radius: 24px; color: #075f9d; transform: translateY(-50%); }
+.libro-modal-cerrado .libro-abrir:hover { transform: translateY(-50%) scale(1.04); }
+.libro-modal-cerrado .libro-abrir strong { font-size: 12px; }
+@media (max-width: 720px) { .libro-modal-cerrado .libro-vista-previa { min-height: calc(100dvh - 90px); padding: 24px 20px 86px; }.libro-modal-cerrado .libro-cerrado, .libro-modal-cerrado .libro-cerrado .tapa-historia { min-height: min(600px, calc(100dvh - 190px)); }.libro-modal-cerrado .libro-abrir { top: auto; right: 20px; bottom: 20px; transform: none; }.libro-modal-cerrado .libro-abrir:hover { transform: scale(1.04); } }

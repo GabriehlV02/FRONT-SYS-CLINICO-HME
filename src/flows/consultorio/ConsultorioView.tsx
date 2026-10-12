@@ -1,29 +1,58 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import Icon, { type IconName } from '../../radius/componentes/Icono';
 import { AgendaAmbulatoriaView, type CitaConfirmada } from './AgendaAmbulatoriaView';
 import { ConsultaMedicaView } from './ConsultaMedicaView';
 import './ConsultorioView.css';
+import './HistoriasClinicasView.css';
+import './HistoriaHojeable.css';
+import './AccionesHistoria.css';
+import './EfectoHojeo.css';
+import './TapaHistoria.css';
 
 type Subvista = 'consulta' | 'historias';
+type PacienteHistoria = { nombre: string; ci: string; edad: number; fechaNacimiento: string; numeroHistoria: string; datoRelevante: string; estado: 'Al día' | 'Pendiente' };
+type PaginaLibro = { tipo: 'tapa' | 'presentacion' | 'interior'; titulo: string; contenido: ReactNode };
+
 const subvistas: { id: Subvista; nombre: string; icono: IconName }[] = [
   { id: 'consulta', nombre: 'Consulta', icono: 'userCheck' },
   { id: 'historias', nombre: 'Historias clínicas', icono: 'fileText' },
+];
+const pacientesHistorias: PacienteHistoria[] = [
+  { nombre: 'María Fernanda Rojas', ci: '6845123 LP', edad: 32, fechaNacimiento: '14 de abril de 1994', numeroHistoria: 'HC-2026-000184', datoRelevante: 'Alergias: ninguna registrada', estado: 'Al día' },
+  { nombre: 'Carlos Paredes', ci: '5918247 CB', edad: 45, fechaNacimiento: '2 de septiembre de 1981', numeroHistoria: 'HC-2026-000185', datoRelevante: 'Control de hipertensión arterial', estado: 'Pendiente' },
+  { nombre: 'Ana Lucía Vargas', ci: '7359164 SC', edad: 28, fechaNacimiento: '19 de enero de 1998', numeroHistoria: 'HC-2026-000186', datoRelevante: 'Sin alertas clínicas registradas', estado: 'Al día' },
+  { nombre: 'José Miguel Flores', ci: '4196732 LP', edad: 61, fechaNacimiento: '8 de junio de 1965', numeroHistoria: 'HC-2026-000187', datoRelevante: 'Seguimiento de medicina interna', estado: 'Pendiente' },
+  { nombre: 'Elena Quispe Mamani', ci: '8021549 OR', edad: 39, fechaNacimiento: '27 de noviembre de 1987', numeroHistoria: 'HC-2026-000188', datoRelevante: 'Alergia a penicilina', estado: 'Al día' },
 ];
 
 export function ConsultorioView({ medico, initialSubview = 'consulta', initialPatient = null }: { medico: string; initialSubview?: Subvista; initialPatient?: CitaConfirmada | null }) {
   const [subvista, setSubvista] = useState<Subvista>(initialSubview);
   const [pacienteEnConsulta, setPacienteEnConsulta] = useState<CitaConfirmada | null>(initialPatient);
-  return <section className="consultorio-vista">
-    <nav className="consultorio-subvistas" aria-label="Subvistas de Consultorio médico">
-      {subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => { setSubvista(item.id); if (item.id === 'consulta') setPacienteEnConsulta(null); }}>
-        <Icon name={item.icono} size={17} /><span>{item.nombre}</span>
-      </button>)}
-    </nav>
-    {subvista === 'consulta' ? (pacienteEnConsulta ? <ConsultaMedicaView paciente={pacienteEnConsulta} /> : <AgendaAmbulatoriaView medico={medico} onAtender={(cita) => setPacienteEnConsulta(cita)} />) : <div className="consultorio-vacio">
-      <Icon name={subvistas.find((item) => item.id === subvista)?.icono ?? 'userCheck'} size={30} />
-      <p>CONSULTORIO MÉDICO</p>
-      <h2>Historias clínicas</h2>
-      <small>Consulta y seguimiento de las historias clínicas de tus pacientes.</small>
-    </div>}
-  </section>;
+  return <section className="consultorio-vista"><nav className="consultorio-subvistas" aria-label="Subvistas de Consultorio médico">{subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => { setSubvista(item.id); if (item.id === 'consulta') setPacienteEnConsulta(null); }}><Icon name={item.icono} size={17} /><span>{item.nombre}</span></button>)}</nav>{subvista === 'consulta' ? (pacienteEnConsulta ? <ConsultaMedicaView paciente={pacienteEnConsulta} /> : <AgendaAmbulatoriaView medico={medico} onAtender={setPacienteEnConsulta} />) : <HistoriasClinicasView />}</section>;
+}
+
+function HistoriasClinicasView() {
+  const [busqueda, setBusqueda] = useState(''); const [estado, setEstado] = useState('Todos'); const [edad, setEdad] = useState('Todas'); const [fileAbierto, setFileAbierto] = useState<PacienteHistoria | null>(null); const [historiaAbierta, setHistoriaAbierta] = useState<PacienteHistoria | null>(null);
+  const visibles = pacientesHistorias.filter((paciente) => `${paciente.nombre} ${paciente.ci}`.toLowerCase().includes(busqueda.toLowerCase()) && (estado === 'Todos' || paciente.estado === estado) && (edad === 'Todas' || (edad === 'Menor de 40' ? paciente.edad < 40 : paciente.edad >= 40)));
+  return <section className="historias-listado" aria-label="Listado de historias clínicas"><div className="historias-herramientas"><label className="historias-buscador"><Icon name="search" size={17} /><input type="search" value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por nombre o CI" /></label><label>Estado<select value={estado} onChange={(event) => setEstado(event.target.value)}><option>Todos</option><option>Al día</option><option>Pendiente</option></select></label><label>Edad<select value={edad} onChange={(event) => setEdad(event.target.value)}><option>Todas</option><option>Menor de 40</option><option>40 o más</option></select></label></div><div className="historias-tabla-contenedor"><table className="historias-tabla"><thead><tr><th>Paciente</th><th>CI</th><th>Edad</th><th>Acciones</th></tr></thead><tbody>{visibles.map((paciente) => <tr key={paciente.ci}><td><span className="historia-avatar">{paciente.nombre.split(' ').slice(0, 2).map((nombre) => nombre[0]).join('')}</span><strong>{paciente.nombre}</strong></td><td>{paciente.ci}</td><td>{paciente.edad} años</td><td><div className="historia-acciones"><button type="button" className="historia-ver" onClick={() => setHistoriaAbierta(paciente)}><Icon name="eye" size={16} /> Ver historia</button><button type="button" className="historia-file" onClick={() => setFileAbierto(paciente)}><Icon name="fileText" size={16} /> Ver file</button></div></td></tr>)}{!visibles.length && <tr><td className="historias-vacias" colSpan={4}>No se encontraron pacientes con estos filtros.</td></tr>}</tbody></table></div>{historiaAbierta && <ResumenHistoria paciente={historiaAbierta} onCerrar={() => setHistoriaAbierta(null)} />}{fileAbierto && <HistoriaHojeable paciente={fileAbierto} onCerrar={() => setFileAbierto(null)} />}</section>;
+}
+
+function ResumenHistoria({ paciente, onCerrar }: { paciente: PacienteHistoria; onCerrar: () => void }) { return <div className="resumen-historia-fondo" onMouseDown={onCerrar}><section className="resumen-historia-modal" role="dialog" aria-modal="true" onMouseDown={(event) => event.stopPropagation()}><header><div><span>HISTORIA CLÍNICA</span><h3>{paciente.nombre}</h3></div><button type="button" onClick={onCerrar} aria-label="Cerrar"><Icon name="close" size={18} /></button></header><div><dl><div><dt>CI</dt><dd>{paciente.ci}</dd></div><div><dt>Edad</dt><dd>{paciente.edad} años</dd></div><div><dt>Estado</dt><dd>{paciente.estado}</dd></div></dl><h4>Resumen clínico</h4><p>La historia contiene las atenciones, indicaciones y documentos asociados a este paciente.</p></div><footer><button type="button" onClick={onCerrar}>Cerrar</button></footer></section></div>; }
+
+function TapaHistoria({ paciente }: { paciente: PacienteHistoria }) { return <div className="tapa-historia"><div className="tapa-acento" aria-hidden="true" /><img className="tapa-logo" src="/logo-hospital-original.png" alt="Hospital María Esperanza" /><div className="tapa-titulo"><span>EXPEDIENTE MÉDICO</span><h2>Historia clínica</h2><i aria-hidden="true" /></div><div className="tapa-paciente"><small>PACIENTE</small><h3>{paciente.nombre}</h3></div><dl className="tapa-datos"><div><dt>CI</dt><dd>{paciente.ci}</dd></div><div><dt>Edad</dt><dd>{paciente.edad} años</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento}</dd></div><div><dt>Número de historia</dt><dd>{paciente.numeroHistoria}</dd></div></dl><div className="tapa-alerta"><span>Dato relevante</span><strong>{paciente.datoRelevante}</strong></div><footer><span>Hospital María Esperanza</span><small>Documento clínico confidencial</small></footer></div>; }
+
+function HistoriaHojeable({ paciente, onCerrar }: { paciente: PacienteHistoria; onCerrar: () => void }) {
+  const [pagina, setPagina] = useState(0); const [direccion, setDireccion] = useState<'adelante' | 'atras'>('adelante'); const [libroAbierto, setLibroAbierto] = useState(false);
+  const paginas: PaginaLibro[] = [
+    { tipo: 'tapa', titulo: '', contenido: <TapaHistoria paciente={paciente} /> },
+    { tipo: 'presentacion', titulo: 'Archivo clínico', contenido: <><p className="libro-kicker">HISTORIA PERSONAL</p><h4>Información del expediente</h4><p>Este file reúne las atenciones, evoluciones, indicaciones y documentos clínicos del paciente.</p><dl className="libro-ficha"><div><dt>Número de historia</dt><dd>{paciente.numeroHistoria}</dd></div><div><dt>Estado del file</dt><dd>{paciente.estado}</dd></div><div><dt>Dato relevante</dt><dd>{paciente.datoRelevante}</dd></div></dl><p className="libro-confidencial">Uso exclusivo del personal autorizado.</p></> },
+    { tipo: 'interior', titulo: 'Historia clínica', contenido: <><p><b>Paciente:</b> {paciente.nombre}</p><p><b>CI:</b> {paciente.ci}</p><p><b>Edad:</b> {paciente.edad} años</p><hr /><h4>Resumen clínico</h4><p>Historia activa del paciente. Aquí se organizarán las atenciones, diagnósticos y documentos vinculados.</p></> },
+    { tipo: 'interior', titulo: 'Atención más reciente', contenido: <><p className="libro-fecha">28 de septiembre de 2026</p><h4>Consulta ambulatoria</h4><p>Registro generado durante la atención médica. Los datos de evolución, indicaciones y recetas se incorporarán en esta hoja.</p><div className="libro-sello">ATENCIÓN REGISTRADA</div></> },
+    { tipo: 'interior', titulo: 'Documentos adjuntos', contenido: <><p>Las hojas cargadas desde archivos externos aparecerán aquí y se podrán recorrer junto a los registros clínicos generados por el sistema.</p><div className="libro-documento"><Icon name="fileText" size={24} /><span>Sin documentos adjuntos</span></div></> },
+    { tipo: 'interior', titulo: 'Seguimiento', contenido: <><h4>Próximos pasos</h4><p>Este espacio mostrará controles, estudios solicitados y notas de seguimiento del paciente.</p><p className="libro-pie">Fin de la historia disponible</p></> },
+  ];
+  const izquierda = paginas[pagina]; const derecha = paginas[pagina + 1];
+  if (!libroAbierto) return <div className="libro-fondo" onMouseDown={onCerrar}><section className="libro-modal libro-modal-cerrado" role="dialog" aria-modal="true" aria-label={`Historia clínica cerrada de ${paciente.nombre}`} onMouseDown={(event) => event.stopPropagation()}><header><div><span>HISTORIA CLÍNICA</span><h3>{paciente.nombre}</h3></div><button type="button" onClick={onCerrar} aria-label="Cerrar file"><Icon name="close" size={18} /></button></header><div className="libro-vista-previa"><div className="libro-cerrado" aria-label={`Tapa de la historia clínica de ${paciente.nombre}`}><TapaHistoria paciente={paciente} /></div><button type="button" className="libro-abrir" onClick={() => { setDireccion('adelante'); setPagina(0); setLibroAbierto(true); }}><strong>Abrir historia clínica</strong><Icon name="chevronRight" size={20} /></button></div></section></div>;
+  const dibujarPagina = (item: PaginaLibro, lado: 'izquierda' | 'derecha', numero: number) => <article className={`libro-pagina ${lado} libro-${item.tipo}`}><span className="libro-numero">{numero}</span>{item.titulo && <h3>{item.titulo}</h3>}{item.contenido}</article>;
+  return <div className="libro-fondo" onMouseDown={onCerrar}><section className="libro-modal" role="dialog" aria-modal="true" aria-label={`Historia clínica de ${paciente.nombre}`} onMouseDown={(event) => event.stopPropagation()}><header><div><span>HISTORIA CLÍNICA</span><h3>{paciente.nombre}</h3></div><button type="button" onClick={onCerrar} aria-label="Cerrar file"><Icon name="close" size={18} /></button></header><div className="libro-cuerpo"><button type="button" className="libro-navegar" disabled={pagina === 0} onClick={() => { setDireccion('atras'); setPagina((actual) => Math.max(0, actual - 2)); }} aria-label="Páginas anteriores"><Icon name="chevronLeft" size={22} /></button><div className={`libro ${direccion}`} key={`${pagina}-${direccion}`}>{dibujarPagina(izquierda, 'izquierda', pagina + 1)}{derecha && dibujarPagina(derecha, 'derecha', pagina + 2)}</div><button type="button" className="libro-navegar" disabled={!derecha || pagina + 2 >= paginas.length} onClick={() => { setDireccion('adelante'); setPagina((actual) => Math.min(paginas.length - 2, actual + 2)); }} aria-label="Páginas siguientes"><Icon name="chevronRight" size={22} /></button></div><footer>Páginas {pagina + 1}{derecha ? `–${pagina + 2}` : ''} de {paginas.length}</footer></section></div>;
 }

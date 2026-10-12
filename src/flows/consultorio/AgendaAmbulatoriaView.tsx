@@ -11,11 +11,11 @@ const citasEjemplo: CitaConfirmada[] = [
   ['agenda-demo-3', '09:15', 'Ana Rodríguez Vargas', '6102837', 'Consulta ambulatoria'],
   ['agenda-demo-4', '10:00', 'Jorge Quiroga Salinas', '5948216', 'Seguimiento clínico'],
   ['agenda-demo-5', '11:30', 'Sofía Castillo Flores', '7013659', 'Consulta general'],
-].map(([id, hora, paciente, ci, especialidad]) => ({ id, hora, paciente, ci, especialidad, fecha: fechaHoy(), doctor: 'Agenda ambulatoria' }));
+].map(([id, hora, paciente, ci, especialidad]) => ({ id, hora, paciente, ci, especialidad, fecha: fechaHoy(), doctor: 'Agenda ambulatoria', ...(id === 'agenda-demo-3' ? { nombre: 'Ana', apellidos: 'Rodríguez Vargas', edad: 28, fechaNacimiento: '22 de mayo de 1998', domicilio: 'Av. Busch N.º 1250, La Paz' } : {}) }));
 
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
   const [citas, setCitas] = useState<CitaConfirmada[]>(citasEjemplo);
-  const [atendidas, setAtendidas] = useState<Set<string>>(() => new Set(['agenda-demo-1', 'agenda-demo-2']));
+  const [atendidas, setAtendidas] = useState<Set<string>>(() => new Set(['agenda-demo-1', 'agenda-demo-2', 'agenda-demo-3']));
   const [busqueda, setBusqueda] = useState('');
   const [busquedaAtendidas, setBusquedaAtendidas] = useState('');
 

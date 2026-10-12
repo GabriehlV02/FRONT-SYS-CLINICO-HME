@@ -1,0 +1,164 @@
+/* Capa responsiva final del sistema clínico. Mantiene escritorio y adapta los flujos a tablet y móvil. */
+html { text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+body { overflow-x: hidden; }
+.sistema-app :is(.consultorio-vista,.consulta-medica,.agenda-ambulatoria,.historias-listado,.recepcion-vista,.emergencias-vista,.triaje-vista,.signos-vista) { min-width: 0; max-width: 100%; }
+.sistema-app :is(input,select,textarea,button) { max-width: 100%; }
+.sistema-app :is(p,small,dd,td,label) { overflow-wrap: break-word; }
+
+@media (max-width: 1280px) {
+  .sistema-app .consulta-signos-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+  .sistema-app .consulta-datos-personales { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .sistema-app .agenda-ambulatoria-tablero { grid-template-columns: minmax(0,1fr) 280px; }
+  .sistema-app .agenda-cola > :is(header,article) { grid-template-columns: 66px minmax(185px,1.3fr) minmax(155px,1fr) auto; }
+  .sistema-app .agenda-cola > article > .agenda-iniciales { left: 80px; }
+  .sistema-app .em-accesos-orden button { flex: 1 1 180px; justify-content: center; }
+}
+
+@media (max-width: 1024px) {
+  .sistema-app .agenda-ambulatoria-tablero { grid-template-columns: 1fr; }
+  .sistema-app .agenda-lateral { width: 100%; }
+  .sistema-app .consulta-area-cabecera { flex-direction: column; }
+  .sistema-app .consulta-ordenes { width: 100%; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .sistema-app .consulta-ordenes button { justify-content: center; min-width: 0; }
+  .sistema-app .consulta-atencion-superior { grid-template-columns: 1fr; }
+  .sistema-app .consulta-signos-grid { grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .sistema-app .historias-herramientas { flex-wrap: wrap; }
+  .sistema-app .historias-buscador { flex: 1 1 100%; }
+  .sistema-app .hoja-lab-grupos { columns: 3 210px; }
+}
+
+@media (max-width: 760px) {
+  .sistema-app .area-trabajo { overflow-x: clip; }
+  .sistema-app :is(.consultorio-subvistas,.consulta-secciones,.recepcion-subvistas,.em-subvistas,.subvistas-nav) {
+    width: 100%; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+  }
+  .sistema-app :is(.consultorio-subvistas,.consulta-secciones,.recepcion-subvistas,.em-subvistas,.subvistas-nav) button { flex: 0 0 auto; scroll-snap-align: start; min-height: 46px; }
+  .sistema-app .consultorio-subvistas button { padding-inline: 14px; }
+
+  .sistema-app .agenda-herramientas { align-items: stretch; flex-direction: column; }
+  .sistema-app .agenda-herramientas label { width: 100%; }
+  .sistema-app .agenda-herramientas > span { align-self: flex-start; }
+  .sistema-app .agenda-cola { overflow: visible; border: 0; background: transparent; }
+  .sistema-app .agenda-cola > header { display: none; }
+  .sistema-app .agenda-cola > article { display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 8px 12px; min-width: 0; min-height: 0; margin-bottom: 10px; padding: 14px; border: 1px solid #cfe0eb; border-radius: 10px; background: #fff; }
+  .sistema-app .agenda-cola > article > time { grid-column: 1; grid-row: 1; align-self: center; }
+  .sistema-app .agenda-cola > article > .agenda-iniciales { position: static; grid-column: 1; grid-row: 2; }
+  .sistema-app .agenda-cola > article > div:first-of-type { grid-column: 2 / -1; grid-row: 1 / span 2; align-self: center; padding-left: 0; }
+  .sistema-app .agenda-cola > article > .agenda-medico { grid-column: 1 / -1; padding-top: 9px; border-top: 1px solid #e1edf4; }
+  .sistema-app .agenda-cola > article > button { grid-column: 1 / -1; width: 100%; min-height: 42px; justify-content: center; }
+
+  .sistema-app .consulta-area-cabecera { padding: 14px; }
+  .sistema-app .consulta-ordenes { grid-template-columns: 1fr; }
+  .sistema-app .consulta-datos-personales { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .sistema-app .consulta-datos-personales dd { white-space: normal; }
+  .sistema-app .consulta-signos > header { align-items: stretch; flex-direction: column; }
+  .sistema-app .consulta-signos > header button { width: 100%; justify-content: center; }
+  .sistema-app .consulta-signos-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .sistema-app .consulta-signos-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .sistema-app .consulta-guardar-historia { align-items: stretch; flex-direction: column; padding: 4px 0 10px; }
+  .sistema-app .consulta-guardar-historia button { width: 100%; min-height: 44px; }
+  .sistema-app .consulta-guardar-historia span { text-align: center; line-height: 1.45; }
+  .sistema-app .consulta-atencion-principal,.sistema-app .consulta-atencion-lateral { gap: 10px; }
+
+  .sistema-app .historias-listado { padding: 12px; }
+  .sistema-app .historias-herramientas { align-items: stretch; flex-direction: column; }
+  .sistema-app .historias-herramientas :is(label,select),.sistema-app .historias-buscador { width: 100%; min-width: 0; }
+  .sistema-app .historias-tabla-contenedor { overflow: visible; border: 0; }
+  .sistema-app .historias-tabla { display: block; min-width: 0; }
+  .sistema-app .historias-tabla thead { display: none; }
+  .sistema-app .historias-tabla tbody { display: grid; gap: 10px; }
+  .sistema-app .historias-tabla tr { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px 12px; padding: 13px; border: 1px solid #d7e8f1; border-radius: 10px; background: #fff; }
+  .sistema-app .historias-tabla td { display: block; width: auto; height: auto; padding: 0; border: 0; text-align: left; }
+  .sistema-app .historias-tabla td:first-child { grid-column: 1 / -1; }
+  .sistema-app .historias-tabla td:nth-child(2)::before { content: 'CI: '; color: #69869b; font-weight: 700; }
+  .sistema-app .historias-tabla td:nth-child(3)::before { content: 'Edad: '; color: #69869b; font-weight: 700; }
+  .sistema-app .historias-tabla td:last-child { grid-column: 1 / -1; }
+  .sistema-app .historia-acciones { width: 100%; }
+  .sistema-app .historia-acciones button { min-height: 42px; }
+
+  .libro-fondo { padding: 0; }
+  .libro-modal { width: 100vw; max-height: 100dvh; height: 100dvh; border: 0; border-radius: 0; }
+  .libro-modal > header { position: sticky; z-index: 5; top: 0; padding: 10px 12px; }
+  .libro-modal > header h3 { max-width: 70vw; overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+  .libro-cuerpo { position: relative; display: block; padding: 8px 46px 10px; }
+  .libro { min-height: calc(100dvh - 120px); }
+  .libro-pagina { min-width: 0; padding: 24px 18px 42px; overflow-y: auto; }
+  .libro-navegar { position: fixed; z-index: 6; top: 50%; margin-top: -18px; box-shadow: 0 5px 15px rgba(5,72,111,.2); }
+  .libro-navegar:first-child { left: 7px; }
+  .libro-navegar:last-child { right: 7px; }
+  .libro-modal > footer { position: sticky; bottom: 0; padding: 7px; background: #f5fbfe; }
+  .libro-modal-cerrado .libro-vista-previa { padding-inline: 28px; }
+  .libro-modal-cerrado .libro-cerrado { max-width: 430px; }
+  .episodio-separador { width: calc(100% - 34px); padding: 38px 16px; }
+
+  .hoja-lab-fondo { align-items: stretch; padding: 0; }
+  .hoja-lab { width: 100%; height: 100dvh; border-radius: 0; }
+  .hoja-lab > header { padding: 10px 12px; }
+  .hoja-lab-contenido { padding: 8px 10px; }
+  .hoja-lab-grupos { columns: 2 180px; }
+  .hoja-lab-acciones { position: sticky; bottom: 0; max-height: 40dvh; overflow-y: auto; background: #f5f7fa; }
+
+  .sistema-app .emergencias-vista { padding: 0; }
+  .sistema-app .em-cabecera { gap: 10px; }
+  .sistema-app .em-cabecera > button,.sistema-app .em-cierre button { width: 100%; justify-content: center; }
+  .sistema-app .em-form-grid { grid-template-columns: 1fr; }
+  .sistema-app .em-signos { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .sistema-app .em-accesos-orden { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .sistema-app .em-accesos-orden button { min-width: 0; min-height: 44px; justify-content: center; white-space: normal; }
+  .sistema-app .em-listado-descargos-tabla > article { grid-template-columns: 1fr; }
+  .sistema-app .em-listado-descargos-tabla > article > div:nth-child(4) { grid-column: auto; }
+  .sistema-app .em-modal-orden { padding: 0; }
+  .sistema-app .em-modal-orden .em-orden-estudio { width: 100%; max-height: 100dvh; min-height: 100dvh; border-radius: 0; }
+
+  .recepcion-internacion-modal { width: 100vw; height: 100dvh; max-width: 100vw; max-height: 100dvh; border: 0; border-radius: 0; }
+}
+
+@media (max-width: 520px) {
+  .sistema-app .area-trabajo { padding-inline: 8px !important; }
+  .sistema-app .consultorio-vista { gap: 10px; }
+  .sistema-app .consulta-datos-personales { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .sistema-app .consulta-signos-grid,.sistema-app .consulta-signos-form { grid-template-columns: 1fr; }
+  .sistema-app :is(.consulta-signos,.consulta-nota,.consulta-antecedentes) { padding: 13px; }
+  .sistema-app .consulta-secciones button span { display: inline; }
+  .sistema-app .consulta-secciones button { min-width: 132px; padding-inline: 10px; }
+  .sistema-app .consulta-resumen-clinico { padding: 12px; }
+  .sistema-app .historia-acciones { grid-template-columns: 1fr; }
+  .sistema-app .agenda-cola > article { grid-template-columns: 46px minmax(0,1fr); }
+  .sistema-app .agenda-cola > article > div:first-of-type { grid-column: 2; }
+  .sistema-app .agenda-cola > article > .agenda-medico,.sistema-app .agenda-cola > article > button { grid-column: 1 / -1; }
+  .libro-cuerpo { padding-inline: 42px; }
+  .libro-pagina { padding-inline: 14px; }
+  .libro-indice { padding-left: 18px; }
+  .libro-indice button { align-items: flex-start; flex-direction: column; }
+  .libro-indice button span:last-child { align-self: flex-end; }
+  .libro-consulta-detalle dl { grid-template-columns: 1fr; }
+  .tapa-logo { height: 72px; margin-top: 22px; }
+  .tapa-paciente,.tapa-datos,.tapa-alerta { margin-right: 18px; margin-left: 18px; }
+  .tapa-titulo { padding-inline: 18px; }
+  .tapa-historia footer { align-items: flex-start; flex-direction: column; }
+  .hoja-lab-grupos { columns: 1; }
+  .hoja-lab-acciones { grid-template-columns: 1fr 1fr; }
+  .sistema-app .em-signos,.sistema-app .em-accesos-orden { grid-template-columns: 1fr; }
+  .sistema-app .em-panel { padding: 12px; }
+}
+
+@media (max-width: 360px) {
+  .sistema-app .sistema-topbar { grid-template-columns: 36px minmax(0,1fr) 36px 36px !important; padding-inline: 6px !important; gap: 4px !important; }
+  .sistema-app .consulta-datos-personales { grid-template-columns: 1fr; }
+  .libro-cuerpo { padding-inline: 36px; }
+  .libro-navegar { width: 31px; height: 31px; }
+  .historia-acciones { grid-template-columns: 1fr; }
+}
+
+@media (orientation: landscape) and (max-height: 600px) and (max-width: 1000px) {
+  .libro-modal,.libro-modal-cerrado { height: 100dvh; max-height: 100dvh; }
+  .libro { min-height: calc(100dvh - 102px); }
+  .libro-pagina { padding-top: 18px; }
+  .hoja-lab { height: 100dvh; }
+  .sistema-app .em-modal-orden .em-orden-estudio { max-height: 100dvh; }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .sistema-app :is(button,[role="button"],select,input[type="checkbox"],input[type="radio"]) { touch-action: manipulation; }
+  .sistema-app button:not(.libro-navegar):not(.libro-cerrar-previa) { min-height: 44px; }
+}

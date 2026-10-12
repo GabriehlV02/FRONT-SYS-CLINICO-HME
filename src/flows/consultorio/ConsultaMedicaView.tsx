@@ -4,6 +4,7 @@ import { HojaLaboratorios } from './HojaLaboratorios';
 import type { CitaConfirmada } from './AgendaAmbulatoriaView';
 import './ConsultaMedicaView.css';
 import { obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registroSignosVitales';
+import { guardarEpisodio } from './registroHistoria';
 
 const registrosTriaje: Record<string, Record<string, string>> = {
   '4839201': { temperatura: '36.7 °C', presionSistolica: '118 mmHg', presionDiastolica: '76 mmHg', frecuencia: '74 lpm', respiratoria: '18 rpm', saturacion: '98 %', peso: '64 kg', estatura: '162 cm', imc: '24.4' },
@@ -36,7 +37,7 @@ function OrdenesConsulta({ paciente, onAbrir }: { paciente: CitaConfirmada | nul
   return <><nav className="consulta-ordenes"><button className="orden-laboratorio" type="button" onClick={() => abrir('laboratorio')}><Icon name="lab" size={17} /> Orden de laboratorio</button><button className="orden-imagenologia" type="button" onClick={() => abrir('imagenologia')}><Icon name="image" size={17} /> Orden de imagenología</button><button className="orden-internacion" type="button" onClick={() => abrir('internacion')}><Icon name="patient" size={17} /> Orden de internación</button></nav>{mensaje && <em className="consulta-aviso">{mensaje}</em>}</>;
 }
 
-export function ConsultaMedicaView({ paciente }: { paciente: CitaConfirmada | null }) {
+export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirmada | null; medico: string }) {
   const [seccion, setSeccion] = useState<SeccionConsulta>('atencion');
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [vitales, setVitales] = useState<Record<string, string>>({});
@@ -46,6 +47,7 @@ export function ConsultaMedicaView({ paciente }: { paciente: CitaConfirmada | nu
   const [tipoOrden, setTipoOrden] = useState<TipoOrden | null>(null);
   const [detalleOrden, setDetalleOrden] = useState('');
   const [laboratoriosElegidos, setLaboratoriosElegidos] = useState('');
+  const [episodioGuardado, setEpisodioGuardado] = useState('');
   useSyncExternalStore(suscribirSignosVitales, () => 0, () => 0);
   const registroTriaje = paciente ? obtenerSignosVitales(paciente.ci) : undefined;
   const vitalesTriaje: Record<string, string> | undefined = registroTriaje ? {
@@ -61,6 +63,14 @@ export function ConsultaMedicaView({ paciente }: { paciente: CitaConfirmada | nu
   const partesNombre = paciente.paciente.trim().split(/\s+/);
   const nombre = paciente.nombre ?? partesNombre[0] ?? 'No registrado';
   const apellidos = paciente.apellidos ?? (partesNombre.slice(1).join(' ') || 'No registrado');
+  const guardarEnHistoria = () => {
+    const ordenes = [
+      ...(laboratoriosElegidos ? [{ tipo: 'Laboratorio', detalle: laboratoriosElegidos, estado: 'Solicitado' }] : []),
+      ...(tipoOrden && tipoOrden !== 'laboratorio' && detalleOrden.trim() ? [{ tipo: titulosOrden[tipoOrden], detalle: detalleOrden.trim(), estado: 'Solicitado' }] : []),
+    ];
+    const episodio = guardarEpisodio({ origenId: `consulta:${paciente.id}`, tipo: 'Consulta médica', paciente, medico: paciente.doctor && paciente.doctor !== 'Agenda ambulatoria' ? paciente.doctor : medico, fecha: paciente.fecha, motivo: datosClinicosPaciente.motivoConsulta.trim(), enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(), examenFisico: datosClinicosPaciente.examenFisico.trim(), antecedentes: (antecedentes[paciente.ci] ?? '').trim(), notas: (notasMedicas[paciente.ci] ?? '').trim(), signosVitales: { ...datos }, recetas: [], ordenes, resultados: [], reconsultas: [] });
+    setEpisodioGuardado(episodio.episodioId);
+  };
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
     <section className="consulta-activa-derecha">
       <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci} · Cita {paciente.hora}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div><div><dt>Domicilio</dt><dd>{paciente.domicilio ?? 'No registrado'}</dd></div></dl></div><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} /></header>
@@ -68,6 +78,7 @@ export function ConsultaMedicaView({ paciente }: { paciente: CitaConfirmada | nu
         {seccionesConsulta.map(item => <button key={item.id} type="button" className={seccion === item.id ? 'activo' : ''} aria-current={seccion === item.id ? 'page' : undefined} onClick={() => setSeccion(item.id)}><Icon name={item.icono} size={16} /><span>{item.nombre}</span></button>)}
       </nav>
       {seccion === 'atencion' && <>
+      <div className="consulta-guardar-historia"><button type="button" onClick={guardarEnHistoria} disabled={!datosClinicosPaciente.motivoConsulta.trim()}><Icon name="fileText" size={16} /> Guardar episodio clínico</button>{episodioGuardado && <span>Episodio {episodioGuardado} actualizado en la historia clínica.</span>}</div>
       {tipoOrden === 'laboratorio' && <HojaLaboratorios paciente={paciente.paciente} onCerrar={() => setTipoOrden(null)} onAceptar={items => { setLaboratoriosElegidos(items.map(i => i.nombre).join(' · ')); setTipoOrden(null); }} />}{laboratoriosElegidos && <p className="consulta-aviso">Laboratorios seleccionados: {laboratoriosElegidos}</p>}{tipoOrden && tipoOrden !== 'laboratorio' && <section className="consulta-orden-panel panel" aria-label={`Orden de ${titulosOrden[tipoOrden]}`}><header><div><p>ORDEN DE {titulosOrden[tipoOrden].toUpperCase()}</p><h3>{paciente.paciente}</h3><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><button type="button" onClick={() => setTipoOrden(null)} aria-label="Cerrar orden">×</button></header><label>{tipoOrden === 'imagenologia' ? 'Estudios y regiones solicitados' : 'Motivo e indicaciones de internación'}<textarea value={detalleOrden} onChange={(event) => setDetalleOrden(event.target.value)} placeholder="Escribe las indicaciones para esta paciente" /></label><footer><button type="button" onClick={() => setTipoOrden(null)}>Cancelar</button><button type="button" disabled={!detalleOrden.trim()} onClick={() => window.print()}>Imprimir orden</button></footer></section>}
       <div className="consulta-atencion-superior">
         <div className="consulta-atencion-principal">

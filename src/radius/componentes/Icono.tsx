@@ -1,6 +1,6 @@
 import type { ReactNode, SVGProps } from 'react';
 
-export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'check' | 'arrowRight' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'calendar' | 'edit' | 'trash';
+export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'check' | 'arrowRight' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'calendar' | 'edit' | 'trash' | 'cash';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; size?: number };
 
 const paths: Record<IconName, ReactNode> = {
@@ -30,7 +30,8 @@ const paths: Record<IconName, ReactNode> = {
   camera: <><path d="M4 7h3l2-3h6l2 3h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="13" r="4"/></>
   ,calendar: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4m8-4v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></>
   ,edit: <><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></>,
-  trash: <><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7m4 4v6m4-6v6"/></>
+  trash: <><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7m4 4v6m4-6v6"/></>,
+  cash: <><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M7 10h.01M17 14h.01"/></>
 };
 
 export default function Icon({ name, size = 20, ...props }: Props) {

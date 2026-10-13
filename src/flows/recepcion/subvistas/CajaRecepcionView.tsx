@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
-import Icon from '../../../radius/componentes/Icono';
-import { sincronizarPaciente } from '../../../radius/pacientesCompartidos';
-import { InternacionModal } from './InternacionModal';
-import { SolicitudLaboratorioRecepcion } from './SolicitudLaboratorioRecepcion';
-type Tipo = 'Producto' | 'Insumo' | 'Servicio';
+import { useMemo, useState } from "react";
+import Icon from "../../../radius/componentes/Icono";
+import { apiFetch } from "../../../radius/api";
+import { InternacionModal } from "./InternacionModal";
+import { SolicitudLaboratorioRecepcion } from "./SolicitudLaboratorioRecepcion";
+type Tipo = "Producto" | "Insumo" | "Servicio";
 type Item = {
   id: string;
   nombre: string;
@@ -18,84 +18,99 @@ type Linea = Item & { cantidad: number };
 type Pago = { id: number; metodo: string; monto: string };
 const catalogo: Item[] = [
   {
-    id: 'consulta',
-    nombre: 'Consulta médica general',
-    tipo: 'Servicio',
-    codigo: 'SRV-001',
+    id: "consulta",
+    nombre: "Consulta médica general",
+    tipo: "Servicio",
+    codigo: "SRV-001",
     precio: 80,
   },
   {
-    id: 'hemograma',
-    nombre: 'Hemograma completo',
-    tipo: 'Servicio',
-    codigo: 'LAB-009',
+    id: "hemograma",
+    nombre: "Hemograma completo",
+    tipo: "Servicio",
+    codigo: "LAB-009",
     precio: 50,
-    categoria: 'Laboratorio',
-    subcategoria: 'Hematología',
+    categoria: "Laboratorio",
+    subcategoria: "Hematología",
   },
   {
-    id: 'rayos',
-    nombre: 'Radiografía panorámica',
-    tipo: 'Servicio',
-    codigo: 'IMG-014',
+    id: "rayos",
+    nombre: "Radiografía panorámica",
+    tipo: "Servicio",
+    codigo: "IMG-014",
     precio: 120,
   },
   {
-    id: 'gasa',
-    nombre: 'Gasa estéril 10 × 10 cm',
-    tipo: 'Insumo',
-    codigo: 'INS-021',
+    id: "gasa",
+    nombre: "Gasa estéril 10 × 10 cm",
+    tipo: "Insumo",
+    codigo: "INS-021",
     precio: 12,
     stock: 84,
   },
   {
-    id: 'venda',
-    nombre: 'Venda elástica 10 cm',
-    tipo: 'Insumo',
-    codigo: 'INS-034',
+    id: "venda",
+    nombre: "Venda elástica 10 cm",
+    tipo: "Insumo",
+    codigo: "INS-034",
     precio: 18,
     stock: 35,
   },
   {
-    id: 'paracetamol',
-    nombre: 'Paracetamol 500 mg',
-    tipo: 'Producto',
-    codigo: 'PRD-104',
+    id: "paracetamol",
+    nombre: "Paracetamol 500 mg",
+    tipo: "Producto",
+    codigo: "PRD-104",
     precio: 8,
     stock: 146,
   },
 ];
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
-const pagoNuevo = (id: number): Pago => ({ id, metodo: 'Efectivo', monto: '' });
+const pagoNuevo = (id: number): Pago => ({ id, metodo: "Efectivo", monto: "" });
 const pacientesEjemplo = [
-  { nombre: 'Luis Escobar', ci: '6845210' }, { nombre: 'Luis Alberto Escobar Rojas', ci: '4982157' },
-  { nombre: 'María Fernández López', ci: '7351842' }, { nombre: 'Ana Rodríguez Vargas', ci: '6129478' },
+  { nombre: "Luis Escobar", ci: "6845210" },
+  { nombre: "Luis Alberto Escobar Rojas", ci: "4982157" },
+  { nombre: "María Fernández López", ci: "7351842" },
+  { nombre: "Ana Rodríguez Vargas", ci: "6129478" },
 ];
-export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrirCuenta?: (origen: 'emergencias' | 'internacion', paciente: string) => void; farmacia?: boolean }) {
-  const [busqueda, setBusqueda] = useState(''),
-    [tipo, setTipo] = useState<'Todos' | Tipo>('Todos'),
-    [vista, setVista] = useState<'galeria' | 'listado'>('galeria'),
+export function CajaRecepcionView({
+  onAbrirCuenta,
+  farmacia = false,
+}: {
+  onAbrirCuenta?: (
+    origen: "emergencias" | "internacion",
+    paciente: string,
+  ) => void;
+  farmacia?: boolean;
+}) {
+  const [busqueda, setBusqueda] = useState(""),
+    [tipo, setTipo] = useState<"Todos" | Tipo>("Todos"),
+    [vista, setVista] = useState<"galeria" | "listado">("galeria"),
     [lineas, setLineas] = useState<Linea[]>([]),
-    [paciente, setPaciente] = useState(''),
-    [ciPaciente, setCiPaciente] = useState(''),
-    [registroPaciente, setRegistroPaciente] = useState({ nombre: '', ci: '', telefono: '' }),
-    [busquedaPaciente, setBusquedaPaciente] = useState(''),
+    [paciente, setPaciente] = useState(""),
+    [ciPaciente, setCiPaciente] = useState(""),
+    [registroPaciente, setRegistroPaciente] = useState({
+      nombre: "",
+      ci: "",
+      telefono: "",
+    }),
+    [busquedaPaciente, setBusquedaPaciente] = useState(""),
     [historialAbierto, setHistorialAbierto] = useState(true),
-    [filtroHistorial, setFiltroHistorial] = useState('Todos'),
+    [filtroHistorial, setFiltroHistorial] = useState("Todos"),
     [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
     [mostrandoInternacion, setMostrandoInternacion] = useState(false),
     [mostrandoNuevoPaciente, setMostrandoNuevoPaciente] = useState(false),
     [mostrandoCotizacion, setMostrandoCotizacion] = useState(false),
-    [modo, setModo] = useState<'inicio' | 'buscar' | 'registrar'>('inicio'),
+    [modo, setModo] = useState<"inicio" | "buscar" | "registrar">("inicio"),
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
-    [descuento, setDescuento] = useState(''),
-    [mensaje, setMensaje] = useState('');
+    [descuento, setDescuento] = useState(""),
+    [mensaje, setMensaje] = useState("");
   const resultados = useMemo(
     () =>
       catalogo.filter(
         (i) =>
-          (!farmacia || i.tipo === 'Producto' || i.tipo === 'Insumo') &&
-          (tipo === 'Todos' || i.tipo === tipo) &&
+          (!farmacia || i.tipo === "Producto" || i.tipo === "Insumo") &&
+          (tipo === "Todos" || i.tipo === tipo) &&
           `${i.nombre} ${i.codigo} ${i.tipo}`
             .toLowerCase()
             .includes(busqueda.toLowerCase()),
@@ -129,60 +144,433 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
     // signos, decimales ni notación científica para las unidades vendidas.
     if (!/^\d+$/.test(valor)) return;
     const nuevaCantidad = Number(valor);
-    if (!Number.isSafeInteger(nuevaCantidad) || nuevaCantidad < 1 || nuevaCantidad > 100000) return;
-    setLineas((actual) => actual.map((linea) => linea.id === id ? { ...linea, cantidad: nuevaCantidad } : linea));
+    if (
+      !Number.isSafeInteger(nuevaCantidad) ||
+      nuevaCantidad < 1 ||
+      nuevaCantidad > 100000
+    )
+      return;
+    setLineas((actual) =>
+      actual.map((linea) =>
+        linea.id === id ? { ...linea, cantidad: nuevaCantidad } : linea,
+      ),
+    );
   };
   const coincidenciasPaciente = useMemo(() => {
-    const termino = busquedaPaciente.trim().toLocaleLowerCase('es');
-    return termino ? pacientesEjemplo.filter(p => `${p.nombre} ${p.ci}`.toLocaleLowerCase('es').includes(termino)).slice(0, 6) : [];
+    const termino = busquedaPaciente.trim().toLocaleLowerCase("es");
+    return termino
+      ? pacientesEjemplo
+          .filter((p) =>
+            `${p.nombre} ${p.ci}`.toLocaleLowerCase("es").includes(termino),
+          )
+          .slice(0, 6)
+      : [];
   }, [busquedaPaciente]);
-  const historialPaciente = paciente === 'Luis Escobar'
-    ? [{ n: 'EM-000318', fecha: '29 de septiembre de 2026 09:08', total: '238.00', estado: 'A cuenta', detalle: 'Emergencias · Oxígeno y materiales' }, { n: 'EM-000317', fecha: '29 de septiembre de 2026 08:45', total: '95.00', estado: 'A cuenta', detalle: 'Emergencias · Medicamentos e insumos' }, { n: '131909', fecha: '18 de agosto de 2026 19:02', total: '160.00', estado: 'Pagado', detalle: 'Descargos Ambulatorios 510' }]
-    : [{ n: '131932', fecha: '19 de agosto de 2026 10:56', total: '160.00', estado: 'Pagado', detalle: 'Descargos Ambulatorios 510' }, { n: '131910', fecha: '18 de agosto de 2026 19:17', total: '780.00', estado: 'A cuenta', detalle: 'Descargos Ambulatorios 510' }, { n: '131912', fecha: '18 de agosto de 2026 21:02', total: '2.400.00', estado: 'Pre venta', detalle: 'Descargos Ambulatorios 510' }, { n: '131909', fecha: '18 de agosto de 2026 19:02', total: '160.00', estado: 'Anulado', detalle: 'Descargos Ambulatorios 510' }];
+  const historialPaciente =
+    paciente === "Luis Escobar"
+      ? [
+          {
+            n: "EM-000318",
+            fecha: "29 de septiembre de 2026 09:08",
+            total: "238.00",
+            estado: "A cuenta",
+            detalle: "Emergencias · Oxígeno y materiales",
+          },
+          {
+            n: "EM-000317",
+            fecha: "29 de septiembre de 2026 08:45",
+            total: "95.00",
+            estado: "A cuenta",
+            detalle: "Emergencias · Medicamentos e insumos",
+          },
+          {
+            n: "131909",
+            fecha: "18 de agosto de 2026 19:02",
+            total: "160.00",
+            estado: "Pagado",
+            detalle: "Descargos Ambulatorios 510",
+          },
+        ]
+      : [
+          {
+            n: "131932",
+            fecha: "19 de agosto de 2026 10:56",
+            total: "160.00",
+            estado: "Pagado",
+            detalle: "Descargos Ambulatorios 510",
+          },
+          {
+            n: "131910",
+            fecha: "18 de agosto de 2026 19:17",
+            total: "780.00",
+            estado: "A cuenta",
+            detalle: "Descargos Ambulatorios 510",
+          },
+          {
+            n: "131912",
+            fecha: "18 de agosto de 2026 21:02",
+            total: "2.400.00",
+            estado: "Pre venta",
+            detalle: "Descargos Ambulatorios 510",
+          },
+          {
+            n: "131909",
+            fecha: "18 de agosto de 2026 19:02",
+            total: "160.00",
+            estado: "Anulado",
+            detalle: "Descargos Ambulatorios 510",
+          },
+        ];
   const seleccionar = (nombre?: string) => {
-    if (nombre) { setPaciente(nombre); setCiPaciente(pacientesEjemplo.find(p => p.nombre === nombre)?.ci || ''); setHistorialAbierto(true); setBusquedaPaciente(''); setModo('inicio'); return; }
-    if (!registroPaciente.nombre.trim() || !registroPaciente.ci.trim()) { setMensaje('Completa el nombre y CI del paciente.'); return; }
+    if (nombre) {
+      setPaciente(nombre);
+      setCiPaciente(
+        pacientesEjemplo.find((p) => p.nombre === nombre)?.ci || "",
+      );
+      setHistorialAbierto(true);
+      setBusquedaPaciente("");
+      setModo("inicio");
+      return;
+    }
+    if (!registroPaciente.nombre.trim() || !registroPaciente.ci.trim()) {
+      setMensaje("Completa el nombre y CI del paciente.");
+      return;
+    }
     setHistorialAbierto(true);
     setPaciente(registroPaciente.nombre.trim());
     setCiPaciente(registroPaciente.ci.trim());
-    setRegistroPaciente({ nombre: '', ci: '', telefono: '' });
-    setModo('inicio');
+    setRegistroPaciente({ nombre: "", ci: "", telefono: "" });
+    setModo("inicio");
   };
   const cobrar = () => {
     if (!lineas.length || pendiente > 0) return;
-    setMensaje('Venta registrada correctamente. Lista para imprimir factura.');
+    setMensaje("Venta registrada correctamente. Lista para imprimir factura.");
     setLineas([]);
     setPagos([pagoNuevo(Date.now())]);
-    setDescuento('');
+    setDescuento("");
   };
   return (
-    <section className={`punto-pos ${farmacia ? 'punto-pos-farmacia' : ''}`}>
-      {mostrandoLaboratorio && <SolicitudLaboratorioRecepcion paciente={paciente && ciPaciente ? { nombre: paciente, ci: ciPaciente } : null} pacientes={pacientesEjemplo} onSeleccionar={p => { setPaciente(p.nombre); setCiPaciente(p.ci); setHistorialAbierto(true); setBusquedaPaciente(''); setModo('inicio'); }} onCerrar={() => setMostrandoLaboratorio(false)} />}
-      {mostrandoInternacion && <InternacionModal onCerrar={() => setMostrandoInternacion(false)} />}
-      {mostrandoNuevoPaciente && <div className="punto-nuevo-paciente-fondo" role="presentation" onClick={() => setMostrandoNuevoPaciente(false)}>
-        <form className="punto-nuevo-paciente-modal" role="dialog" aria-modal="true" aria-label="Nuevo paciente" onClick={(event) => event.stopPropagation()} onSubmit={async (event) => { event.preventDefault(); const campo = (selector: string) => event.currentTarget.querySelector<HTMLInputElement>(selector)?.value || ''; await sincronizarPaciente({ nombres: campo('input[placeholder="Nombres"]'), primerApellido: campo('input[placeholder="Apellido paterno"]'), segundoApellido: campo('input[placeholder="Apellido materno"]'), numeroDocumento: campo('input[placeholder="CI"]'), fechaNacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), direccion: campo('input[placeholder="Dirección"]') }); setMostrandoNuevoPaciente(false); }}>
-          <header><div><span><Icon name="users" size={20} /></span><div><p>NUEVO PACIENTE</p><h2>Registrar paciente</h2></div></div><button type="button" aria-label="Cerrar" onClick={() => setMostrandoNuevoPaciente(false)}><Icon name="close" size={18} /></button></header>
-          <div className="punto-nuevo-paciente-contenido">
-            <section className="nuevo-paciente-busqueda"><label><Icon name="search" size={17} /><input placeholder="Buscar paciente registrado" /></label><button type="button"><Icon name="fileText" size={16} /> Imprimir formulario</button></section>
-            <fieldset className="nuevo-paciente-seccion"><legend>Datos del paciente</legend><div className="nuevo-paciente-campos">
-              <label>Nombres *<input required placeholder="Nombres" /></label><label>Apellido paterno *<input required placeholder="Apellido paterno" /></label><label>Apellido materno *<input required placeholder="Apellido materno" /></label><label>CI *<input required placeholder="CI" /></label><label>Complemento<input placeholder="Complemento" /></label><label>Expedido en<select name="expedidoEn" defaultValue=""><option value="">Ninguno</option><option value="CBBA">CBBA - COCHABAMBA</option><option value="LPZ">LPZ - LA PAZ</option><option value="OR">OR - ORURO</option><option value="POT">POT - POTOSÍ</option><option value="TJA">TJA - TARIJA</option><option value="CHU">CHU - CHUQUISACA</option><option value="SCZ">SCZ - SANTA CRUZ</option><option value="BEN">BEN - BENI</option><option value="PND">PND - PANDO</option><option value="EXTRANJERO">EXTRANJERO</option></select></label><label>NIT<input placeholder="NIT" /></label><label>Razón social<input placeholder="Razón social" /></label><label>Fecha de nacimiento *<input required type="date" /></label><label>Teléfono<input type="tel" placeholder="+591" /></label><label>Género *<select required defaultValue=""><option value="" disabled>Seleccionar</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label>
-            </div><div className="nuevo-paciente-opciones"><label><input type="checkbox" /> CI con QR</label><label><input type="checkbox" /> Afroamericano</label></div></fieldset>
-            <fieldset className="nuevo-paciente-seccion"><legend>Domicilio</legend><div className="nuevo-paciente-campos nuevo-paciente-domicilio"><label>País<select defaultValue="Bolivia"><option>Bolivia</option></select></label><label>Departamento<select defaultValue="Cochabamba"><option>Cochabamba</option><option>La Paz</option><option>Santa Cruz</option></select></label><label>Ciudad<input placeholder="Ciudad" /></label><label>Zona / barrio<input placeholder="Zona cardinal" /></label><label className="campo-ancho">Dirección domicilio<input placeholder="Dirección" /></label></div></fieldset>
-            <fieldset className="nuevo-paciente-seccion"><legend>Persona responsable</legend><div className="nuevo-paciente-campos nuevo-paciente-responsable"><label>Nombre completo<input placeholder="Nombre completo" /></label><label>Teléfono de contacto<input type="tel" placeholder="Teléfono" /></label><label>Parentesco<input placeholder="Ej. Padre, madre o tutor" /></label></div></fieldset>
-            <fieldset className="nuevo-paciente-seccion"><legend>Preguntas</legend><div className="nuevo-paciente-campos nuevo-paciente-preguntas"><label className="campo-ancho">¿Cómo se enteró de nosotros? *<select required defaultValue=""><option value="" disabled>Seleccionar una opción</option><option>Recomendación</option><option>Redes sociales</option><option>Otro</option></select></label><label className="campo-ancho">Observaciones<textarea placeholder="Observaciones" /></label></div><label className="nuevo-paciente-habilitado"><input type="checkbox" defaultChecked /> Habilitado</label></fieldset>
-          </div>
-          <footer><button type="button" onClick={() => setMostrandoNuevoPaciente(false)}>Cancelar</button><button type="submit">Guardar paciente</button></footer>
-        </form>
-      </div>}
-      {mostrandoCotizacion && <div className="punto-cotizacion-fondo" role="presentation" onClick={() => setMostrandoCotizacion(false)}>
-        <section className="punto-cotizacion-modal punto-documentos-modal" role="dialog" aria-modal="true" aria-label="Documentos y consentimientos" onClick={(event) => event.stopPropagation()}>
-          <header><div><small>GESTIÓN DOCUMENTAL</small><h2>Documentos y consentimientos</h2><p>Completa los datos una sola vez y reutilízalos en todos los documentos.</p></div><button type="button" aria-label="Cerrar documentos" onClick={() => setMostrandoCotizacion(false)}>×</button></header>
-          <section className="documentos-paciente-form"><div className="documentos-busqueda"><label><Icon name="search" size={16} /><input defaultValue={paciente} placeholder="Buscar paciente por nombre o CI" /></label><button type="button" onClick={() => seleccionar('María Fernández López')}>Buscar paciente</button></div><div className="documentos-campos"><label>Nombre completo<input defaultValue={paciente} placeholder="Nombre y apellidos" /></label><label>CI / documento<input placeholder="Número de documento" /></label><label>Fecha de nacimiento<input type="date" /></label><label>Teléfono<input placeholder="Número de celular" /></label></div></section>
-          <section className="documentos-lista"><div><h3>Documentos disponibles</h3><span>Selecciona los documentos que deseas preparar</span></div><label><input type="checkbox" defaultChecked /> Consentimiento informado</label><label><input type="checkbox" /> Autorización de procedimiento</label><label><input type="checkbox" /> Ficha de datos del paciente</label><label><input type="checkbox" /> Documento personalizado</label></section>
-          {lineas.length ? <div className="punto-cotizacion-lineas">{lineas.map((linea) => <div key={linea.id}><span>{linea.cantidad} × {linea.nombre}</span><strong>{dinero(linea.cantidad * linea.precio)}</strong></div>)}</div> : <p>Agrega productos o servicios al carrito para cotizar.</p>}
-          <footer><button type="button" className="documentos-cancelar" onClick={() => setMostrandoCotizacion(false)}>Cancelar</button><button type="button" onClick={() => { setMensaje('Datos preparados para los documentos seleccionados.'); setMostrandoCotizacion(false); }}>Preparar documentos</button></footer>
-        </section>
-      </div>}
+    <section className={`punto-pos ${farmacia ? "punto-pos-farmacia" : ""}`}>
+      {mostrandoLaboratorio && (
+        <SolicitudLaboratorioRecepcion
+          paciente={
+            paciente && ciPaciente ? { nombre: paciente, ci: ciPaciente } : null
+          }
+          pacientes={pacientesEjemplo}
+          onSeleccionar={(p) => {
+            setPaciente(p.nombre);
+            setCiPaciente(p.ci);
+            setHistorialAbierto(true);
+            setBusquedaPaciente("");
+            setModo("inicio");
+          }}
+          onCerrar={() => setMostrandoLaboratorio(false)}
+        />
+      )}
+      {mostrandoInternacion && (
+        <InternacionModal
+          pacienteInicial={paciente && ciPaciente ? { nombre: paciente, ci: ciPaciente } : null}
+          onRegistrada={(registro) => setMensaje(`Preinternación registrada para ${registro.paciente}.`)}
+          onCerrar={() => setMostrandoInternacion(false)}
+        />
+      )}
+      {mostrandoNuevoPaciente && (
+        <div
+          className="punto-nuevo-paciente-fondo"
+          role="presentation"
+          onClick={() => setMostrandoNuevoPaciente(false)}
+        >
+          <form
+            className="punto-nuevo-paciente-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Nuevo paciente"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={async (event) => {
+              event.preventDefault();
+              const formulario = event.currentTarget;
+              const campo = (selector: string) => formulario.querySelector<HTMLInputElement>(selector)?.value || "";
+              const seleccionados = formulario.querySelectorAll<HTMLSelectElement>('select[required]');
+              const respuesta = await apiFetch('/api/v1/pacientes', { method: 'POST', body: JSON.stringify({
+                nombres: campo('input[placeholder="Nombres"]'), apellido_paterno: campo('input[placeholder="Apellido paterno"]'), apellido_materno: campo('input[placeholder="Apellido materno"]'), ci: campo('input[placeholder="CI"]'),
+                complemento_ci: campo('input[placeholder="Complemento"]'), expedido_en: formulario.querySelector<HTMLSelectElement>('select[name="expedidoEn"]')?.value || null, nit: campo('input[placeholder="NIT"]'), razon_social: campo('input[placeholder="Razón social"]'),
+                fecha_nacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), genero: seleccionados[0]?.value, ci_con_qr: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-ci input[type="checkbox"]')?.checked || false,
+                pais: formulario.querySelectorAll<HTMLSelectElement>('select')[1]?.value || 'Bolivia', departamento: formulario.querySelectorAll<HTMLSelectElement>('select')[2]?.value || 'Cochabamba', ciudad: campo('input[placeholder="Ciudad"]'), zona_barrio: campo('input[placeholder="Zona cardinal"]'), direccion_domicilio: campo('input[placeholder="Dirección"]'),
+                responsable_nombre_completo: campo('input[placeholder="Nombre completo"]'), responsable_telefono: campo('input[placeholder="Teléfono"]'), responsable_parentesco: campo('input[placeholder="Ej. Padre, madre o tutor"]'), como_se_entero: seleccionados[1]?.value, observaciones: campo('textarea[placeholder="Observaciones"]'), habilitado: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-habilitado input')?.checked ?? true,
+              }) });
+              const resultado = await respuesta.json() as { message?: string };
+              if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo registrar el paciente.');
+              window.dispatchEvent(new Event('pacientes:actualizados'));
+              setMostrandoNuevoPaciente(false);
+            }}
+          >
+            <header>
+              <div>
+                <span>
+                  <Icon name="users" size={20} />
+                </span>
+                <div>
+                  <p>NUEVO PACIENTE</p>
+                  <h2>Registrar paciente</h2>
+                </div>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setMostrandoNuevoPaciente(false)}
+              >
+                <Icon name="close" size={18} />
+              </button>
+            </header>
+            <div className="punto-nuevo-paciente-contenido">
+              <section className="nuevo-paciente-busqueda">
+                <label>
+                  <Icon name="search" size={17} />
+                  <input placeholder="Buscar paciente registrado" />
+                </label>
+                <button type="button">
+                  <Icon name="fileText" size={16} /> Imprimir formulario
+                </button>
+              </section>
+              <fieldset className="nuevo-paciente-seccion">
+                <legend>Datos del paciente</legend>
+                <div className="nuevo-paciente-campos">
+                  <label>
+                    Nombres *<input required placeholder="Nombres" />
+                  </label>
+                  <label>
+                    Apellido paterno *
+                    <input required placeholder="Apellido paterno" />
+                  </label>
+                  <label>
+                    Apellido materno *
+                    <input required placeholder="Apellido materno" />
+                  </label>
+                  <label className="nuevo-paciente-ci">
+                    CI *
+                    <input required placeholder="CI" />
+                    <span>
+                      <input type="checkbox" /> CI con QR
+                    </span>
+                  </label>
+                  <label>
+                    Complemento
+                    <input placeholder="Complemento" />
+                  </label>
+                  <label>
+                    Expedido en
+                    <select name="expedidoEn" defaultValue="">
+                      <option value="">Ninguno</option>
+                      <option value="CBBA">CBBA - COCHABAMBA</option>
+                      <option value="LPZ">LPZ - LA PAZ</option>
+                      <option value="OR">OR - ORURO</option>
+                      <option value="POT">POT - POTOSÍ</option>
+                      <option value="TJA">TJA - TARIJA</option>
+                      <option value="CHU">CHU - CHUQUISACA</option>
+                      <option value="SCZ">SCZ - SANTA CRUZ</option>
+                      <option value="BEN">BEN - BENI</option>
+                      <option value="PND">PND - PANDO</option>
+                      <option value="EXTRANJERO">EXTRANJERO</option>
+                    </select>
+                  </label>
+                  <label>
+                    NIT
+                    <input placeholder="NIT" />
+                  </label>
+                  <label>
+                    Razón social
+                    <input placeholder="Razón social" />
+                  </label>
+                  <label>
+                    Fecha de nacimiento *<input required type="date" />
+                  </label>
+                  <label>
+                    Teléfono
+                    <input type="tel" placeholder="+591" />
+                  </label>
+                  <label>
+                    Género *
+                    <select required defaultValue="">
+                      <option value="" disabled>
+                        Seleccionar
+                      </option>
+                      <option>Femenino</option>
+                      <option>Masculino</option>
+                      <option>Otro</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset className="nuevo-paciente-seccion">
+                <legend>Domicilio</legend>
+                <div className="nuevo-paciente-campos nuevo-paciente-domicilio">
+                  <label>
+                    País
+                    <select defaultValue="Bolivia">
+                      <option>Bolivia</option>
+                    </select>
+                  </label>
+                  <label>
+                    Departamento
+                    <select defaultValue="Cochabamba">
+                      <option>Cochabamba</option>
+                      <option>La Paz</option>
+                      <option>Santa Cruz</option>
+                    </select>
+                  </label>
+                  <label>
+                    Ciudad
+                    <input placeholder="Ciudad" />
+                  </label>
+                  <label>
+                    Zona / barrio
+                    <input placeholder="Zona cardinal" />
+                  </label>
+                  <label className="campo-ancho">
+                    Dirección domicilio
+                    <input placeholder="Dirección" />
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset className="nuevo-paciente-seccion">
+                <legend>Persona responsable</legend>
+                <div className="nuevo-paciente-campos nuevo-paciente-responsable">
+                  <label>
+                    Nombre completo
+                    <input placeholder="Nombre completo" />
+                  </label>
+                  <label>
+                    Teléfono de contacto
+                    <input type="tel" placeholder="Teléfono" />
+                  </label>
+                  <label>
+                    Parentesco
+                    <input placeholder="Ej. Padre, madre o tutor" />
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset className="nuevo-paciente-seccion">
+                <legend>Preguntas</legend>
+                <div className="nuevo-paciente-campos nuevo-paciente-preguntas">
+                  <label className="campo-ancho">
+                    ¿Cómo se enteró de nosotros? *
+                    <select required defaultValue="">
+                      <option value="" disabled>
+                        Seleccionar una opción
+                      </option>
+                      <option>Recomendación</option>
+                      <option>Redes sociales</option>
+                      <option>Otro</option>
+                    </select>
+                  </label>
+                  <label className="campo-ancho">
+                    Observaciones
+                    <textarea placeholder="Observaciones" />
+                  </label>
+                </div>
+                <label className="nuevo-paciente-habilitado">
+                  <input type="checkbox" defaultChecked /> Habilitado
+                </label>
+              </fieldset>
+            </div>
+            <footer>
+              <button
+                type="button"
+                onClick={() => setMostrandoNuevoPaciente(false)}
+              >
+                Cancelar
+              </button>
+              <button type="submit">Guardar paciente</button>
+            </footer>
+          </form>
+        </div>
+      )}
+      {mostrandoCotizacion && (
+        <div
+          className="punto-cotizacion-fondo"
+          role="presentation"
+          onClick={() => setMostrandoCotizacion(false)}
+        >
+          <section
+            className="punto-cotizacion-modal punto-documentos-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Documentos y consentimientos"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <small>GESTIÓN DOCUMENTAL</small>
+                <h2>Documentos y consentimientos</h2>
+                <p>
+                  Completa los datos una sola vez y reutilízalos en todos los
+                  documentos.
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar documentos"
+                onClick={() => setMostrandoCotizacion(false)}
+              >
+                ×
+              </button>
+            </header>
+            <section className="documentos-lista">
+              <div>
+                <h3>Documentos disponibles</h3>
+                <span>Selecciona los documentos que deseas preparar</span>
+              </div>
+              <label>
+                <input type="checkbox" defaultChecked /> Consentimiento
+                informado
+              </label>
+              <label>
+                <input type="checkbox" /> Autorización de procedimiento
+              </label>
+              <label>
+                <input type="checkbox" /> Ficha de datos del paciente
+              </label>
+              <label>
+                <input type="checkbox" /> Documento personalizado
+              </label>
+            </section>
+            {lineas.length ? (
+              <div className="punto-cotizacion-lineas">
+                {lineas.map((linea) => (
+                  <div key={linea.id}>
+                    <span>
+                      {linea.cantidad} × {linea.nombre}
+                    </span>
+                    <strong>{dinero(linea.cantidad * linea.precio)}</strong>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p>Agrega productos o servicios al carrito para cotizar.</p>
+            )}
+            <footer>
+              <button
+                type="button"
+                className="documentos-cancelar"
+                onClick={() => setMostrandoCotizacion(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMensaje(
+                    "Datos preparados para los documentos seleccionados.",
+                  );
+                  setMostrandoCotizacion(false);
+                }}
+              >
+                Preparar documentos
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
       <header className="punto-pos-cabecera punto-pos-contexto">
         <div className="punto-contexto">
           <label>
@@ -201,61 +589,170 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
             </select>
           </label>
         </div>
-        {!farmacia && <button className="punto-hacer-cotizacion" type="button" onClick={() => setMostrandoCotizacion(true)}>DOCUMENTOS Y CONSENTIMIENTOS</button>}
+        {!farmacia && (
+          <button
+            className="punto-hacer-cotizacion"
+            type="button"
+            onClick={() => setMostrandoCotizacion(true)}
+          >
+            DOCUMENTOS Y CONSENTIMIENTOS
+          </button>
+        )}
       </header>
-      <div className={`punto-pos-layout ${paciente ? (historialAbierto ? 'con-historial' : 'historial-plegado') : ''}`}>
-        {paciente && <aside className="punto-historial-paciente">
-          <button className="punto-historial-control" type="button" aria-expanded={historialAbierto} aria-label={historialAbierto ? 'Ocultar historial del paciente' : 'Mostrar historial del paciente'} title={historialAbierto ? 'Ocultar historial' : 'Mostrar historial'} onClick={() => setHistorialAbierto(abierto => !abierto)}><Icon name={historialAbierto ? 'chevronLeft' : 'chevronRight'} size={16} />{historialAbierto && <span>Ocultar</span>}</button>
-          {historialAbierto && <div className="punto-historial-contenido punto-historial-nuevo"><header><div><p>CUENTAS ANTERIORES</p><h3>{paciente}</h3></div><b>HC-004821</b></header>{paciente === 'Luis Escobar' && <section className="punto-acceso-internacion"><strong>Internado</strong><button type="button" onClick={() => onAbrirCuenta?.('internacion', paciente)}>Ver cuenta <Icon name="arrowRight" size={14} /></button></section>}<select value={filtroHistorial} onChange={e => setFiltroHistorial(e.target.value)} aria-label="Filtrar cuentas históricas"><option>Todos</option><option>Pagado</option><option>A cuenta</option><option>Anulado</option><option>Pre venta</option></select><div className="punto-historial-lista">{historialPaciente.filter(c => filtroHistorial === 'Todos' || c.estado === filtroHistorial).map(c => <article key={c.n} className={`estado-${c.estado.toLowerCase().replace(' ', '-')}`}><div><strong>N.º {c.n}</strong><small>HOSPITAL</small></div><span className="punto-historial-estado">{c.estado}</span><p><Icon name="chevronRight" size={14} /> Cajero/a: farmacia test farmacia test<br /><em>{c.detalle}</em></p><footer><small>{c.fecha}</small><b>Bs. {c.total}</b></footer></article>)}</div></div>}
-        </aside>}
+      <div
+        className={`punto-pos-layout ${paciente ? (historialAbierto ? "con-historial" : "historial-plegado") : ""}`}
+      >
+        {paciente && (
+          <aside className="punto-historial-paciente">
+            <button
+              className="punto-historial-control"
+              type="button"
+              aria-expanded={historialAbierto}
+              aria-label={
+                historialAbierto
+                  ? "Ocultar historial del paciente"
+                  : "Mostrar historial del paciente"
+              }
+              title={
+                historialAbierto ? "Ocultar historial" : "Mostrar historial"
+              }
+              onClick={() => setHistorialAbierto((abierto) => !abierto)}
+            >
+              <Icon
+                name={historialAbierto ? "chevronLeft" : "chevronRight"}
+                size={16}
+              />
+              {historialAbierto && <span>Ocultar</span>}
+            </button>
+            {historialAbierto && (
+              <div className="punto-historial-contenido punto-historial-nuevo">
+                <header>
+                  <div>
+                    <p>CUENTAS ANTERIORES</p>
+                    <h3>{paciente}</h3>
+                  </div>
+                  <b>HC-004821</b>
+                </header>
+                {paciente === "Luis Escobar" && (
+                  <section className="punto-acceso-internacion">
+                    <strong>Internado</strong>
+                    <button
+                      type="button"
+                      onClick={() => onAbrirCuenta?.("internacion", paciente)}
+                    >
+                      Ver cuenta <Icon name="arrowRight" size={14} />
+                    </button>
+                  </section>
+                )}
+                <select
+                  value={filtroHistorial}
+                  onChange={(e) => setFiltroHistorial(e.target.value)}
+                  aria-label="Filtrar cuentas históricas"
+                >
+                  <option>Todos</option>
+                  <option>Pagado</option>
+                  <option>A cuenta</option>
+                  <option>Anulado</option>
+                  <option>Pre venta</option>
+                </select>
+                <div className="punto-historial-lista">
+                  {historialPaciente
+                    .filter(
+                      (c) =>
+                        filtroHistorial === "Todos" ||
+                        c.estado === filtroHistorial,
+                    )
+                    .map((c) => (
+                      <article
+                        key={c.n}
+                        className={`estado-${c.estado.toLowerCase().replace(" ", "-")}`}
+                      >
+                        <div>
+                          <strong>N.º {c.n}</strong>
+                          <small>HOSPITAL</small>
+                        </div>
+                        <span className="punto-historial-estado">
+                          {c.estado}
+                        </span>
+                        <p>
+                          <Icon name="chevronRight" size={14} /> Cajero/a:
+                          farmacia test farmacia test
+                          <br />
+                          <em>{c.detalle}</em>
+                        </p>
+                        <footer>
+                          <small>{c.fecha}</small>
+                          <b>Bs. {c.total}</b>
+                        </footer>
+                      </article>
+                    ))}
+                </div>
+              </div>
+            )}
+          </aside>
+        )}
         <section className="punto-catalogo">
           <div className="punto-busquedas">
-          <label>
-            <Icon name="search" size={17} />
-            <input
-              value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              placeholder="Buscar producto por nombre, código o categoría…"
-            />
-          </label>
-          {!farmacia && <button
-            className="punto-accion-laboratorio"
-            type="button"
-            aria-haspopup="dialog"
-            onClick={() => { setMostrandoLaboratorio(true); setMensaje(''); }}
-          >
-            <Icon name="lab" size={16} /> Laboratorio
-          </button>}
-          {!farmacia && <button
-            className="punto-accion-internacion"
-            type="button"
-            aria-haspopup="dialog"
-            onClick={() => { setMensaje(''); setMostrandoInternacion(true); }}
-          >
-            <Icon name="plus" size={16} /> Internación
-          </button>}
-          <button
-            className="punto-accion-nuevo-paciente"
-            type="button"
-            onClick={() => { setMostrandoNuevoPaciente(true); setMensaje(''); }}
-          >
-            <Icon name="plus" size={16} /> Nuevo paciente
-          </button>
-        </div>
+            <label>
+              <Icon name="search" size={17} />
+              <input
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Buscar producto por nombre, código o categoría…"
+              />
+            </label>
+            {!farmacia && (
+              <button
+                className="punto-accion-laboratorio"
+                type="button"
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setMostrandoLaboratorio(true);
+                  setMensaje("");
+                }}
+              >
+                <Icon name="lab" size={16} /> Laboratorio
+              </button>
+            )}
+            {!farmacia && (
+              <button
+                className="punto-accion-internacion"
+                type="button"
+                aria-haspopup="dialog"
+                onClick={() => {
+                  setMensaje("");
+                  setMostrandoInternacion(true);
+                }}
+              >
+                <Icon name="plus" size={16} /> Internación
+              </button>
+            )}
+            <button
+              className="punto-accion-nuevo-paciente"
+              type="button"
+              onClick={() => {
+                setMostrandoNuevoPaciente(true);
+                setMensaje("");
+              }}
+            >
+              <Icon name="plus" size={16} /> Nuevo paciente
+            </button>
+          </div>
           <div className="punto-catalogo-filtros">
             <div className="punto-categorias">
-              {(farmacia ? (['Todos', 'Producto', 'Insumo'] as const) : (['Todos', 'Producto', 'Insumo', 'Servicio'] as const)).map(
-                (o) => (
-                  <button
-                    type="button"
-                    className={tipo === o ? 'activo' : ''}
-                    key={o}
-                    onClick={() => setTipo(o)}
-                  >
-                    {o}
-                  </button>
-                ),
-              )}
+              {(farmacia
+                ? (["Todos", "Producto", "Insumo"] as const)
+                : (["Todos", "Producto", "Insumo", "Servicio"] as const)
+              ).map((o) => (
+                <button
+                  type="button"
+                  className={tipo === o ? "activo" : ""}
+                  key={o}
+                  onClick={() => setTipo(o)}
+                >
+                  {o}
+                </button>
+              ))}
             </div>
             <div
               className="punto-modo-vista"
@@ -264,32 +761,32 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
             >
               <button
                 type="button"
-                className={vista === 'listado' ? 'activo' : ''}
-                onClick={() => setVista('listado')}
+                className={vista === "listado" ? "activo" : ""}
+                onClick={() => setVista("listado")}
               >
                 <Icon name="menu" size={16} /> Listado
               </button>
               <button
                 type="button"
-                className={vista === 'galeria' ? 'activo' : ''}
-                onClick={() => setVista('galeria')}
+                className={vista === "galeria" ? "activo" : ""}
+                onClick={() => setVista("galeria")}
               >
                 <Icon name="image" size={16} /> Galería
               </button>
             </div>
           </div>
           {mensaje && <p className="punto-aviso exito">{mensaje}</p>}
-          {vista === 'galeria' ? (
+          {vista === "galeria" ? (
             <div className="punto-tarjetas">
               {resultados.map((i) => (
                 <article key={i.id}>
                   <div className="punto-tarjeta-avatar">
                     <span>
                       {i.nombre
-                        .split(' ')
+                        .split(" ")
                         .slice(0, 2)
                         .map((p) => p[0])
-                        .join('')}
+                        .join("")}
                     </span>
                   </div>
                   <div className="punto-tarjeta-info">
@@ -297,7 +794,7 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
                     <strong>{i.nombre}</strong>
                     <span>
                       {i.tipo}
-                      {i.stock !== undefined ? ` · Stock ${i.stock}` : ''}
+                      {i.stock !== undefined ? ` · Stock ${i.stock}` : ""}
                     </span>
                   </div>
                   <footer>
@@ -318,10 +815,10 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
                 <article key={i.id}>
                   <div className="punto-listado-avatar">
                     {i.nombre
-                      .split(' ')
+                      .split(" ")
                       .slice(0, 2)
                       .map((p) => p[0])
-                      .join('')}
+                      .join("")}
                   </div>
                   <div className="punto-listado-info">
                     <strong>{i.nombre}</strong>
@@ -341,7 +838,7 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
         <aside className="punto-carrito">
           <header>
             <div>
-              <p>{farmacia ? 'CARRITO DE FARMACIA' : 'CARRITO DE VENTA'}</p>
+              <p>{farmacia ? "CARRITO DE FARMACIA" : "CARRITO DE VENTA"}</p>
               <strong>
                 {lineas.reduce((t, i) => t + i.cantidad, 0)} productos
               </strong>
@@ -355,43 +852,106 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
                 <button
                   className="cliente-cambiar"
                   type="button"
-                  onClick={() => { setPaciente(''); setCiPaciente(''); }}
+                  onClick={() => {
+                    setPaciente("");
+                    setCiPaciente("");
+                  }}
                 >
                   Cambiar
                 </button>
               )}
             </header>
-            {!paciente && modo === 'inicio' && (
+            {!paciente && modo === "inicio" && (
               <div className="cliente-acciones">
-                <button type="button" onClick={() => setModo('buscar')}>
+                <button type="button" onClick={() => setModo("buscar")}>
                   <Icon name="search" size={15} /> Buscar paciente
                 </button>
-                <button type="button" onClick={() => setModo('registrar')}>
+                <button type="button" onClick={() => setModo("registrar")}>
                   <Icon name="plus" size={15} /> Registrar cliente
                 </button>
               </div>
             )}
-            {!paciente && modo === 'buscar' && (
+            {!paciente && modo === "buscar" && (
               <div className="cliente-busqueda">
                 <label>
                   <Icon name="search" size={16} />
-                  <input autoFocus value={busquedaPaciente} onChange={e => setBusquedaPaciente(e.target.value)} placeholder="Buscar por nombre o CI" />
+                  <input
+                    autoFocus
+                    value={busquedaPaciente}
+                    onChange={(e) => setBusquedaPaciente(e.target.value)}
+                    placeholder="Buscar por nombre o CI"
+                  />
                 </label>
-                {!!busquedaPaciente && <div className="cliente-coincidencias" role="listbox" aria-label="Coincidencias de pacientes">{coincidenciasPaciente.length ? coincidenciasPaciente.map(p => <button type="button" role="option" key={p.ci} onClick={() => seleccionar(p.nombre)}><span><b>{p.nombre}</b><small>CI: {p.ci}</small></span><Icon name="chevronRight" size={15} /></button>) : <p>No se encontraron coincidencias.</p>}</div>}
+                {!!busquedaPaciente && (
+                  <div
+                    className="cliente-coincidencias"
+                    role="listbox"
+                    aria-label="Coincidencias de pacientes"
+                  >
+                    {coincidenciasPaciente.length ? (
+                      coincidenciasPaciente.map((p) => (
+                        <button
+                          type="button"
+                          role="option"
+                          key={p.ci}
+                          onClick={() => seleccionar(p.nombre)}
+                        >
+                          <span>
+                            <b>{p.nombre}</b>
+                            <small>CI: {p.ci}</small>
+                          </span>
+                          <Icon name="chevronRight" size={15} />
+                        </button>
+                      ))
+                    ) : (
+                      <p>No se encontraron coincidencias.</p>
+                    )}
+                  </div>
+                )}
                 <button
                   className="cliente-secundario"
                   type="button"
-                  onClick={() => { setBusquedaPaciente(''); setModo('inicio'); }}
+                  onClick={() => {
+                    setBusquedaPaciente("");
+                    setModo("inicio");
+                  }}
                 >
                   Cancelar
                 </button>
               </div>
             )}
-            {!paciente && modo === 'registrar' && (
+            {!paciente && modo === "registrar" && (
               <div className="cliente-formulario">
-                <input placeholder="Nombres y apellidos *" value={registroPaciente.nombre} onChange={e => setRegistroPaciente(actual => ({ ...actual, nombre: e.target.value }))} />
-                <input placeholder="CI *" value={registroPaciente.ci} onChange={e => setRegistroPaciente(actual => ({ ...actual, ci: e.target.value }))} />
-                <input placeholder="Número de celular" value={registroPaciente.telefono} onChange={e => setRegistroPaciente(actual => ({ ...actual, telefono: e.target.value }))} />
+                <input
+                  placeholder="Nombres y apellidos *"
+                  value={registroPaciente.nombre}
+                  onChange={(e) =>
+                    setRegistroPaciente((actual) => ({
+                      ...actual,
+                      nombre: e.target.value,
+                    }))
+                  }
+                />
+                <input
+                  placeholder="CI *"
+                  value={registroPaciente.ci}
+                  onChange={(e) =>
+                    setRegistroPaciente((actual) => ({
+                      ...actual,
+                      ci: e.target.value,
+                    }))
+                  }
+                />
+                <input
+                  placeholder="Número de celular"
+                  value={registroPaciente.telefono}
+                  onChange={(e) =>
+                    setRegistroPaciente((actual) => ({
+                      ...actual,
+                      telefono: e.target.value,
+                    }))
+                  }
+                />
                 <div>
                   <button type="button" onClick={() => seleccionar()}>
                     Guardar paciente
@@ -399,7 +959,7 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
                   <button
                     className="cliente-secundario"
                     type="button"
-                    onClick={() => setModo('inicio')}
+                    onClick={() => setModo("inicio")}
                   >
                     Cancelar
                   </button>
@@ -537,7 +1097,7 @@ export function CajaRecepcionView({ onAbrirCuenta, farmacia = false }: { onAbrir
             >
               <Icon name="plus" size={15} /> Agregar método de pago
             </button>
-            {pagos.some((p) => p.metodo === 'QR' && Number(p.monto) > 0) && (
+            {pagos.some((p) => p.metodo === "QR" && Number(p.monto) > 0) && (
               <button
                 className="punto-generar-qr"
                 type="button"

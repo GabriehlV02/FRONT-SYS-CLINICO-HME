@@ -1,27 +1,29 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '../../../radius/componentes/Icono';
+import { crearPreinternacion, type RegistroInternacion } from '../../internacion/registroInternaciones';
 import './InternacionModal.css';
 
-export function InternacionModal({ onCerrar }: { onCerrar: () => void }) {
-  const ventana = useRef<HTMLDialogElement>(null);
+type Datos = Record<'nombre'|'ci'|'nacimiento'|'sexo'|'estadoCivil'|'ocupacion'|'direccion'|'telefono'|'contactoNombre'|'contactoTelefono'|'contactoDireccion'|'contactoParentesco'|'responsableNombre'|'responsableCi'|'responsableNacimiento'|'responsableDireccion'|'responsableTelefono', string>;
+type Paso = 'paciente'|'ingreso';
+const fechaHoy = () => { const fecha = new Date(); return `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`; };
+const horaAhora = () => new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+const inicial = (p?: { nombre: string; ci: string } | null): Datos => ({ nombre: p?.nombre ?? '', ci: p?.ci ?? '', nacimiento: '', sexo: '', estadoCivil: '', ocupacion: '', direccion: '', telefono: '', contactoNombre: '', contactoTelefono: '', contactoDireccion: '', contactoParentesco: '', responsableNombre: '', responsableCi: '', responsableNacimiento: '', responsableDireccion: '', responsableTelefono: '' });
 
-  useEffect(() => {
-    const dialogo = ventana.current;
-    const overflowAnterior = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    dialogo?.showModal();
-    return () => {
-      document.body.style.overflow = overflowAnterior;
-    };
-  }, []);
-
-  return createPortal(
-    <dialog ref={ventana} className="recepcion-internacion-modal" aria-label="Internación" onClose={onCerrar}>
-      <button className="recepcion-internacion-cerrar" type="button" aria-label="Cerrar internación" autoFocus onClick={() => ventana.current?.close()}>
-        <Icon name="close" size={22} />
-      </button>
-    </dialog>,
-    document.body,
-  );
+export function InternacionModal({ onCerrar, pacienteInicial, onRegistrada }: { onCerrar: () => void; pacienteInicial?: { nombre: string; ci: string } | null; onRegistrada?: (registro: RegistroInternacion) => void }) {
+  const ventana = useRef<HTMLDialogElement>(null); const [paso, setPaso] = useState<Paso>('paciente');
+  const [datos, setDatos] = useState<Datos>(() => inicial(pacienteInicial));
+  const [ingreso, setIngreso] = useState({ medico: '', diagnostico: '', fecha: fechaHoy(), hora: horaAhora(), origen: 'Emergencia', servicio: 'Medicina interna', observaciones: '' });
+  const completoPaciente = Boolean(datos.nombre.trim() && datos.ci.trim() && datos.direccion.trim() && datos.telefono.trim());
+  const completoIngreso = Boolean(ingreso.medico.trim() && ingreso.diagnostico.trim() && ingreso.fecha && ingreso.hora);
+  const actualizar = (campo: keyof Datos, valor: string) => setDatos(actual => ({ ...actual, [campo]: valor }));
+  useEffect(() => { const dialogo = ventana.current; const previo = document.body.style.overflow; document.body.style.overflow = 'hidden'; dialogo?.showModal(); return () => { document.body.style.overflow = previo; }; }, []);
+  const registrar = () => { if (!completoPaciente) return setPaso('paciente'); if (!completoIngreso) return setPaso('ingreso'); const registro = crearPreinternacion({ paciente: datos.nombre.trim(), ci: datos.ci.trim(), medico: ingreso.medico.trim(), motivo: ingreso.diagnostico.trim(), datosPaciente: datos, fechaIngreso: ingreso.fecha, horaIngreso: ingreso.hora, origen: ingreso.origen, servicio: ingreso.servicio, observaciones: ingreso.observaciones.trim() }); onRegistrada?.(registro); ventana.current?.close(); };
+  const Campo = ({ id, etiqueta, clase = '', tipo = 'text' }: { id: keyof Datos; etiqueta: string; clase?: string; tipo?: string }) => <label className={clase}>{etiqueta}<input type={tipo} value={datos[id]} onChange={e => actualizar(id, e.target.value)} /></label>;
+  return createPortal(<dialog ref={ventana} className="recepcion-internacion-modal" aria-label="Registro de internación" onClose={onCerrar}>
+    <header className="recepcion-internacion-encabezado"><div><p>ADMISIÓN HOSPITALARIA</p><h2>Nueva internación</h2><small>Será preinternación hasta que Enfermería asigne sala y cama.</small></div><button className="recepcion-internacion-cerrar" type="button" aria-label="Cerrar" autoFocus onClick={() => ventana.current?.close()}><Icon name="close" size={22} /></button></header>
+    <nav className="recepcion-internacion-tabs"><button type="button" className={paso === 'paciente' ? 'activo' : ''} onClick={() => setPaso('paciente')}><span>1</span> Datos personales</button><button type="button" className={paso === 'ingreso' ? 'activo' : ''} onClick={() => setPaso('ingreso')}><span>2</span> Datos de ingreso</button></nav>
+    <main className="recepcion-internacion-contenido">{paso === 'paciente' ? <section className="internacion-datos-personales"><header><div><p>DATOS DEL PACIENTE</p><h3>{pacienteInicial?.ci ? 'Paciente identificado en el sistema' : 'Registro inicial del paciente'}</h3><small>{pacienteInicial?.ci ? 'Los datos disponibles fueron cargados automáticamente.' : 'Por ser su primera atención desde Emergencias, completa los datos obligatorios.'}</small></div><em className={pacienteInicial?.ci ? 'encontrado' : 'nuevo'}>{pacienteInicial?.ci ? 'Autocompletado' : 'Nuevo paciente'}</em></header><fieldset><legend>Identificación y contacto</legend><div className="internacion-campos"><Campo id="nombre" etiqueta="Nombre y apellidos *"/><Campo id="ci" etiqueta="CI / documento *"/><Campo id="nacimiento" etiqueta="Fecha de nacimiento" tipo="date"/><label>Sexo<select value={datos.sexo} onChange={e => actualizar('sexo', e.target.value)}><option value="">Seleccionar</option><option>Femenino</option><option>Masculino</option><option>Otro</option></select></label><Campo id="estadoCivil" etiqueta="Estado civil"/><Campo id="ocupacion" etiqueta="Ocupación"/><Campo id="direccion" etiqueta="Dirección *" clase="doble"/><Campo id="telefono" etiqueta="Teléfono *"/></div></fieldset><fieldset><legend>Contacto en caso de emergencia</legend><div className="internacion-campos"><Campo id="contactoNombre" etiqueta="Nombre completo"/><Campo id="contactoTelefono" etiqueta="Teléfono"/><Campo id="contactoParentesco" etiqueta="Parentesco"/><Campo id="contactoDireccion" etiqueta="Dirección" clase="doble"/></div></fieldset><fieldset><legend>Responsable de la cuenta</legend><div className="internacion-campos"><Campo id="responsableNombre" etiqueta="Nombre completo"/><Campo id="responsableCi" etiqueta="CI / documento"/><Campo id="responsableNacimiento" etiqueta="Fecha de nacimiento" tipo="date"/><Campo id="responsableTelefono" etiqueta="Teléfono"/><Campo id="responsableDireccion" etiqueta="Dirección" clase="doble"/></div></fieldset></section> : <section className="internacion-datos-ingreso"><header><p>DATOS DE INGRESO</p><h3>Orden y diagnóstico de internación</h3><small>Se preparan para la hoja frontal de admisión y consentimiento informado.</small></header><div className="internacion-campos"><label>Médico que ordena la internación *<input value={ingreso.medico} onChange={e => setIngreso(x => ({ ...x, medico: e.target.value }))} placeholder="Nombre completo del médico"/></label><label>Origen<select value={ingreso.origen} onChange={e => setIngreso(x => ({ ...x, origen: e.target.value }))}><option>Emergencia</option><option>Consulta externa</option><option>Referencia</option></select></label><label>Servicio de internación<select value={ingreso.servicio} onChange={e => setIngreso(x => ({ ...x, servicio: e.target.value }))}><option>Medicina interna</option><option>Cirugía</option><option>Pediatría</option><option>Ginecología y obstetricia</option></select></label><label>Fecha de ingreso *<input type="date" value={ingreso.fecha} onChange={e => setIngreso(x => ({ ...x, fecha: e.target.value }))}/></label><label>Hora de ingreso *<input type="time" value={ingreso.hora} onChange={e => setIngreso(x => ({ ...x, hora: e.target.value }))}/></label><label className="doble">Diagnóstico de ingreso *<textarea value={ingreso.diagnostico} onChange={e => setIngreso(x => ({ ...x, diagnostico: e.target.value }))} placeholder="Diagnóstico presuntivo o confirmado"/></label><label className="doble">Observaciones<textarea value={ingreso.observaciones} onChange={e => setIngreso(x => ({ ...x, observaciones: e.target.value }))} placeholder="Acompañante, condición de llegada u otra información relevante"/></label></div></section>}</main>
+    <footer className="recepcion-internacion-pie"><button type="button" onClick={() => ventana.current?.close()}>Cancelar</button>{paso === 'paciente' ? <button type="button" disabled={!completoPaciente} onClick={() => setPaso('ingreso')}>Continuar</button> : <><button type="button" onClick={() => setPaso('paciente')}>Volver</button><button type="button" disabled={!completoPaciente || !completoIngreso} onClick={registrar}>Registrar preinternación</button></>}</footer>
+  </dialog>, document.body);
 }

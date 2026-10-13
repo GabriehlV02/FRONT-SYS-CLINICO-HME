@@ -32,6 +32,7 @@ const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTria
 const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
 const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
+const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
 const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
 const VistaBaseDatosOrthanc = lazy(() => import('./vistas/base-datos/VistaBaseDatosOrthanc'));
@@ -165,6 +166,9 @@ export default function Aplicacion() {
   useEffect(() => {
     document.documentElement.dataset.theme = tema;
     localStorage.setItem("pulso_theme", tema);
+    document.documentElement.classList.add("tema-cambiando");
+    const finTransicion = window.setTimeout(() => document.documentElement.classList.remove("tema-cambiando"), 280);
+    return () => window.clearTimeout(finTransicion);
   }, [tema]);
   useEffect(() => {
     const recibir = (event: Event) => setAvisos(actuales => [(event as CustomEvent).detail, ...actuales].slice(0, 20));
@@ -524,12 +528,7 @@ export default function Aplicacion() {
           ) : modulo === 'atencion-urgencias' ? (
             <AtencionMedicaEmergenciasView />
           ) : modulo === 'enfermera-internacion' ? (
-            <div className="modulo-vacio">
-              <span><Icon name="patient" size={28} /></span>
-              <p>INTERNACIÓN</p>
-              <h2>Enfermera internación</h2>
-              <small>Registro de signos vitales, cuidados y seguimiento de pacientes internados.</small>
-            </div>
+            <EnfermeraInternacionView />
           ) : modulo === 'medico-internacion' ? (
             <div className="modulo-vacio">
               <span><Icon name="userCheck" size={28} /></span>

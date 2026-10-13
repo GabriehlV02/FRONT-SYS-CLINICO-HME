@@ -109,7 +109,6 @@ export function TriajeEmergenciasView({ recepcion = false }: { recepcion?: boole
   return <section className={`emergencias-vista ${cubiculosPlegados ? 'cubiculos-plegados' : ''}`}>
     {!recepcion && <button type="button" className="em-toggle-cubiculos" aria-expanded={!cubiculosPlegados} onClick={() => setCubiculosPlegados(actual => !actual)}><Icon name={cubiculosPlegados ? 'chevronRight' : 'chevronLeft'} size={16} />{cubiculosPlegados ? 'Mostrar cubículos' : 'Ocultar cubículos'}</button>}
     {recepcion && <header className="em-cabecera"><div><p>RECEPCIÓN · CUENTAS</p><h2>Cuentas de emergencias</h2><small>Identifica al paciente y a su acompañante sin interrumpir la atención.</small></div></header>}
-    {error && <div className="em-error" role="alert">{error} <button onClick={() => void cargar()}>Actualizar cuentas</button></div>}
     {cobroModal && cuenta && <ModalCobro cuenta={cuenta} ahora={ahora} ocupado={ocupado} onCerrar={() => setCobroModal(false)} onConfirmar={async pago => { if (await guardar(`/${cuenta.id}/finalizar`, { pago }, 'Cobro registrado y atención finalizada; cubículo disponible.')) setCobroModal(false); }} />}
     {aviso && <div className="em-aviso" role="status">{aviso}</div>}
     {nueva && !recepcion && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setNueva(false); }}><form className="em-panel em-inicio-atencion" role="dialog" aria-modal="true" aria-labelledby="em-inicio-titulo" onSubmit={iniciar}>

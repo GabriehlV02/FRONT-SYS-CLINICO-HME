@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
 import Icon from '../../../radius/componentes/Icono';
 import { TriajeEmergenciasView } from '../../emergencias/TriajeEmergenciasView';
+import { leerInternaciones, suscribirInternaciones } from '../../internacion/registroInternaciones';
+import './PreinternacionesRecepcion.css';
 
 type EstadoCuenta = 'Pendiente' | 'Parcial' | 'Al día';
 
@@ -111,26 +113,35 @@ export function CuentasRecepcionView({ origenInicial = 'emergencias', pacienteIn
 
 function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: string }) {
   const [busqueda, setBusqueda] = useState(pacienteInicial);
+  const internaciones = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
+  const preinternaciones = internaciones.filter((internacion) => internacion.estado === 'preinternacion');
+  const cuentasConInternacion = useMemo(() => [
+    ...cuentasIniciales,
+    ...internaciones.filter((internacion) => internacion.estado === 'confirmada').map((internacion): CuentaPaciente => ({
+      id: `CTA-${internacion.id}`, paciente: internacion.paciente, historia: 'Cuenta de internación', ubicacion: `Sala ${internacion.sala} · Cama ${internacion.cama} · ${internacion.tipoSala}`,
+      ingreso: internacion.fecha, responsable: 'Por registrar', total: 0, pagado: 0, estado: 'Pendiente', consumos: [],
+    })),
+  ], [internaciones]);
   const [cuentaActiva, setCuentaActiva] = useState<string | null>(
     cuentasIniciales.find((cuenta) => cuenta.paciente === pacienteInicial)?.id ?? cuentasIniciales[0].id,
   );
   const cuentas = useMemo(() => {
     const termino = busqueda.trim().toLocaleLowerCase();
-    return cuentasIniciales.filter(
+    return cuentasConInternacion.filter(
       (cuenta) =>
         !termino ||
           `${cuenta.paciente} ${cuenta.historia} ${cuenta.id} ${cuenta.ubicacion}`
             .toLocaleLowerCase()
             .includes(termino),
     );
-  }, [busqueda]);
+  }, [busqueda, cuentasConInternacion]);
   const seleccionada =
-    cuentasIniciales.find((cuenta) => cuenta.id === cuentaActiva) ?? null;
-  const pendiente = cuentasIniciales.reduce(
+    cuentasConInternacion.find((cuenta) => cuenta.id === cuentaActiva) ?? null;
+  const pendiente = cuentasConInternacion.reduce(
     (total, cuenta) => total + cuenta.total - cuenta.pagado,
     0,
   );
-  const parcial = cuentasIniciales.filter(
+  const parcial = cuentasConInternacion.filter(
     (cuenta) => cuenta.estado === 'Parcial',
   ).length;
 
@@ -139,6 +150,19 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
       className="cuentas-recepcion"
       aria-label="Cuentas de pacientes internados"
     >
+      <header className="cuentas-encabezado">
+        <div>
+          <span>GESTI&Oacute;N HOSPITALARIA</span>
+          <h2>Cuentas de internaci&oacute;n</h2>
+          <p>Administra las cuentas activas, consumos y pagos de pacientes internados.</p>
+        </div>
+        <div className="cuentas-api-aviso">
+          <Icon name="check" size={15} />
+          {cuentasConInternacion.length} cuentas activas
+        </div>
+      </header>
+
+      <div className="cuentas-superficie">
       <div className="cuentas-kpis-clinica">
         <article>
           <span className="cuenta-icono azul">
@@ -146,7 +170,7 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
           </span>
           <div>
             <small>Cuentas activas</small>
-            <strong>{cuentasIniciales.length}</strong>
+            <strong>{cuentasConInternacion.length}</strong>
           </div>
         </article>
         <article>
@@ -166,7 +190,7 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
             <small>Al día</small>
             <strong>
               {
-                cuentasIniciales.filter((cuenta) => cuenta.estado === 'Al día')
+                cuentasConInternacion.filter((cuenta) => cuenta.estado === 'Al día')
                   .length
               }
             </strong>
@@ -192,7 +216,17 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
             placeholder="Buscar por paciente, historia o cuenta"
           />
         </label>
+        <button
+          type="button"
+          className="cuentas-nueva-internacion"
+          disabled
+        >
+          <Icon name="plus" size={16} />
+          Nueva internaciÃ³n
+        </button>
       </div>
+
+      {preinternaciones.length > 0 && <section className="cuentas-preinternaciones" aria-label="Preinternaciones pendientes"><div><strong>Preinternaciones pendientes</strong><small>Estas órdenes médicas aún no generan cuenta. La cuenta se abrirá cuando Enfermería asigne sala y cama.</small></div>{preinternaciones.map((internacion) => <article key={internacion.id}><Icon name="patient" size={16} /><span><b>{internacion.paciente}</b><small>CI {internacion.ci} · Orden de {internacion.medico}</small></span><em>Sin cuenta</em></article>)}</section>}
 
       <div className="cuentas-contenido">
         <section className="panel cuentas-listado">
@@ -337,6 +371,7 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
             </div>
           )}
         </aside>
+      </div>
       </div>
     </section>
   );

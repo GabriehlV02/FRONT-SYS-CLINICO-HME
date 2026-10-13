@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { apiFetch } from '../../radius/api';
+import { obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registroSignosVitales';
 import './AgendaAmbulatoriaView.css';
 
 export type CitaConfirmada = { id: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
@@ -19,6 +20,10 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   const [busqueda, setBusqueda] = useState('');
   const [busquedaAtendidas, setBusquedaAtendidas] = useState('');
 
+  useEffect(() => {
+    const cancelarSuscripcion = suscribirSignosVitales(() => setCitas((actuales) => [...actuales]));
+    return () => { cancelarSuscripcion(); };
+  }, []);
   useEffect(() => { void apiFetch('/api/citas').then(async (response) => {
     if (!response.ok) return;
     const datos = await response.json() as Array<CitaConfirmada & { estado: string }>;
@@ -31,6 +36,7 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   const pendientes = visibles.filter((cita) => !atendidas.has(cita.id) && coincide(cita, busqueda));
   const atendidasHoy = visibles.filter((cita) => atendidas.has(cita.id) && coincide(cita, busquedaAtendidas));
   const atender = (cita: CitaConfirmada) => { setAtendidas((actuales) => new Set(actuales).add(cita.id)); onAtender?.(cita); };
+  const signosRegistrados = (cita: CitaConfirmada) => Object.values(obtenerSignosVitales(cita.ci) ?? {}).some(Boolean);
 
   return <section className="agenda-ambulatoria" aria-label="Agenda de pacientes ambulatorios confirmados">
     <div className="agenda-herramientas">
@@ -39,11 +45,12 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
     </div>
     <div className="agenda-ambulatoria-tablero">
       <section className="agenda-cola panel">
-        <header><span>CONSULTA</span><span>PACIENTE</span><span>MÉDICO / ESPECIALIDAD</span><span>ACCIÓN</span></header>
+        <header><span>CONSULTA</span><span>PACIENTE</span><span>MÉDICO / ESPECIALIDAD</span><span>SIGNOS VITALES</span><span>ACCIÓN</span></header>
         {pendientes.length ? pendientes.map((cita) => <article key={cita.id}>
           <time>{cita.hora}</time><span className="agenda-iniciales">{cita.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span>
           <div><strong>{cita.paciente}</strong><small>CI {cita.ci}</small></div>
           <div className="agenda-medico"><strong>{cita.doctor}</strong><small>{cita.especialidad || 'Consulta ambulatoria'}</small></div>
+          <span className={`agenda-signos ${signosRegistrados(cita) ? 'registrados' : 'pendientes'}`}>{signosRegistrados(cita) ? 'Registrados' : 'Pendientes de registro'}</span>
           <button type="button" onClick={() => atender(cita)}><Icon name="userCheck" size={15} /> Atender</button>
         </article>) : <div className="agenda-cola-vacia"><Icon name="calendar" size={25} /><strong>No hay consultas por atender</strong><small>Las citas confirmadas aparecerán en esta lista.</small></div>}
       </section>

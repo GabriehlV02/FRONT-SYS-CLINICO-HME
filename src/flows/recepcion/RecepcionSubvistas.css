@@ -10,27 +10,29 @@
   background:rgba(255,255,255,.94);
   box-shadow:0 8px 22px rgba(6,71,115,.1);
   backdrop-filter:blur(12px);
+  width:fit-content;
+  max-width:100%;
 }
 .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas{
-  display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
+  display:flex;
   gap:6px;
-  width:100%;
+  width:fit-content;
+  max-width:100%;
   margin:0;
   padding:0!important;
-  overflow:visible;
+  overflow-x:auto;
+  overflow-y:hidden;
   border:0;
   background:transparent;
 }
 .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button{
   position:relative;
-  display:grid;
-  grid-template-columns:28px minmax(0,1fr);
-  grid-template-rows:auto;
+  display:flex;
   align-items:center;
   justify-content:start;
   gap:7px!important;
-  width:100%!important;
+  flex:0 0 auto!important;
+  width:auto!important;
   min-width:0!important;
   height:42px!important;
   min-height:42px!important;
@@ -45,8 +47,6 @@
   transition:color .18s ease,background .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease;
 }
 .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button>span{
-  grid-column:1;
-  grid-row:1;
   display:grid!important;
   place-items:center;
   width:28px!important;
@@ -57,7 +57,6 @@
   background:#eaf7fd!important;
 }
 .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button strong{
-  grid-column:2;
   margin:0;
   color:inherit;
   font-size:11px!important;
@@ -65,7 +64,6 @@
   line-height:1.15!important;
 }
 .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button small{
-  grid-column:2;
   display:none;
   min-width:0;
   overflow:hidden;
@@ -105,10 +103,6 @@
 .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button.activo small{color:#dbf6ff}
 .sistema-app .recepcion-vista>.subvistas-carrusel>.subvistas-flecha{top:9px;width:28px;height:28px;border-color:#9dccdf;color:#087fc0;box-shadow:0 4px 12px rgba(6,71,115,.17)}
 
-@media(max-width:1280px),(pointer:coarse){
-  .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas{display:flex;gap:6px;overflow-x:auto;scroll-padding-inline:4px}
-  .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button{flex:0 0 190px!important;width:190px!important;min-width:190px!important}
-}
 @media(max-width:760px){
   .sistema-app .recepcion-vista>.subvistas-carrusel{top:104px;margin-inline:0;padding:3px;border-radius:9px}
   .sistema-app .recepcion-vista>.subvistas-carrusel .recepcion-subvistas>button{flex-basis:140px!important;width:140px!important;min-width:140px!important;height:40px!important;min-height:40px!important;grid-template-columns:27px minmax(0,1fr);padding:4px 7px!important}

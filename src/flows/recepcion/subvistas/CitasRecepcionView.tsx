@@ -13,6 +13,7 @@ type Cita = {
   paciente: string;
   ci: string;
   doctor: string;
+  consultorio?: string;
   motivo: string;
   estado: EstadoCita;
 };
@@ -21,7 +22,9 @@ const doctores = [
   'Dra. Valeria Rojas',
   'Dr. Mauricio Vargas',
   'Dra. Elena Salazar',
+  'Dr. Diego Molina',
 ];
+const consultorios = ['Consultorio 1', 'Consultorio 2', 'Consultorio 3', 'Consultorio 4'];
 const nombresDia = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 const diasCalendario = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
 const meses = [
@@ -66,6 +69,7 @@ const citas: Cita[] = [
     paciente: 'Maria Fernandez Lopez',
     ci: '4839201',
     doctor: 'Dra. Valeria Rojas',
+    consultorio: 'Consultorio 1',
     motivo: 'Consulta general',
     estado: 'Confirmada',
   },
@@ -132,6 +136,18 @@ const citas: Cita[] = [
     motivo: 'Consulta general',
     estado: 'Confirmada',
   },
+  {
+    dia: 0, hora: '08:00', paciente: 'Luis Alvarez Cruz', ci: '5482910',
+    doctor: 'Dr. Mauricio Vargas', consultorio: 'Consultorio 2', motivo: 'Medicina interna', estado: 'Confirmada',
+  },
+  {
+    dia: 0, hora: '08:00', paciente: 'Paola Rios Castro', ci: '6931742',
+    doctor: 'Dra. Elena Salazar', consultorio: 'Consultorio 3', motivo: 'Pediatria', estado: 'Confirmada',
+  },
+  {
+    dia: 0, hora: '08:00', paciente: 'Miguel Flores Rojas', ci: '8129654',
+    doctor: 'Dr. Diego Molina', consultorio: 'Consultorio 4', motivo: 'Traumatologia', estado: 'Por confirmar',
+  },
 ];
 
 export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string } = {}) {
@@ -152,6 +168,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     ci: '',
     dia: 0,
     hora: '07:00',
+    consultorio: 'Consultorio 1',
     estado: 'Por confirmar' as EstadoCita,
   });
   const [semana, setSemana] = useState(() => new Date());
@@ -263,13 +280,13 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     if (
       citasProgramadas.some(
         (cita) =>
-          cita.doctor === doctor &&
+          cita.consultorio === nuevaCita.consultorio &&
           cita.dia === nuevaCita.dia &&
           cita.hora === nuevaCita.hora &&
           cita.estado !== 'Cancelada',
       )
     ) {
-      setErrorAgenda('El doctor ya tiene una consulta en ese horario.');
+      setErrorAgenda('Ese consultorio ya tiene una consulta en ese horario.');
       return;
     }
     setCitasProgramadas((actuales) => [
@@ -281,6 +298,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
       ci: '',
       dia: 0,
       hora: '07:00',
+      consultorio: 'Consultorio 1',
       estado: 'Por confirmar',
     });
     setErrorAgenda('');
@@ -520,10 +538,10 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
             ))}
           </div>
           {horas.map((hora) => (
-            <div className="agenda-fila" key={hora}>
+            <div className={`agenda-fila ${citasVisibles.some((item) => item.hora === hora && item.estado !== 'Cancelada') ? 'con-citas' : ''}`} key={hora}>
               <time>{hora}</time>
               {dias.map((_, dia) => {
-                const cita = citasVisibles.find(
+                const citasEnHorario = citasVisibles.filter(
                   (item) =>
                     (item.fecha
                       ? item.fecha === fechaParaInput(sumarDias(semana, dia))
@@ -533,17 +551,17 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
                 );
                 return (
                   <div
-                    className={`agenda-celda ${cita ? '' : 'libre'}`}
+                    className={`agenda-celda ${citasEnHorario.length ? `ocupada con-${citasEnHorario.length}` : 'libre'}`}
                     key={`${dia}-${hora}`}
-                    role={cita ? undefined : 'button'}
-                    tabIndex={cita ? undefined : 0}
+                    role={citasEnHorario.length ? undefined : 'button'}
+                    tabIndex={citasEnHorario.length ? undefined : 0}
                     aria-label={
-                      cita
+                      citasEnHorario.length
                         ? undefined
                         : `Agendar consulta el ${dias[dia]} a las ${hora}`
                     }
                     onClick={() => {
-                      if (!cita) {
+                      if (!citasEnHorario.length) {
                         setHorarioElegido({
                           fecha: fechaParaInput(sumarDias(semana, dia)),
                           hora,
@@ -553,7 +571,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
                     }}
                     onKeyDown={(event) => {
                       if (
-                        !cita &&
+                        !citasEnHorario.length &&
                         (event.key === 'Enter' || event.key === ' ')
                       ) {
                         event.preventDefault();
@@ -565,9 +583,11 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
                       }
                     }}
                   >
-                    {cita && (
-                      <article
+                    {citasEnHorario.length > 0 && (
+                      <div className="agenda-citas-paralelas">
+                      {citasEnHorario.map((cita) => <article
                         className={`cita-bloque ${cita.estado.toLocaleLowerCase().replace(' ', '-')}`}
+                        key={cita.id ?? `${cita.paciente}-${cita.consultorio}`}
                         role="button"
                         tabIndex={0}
                         onClick={(event) => {
@@ -583,8 +603,9 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
                       >
                         <strong title={cita.paciente}>{cita.paciente}</strong>
                         <small>CI {cita.ci}</small>
+                        <b>{cita.consultorio ?? 'Consultorio asignado'}</b>
                         <em>{cita.estado}</em>
-                      </article>
+                      </article>)}</div>
                     )}
                   </div>
                 );
@@ -638,6 +659,10 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
               <div>
                 <dt>Doctor</dt>
                 <dd>{citaInspeccionada.doctor}</dd>
+              </div>
+              <div>
+                <dt>Consultorio</dt>
+                <dd>{citaInspeccionada.consultorio ?? 'Sin asignar'}</dd>
               </div>
               <div>
                 <dt>Fecha y hora</dt>
@@ -804,6 +829,19 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
                 >
                   {horas.map((hora) => (
                     <option key={hora}>{hora}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Consultorio
+                <select
+                  value={nuevaCita.consultorio}
+                  onChange={(event) =>
+                    setNuevaCita({ ...nuevaCita, consultorio: event.target.value })
+                  }
+                >
+                  {consultorios.map((consultorio) => (
+                    <option key={consultorio}>{consultorio}</option>
                   ))}
                 </select>
               </label>

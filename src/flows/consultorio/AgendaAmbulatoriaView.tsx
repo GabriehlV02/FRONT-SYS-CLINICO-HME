@@ -3,6 +3,7 @@ import Icon from '../../radius/componentes/Icono';
 import { apiFetch } from '../../radius/api';
 import { obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registroSignosVitales';
 import './AgendaAmbulatoriaView.css';
+import './AgendaAmbulatoriaViewAlineacion.css';
 
 export type CitaConfirmada = { id: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
 const fechaHoy = () => new Date().toLocaleDateString('en-CA');
@@ -15,8 +16,8 @@ const citasEjemplo: CitaConfirmada[] = [
 ].map(([id, hora, paciente, ci, especialidad]) => ({ id, hora, paciente, ci, especialidad, fecha: fechaHoy(), doctor: 'Agenda ambulatoria', ...(id === 'agenda-demo-3' ? { nombre: 'Ana', apellidos: 'Rodríguez Vargas', edad: 28, fechaNacimiento: '22 de mayo de 1998', domicilio: 'Av. Busch N.º 1250, La Paz' } : {}) }));
 
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
-  const [citas, setCitas] = useState<CitaConfirmada[]>(citasEjemplo);
-  const [atendidas, setAtendidas] = useState<Set<string>>(() => new Set(['agenda-demo-1', 'agenda-demo-2', 'agenda-demo-3']));
+  const [citas, setCitas] = useState<CitaConfirmada[]>(citasEjemplo.slice(2));
+  const [atendidas, setAtendidas] = useState<Set<string>>(() => new Set());
   const [busqueda, setBusqueda] = useState('');
   const [busquedaAtendidas, setBusquedaAtendidas] = useState('');
 
@@ -27,10 +28,10 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   useEffect(() => { void apiFetch('/api/citas').then(async (response) => {
     if (!response.ok) return;
     const datos = await response.json() as Array<CitaConfirmada & { estado: string }>;
-    setCitas([...citasEjemplo, ...datos.filter((cita) => cita.estado.toLowerCase() === 'confirmada')]);
+    setCitas([...citasEjemplo.slice(2), ...datos.filter((cita) => cita.estado.toLowerCase() === 'confirmada')]);
   }).catch(() => undefined); }, []);
 
-  const visibles = useMemo(() => citas.filter((cita) => !medico || medico === 'Administrador' || cita.doctor === medico)
+  const visibles = useMemo(() => citas.filter((cita) => !medico || medico === 'Administrador' || cita.doctor === medico || cita.doctor === 'Agenda ambulatoria')
     .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)), [citas, medico]);
   const coincide = (cita: CitaConfirmada, texto: string) => `${cita.paciente} ${cita.ci} ${cita.doctor} ${cita.especialidad}`.toLocaleLowerCase().includes(texto.trim().toLocaleLowerCase());
   const pendientes = visibles.filter((cita) => !atendidas.has(cita.id) && coincide(cita, busqueda));

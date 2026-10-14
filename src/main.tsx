@@ -8,6 +8,7 @@ import './styles/ClinicoRefinamiento.css';
 import './styles/SidebarProductos.css';
 import './styles/SubvistasCompactas.css';
 import './styles/ClinicoResponsive.css';
+import './styles/TablasSimetricas.css';
 
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

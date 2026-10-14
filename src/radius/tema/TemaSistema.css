@@ -66,13 +66,22 @@
   --shadow-strong:0 22px 60px #00000045;
   --focus:0 0 0 3px #1aa7e82b;
   --primary-gradient:linear-gradient(105deg,var(--primary-strong),var(--primary));
-  --sidebar-gradient:linear-gradient(180deg,#092f55 0%,#08233e 52%,#061728 100%);
+  --sidebar-gradient:linear-gradient(180deg,#12354f 0%,#0c293f 52%,#081b2c 100%);
   --surface-gradient:linear-gradient(110deg,var(--panel),var(--panel-3));
 }
 
 html,body,#root{background:var(--app-bg);color:var(--text)}
+html{scrollbar-color:var(--border-strong) var(--app-bg)}
+::selection{color:var(--primary-text);background:var(--primary)}
 button,input,select,textarea{font:inherit}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:0;box-shadow:var(--focus)}
+
+@media (prefers-reduced-motion:no-preference){
+  :root.tema-cambiando,
+  :root.tema-cambiando *{
+    transition:background-color .22s ease,color .18s ease,border-color .22s ease,box-shadow .22s ease,fill .18s ease,stroke .18s ease !important;
+  }
+}
 
 .sistema-app{background:var(--app-bg);color:var(--text)}
 .sistema-sidebar{border-right:1px solid var(--border);background:var(--sidebar-gradient);box-shadow:none}
@@ -242,6 +251,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .sistema-app[data-theme="dark"] .area-trabajo [role="dialog"]::backdrop{background:#000b}
 .sistema-app[data-theme="dark"] .area-trabajo [class*="fondo"],
 .sistema-app[data-theme="dark"] .area-trabajo [class*="overlay"]{background:#020b16b8}
+
+/* Controles nativos y superficies emergentes conservan el contraste del tema activo. */
+.sistema-app[data-theme="dark"] :is(dialog,select option){color:var(--text);background:var(--panel)}
+.sistema-app[data-theme="dark"] ::-webkit-scrollbar{width:11px;height:11px}
+.sistema-app[data-theme="dark"] ::-webkit-scrollbar-track{background:var(--app-bg)}
+.sistema-app[data-theme="dark"] ::-webkit-scrollbar-thumb{border:3px solid var(--app-bg);border-radius:999px;background:var(--border-strong)}
+.sistema-app[data-theme="dark"] ::-webkit-scrollbar-thumb:hover{background:var(--primary)}
 
 @media(max-width:760px){
   .sistema-app[data-theme="dark"] .area-trabajo{overflow-x:hidden}

@@ -210,12 +210,13 @@ img,svg,canvas,video{max-width:100%}
 .sistema-app .sistema-topbar .busqueda-global input::placeholder { color:#69869b !important; }
 .sistema-app .sistema-topbar .perfil { border-color:#72bfe3 !important; }
 
-/* Perfil legible y reconocible sobre la barra azul. */
+/* El perfil se integra con la barra: el avatar y el texto ya lo identifican. */
 .sistema-app .sistema-topbar .perfil {
-  padding:5px 10px !important;
+  padding:5px 2px !important;
   border:0 !important;
-  border-radius:10px;
-  background:rgba(255,255,255,.13) !important;
+  border-radius:0;
+  background:transparent !important;
+  box-shadow:none !important;
 }
 
 .sistema-app .sistema-topbar .perfil-avatar {

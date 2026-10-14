@@ -1,0 +1,36 @@
+/* La columna de signos comparte el mismo eje visual en encabezado y filas. */
+.agenda-cola > header > span:nth-child(4),
+.agenda-cola > article > .agenda-signos {
+  justify-self: center;
+  text-align: center;
+}
+
+/* La cabecera y las filas comparten exactamente la misma retícula. */
+.agenda-cola > header,
+.agenda-cola > article {
+  grid-template-columns: 78px minmax(280px, 1.42fr) minmax(240px, 1.08fr) minmax(175px, .78fr) 112px;
+  column-gap: 18px;
+  padding-inline: 20px;
+}
+
+.agenda-cola > header > span:nth-child(2) {
+  padding-left: 42px;
+}
+
+.agenda-cola > header > span:nth-child(3) {
+  justify-self: start;
+}
+
+.agenda-cola > header > span:nth-child(5),
+.agenda-cola > article > button {
+  justify-self: center;
+}
+
+.agenda-cola > article > .agenda-iniciales {
+  left: 98px;
+}
+
+.agenda-cola > article > button {
+  min-width: 103px;
+  justify-content: center;
+}

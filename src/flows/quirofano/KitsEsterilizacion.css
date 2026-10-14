@@ -1,0 +1,14 @@
+.est-resumen{grid-template-columns:repeat(6,minmax(0,1fr))}
+.est-estado.sucio{color:#9a4d1d;background:#ffeadb}
+.est-kits-tarjetas .est-kit-tarjeta{min-width:0;padding:13px;border:1px solid var(--est-borde);border-radius:9px;background:var(--est-suave)}
+.est-kits-tarjetas .est-kit-tarjeta.activo{border-color:var(--est-azul);box-shadow:inset 3px 0 var(--est-azul)}
+.est-kit-tarjeta-info{display:flex;align-items:center;gap:10px;min-width:0;color:var(--est-azul)}
+.est-kit-tarjeta-info span{flex:1;min-width:0}.est-kit-tarjeta-info strong,.est-kit-tarjeta-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.est-kit-tarjeta-info strong{color:var(--est-titulo);font-size:12px}.est-kit-tarjeta-info small{margin-top:3px;color:var(--est-muted);font-size:10px}
+.est-kit-estado{padding:5px 8px;border-radius:999px;font-size:10px;white-space:nowrap}.est-kit-estado.disponible{color:#176b49;background:#e8f7ef}.est-kit-estado.ocupado{color:#9c3b42;background:#ffeaeb}.est-kit-estado.sucio{color:#9a4d1d;background:#ffeadb}.est-kit-estado.proceso,.est-kit-estado.incompleto{color:#6e55a3;background:#eee8fa}
+.est-kit-acciones{display:flex;gap:8px;margin-top:13px}.est-kits-tarjetas .est-kit-acciones button{flex:1;justify-content:center;min-height:32px;padding:5px 8px;border:1px solid var(--est-borde);border-radius:6px;color:var(--est-azul);background:var(--est-fondo);font-size:10px;font-weight:800;text-align:center}
+.est-kits-tarjetas .est-kit-acciones button:first-child{border-color:var(--est-azul);color:#fff;background:var(--est-azul)}
+.est-kit-detalle-cabecera{display:flex;align-items:center;justify-content:space-between;gap:10px}.est-kit-detalle-cabecera small{color:var(--est-muted);font-size:11px}.est-kit-detalle-cabecera button{padding:8px 10px;border:1px solid var(--est-borde);border-radius:6px;color:var(--est-azul);background:var(--est-fondo);font-size:10px;font-weight:800;white-space:nowrap}
+.est-especialidades{margin:15px 0 0;padding:10px 12px;border:1px solid var(--est-borde);border-radius:8px}.est-especialidades legend{padding:0 5px;color:var(--est-texto);font-size:11px;font-weight:800}.est-especialidades>div{display:flex;flex-wrap:wrap;gap:8px}.est-especialidades label{display:inline-flex;align-items:center;gap:5px;padding:7px 9px;border:1px solid var(--est-borde);border-radius:6px;color:var(--est-texto);background:var(--est-suave);font-size:11px;cursor:pointer}
+@media(max-width:1000px){.est-resumen{grid-template-columns:repeat(3,minmax(0,1fr))}.est-kits-tarjetas{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.est-resumen{grid-template-columns:repeat(2,minmax(0,1fr))}.est-kits-tarjetas{grid-template-columns:1fr}.est-kit-detalle-cabecera{align-items:flex-start;flex-direction:column}.est-kit-tarjeta-info{flex-wrap:wrap}}

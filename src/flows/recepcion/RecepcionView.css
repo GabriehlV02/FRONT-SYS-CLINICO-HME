@@ -1191,14 +1191,8 @@
 .punto-documentos-modal > header small { color: #0879af; font-size: 10px; font-weight: 900; letter-spacing: .1em; }
 .punto-documentos-modal > header h2 { margin: 5px 0 4px; color: #173d60; font-size: 21px; }
 .punto-documentos-modal > header p { margin: 0; color: #678096; font-size: 12px; }
-.documentos-paciente-form, .documentos-lista { padding: 14px 24px; }
-.documentos-busqueda { display: grid; grid-template-columns: 1fr auto; gap: 9px; }
-.documentos-busqueda label { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 11px; border: 1px solid #c8d9ea; border-radius: 8px; }
-.documentos-busqueda input { width: 100%; border: 0; outline: 0; background: transparent; }
-.documentos-busqueda button, .punto-documentos-modal > footer button { min-height: 40px; padding: 0 15px; border: 0; border-radius: 8px; color: #fff; background: #0879af; font-weight: 800; }
-.documentos-campos { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 12px; margin-top: 16px; }
-.documentos-campos label { display: grid; gap: 6px; color: #315b7b; font-size: 11px; font-weight: 800; }
-.documentos-campos input { width: 100%; min-height: 36px; box-sizing: border-box; padding: 0 9px; border: 1px solid #c8d9ea; border-radius: 7px; color: #193650; }
+.documentos-lista { padding: 14px 24px; }
+.punto-documentos-modal > footer button { min-height: 40px; padding: 0 15px; border: 0; border-radius: 8px; color: #fff; background: #0879af; font-weight: 800; }
 .documentos-lista { display: grid; gap: 10px; background: #f5f9fc; border-block: 1px solid #dce8f1; }
 .documentos-lista > div { display: grid; gap: 3px; margin-bottom: 3px; }
 .documentos-lista h3 { margin: 0; color: #173d60; font-size: 14px; }
@@ -1210,7 +1204,7 @@
 .documentos-lista input { width: 17px; height: 17px; accent-color: #0879af; }
 .punto-documentos-modal > footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; }
 .punto-documentos-modal > footer .documentos-cancelar { color: #315b7b; border: 1px solid #c8d9ea; background: #fff; }
-@media (max-width: 680px) { .documentos-busqueda, .documentos-campos { grid-template-columns: 1fr; } .documentos-paciente-form, .documentos-lista, .punto-documentos-modal > header { padding-inline: 16px; } }
+@media (max-width: 680px) { .documentos-lista, .punto-documentos-modal > header { padding-inline: 16px; } }
 .punto-pos-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -2185,15 +2179,60 @@
   color: #12384d;
   font-size: 16px;
 }
+.cuentas-recepcion {
+  gap: 14px;
+  padding: 14px 0 28px;
+}
+.cuentas-encabezado {
+  align-items: center;
+  padding: 4px 2px 0;
+}
+.cuentas-encabezado h2 {
+  margin: 3px 0 4px;
+  font-size: 22px;
+}
+.cuentas-superficie {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid #c9e1ef;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .82);
+  box-shadow: 0 13px 30px rgba(37, 91, 125, .09);
+}
 .cuentas-filtros-clinica {
   display: flex;
   gap: 12px;
   align-items: center;
+  padding: 12px;
+  border: 1px solid #d5e8f3;
+  border-radius: 11px;
+  background: #f7fbfe;
 }
 .cuentas-filtros-clinica .buscador-local {
-  width: min(420px, 100%);
+  flex: 1;
+  width: auto;
   height: 40px;
 }
+.cuentas-nueva-internacion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #0879af;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.cuentas-nueva-internacion:hover { background: #056c9f; box-shadow: 0 5px 13px rgba(8, 121, 175, .2); transform: translateY(-1px); }
+.cuentas-nueva-internacion:focus-visible { outline: 3px solid rgba(8, 121, 175, .3); outline-offset: 2px; }
 .cuentas-tipo-switch {
   display: inline-flex;
   overflow: hidden;
@@ -2247,11 +2286,15 @@
 .cuentas-listado,
 .cuenta-detalle-clinica {
   overflow: hidden;
+  border-color: #c9e1ef;
+  border-radius: 11px;
+  box-shadow: none;
 }
 .cuentas-listado .panel-cabecera,
 .cuenta-detalle-clinica .panel-cabecera {
-  padding: 14px 16px;
+  padding: 16px 18px;
   border-bottom: 1px solid #e5f0f6;
+  background: linear-gradient(90deg, #fff 0%, #f5fbff 100%);
 }
 .cuentas-listado h3,
 .cuenta-detalle-clinica h3 {
@@ -2272,9 +2315,9 @@
   min-width: 760px;
 }
 .cuentas-tabla th {
-  padding: 10px 14px;
-  color: #52738b;
-  background: #f8fcff;
+  padding: 12px 14px;
+  color: #316184;
+  background: #edf8fd;
   font-size: 9px;
   font-weight: 900;
   letter-spacing: 0.4px;
@@ -2282,7 +2325,7 @@
   text-transform: uppercase;
 }
 .cuentas-tabla td {
-  padding: 12px 14px;
+  padding: 14px;
   border-top: 1px solid #e8f1f6;
   color: #42647c;
   font-size: 11px;
@@ -2292,7 +2335,7 @@
 }
 .cuentas-tabla tbody tr:hover,
 .cuentas-tabla tbody tr.seleccionada {
-  background: #f1f9fd;
+  background: #eaf7fd;
 }
 .cuentas-tabla tbody tr.seleccionada {
   box-shadow: inset 3px 0 #096bb5;
@@ -2336,7 +2379,7 @@
 }
 .cuenta-detalle-clinica {
   position: sticky;
-  top: 92px;
+  top: 76px;
   padding-bottom: 15px;
 }
 .cuenta-paciente-resumen {
@@ -2495,9 +2538,11 @@
   .cuentas-kpis-clinica {
     grid-template-columns: 1fr;
   }
+  .cuentas-superficie { padding: 12px; }
   .cuentas-filtros-clinica .buscador-local {
     width: 100%;
   }
+  .cuentas-nueva-internacion { width: 100%; }
 }
 @media (max-width: 1180px) {
   .recepcion-caja,
@@ -2763,3 +2808,6 @@
 .punto-nuevo-paciente-contenido{display:grid;gap:14px;overflow:auto;padding:18px 20px;background:#f8fcff}.nuevo-paciente-busqueda{display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:12px;padding:12px;border:1px solid #d6e6f0;border-radius:10px;background:#fff}.nuevo-paciente-busqueda label{display:flex;align-items:center;gap:8px;height:40px;padding:0 11px;border:1px solid #bcd4e5;border-radius:8px;color:#087fc0}.nuevo-paciente-busqueda input{width:100%;border:0;outline:0;color:#173d60;background:transparent}.nuevo-paciente-busqueda button{border:0;border-radius:8px;color:#fff;background:#0b91d2;font-size:12px;font-weight:800}.nuevo-paciente-seccion{min-width:0;margin:0;padding:15px;border:1px solid #d6e6f0;border-radius:10px;background:#fff}.nuevo-paciente-seccion legend{padding:0 8px;color:#087fc0;font-size:12px;font-weight:900}.nuevo-paciente-campos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 14px}.nuevo-paciente-campos label{display:grid;gap:5px;color:#5c7488;font-size:10px;font-weight:800}.nuevo-paciente-campos input,.nuevo-paciente-campos select,.nuevo-paciente-campos textarea{box-sizing:border-box;width:100%;height:38px;padding:0 10px;border:1px solid #bdd4e4;border-radius:7px;outline:0;color:#183d55;background:#fbfdff;font:12px inherit}.nuevo-paciente-campos textarea{height:62px;padding-top:9px;resize:vertical}.nuevo-paciente-campos :is(input,select,textarea):focus{border-color:#0b91d2;box-shadow:0 0 0 3px rgba(11,145,210,.12)}.nuevo-paciente-opciones{display:flex;gap:28px;margin-top:14px;color:#315b7b;font-size:12px}.nuevo-paciente-opciones label,.nuevo-paciente-habilitado{display:flex;align-items:center;gap:7px}.nuevo-paciente-opciones input,.nuevo-paciente-habilitado input{accent-color:#f59e0b}.nuevo-paciente-domicilio .campo-ancho{grid-column:span 2}.nuevo-paciente-responsable{grid-template-columns:1.4fr .8fr .8fr}.nuevo-paciente-preguntas{grid-template-columns:1fr}.campo-ancho{grid-column:1/-1}.nuevo-paciente-habilitado{margin-top:12px;color:#315b7b;font-size:12px;font-weight:800}
 @media(max-width:700px){.punto-nuevo-paciente-fondo{padding:10px;align-items:end}.punto-nuevo-paciente-modal{max-height:92dvh;border-radius:14px 14px 8px 8px}.nuevo-paciente-campos,.nuevo-paciente-responsable{grid-template-columns:1fr}.nuevo-paciente-domicilio .campo-ancho{grid-column:auto}.nuevo-paciente-busqueda{grid-template-columns:1fr}.punto-nuevo-paciente-contenido{padding:14px}.punto-nuevo-paciente-modal footer{padding:12px 14px}}
 .punto-nuevo-paciente-contenido{flex:1;min-height:0}
+.nuevo-paciente-campos .nuevo-paciente-ci{gap:5px}
+.nuevo-paciente-campos .nuevo-paciente-ci>span{display:flex;align-items:center;gap:7px;min-height:18px;color:#315b7b;font-size:11px;font-weight:700}
+.nuevo-paciente-campos .nuevo-paciente-ci>span input{width:14px;height:14px;margin:0;padding:0;accent-color:#0b91d2}

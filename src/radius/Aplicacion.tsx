@@ -33,6 +33,8 @@ const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/Config
 const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
 const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
+const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
+const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
 const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
 const VistaBaseDatosOrthanc = lazy(() => import('./vistas/base-datos/VistaBaseDatosOrthanc'));
@@ -99,6 +101,7 @@ const modulos: Modulo[] = [
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'userCheck', grupo: 'QUIRÓFANO' },
   { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'userCheck', grupo: 'QUIRÓFANO' },
   { id: 'esterilizacion-quirofano', nombre: 'Esterilización', icono: 'lab', grupo: 'QUIRÓFANO' },
+  { id: 'cuenta-quirofano', nombre: 'Cuenta quirófano', icono: 'cash', grupo: 'QUIRÓFANO' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-configuracion', nombre: 'Tipos de laboratorio', icono: 'settings', grupo: 'LABORATORIO' },
@@ -543,7 +546,9 @@ export default function Aplicacion() {
           ) : modulo === 'anestesiologia-quirofano' ? (
             <div className="modulo-vacio"><span><Icon name="userCheck" size={28} /></span><p>QUIRÓFANO</p><h2>Anestesiología</h2><small>Evaluación preanestésica, registro anestésico y seguimiento de la recuperación del paciente.</small></div>
           ) : modulo === 'esterilizacion-quirofano' ? (
-            <div className="modulo-vacio"><span><Icon name="lab" size={28} /></span><p>QUIRÓFANO</p><h2>Esterilización</h2><small>Control de instrumental, ciclos de esterilización y trazabilidad de insumos.</small></div>
+            <EsterilizacionView />
+          ) : modulo === 'cuenta-quirofano' ? (
+            <CuentaQuirofanoView />
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "base-datos" ? (
             <VistaBaseDatosOrthanc />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (

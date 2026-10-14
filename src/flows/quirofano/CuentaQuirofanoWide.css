@@ -1,0 +1,110 @@
+.cuenta-q {
+  width: 100%;
+  max-width: none;
+  margin-inline: 0;
+}
+
+.cuenta-q-subvistas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.cuenta-q-subvistas button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 13px;
+  border: 1px solid #b9d8e9;
+  border-radius: 8px;
+  color: #315d7d;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.cuenta-q-subvistas button.activo {
+  border-color: #087fc0;
+  color: #fff;
+  background: #087fc0;
+}
+
+.cuenta-q-programada {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 11px 13px;
+  border: 1px solid #a9dcc3;
+  border-radius: 8px;
+  color: #176b49;
+  background: #effaf4;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.cuenta-q-error {
+  margin: 0 0 5px;
+  color: #a33232;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.cuenta-q-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.cuenta-q-programacion {
+  grid-column: auto;
+}
+
+.cuenta-q-ficha-paciente {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #c9dfed;
+  border-radius: 8px;
+  background: #f8fcff;
+}
+
+.cuenta-q-ficha-paciente h4 {
+  margin: 0 0 12px;
+  color: #064773;
+  font-size: 12px;
+}
+
+.cuenta-q-ficha-paciente .cuenta-q-campos {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.cuenta-q-ficha-paciente h4:not(:first-child) {
+  margin-top: 20px;
+}
+
+.cuenta-q-ficha-paciente input[readonly] {
+  background: #edf5fa;
+  cursor: default;
+}
+
+.cuenta-q-acompanante .cuenta-q-campos {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.cuenta-q-acompanante input[readonly] {
+  background: #edf5fa;
+}
+
+@media (max-width: 900px) {
+  .cuenta-q-ficha-paciente .cuenta-q-campos,
+  .cuenta-q-acompanante .cuenta-q-campos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .cuenta-q-ficha-paciente .cuenta-q-campos,
+  .cuenta-q-acompanante .cuenta-q-campos {
+    grid-template-columns: 1fr;
+  }
+}

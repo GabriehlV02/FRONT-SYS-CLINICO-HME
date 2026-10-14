@@ -34,10 +34,10 @@ const seccionesConsulta: { id: SeccionConsulta; nombre: string; icono: 'userChec
   { id: 'tratamientos', nombre: 'Tratamientos', icono: 'patient' },
 ];
 
-function OrdenesConsulta({ paciente, onAbrir }: { paciente: CitaConfirmada | null; onAbrir?: (tipo: TipoOrden) => void }) {
+function OrdenesConsulta({ paciente, onAbrir, onAbrirRecetario }: { paciente: CitaConfirmada | null; onAbrir?: (tipo: TipoOrden) => void; onAbrirRecetario?: () => void }) {
   const [mensaje, setMensaje] = useState('');
   const abrir = (tipo: TipoOrden) => { if (!paciente) { setMensaje('Selecciona primero un paciente en atención.'); return; } setMensaje(''); onAbrir?.(tipo); };
-  return <><nav className="consulta-ordenes"><button className="orden-laboratorio" type="button" onClick={() => abrir('laboratorio')}><Icon name="lab" size={17} /> Orden de laboratorio</button><button className="orden-imagenologia" type="button" onClick={() => abrir('imagenologia')}><Icon name="image" size={17} /> Orden de imagenología</button><button className="orden-internacion" type="button" onClick={() => abrir('internacion')}><Icon name="patient" size={17} /> Orden de internación</button></nav>{mensaje && <em className="consulta-aviso">{mensaje}</em>}</>;
+  return <><nav className="consulta-ordenes"><button className="orden-laboratorio" type="button" onClick={() => abrir('laboratorio')}><Icon name="lab" size={17} /> Orden de laboratorio</button><button className="orden-imagenologia" type="button" onClick={() => abrir('imagenologia')}><Icon name="image" size={17} /> Orden de imagenología</button><button className="orden-recetario" type="button" onClick={() => { if (!paciente) { setMensaje('Selecciona primero un paciente en atención.'); return; } setMensaje(''); onAbrirRecetario?.(); }}><Icon name="fileText" size={17} /> Recetario médico</button><button className="orden-internacion" type="button" onClick={() => abrir('internacion')}><Icon name="patient" size={17} /> Orden de internación</button></nav>{mensaje && <em className="consulta-aviso">{mensaje}</em>}</>;
 }
 
 export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirmada | null; medico: string }) {
@@ -86,7 +86,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   };
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
     <section className="consulta-activa-derecha">
-      <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci} · Cita {paciente.hora}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div><div><dt>Domicilio</dt><dd>{paciente.domicilio ?? 'No registrado'}</dd></div></dl></div><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} /></header>
+      <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci} · Cita {paciente.hora}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div><div><dt>Domicilio</dt><dd>{paciente.domicilio ?? 'No registrado'}</dd></div></dl></div><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} onAbrirRecetario={() => setSeccion('tratamientos')} /></header>
       <div className="consulta-secciones-bar">
       <nav className="consulta-secciones" aria-label="Secciones de la consulta">
         <button type="button" className="consulta-volver-listado" onClick={() => window.dispatchEvent(new Event('consulta:volver-al-listado'))}><Icon name="chevronLeft" size={16} /><span>Volver al listado</span></button>

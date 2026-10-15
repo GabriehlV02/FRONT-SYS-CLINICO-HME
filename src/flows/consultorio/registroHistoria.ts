@@ -1,7 +1,8 @@
 import type { CitaConfirmada } from './AgendaAmbulatoriaView';
 
 export type TipoEpisodio = 'Consulta médica' | 'Emergencias' | 'Internación' | 'Cirugía' | 'Quirófano' | 'Terapia intensiva' | 'Recuperación';
-export type DocumentoEpisodio = { tipo: string; detalle: string; estado?: string };
+export type MedicamentoReceta = { id: string; nombre: string; dosis: string; via: string; frecuencia: string; duracion: string; cantidad: string; catalogoId?: string; codigo?: string; unidad?: string; indicaciones?: string };
+export type DocumentoEpisodio = { tipo: string; detalle: string; estado?: string; fecha?: string; medico?: string; receta?: { id: string; fecha: string; medicamentos: MedicamentoReceta[]; indicaciones: string } };
 export type EpisodioClinico = {
   episodioId: string;
   origenId: string;
@@ -59,8 +60,9 @@ export const guardarEpisodio = (borrador: BorradorEpisodio) => {
   const existente = episodios.find((episodio) => episodio.origenId === borrador.origenId);
   const correlativo = existente?.correlativo ?? Math.max(0, ...episodios.filter((episodio) => episodio.paciente.ci === borrador.paciente.ci).map((episodio) => episodio.correlativo)) + 1;
   const episodio: EpisodioClinico = { ...borrador, recetas: borrador.recetas.length ? borrador.recetas : (existente?.recetas ?? []), ordenes: borrador.ordenes.length ? borrador.ordenes : (existente?.ordenes ?? []), resultados: borrador.resultados.length ? borrador.resultados : (existente?.resultados ?? []), reconsultas: borrador.reconsultas.length ? borrador.reconsultas : (existente?.reconsultas ?? []), correlativo, episodioId: `${borrador.paciente.ci}-${correlativo}`, actualizadoEn: new Date().toISOString() };
-  episodios = existente ? episodios.map((actual) => actual.origenId === borrador.origenId ? episodio : actual) : [...episodios, episodio];
-  localStorage.setItem(CLAVE, JSON.stringify(episodios));
+  const siguientes = existente ? episodios.map((actual) => actual.origenId === borrador.origenId ? episodio : actual) : [...episodios, episodio];
+  localStorage.setItem(CLAVE, JSON.stringify(siguientes));
+  episodios = siguientes;
   oyentes.forEach((oyente) => oyente());
   return episodio;
 };

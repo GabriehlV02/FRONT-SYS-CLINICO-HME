@@ -1,5 +1,9 @@
 export type CategoriaLaboratorio = { id: string; nombre: string; descripcion: string; activa: boolean };
-export type ParametroLaboratorio = { id: string; nombre: string; tipo: 'numero' | 'texto'; unidad: string; referencia: string };
+import { validarFormula, type FormulaLaboratorio } from './formulasLaboratorio';
+import { categoriaEjemploFormula, estudioEjemploFormula } from './ejemploFormulaLaboratorio';
+import { validarRangoReferencia, type RangoReferencia } from './rangosLaboratorio';
+import { referenciasLipidosAdultos } from './referenciasPerfilLipidico';
+export type ParametroLaboratorio = { id: string; nombre: string; tipo: 'numero' | 'texto'; unidad: string; referencia: string; notaReferencia?: string; rangoReferencia?: RangoReferencia; formula?: FormulaLaboratorio };
 export type TipoLaboratorio = {
   id: string; codigo: string; nombre: string; categoriaId: string; tipoMuestra: string;
   descripcion: string; activo: boolean; parametros: ParametroLaboratorio[];
@@ -17,7 +21,7 @@ const gruposAdicionales: CategoriaLaboratorio[] = [
   { id: 'inmunologia', nombre: 'Inmunología', descripcion: 'Inmunoglobulinas', activa: true },
 ];
 function examen(id: string, codigo: string, nombre: string, categoriaId: string, tipoMuestra: string, parametros: [string, string, 'numero' | 'texto'][]): TipoLaboratorio {
-  return { id, codigo, nombre, categoriaId, tipoMuestra, descripcion: '', activo: true, parametros: parametros.map(([nombreParametro, unidad, tipo], indice) => ({ id: `${id}-p${indice + 1}`, nombre: nombreParametro, unidad, tipo, referencia: '' })) };
+  return { id, codigo, nombre, categoriaId, tipoMuestra, descripcion: '', activo: true, parametros: parametros.map(([nombreParametro, unidad, tipo], indice) => ({ id: `${id}-p${indice + 1}`, nombre: nombreParametro, unidad, tipo, referencia: '', ...(id === 'lab-lipidico' ? referenciasLipidosAdultos[nombreParametro] : {}) })) };
 }
 const tiposAdicionales: TipoLaboratorio[] = [
   examen('lab-grupo-rh', 'LAB-004', 'Grupo sanguíneo y factor RH', 'hematologia', 'Sangre', [['Grupo sanguíneo', '', 'texto'], ['Factor RH', '', 'texto']]),
@@ -45,6 +49,7 @@ const inicial: ConfiguracionLaboratorio = {
     { id: 'bioquimica', nombre: 'Bioquímica', descripcion: 'Química clínica', activa: true },
     { id: 'uroanalisis', nombre: 'Uroanálisis', descripcion: 'Estudios de orina', activa: true },
     ...gruposAdicionales,
+    categoriaEjemploFormula,
   ],
   tipos: [
     { id: 'lab-hemograma', codigo: 'LAB-001', nombre: 'Hemograma completo', categoriaId: 'hematologia', tipoMuestra: 'Sangre', descripcion: '', activo: true, parametros: [
@@ -60,6 +65,7 @@ const inicial: ConfiguracionLaboratorio = {
       { id: 'color', nombre: 'Color', tipo: 'texto', unidad: '', referencia: '' },
     ] },
     ...tiposAdicionales,
+    estudioEjemploFormula,
   ],
 };
 
@@ -83,6 +89,22 @@ export function leerCatalogoLaboratorio(): ConfiguracionLaboratorio {
     localStorage.setItem(clave, JSON.stringify(datos));
     localStorage.setItem(claveAmpliacion, '1');
   }
+  const claveEjemplo = 'clinico.laboratorio.catalogo.ejemplo-formula.v1';
+  if (!localStorage.getItem(claveEjemplo)) {
+    if (!datos.categorias.some(c => c.id === categoriaEjemploFormula.id)) datos.categorias.push(structuredClone(categoriaEjemploFormula));
+    if (!datos.tipos.some(t => t.id === estudioEjemploFormula.id || t.codigo.toUpperCase() === estudioEjemploFormula.codigo || t.nombre === estudioEjemploFormula.nombre)) datos.tipos.push(structuredClone(estudioEjemploFormula));
+    localStorage.setItem(clave, JSON.stringify(datos));
+    localStorage.setItem(claveEjemplo, '1');
+  }
+  const claveReferencias = 'clinico.laboratorio.catalogo.referencias-lipidos-adultos.v1';
+  if (!localStorage.getItem(claveReferencias)) {
+    datos.tipos = datos.tipos.map(t => !['lab-lipidico', estudioEjemploFormula.id].includes(t.id) ? t : {
+      ...t, parametros: t.parametros.map(p => !p.referencia.trim() && !p.rangoReferencia && p.unidad === 'mg/dL' && referenciasLipidosAdultos[p.nombre.replace(' estimado', '')]
+        ? { ...p, ...structuredClone(referenciasLipidosAdultos[p.nombre.replace(' estimado', '')]) } : p),
+    });
+    localStorage.setItem(clave, JSON.stringify(datos));
+    localStorage.setItem(claveReferencias, '1');
+  }
   return datos;
 }
 
@@ -104,8 +126,30 @@ export function guardarTipoLaboratorio(tipo: TipoLaboratorio) {
   if (!limpio.nombre || !limpio.codigo) throw new Error('Completa el código y el nombre del tipo de laboratorio.');
   if (!catalogo.categorias.some(c => c.id === limpio.categoriaId && (c.activa || !limpio.activo))) throw new Error('Selecciona una categoría activa para este laboratorio.');
   if (!limpio.parametros.length || limpio.parametros.some(p => !p.nombre)) throw new Error('Agrega al menos un parámetro y completa su nombre.');
+  for (const p of limpio.parametros) if (p.rangoReferencia) {
+    if (p.tipo !== 'numero') throw new Error('El rango numérico de referencia solo corresponde a parámetros numéricos.');
+    validarRangoReferencia(p.rangoReferencia);
+  }
   if (new Set(limpio.parametros.map(p => p.nombre.toLocaleLowerCase())).size !== limpio.parametros.length) throw new Error('Los nombres de los parámetros no deben repetirse dentro del examen.');
   if (catalogo.tipos.some(t => t.id !== limpio.id && (t.codigo.toUpperCase() === limpio.codigo || t.nombre.toLocaleLowerCase() === limpio.nombre.toLocaleLowerCase()))) throw new Error('Ya existe un tipo de laboratorio con ese código o nombre.');
+  const tipos = [...catalogo.tipos.filter(t => t.id !== limpio.id), limpio];
+  const visitados = new Set<string>(); const visitando = new Set<string>();
+  const revisar = (estudioId: string, parametroId: string) => {
+    const claveParametro = `${estudioId}:${parametroId}`;
+    if (visitando.has(claveParametro)) throw new Error('Las fórmulas tienen una dependencia circular.');
+    if (visitados.has(claveParametro)) return;
+    const p = tipos.find(t => t.id === estudioId)?.parametros.find(p => p.id === parametroId);
+    if (!p || p.tipo !== 'numero') throw new Error('Las fórmulas deben usar parámetros numéricos existentes.');
+    visitando.add(claveParametro);
+    if (p.formula) { validarFormula(p.formula); for (const f of p.formula.fuentes) {
+      const fuente = tipos.find(t => t.id === f.estudioId)?.parametros.find(p => p.id === f.parametroId);
+      if (!fuente) throw new Error('Las fórmulas deben usar parámetros numéricos existentes.');
+      if (fuente?.unidad !== f.unidad) throw new Error('Cambió la unidad de un origen. Revisa las fórmulas que lo utilizan.');
+      revisar(f.estudioId, f.parametroId);
+    } }
+    visitando.delete(claveParametro); visitados.add(claveParametro);
+  };
+  for (const t of tipos) for (const p of t.parametros) if (p.formula) revisar(t.id, p.id);
   persistir({ ...catalogo, tipos: catalogo.tipos.some(t => t.id === limpio.id) ? catalogo.tipos.map(t => t.id === limpio.id ? limpio : t) : [...catalogo.tipos, limpio] });
 }
 

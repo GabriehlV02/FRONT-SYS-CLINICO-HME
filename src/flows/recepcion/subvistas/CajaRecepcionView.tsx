@@ -120,6 +120,7 @@ export function CajaRecepcionView({
   const [clientesEncontrados, setClientesEncontrados] = useState<ClienteVenta[]>([]);
   const [buscandoClientes, setBuscandoClientes] = useState(false);
   const [guardandoCliente, setGuardandoCliente] = useState(false);
+  const [cobrando, setCobrando] = useState(false);
   const [errorCliente, setErrorCliente] = useState("");
   const [tipoEstudioImagen, setTipoEstudioImagen] = useState("Rayos X");
   const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
@@ -338,7 +339,7 @@ export function CajaRecepcionView({
       setGuardandoCliente(false);
     }
   };
-  const cobrar = () => {
+  const cobrar = async () => {
     if (!lineas.length || pendiente > 0) return;
     if (!clienteSeleccionado) {
       setMensaje("Busca o registra un cliente antes de cobrar la venta.");
@@ -349,24 +350,51 @@ export function CajaRecepcionView({
       setMensaje("Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.");
       return;
     }
-    if (estudiosImagen.length) {
-      registrarSolicitudesImagenologia(
-        paciente,
-        ciPaciente,
-        estudiosImagen.map((linea) => ({
-          estudio: linea.estudioImagen!,
-          pieza: linea.piezaImagen!,
-          precio: linea.precio,
-          cantidad: linea.cantidad,
-        })),
-      );
+    setCobrando(true);
+    setMensaje("");
+    try {
+      const respuesta = await apiContableFetch("/v1/ventas", {
+        method: "POST",
+        body: JSON.stringify({
+          cliente_id: clienteSeleccionado.id,
+          descuento: rebaja,
+          detalles: lineas.map((linea) => ({
+            codigo_item: linea.codigo,
+            nombre_item: linea.nombre,
+            tipo_item: linea.tipo,
+            cantidad: linea.cantidad,
+            precio_unitario: linea.precio,
+          })),
+        }),
+      });
+      const resultado = await respuesta.json() as { data?: { codigo?: string }; message?: string; errors?: Record<string, string[]> };
+      if (!respuesta.ok || !resultado.data) {
+        const detalle = Object.values(resultado.errors || {}).flat()[0];
+        throw new Error(detalle || resultado.message || "No se pudo registrar la venta.");
+      }
+
+      if (estudiosImagen.length) {
+        registrarSolicitudesImagenologia(
+          paciente,
+          ciPaciente,
+          estudiosImagen.map((linea) => ({
+            estudio: linea.estudioImagen!,
+            pieza: linea.piezaImagen!,
+            precio: linea.precio,
+            cantidad: linea.cantidad,
+          })),
+        );
+      }
+      setMensaje(`${resultado.data.codigo || "Venta"} registrada correctamente.`);
+      setLineas([]);
+      setPagos([pagoNuevo(Date.now())]);
+      setDescuento("");
+      setClienteSeleccionado(null);
+    } catch (error) {
+      setMensaje(error instanceof Error ? error.message : "No se pudo registrar la venta.");
+    } finally {
+      setCobrando(false);
     }
-    setMensaje(estudiosImagen.length
-      ? "Cobro de demostración registrado. La orden quedó pendiente en Imagenología."
-      : "Venta registrada correctamente. Lista para imprimir factura.");
-    setLineas([]);
-    setPagos([pagoNuevo(Date.now())]);
-    setDescuento("");
   };
   return (
     <section className={`punto-pos ${farmacia ? "punto-pos-farmacia" : ""}`}>
@@ -1006,17 +1034,14 @@ export function CajaRecepcionView({
               )}
             </header>
             {!clienteSeleccionado && modo === "inicio" && (
-              <>
-                <div className="cliente-acciones">
-                  <button type="button" onClick={() => { setErrorCliente(""); setModo("buscar"); }}>
-                    <Icon name="search" size={15} /> Buscar cliente
-                  </button>
-                  <button type="button" onClick={() => { setErrorCliente(""); setModo("registrar"); }}>
-                    <Icon name="plus" size={15} /> Registrar cliente
-                  </button>
-                </div>
-                <small className="cliente-ayuda">Registro comercial para la venta. La atención clínica requiere una ficha de paciente.</small>
-              </>
+              <div className="cliente-acciones">
+                <button type="button" onClick={() => { setErrorCliente(""); setModo("buscar"); }}>
+                  <Icon name="search" size={15} /> Buscar cliente
+                </button>
+                <button type="button" onClick={() => { setErrorCliente(""); setModo("registrar"); }}>
+                  <Icon name="plus" size={15} /> Registrar cliente
+                </button>
+              </div>
             )}
             {!clienteSeleccionado && modo === "buscar" && (
               <div className="cliente-busqueda">
@@ -1282,10 +1307,10 @@ export function CajaRecepcionView({
           <button
             className="punto-cobrar"
             type="button"
-            disabled={!lineas.length || pendiente > 0}
-            onClick={cobrar}
+            disabled={!lineas.length || pendiente > 0 || cobrando}
+            onClick={() => void cobrar()}
           >
-            <Icon name="check" size={17} /> Cobrar e imprimir factura
+            <Icon name="check" size={17} /> {cobrando ? "Registrando venta..." : "Cobrar e imprimir factura"}
           </button>
         </aside>
       </div>

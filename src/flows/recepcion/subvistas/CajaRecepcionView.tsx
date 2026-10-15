@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Icon from "../../../radius/componentes/Icono";
-import { apiFetch } from "../../../radius/api";
+import { apiContableFetch, apiFetch } from "../../../radius/api";
 import { registrarSolicitudesImagenologia } from "../../../radius/datos/solicitudesImagenologiaDemo";
 import "./CajaImagenologiaDemo.css";
 import { InternacionModal } from "./InternacionModal";
@@ -22,6 +22,13 @@ type Linea = Item & {
   piezaImagen?: string;
 };
 type Pago = { id: number; metodo: string; monto: string };
+type ClienteVenta = {
+  id: string;
+  nit_ci: string | null;
+  nombre_razon_social: string;
+  telefono: string | null;
+  correo: string | null;
+};
 const catalogo: Item[] = [
   {
     id: "consulta",
@@ -96,12 +103,6 @@ export function CajaRecepcionView({
     [lineas, setLineas] = useState<Linea[]>([]),
     [paciente, setPaciente] = useState(""),
     [ciPaciente, setCiPaciente] = useState(""),
-    [registroPaciente, setRegistroPaciente] = useState({
-      nombre: "",
-      ci: "",
-      telefono: "",
-    }),
-    [busquedaPaciente, setBusquedaPaciente] = useState(""),
     [historialAbierto, setHistorialAbierto] = useState(true),
     [filtroHistorial, setFiltroHistorial] = useState("Todos"),
     [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
@@ -113,9 +114,55 @@ export function CajaRecepcionView({
     [descuento, setDescuento] = useState(""),
     [mensaje, setMensaje] = useState("");
   const [imagenParaAgregar, setImagenParaAgregar] = useState<Item | null>(null);
+  const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteVenta | null>(null);
+  const [registroCliente, setRegistroCliente] = useState({ nombre: "", nitCi: "", telefono: "", correo: "" });
+  const [busquedaCliente, setBusquedaCliente] = useState("");
+  const [clientesEncontrados, setClientesEncontrados] = useState<ClienteVenta[]>([]);
+  const [buscandoClientes, setBuscandoClientes] = useState(false);
+  const [guardandoCliente, setGuardandoCliente] = useState(false);
+  const [errorCliente, setErrorCliente] = useState("");
   const [tipoEstudioImagen, setTipoEstudioImagen] = useState("Rayos X");
   const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
   const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
+  useEffect(() => {
+    if (modo !== "buscar") {
+      setBuscandoClientes(false);
+      return;
+    }
+    const termino = busquedaCliente.trim();
+    if (termino.length < 2) {
+      setClientesEncontrados([]);
+      setErrorCliente("");
+      setBuscandoClientes(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const temporizador = window.setTimeout(() => {
+      setBuscandoClientes(true);
+      setErrorCliente("");
+      void apiContableFetch(`/v1/clientes?buscar=${encodeURIComponent(termino)}`, { signal: controller.signal })
+        .then(async (respuesta) => {
+          const resultado = await respuesta.json() as { data?: ClienteVenta[]; message?: string };
+          if (!respuesta.ok) throw new Error(resultado.message || "No se pudieron buscar los clientes.");
+          setClientesEncontrados(resultado.data || []);
+        })
+        .catch((error: unknown) => {
+          if (controller.signal.aborted) return;
+          setClientesEncontrados([]);
+          setErrorCliente(error instanceof Error ? error.message : "No se pudieron buscar los clientes.");
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setBuscandoClientes(false);
+        });
+    }, 250);
+
+    return () => {
+      window.clearTimeout(temporizador);
+      controller.abort();
+    };
+  }, [busquedaCliente, modo]);
+
   const resultados = useMemo(
     () =>
       catalogo.filter(
@@ -198,16 +245,6 @@ export function CajaRecepcionView({
       ),
     );
   };
-  const coincidenciasPaciente = useMemo(() => {
-    const termino = busquedaPaciente.trim().toLocaleLowerCase("es");
-    return termino
-      ? pacientesEjemplo
-          .filter((p) =>
-            `${p.nombre} ${p.ci}`.toLocaleLowerCase("es").includes(termino),
-          )
-          .slice(0, 6)
-      : [];
-  }, [busquedaPaciente]);
   const historialPaciente =
     paciente === "Luis Escobar"
       ? [
@@ -263,29 +300,50 @@ export function CajaRecepcionView({
             detalle: "Descargos Ambulatorios 510",
           },
         ];
-  const seleccionar = (nombre?: string) => {
-    if (nombre) {
-      setPaciente(nombre);
-      setCiPaciente(
-        pacientesEjemplo.find((p) => p.nombre === nombre)?.ci || "",
-      );
-      setHistorialAbierto(true);
-      setBusquedaPaciente("");
-      setModo("inicio");
-      return;
-    }
-    if (!registroPaciente.nombre.trim() || !registroPaciente.ci.trim()) {
-      setMensaje("Completa el nombre y CI del paciente.");
-      return;
-    }
-    setHistorialAbierto(true);
-    setPaciente(registroPaciente.nombre.trim());
-    setCiPaciente(registroPaciente.ci.trim());
-    setRegistroPaciente({ nombre: "", ci: "", telefono: "" });
+  const seleccionarCliente = (cliente: ClienteVenta) => {
+    setClienteSeleccionado(cliente);
+    setBusquedaCliente("");
+    setRegistroCliente({ nombre: "", nitCi: "", telefono: "", correo: "" });
+    setErrorCliente("");
     setModo("inicio");
+  };
+
+  const guardarCliente = async () => {
+    if (!registroCliente.nombre.trim()) {
+      setErrorCliente("Ingresa el nombre o razón social del cliente.");
+      return;
+    }
+
+    setGuardandoCliente(true);
+    setErrorCliente("");
+    try {
+      const respuesta = await apiContableFetch("/v1/clientes", {
+        method: "POST",
+        body: JSON.stringify({
+          nombre_razon_social: registroCliente.nombre.trim(),
+          nit_ci: registroCliente.nitCi.trim() || null,
+          telefono: registroCliente.telefono.trim() || null,
+          correo: registroCliente.correo.trim() || null,
+        }),
+      });
+      const resultado = await respuesta.json() as { data?: ClienteVenta; message?: string; errors?: Record<string, string[]> };
+      if (!respuesta.ok || !resultado.data) {
+        const detalle = Object.values(resultado.errors || {}).flat()[0];
+        throw new Error(detalle || resultado.message || "No se pudo registrar el cliente.");
+      }
+      seleccionarCliente(resultado.data);
+    } catch (error) {
+      setErrorCliente(error instanceof Error ? error.message : "No se pudo registrar el cliente.");
+    } finally {
+      setGuardandoCliente(false);
+    }
   };
   const cobrar = () => {
     if (!lineas.length || pendiente > 0) return;
+    if (!clienteSeleccionado) {
+      setMensaje("Busca o registra un cliente antes de cobrar la venta.");
+      return;
+    }
     const estudiosImagen = lineas.filter((linea) => linea.estudioImagen && linea.piezaImagen);
     if (estudiosImagen.length && (!paciente.trim() || !ciPaciente.trim())) {
       setMensaje("Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.");
@@ -346,7 +404,6 @@ export function CajaRecepcionView({
             setPaciente(p.nombre);
             setCiPaciente(p.ci);
             setHistorialAbierto(true);
-            setBusquedaPaciente("");
             setModo("inicio");
           }}
           onCerrar={() => setMostrandoLaboratorio(false)}
@@ -380,7 +437,7 @@ export function CajaRecepcionView({
                 complemento_ci: campo('input[placeholder="Complemento"]'), expedido_en: formulario.querySelector<HTMLSelectElement>('select[name="expedidoEn"]')?.value || null, nit: campo('input[placeholder="NIT"]'), razon_social: campo('input[placeholder="Razón social"]'),
                 fecha_nacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), genero: formulario.querySelector<HTMLSelectElement>('select[name="genero"]')?.value, ci_con_qr: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-ci input[type="checkbox"]')?.checked || false,
                 pais: formulario.querySelector<HTMLSelectElement>('select[name="pais"]')?.value || 'Bolivia', departamento: formulario.querySelector<HTMLSelectElement>('select[name="departamento"]')?.value || 'Cochabamba', ciudad: campo('input[placeholder="Ciudad"]'), zona_barrio: campo('input[placeholder="Zona cardinal"]'), direccion_domicilio: campo('input[placeholder="Dirección"]'),
-                responsable_nombre_completo: campo('input[placeholder="Nombre completo"]'), responsable_telefono: campo('input[placeholder="Teléfono"]'), responsable_parentesco: campo('input[placeholder="Ej. Padre, madre o tutor"]'), como_se_entero: formulario.querySelector<HTMLSelectElement>('select[name="comoSeEntero"]')?.value, observaciones: campo('textarea[placeholder="Observaciones"]'), habilitado: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-habilitado input')?.checked ?? true,
+                responsable_nombre_completo: campo('input[placeholder="Nombre completo"]'), responsable_ci: campo('input[placeholder="CI del familiar"]'), responsable_telefono: campo('input[placeholder="Teléfono"]'), responsable_parentesco: campo('input[placeholder="Ej. Padre, madre o tutor"]'), como_se_entero: formulario.querySelector<HTMLSelectElement>('select[name="comoSeEntero"]')?.value, observaciones: campo('textarea[placeholder="Observaciones"]'), habilitado: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-habilitado input')?.checked ?? true,
               }) });
               const resultado = await respuesta.json() as { message?: string };
               if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo registrar el paciente.');
@@ -522,6 +579,10 @@ export function CajaRecepcionView({
                   <label>
                     Nombre completo
                     <input placeholder="Nombre completo" />
+                  </label>
+                  <label>
+                    CI / Carnet de identidad
+                    <input placeholder="CI del familiar" />
                   </label>
                   <label>
                     Teléfono de contacto
@@ -819,7 +880,7 @@ export function CajaRecepcionView({
                 setMensaje("");
               }}
             >
-              <Icon name="plus" size={16} /> Nuevo paciente
+              <Icon name="plus" size={16} /> Registrar ficha clínica
             </button>
           </div>
           <div className="punto-catalogo-filtros">
@@ -931,64 +992,68 @@ export function CajaRecepcionView({
           </header>
           <section className="punto-cliente">
             <header>
-              <strong>Paciente</strong>
-              {paciente && (
+              <strong>Cliente</strong>
+              {clienteSeleccionado && (
                 <button
                   className="cliente-cambiar"
                   type="button"
                   onClick={() => {
-                    setPaciente("");
-                    setCiPaciente("");
+                    setClienteSeleccionado(null);
                   }}
                 >
                   Cambiar
                 </button>
               )}
             </header>
-            {!paciente && modo === "inicio" && (
-              <div className="cliente-acciones">
-                <button type="button" onClick={() => setModo("buscar")}>
-                  <Icon name="search" size={15} /> Buscar paciente
-                </button>
-                <button type="button" onClick={() => setModo("registrar")}>
-                  <Icon name="plus" size={15} /> Registrar cliente
-                </button>
-              </div>
+            {!clienteSeleccionado && modo === "inicio" && (
+              <>
+                <div className="cliente-acciones">
+                  <button type="button" onClick={() => { setErrorCliente(""); setModo("buscar"); }}>
+                    <Icon name="search" size={15} /> Buscar cliente
+                  </button>
+                  <button type="button" onClick={() => { setErrorCliente(""); setModo("registrar"); }}>
+                    <Icon name="plus" size={15} /> Registrar cliente
+                  </button>
+                </div>
+                <small className="cliente-ayuda">Registro comercial para la venta. La atención clínica requiere una ficha de paciente.</small>
+              </>
             )}
-            {!paciente && modo === "buscar" && (
+            {!clienteSeleccionado && modo === "buscar" && (
               <div className="cliente-busqueda">
                 <label>
                   <Icon name="search" size={16} />
                   <input
                     autoFocus
-                    value={busquedaPaciente}
-                    onChange={(e) => setBusquedaPaciente(e.target.value)}
-                    placeholder="Buscar por nombre o CI"
+                    value={busquedaCliente}
+                    onChange={(e) => setBusquedaCliente(e.target.value)}
+                    placeholder="Buscar por nombre, CI/NIT, celular o correo"
                   />
                 </label>
-                {!!busquedaPaciente && (
+                {!!errorCliente && <p className="cliente-error" role="alert">{errorCliente}</p>}
+                {buscandoClientes && <p className="cliente-ayuda">Buscando clientes...</p>}
+                {!!busquedaCliente && !buscandoClientes && !errorCliente && (
                   <div
                     className="cliente-coincidencias"
                     role="listbox"
-                    aria-label="Coincidencias de pacientes"
+                    aria-label="Coincidencias de clientes"
                   >
-                    {coincidenciasPaciente.length ? (
-                      coincidenciasPaciente.map((p) => (
+                    {clientesEncontrados.length ? (
+                      clientesEncontrados.map((cliente) => (
                         <button
                           type="button"
                           role="option"
-                          key={p.ci}
-                          onClick={() => seleccionar(p.nombre)}
+                          key={cliente.id}
+                          onClick={() => seleccionarCliente(cliente)}
                         >
                           <span>
-                            <b>{p.nombre}</b>
-                            <small>CI: {p.ci}</small>
+                            <b>{cliente.nombre_razon_social}</b>
+                            <small>{cliente.nit_ci ? `CI/NIT: ${cliente.nit_ci}` : "Sin CI/NIT registrado"}</small>
                           </span>
                           <Icon name="chevronRight" size={15} />
                         </button>
                       ))
                     ) : (
-                      <p>No se encontraron coincidencias.</p>
+                      <p>No hay coincidencias. Puedes registrar al cliente para esta venta.</p>
                     )}
                   </div>
                 )}
@@ -996,7 +1061,8 @@ export function CajaRecepcionView({
                   className="cliente-secundario"
                   type="button"
                   onClick={() => {
-                    setBusquedaPaciente("");
+                    setBusquedaCliente("");
+                    setClientesEncontrados([]);
                     setModo("inicio");
                   }}
                 >
@@ -1004,41 +1070,49 @@ export function CajaRecepcionView({
                 </button>
               </div>
             )}
-            {!paciente && modo === "registrar" && (
+            {!clienteSeleccionado && modo === "registrar" && (
               <div className="cliente-formulario">
+                <small>El registro es solo comercial; no crea una ficha clínica.</small>
                 <input
-                  placeholder="Nombres y apellidos *"
-                  value={registroPaciente.nombre}
+                  placeholder="Nombre o razón social *"
+                  value={registroCliente.nombre}
                   onChange={(e) =>
-                    setRegistroPaciente((actual) => ({
+                    setRegistroCliente((actual) => ({
                       ...actual,
                       nombre: e.target.value,
                     }))
                   }
                 />
                 <input
-                  placeholder="CI *"
-                  value={registroPaciente.ci}
+                  placeholder="CI / NIT"
+                  value={registroCliente.nitCi}
                   onChange={(e) =>
-                    setRegistroPaciente((actual) => ({
+                    setRegistroCliente((actual) => ({
                       ...actual,
-                      ci: e.target.value,
+                      nitCi: e.target.value,
                     }))
                   }
                 />
                 <input
                   placeholder="Número de celular"
-                  value={registroPaciente.telefono}
+                  value={registroCliente.telefono}
                   onChange={(e) =>
-                    setRegistroPaciente((actual) => ({
+                    setRegistroCliente((actual) => ({
                       ...actual,
                       telefono: e.target.value,
                     }))
                   }
                 />
+                <input
+                  type="email"
+                  placeholder="Correo electrónico"
+                  value={registroCliente.correo}
+                  onChange={(e) => setRegistroCliente((actual) => ({ ...actual, correo: e.target.value }))}
+                />
+                {!!errorCliente && <p className="cliente-error" role="alert">{errorCliente}</p>}
                 <div>
-                  <button type="button" onClick={() => seleccionar()}>
-                    Guardar paciente
+                  <button type="button" disabled={guardandoCliente} onClick={() => void guardarCliente()}>
+                    {guardandoCliente ? "Guardando..." : "Guardar cliente"}
                   </button>
                   <button
                     className="cliente-secundario"
@@ -1050,15 +1124,15 @@ export function CajaRecepcionView({
                 </div>
               </div>
             )}
-            {paciente && (
+            {clienteSeleccionado && (
               <button className="cliente-resumen" type="button">
                 <span>
-                  <small>Paciente</small>
-                  <b>{paciente}</b>
+                  <small>Cliente de venta</small>
+                  <b>{clienteSeleccionado.nombre_razon_social}</b>
                 </span>
                 <span>
-                  <small>Historia clínica</small>
-                  <b>HC-004821</b>
+                  <small>CI / NIT</small>
+                  <b>{clienteSeleccionado.nit_ci || "No registrado"}</b>
                 </span>
                 <Icon name="chevronDown" size={18} />
               </button>

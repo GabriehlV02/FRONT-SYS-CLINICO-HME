@@ -36,6 +36,7 @@ type DatosPaciente = {
   zona_barrio: string;
   direccion_domicilio: string;
   responsable_nombre_completo: string;
+  responsable_ci: string;
   responsable_telefono: string;
   responsable_parentesco: string;
   como_se_entero: string;
@@ -48,7 +49,7 @@ const inicial: DatosPaciente = {
   complemento_ci: "", expedido_en: "", nit: "", razon_social: "",
   fecha_nacimiento: "", telefono: "", genero: "", ci_con_qr: false,
   pais: "Bolivia", departamento: "Cochabamba", ciudad: "", zona_barrio: "",
-  direccion_domicilio: "", responsable_nombre_completo: "", responsable_telefono: "",
+  direccion_domicilio: "", responsable_nombre_completo: "", responsable_ci: "", responsable_telefono: "",
   responsable_parentesco: "", como_se_entero: "", observaciones: "", habilitado: true,
 };
 
@@ -124,7 +125,7 @@ export default function ModalRegistroPaciente({
             <div className="registro-paciente-ancho">{campoTexto("Dirección domicilio", "direccion_domicilio", "Dirección")}</div>
           </div></fieldset>
           <fieldset><legend>Persona responsable</legend><div className="registro-paciente-grid registro-paciente-responsable">
-            {campoTexto("Nombre completo", "responsable_nombre_completo", "Nombre completo")}{campoTexto("Teléfono de contacto", "responsable_telefono", "Teléfono", false, "tel")}{campoTexto("Parentesco", "responsable_parentesco", "Ej. Padre, madre o tutor")}
+            {campoTexto("Nombre completo", "responsable_nombre_completo", "Nombre completo")}{campoTexto("CI / Carnet de identidad", "responsable_ci", "CI del familiar")}{campoTexto("Teléfono de contacto", "responsable_telefono", "Teléfono", false, "tel")}{campoTexto("Parentesco", "responsable_parentesco", "Ej. Padre, madre o tutor")}
           </div></fieldset>
           <fieldset><legend>Preguntas</legend><div className="registro-paciente-grid">
             <label className="registro-paciente-ancho">¿Cómo se enteró de nosotros? *<select required value={form.como_se_entero} onChange={(e) => cambiar("como_se_entero", e.target.value)}><option value="" disabled>Seleccionar una opción</option><option>Recomendación</option><option>Redes sociales</option><option>Publicidad</option><option>Otro</option></select></label>

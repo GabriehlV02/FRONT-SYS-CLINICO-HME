@@ -1718,6 +1718,9 @@
 .cliente-coincidencias b { font-size: 12px; }
 .cliente-coincidencias small { color: #688096; font-size: 10px; }
 .cliente-coincidencias p { margin: 0; padding: 10px; color: #688096; font-size: 11px; text-align: center; }
+.cliente-formulario > small,.cliente-ayuda { margin: 0; color: #587089; font-size: 10px; line-height: 1.4; }
+.cliente-error { margin: 0; color: #b42318; font-size: 11px; line-height: 1.4; }
+.cliente-formulario button:disabled { cursor: wait; opacity: .65; }
 .punto-historial-nuevo .punto-historial-lista article.estado-a-cuenta { border-color: #e9a81b; background: #fffdf7; }.punto-historial-nuevo .estado-a-cuenta .punto-historial-estado { color: #c98900; }.punto-historial-nuevo .punto-historial-lista article.estado-anulado { border-color: #e25757; background: #fffafa; opacity: .84; }.punto-historial-nuevo .estado-anulado .punto-historial-estado { color: #d43f3f; }.punto-historial-nuevo .punto-historial-lista article.estado-pre-venta { border-color: #7b6bd3; background: #fbfaff; }.punto-historial-nuevo .estado-pre-venta .punto-historial-estado { color: #6858bb; }
 .punto-acceso-internacion { display: grid; gap: 8px; padding: 9px 10px; border: 1px solid #35b9e5; border-radius: 8px; background: linear-gradient(135deg, #e4f8ff, #f6fdff); }.punto-acceso-internacion strong { color: #057eb5; font-size: 14px; }.punto-acceso-internacion button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; width: 100%; border: 0; border-radius: 6px; padding: 7px 8px; color: #fff; background: #078fc6; font-size: 10px; font-weight: 800; }.punto-acceso-internacion button:hover { background: #0879ae; }
 .cliente-resumen {

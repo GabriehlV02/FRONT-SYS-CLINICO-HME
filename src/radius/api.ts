@@ -13,3 +13,11 @@ export async function apiFetch(input: string, init: RequestInit = {}) {
   }
   return response;
 }
+
+export async function apiContableFetch(input: string, init: RequestInit = {}) {
+  const baseUrl = import.meta.env.VITE_API_CONTABLE_URL || '/api-contable';
+  const headers = new Headers(init.headers);
+  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const path = input.startsWith('/') ? input : `/${input}`;
+  return fetch(`${baseUrl.replace(/\/$/, '')}${path}`, { ...init, headers });
+}

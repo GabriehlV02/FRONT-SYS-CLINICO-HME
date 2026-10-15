@@ -16,6 +16,7 @@ type Estudio = {
   fechaEstudio: string;
   modalidades: string[];
   cantidadSeries: number;
+  cantidadImagenes: number;
   actualizadoEn: string;
 };
 type Estado = {
@@ -23,15 +24,6 @@ type Estado = {
   nombre: string;
   version: string;
   servidor?: string;
-};
-type Paciente = {
-  clave: string;
-  nombre: string;
-  patientId: string;
-  estudios: Estudio[];
-  primeraFecha: string;
-  ultimaFecha: string;
-  modalidades: string[];
 };
 async function json<T>(url: string, init?: RequestInit) {
   const r = await apiFetch(url, init),
@@ -45,11 +37,18 @@ function fecha(v: string) {
     ? `${v.slice(6, 8)}/${v.slice(4, 6)}/${v.slice(0, 4)}`
     : v || "Sin fecha";
 }
+function nombreLegible(v: string) {
+  return v
+    .replace(/\^+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLocaleLowerCase("es")
+    .replace(/(^|\s|[-'])\p{L}/gu, (letra) => letra.toLocaleUpperCase("es"));
+}
 
 export default function VistaBaseDatosOrthanc() {
   const [estudios, setEstudios] = useState<Estudio[]>([]),
     [estado, setEstado] = useState<Estado | null>(null),
-    [vista, setVista] = useState<"estudios" | "pacientes">("estudios"),
     [busqueda, setBusqueda] = useState(""),
     [ordenarPor, setOrdenarPor] = useState<"fecha" | "nombre">("fecha"),
     [direccionOrden, setDireccionOrden] = useState<"asc" | "desc">("desc"),
@@ -74,7 +73,6 @@ export default function VistaBaseDatosOrthanc() {
     [error, setError] = useState(""),
     [resultado, setResultado] = useState("");
   const volverAEstudios = () => {
-    setVista("estudios");
     setPagina(1);
     window.dispatchEvent(
       new CustomEvent("radiuus:navegar", { detail: "base-datos" }),
@@ -97,7 +95,7 @@ export default function VistaBaseDatosOrthanc() {
       }>("/api/orthanc/sincronizar", { method: "POST" });
       await cargar();
       setResultado(
-        `${r.total} estudios encontrados Â· ${r.nuevos} nuevos Â· ${r.asignados} asociados Â· ${r.pendientes} pendientes`,
+        `${r.total} estudios encontrados · ${r.nuevos} nuevos · ${r.asignados} asociados · ${r.pendientes} pendientes`,
       );
     } catch (e) {
       const mensaje =
@@ -138,46 +136,10 @@ export default function VistaBaseDatosOrthanc() {
         return direccionOrden === "asc" ? comparacion : -comparacion;
       });
   }, [estudios, busqueda, desde, hasta, ordenarPor, direccionOrden]);
-  const pacientes = useMemo(() => {
-    const mapa = new Map<string, Paciente>();
-    for (const e of filtrados) {
-      const id = e.patientIdDicom.trim().toUpperCase(),
-        nombre = e.patientName.trim().toUpperCase(),
-        clave = id || nombre ? `${id}|${nombre}` : `SIN-ID-${e.id}`,
-        p = mapa.get(clave);
-      if (p) {
-        p.estudios.push(e);
-        if (
-          e.fechaEstudio &&
-          (!p.primeraFecha || e.fechaEstudio < p.primeraFecha)
-        )
-          p.primeraFecha = e.fechaEstudio;
-        if (e.fechaEstudio > p.ultimaFecha) p.ultimaFecha = e.fechaEstudio;
-        p.modalidades = [...new Set([...p.modalidades, ...e.modalidades])];
-      } else
-        mapa.set(clave, {
-          clave,
-          nombre: e.patientName || "Paciente sin nombre",
-          patientId: e.patientIdDicom,
-          estudios: [e],
-          primeraFecha: e.fechaEstudio,
-          ultimaFecha: e.fechaEstudio,
-          modalidades: [...e.modalidades],
-        });
-    }
-    return [...mapa.values()].sort((a, b) => {
-      const comparacion =
-        ordenarPor === "nombre"
-          ? a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
-          : (a.ultimaFecha || "").localeCompare(b.ultimaFecha || "");
-      return direccionOrden === "asc" ? comparacion : -comparacion;
-    });
-  }, [filtrados, ordenarPor, direccionOrden]);
-  const elementos = vista === "estudios" ? filtrados : pacientes,
+  const elementos = filtrados,
     paginas = Math.max(1, Math.ceil(elementos.length / tamano)),
     actual = Math.min(pagina, paginas),
-    estudiosPagina = filtrados.slice((actual - 1) * tamano, actual * tamano),
-    pacientesPagina = pacientes.slice((actual - 1) * tamano, actual * tamano);
+    estudiosPagina = filtrados.slice((actual - 1) * tamano, actual * tamano);
   const descargar = async (e: Estudio) => {
     setDescargando(e.id);
     setError("");
@@ -214,7 +176,7 @@ export default function VistaBaseDatosOrthanc() {
   const abrirEdicion = (e: Estudio) => {
     setEditando(e);
     setForm({
-      patientName: e.patientName,
+      patientName: nombreLegible(e.patientName),
       patientIdDicom: e.patientIdDicom,
       descripcion: e.descripcion,
       accessionNumber: e.accessionNumber,
@@ -228,21 +190,28 @@ export default function VistaBaseDatosOrthanc() {
     setGuardando(true);
     setError("");
     try {
-      await json(`/api/orthanc/estudios/${encodeURIComponent(editando.id)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      const actualizado = await json<Estudio>(
+        `/api/orthanc/estudios/${encodeURIComponent(editando.id)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        },
+      );
       await cargar();
       setEditando(null);
       volverAEstudios();
       setResultado(
-        "Los datos DICOM del estudio fueron actualizados en Orthanc.",
+        actualizado.pacienteId
+          ? "Estudio actualizado y asociado al paciente por su CI."
+          : "Estudio actualizado; no se encontró un paciente con ese CI.",
       );
       notificar(
         "exito",
         "Estudio actualizado",
-        "Los cambios se guardaron en Orthanc y regresaste a la tabla de estudios.",
+        actualizado.pacienteId
+          ? "El CI coincide con un paciente registrado y el estudio quedó asociado."
+          : "El CI no coincide con pacientes registrados; el estudio permanece pendiente de asociación.",
       );
     } catch (e) {
       setError(
@@ -255,9 +224,9 @@ export default function VistaBaseDatosOrthanc() {
   const eliminar = async (e: Estudio) => {
     const aceptado = await confirmar({
       titulo: "Eliminar estudio de Orthanc",
-      mensaje: `Se eliminarÃ¡ â€œ${e.descripcion || "Sin descripciÃ³n"}â€ de ${e.patientName || "este paciente"}.`,
+      mensaje: `Se eliminará «${e.descripcion || "Sin descripción"}» de ${e.patientName || "este paciente"}.`,
       detalle:
-        "Esta acciÃ³n elimina definitivamente todas sus series e imÃ¡genes del servidor y no se puede deshacer.",
+        "Esta acción elimina definitivamente todas sus series e imágenes del servidor y no se puede deshacer.",
       textoConfirmar: "Eliminar estudio",
       peligrosa: true,
     });
@@ -281,7 +250,7 @@ export default function VistaBaseDatosOrthanc() {
       notificar(
         "exito",
         "Estudio eliminado",
-        "El estudio y todas sus imÃ¡genes fueron eliminados de Orthanc.",
+        "El estudio y todas sus imágenes fueron eliminadas de Orthanc.",
       );
     } catch (x) {
       const mensaje =
@@ -292,37 +261,8 @@ export default function VistaBaseDatosOrthanc() {
       setEliminando(null);
     }
   };
-  const verPaciente = (p: Paciente) => {
-    setVista("estudios");
-    setBusqueda(p.patientId || p.nombre);
-    setPagina(1);
-  };
   return (
     <div className="orthanc-vista">
-      <div className="orthanc-vistas">
-        <button
-          type="button"
-          className={vista === "estudios" ? "activo" : ""}
-          onClick={() => {
-            setVista("estudios");
-            setPagina(1);
-          }}
-        >
-          <Icon name="image" size={17} />
-          Estudios <b>{filtrados.length}</b>
-        </button>
-        <button
-          type="button"
-          className={vista === "pacientes" ? "activo" : ""}
-          onClick={() => {
-            setVista("pacientes");
-            setPagina(1);
-          }}
-        >
-          <Icon name="patient" size={17} />
-          Pacientes <b>{pacientes.length}</b>
-        </button>
-      </div>
       <section className="orthanc-estado">
         <div className={`orthanc-conexion ${estado ? "conectado" : "desconectado"}`}>
           <i />
@@ -334,7 +274,7 @@ export default function VistaBaseDatosOrthanc() {
             </strong>
             <small>
               {estado
-                ? `Orthanc ${estado.version}${estado.servidor ? ` Â· ${estado.servidor}` : ""}`
+                ? `Orthanc ${estado.version}${estado.servidor ? ` · ${estado.servidor}` : ""}`
                 : errorConexion || "No se pudo consultar el servidor Orthanc"}
             </small>
           </span>
@@ -363,11 +303,11 @@ export default function VistaBaseDatosOrthanc() {
           onClick={() => void sincronizar()}
         >
           <Icon name="arrowRight" size={17} />
-          {sincronizando ? "Consultando Orthancâ€¦" : "Sincronizar servidor"}
+          {sincronizando ? "Consultando Orthanc…" : "Sincronizar servidor"}
         </button>
       </section>
       {error && <div className="orthanc-mensaje error">{error}</div>}
-      <div className="orthanc-filtros">
+      <div className="orthanc-filtros" role="search" aria-label="Buscar y filtrar estudios">
         <label className="orthanc-buscar">
           <Icon name="search" size={18} />
           <input
@@ -376,7 +316,7 @@ export default function VistaBaseDatosOrthanc() {
               setBusqueda(e.target.value);
               setPagina(1);
             }}
-            placeholder="Buscar nombre, ID, descripciÃ³n, acceso o UIDâ€¦"
+            placeholder="Buscar por paciente, documento, descripción, acceso o UID…"
           />
         </label>
         <select
@@ -391,7 +331,7 @@ export default function VistaBaseDatosOrthanc() {
           <option value="nombre">Nombre</option>
         </select>
         <select
-          aria-label="DirecciÃ³n del orden"
+          aria-label="Dirección del orden"
           value={direccionOrden}
           onChange={(e) => {
             setDireccionOrden(e.target.value as "asc" | "desc");
@@ -450,7 +390,7 @@ export default function VistaBaseDatosOrthanc() {
             <Icon name="chevronLeft" size={16} />
           </button>
           <span>
-            PÃ¡gina <b>{actual}</b> de {paginas}
+            Página <b>{actual}</b> de {paginas}
           </span>
           <button
             disabled={actual === paginas}
@@ -460,8 +400,7 @@ export default function VistaBaseDatosOrthanc() {
           </button>
         </div>
       </div>
-      {vista === "estudios" ? (
-        <div className="orthanc-tabla">
+      <div className="orthanc-tabla">
           <div className="orthanc-fila columnas">
             <span>Paciente DICOM</span>
             <span>Estudio</span>
@@ -474,21 +413,14 @@ export default function VistaBaseDatosOrthanc() {
             <div className="orthanc-fila" key={e.id}>
               <div className="orthanc-paciente">
                 <span>
-                  <Icon name="patient" size={22} />
+                  <Icon name="users" size={19} />
                 </span>
                 <div>
-                  <strong>{e.patientName || "Paciente sin nombre"}</strong>
-                  <small>
-                    Patient ID: {e.patientIdDicom || "No registrado"}
-                  </small>
+                    <strong>{nombreLegible(e.patientName) || "Paciente sin nombre"}</strong>
                 </div>
               </div>
               <div>
-                <strong>{e.descripcion || "Estudio sin descripciÃ³n"}</strong>
-                <small>Acceso: {e.accessionNumber || "No registrado"}</small>
-                <small title={e.studyInstanceUid}>
-                  UID: {e.studyInstanceUid || "No registrado"}
-                </small>
+                <strong>{e.descripcion || "Estudio sin descripción"}</strong>
               </div>
               <div>{fecha(e.fechaEstudio)}</div>
               <div>{e.cantidadSeries}</div>
@@ -508,11 +440,11 @@ export default function VistaBaseDatosOrthanc() {
                   type="button"
                   disabled={descargando === e.id}
                   onClick={() => void descargar(e)}
-                  aria-label="Descargar ZIP"
-                  title="Descargar ZIP"
+                  aria-label="Descargar estudio en ZIP"
+                  title="Descargar estudio en ZIP"
                 >
-                  <Icon name="arrowRight" size={17} />
-                  <span>{descargando === e.id ? "â€¦" : "ZIP"}</span>
+                  <Icon name="download" size={17} />
+                  <span>{descargando === e.id ? "…" : "ZIP"}</span>
                 </button>
                 <button type="button" onClick={() => abrirEdicion(e)} aria-label="Editar estudio" title="Editar estudio">
                   <Icon name="edit" size={17} />
@@ -527,69 +459,30 @@ export default function VistaBaseDatosOrthanc() {
                   title="Eliminar estudio"
                 >
                   <Icon name="trash" size={17} />
-                  <span>{eliminando === e.id ? "â€¦" : "Eliminar"}</span>
+                  <span>{eliminando === e.id ? "…" : "Eliminar"}</span>
                 </button>
               </div>
             </div>
           ))}
-        </div>
-      ) : (
-        <div className="orthanc-tabla">
-          <div className="orthanc-fila orthanc-fila-paciente columnas">
-            <span>Paciente DICOM</span>
-            <span>Estudios</span>
-            <span>Primera fecha</span>
-            <span>Ãšltima fecha</span>
-            <span>AcciÃ³n</span>
-          </div>
-          {pacientesPagina.map((p) => (
-            <div className="orthanc-fila orthanc-fila-paciente" key={p.clave}>
-              <div className="orthanc-paciente">
-                <span>
-                  <Icon name="patient" size={22} />
-                </span>
-                <div>
-                  <strong>{p.nombre}</strong>
-                  <small>Patient ID: {p.patientId || "No registrado"}</small>
-                </div>
-              </div>
-              <div>
-                <strong>{p.estudios.length}</strong>
-                <small>estudio{p.estudios.length === 1 ? "" : "s"} DICOM</small>
-              </div>
-              <div>{fecha(p.primeraFecha)}</div>
-              <div>{fecha(p.ultimaFecha)}</div>
-              <div>
-                <button
-                  className="orthanc-ver-paciente"
-                  onClick={() => verPaciente(p)}
-                >
-                  <Icon name="eye" size={17} />
-                  Ver estudios
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      </div>
       {(cargando || !elementos.length) && (
         <div className="orthanc-vacio">
-          <Icon name={vista === "pacientes" ? "patient" : "image"} size={28} />
+          <Icon name="image" size={28} />
           <strong>
             {cargando
-              ? "Leyendo la base de datosâ€¦"
-              : `No hay ${vista} para mostrar`}
+              ? "Leyendo la base de datos…"
+              : "No hay estudios para mostrar"}
           </strong>
           <small>
             {cargando
               ? "La primera consulta puede tardar si Orthanc contiene muchos estudios."
-              : "Cambia la bÃºsqueda, modalidad o rango de fechas."}
+              : "Cambia la búsqueda, modalidad o rango de fechas."}
           </small>
         </div>
       )}
       {!cargando && elementos.length > 0 && (
         <div className="orthanc-paginacion orthanc-paginacion-inferior">
-          <small>{`${(actual - 1) * tamano + 1}â€“${Math.min(actual * tamano, elementos.length)} de ${elementos.length}`}</small>
+          <small>{`${(actual - 1) * tamano + 1}–${Math.min(actual * tamano, elementos.length)} de ${elementos.length}`}</small>
           <div>
             <label>
               Mostrar{" "}
@@ -612,7 +505,7 @@ export default function VistaBaseDatosOrthanc() {
               <Icon name="chevronLeft" size={16} />
             </button>
             <span>
-              PÃ¡gina <b>{actual}</b> de {paginas}
+              Página <b>{actual}</b> de {paginas}
             </span>
             <button
               disabled={actual === paginas}
@@ -638,7 +531,7 @@ export default function VistaBaseDatosOrthanc() {
               <div>
                 <strong>Editar estudio DICOM</strong>
                 <small>
-                  Los cambios se aplicarÃ¡n a todas las imÃ¡genes del estudio en
+                  Los cambios se aplicarán a todas las imágenes del estudio en
                   Orthanc.
                 </small>
               </div>
@@ -650,6 +543,23 @@ export default function VistaBaseDatosOrthanc() {
                 <Icon name="close" size={18} />
               </button>
             </header>
+            <div className="orthanc-modal-resumen" aria-label="Contenido DICOM del estudio">
+              <span className="orthanc-modal-resumen-icono">
+                <Icon name="image" size={18} />
+              </span>
+              <div className="orthanc-modal-resumen-texto">
+                <strong>Contenido de este estudio</strong>
+                <small>Archivos DICOM organizados por series</small>
+              </div>
+              <div className="orthanc-modal-resumen-cifra">
+                <strong>{editando.cantidadSeries}</strong>
+                <small>{editando.cantidadSeries === 1 ? "Serie" : "Series"}</small>
+              </div>
+              <div className="orthanc-modal-resumen-cifra">
+                <strong>{editando.cantidadImagenes ?? 0}</strong>
+                <small>Imágenes DICOM</small>
+              </div>
+            </div>
             <div className="orthanc-modal-campos">
               <label>
                 <span>Nombre del paciente</span>
@@ -658,34 +568,38 @@ export default function VistaBaseDatosOrthanc() {
                   maxLength={200}
                   value={form.patientName}
                   onChange={(e) =>
-                    setForm({ ...form, patientName: e.target.value })
+                    setForm({
+                      ...form,
+                      patientName: nombreLegible(e.target.value),
+                    })
                   }
                 />
               </label>
               <label>
-                <span>Patient ID</span>
+                <span>CI / Carnet de identidad</span>
                 <input
                   required
                   maxLength={100}
                   value={form.patientIdDicom}
+                  placeholder="Ingrese el CI registrado del paciente"
                   onChange={(e) =>
                     setForm({ ...form, patientIdDicom: e.target.value })
                   }
                 />
               </label>
               <label className="ancho">
-                <span>DescripciÃ³n del estudio</span>
+                <span>Descripción del estudio</span>
                 <input
                   maxLength={200}
                   value={form.descripcion}
                   onChange={(e) =>
                     setForm({ ...form, descripcion: e.target.value })
                   }
-                  placeholder="Ej. TC de crÃ¡neo sin contraste"
+                  placeholder="Ej. TC de cráneo sin contraste"
                 />
               </label>
               <label>
-                <span>NÃºmero de acceso</span>
+                <span>Número de acceso</span>
                 <input
                   maxLength={100}
                   value={form.accessionNumber}
@@ -695,7 +609,7 @@ export default function VistaBaseDatosOrthanc() {
                 />
               </label>
               <label>
-                <span>Fecha del estudio (dÃ­a/mes/aÃ±o)</span>
+                <span>Fecha del estudio (día/mes/año)</span>
                 <input
                   type="date"
                   lang="es-BO"
@@ -713,10 +627,6 @@ export default function VistaBaseDatosOrthanc() {
                 />
               </label>
             </div>
-            <p className="orthanc-modal-aviso">
-              Modificar Patient ID puede cambiar la identidad DICOM del estudio.
-              Verifica cuidadosamente al paciente antes de guardar.
-            </p>
             <footer>
               <button
                 type="button"
@@ -727,7 +637,7 @@ export default function VistaBaseDatosOrthanc() {
               </button>
               <button type="submit" className="principal" disabled={guardando}>
                 <Icon name="check" size={16} />
-                {guardando ? "Actualizando Orthancâ€¦" : "Guardar cambios"}
+                {guardando ? "Actualizando Orthanc…" : "Guardar cambios"}
               </button>
             </footer>
           </form>

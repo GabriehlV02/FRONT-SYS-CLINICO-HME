@@ -1,0 +1,67 @@
+.estudios-cobrados{width:100%;min-width:0;padding:12px 0 24px;color:#183e5c}
+.estudios-cobrados-cabecera{display:flex;align-items:center;justify-content:space-between;gap:20px;margin:0 0 14px;padding:4px 4px}
+.estudios-cobrados-cabecera>div:first-child>span{color:#0784c0;font-size:9px;font-weight:850;letter-spacing:.1em}
+.estudios-cobrados-cabecera h2{margin:4px 0;color:#143e5e;font-size:20px;font-weight:850}
+.estudios-cobrados-cabecera p{margin:0;color:#66839a;font-size:12px}
+.estudios-cobrados-metricas{display:flex;align-items:center;gap:0;padding:8px 4px;border:1px solid #d3e5f0;border-radius:11px;background:#fff;box-shadow:0 5px 14px rgba(17,70,103,.06)}
+.estudios-cobrados-metricas span{min-width:88px;padding:0 14px;display:grid;gap:2px;color:#71889b;font-size:10px;text-align:center}
+.estudios-cobrados-metricas span+span{border-left:1px solid #dce9f1}
+.estudios-cobrados-metricas strong{color:#087fba;font-size:19px;line-height:1}
+.estudios-cobrados-aviso{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding:10px 13px;border:1px solid #cfe4f0;border-radius:9px;color:#587990;background:#f4f9fc;font-size:11px}
+.estudios-cobrados-aviso svg{flex:0 0 auto;color:#1287bf}
+.estudios-cobrados-error{margin:0 0 12px;padding:10px 12px;border:1px solid #e5bdc0;border-radius:8px;color:#9c3441;background:#fff5f5;font-size:12px}
+.estudios-cobrados-filtros{display:grid;grid-template-columns:minmax(260px,1fr) 190px;gap:10px;margin:0 0 12px;padding:11px;border:1px solid #cfe1ed;border-radius:11px;background:#fff;box-shadow:0 6px 16px rgba(17,70,103,.05)}
+.estudios-cobrados-filtros label{height:42px;min-width:0;padding:0 12px;display:flex;align-items:center;gap:9px;border:1px solid #c6ddea;border-radius:8px;color:#1881b7;background:#fbfdff}
+.estudios-cobrados-filtros input{width:100%;min-width:0;border:0;outline:0;color:#183e5c;background:transparent;font:inherit;font-size:12px}
+.estudios-cobrados-filtros input::placeholder{color:#7b91a3}
+.estudios-cobrados-filtros select{height:42px;min-width:0;padding:0 11px;border:1px solid #c6ddea;border-radius:8px;color:#315a77;background:#fbfdff;font-size:12px;font-weight:700}
+.estudios-cobrados-tabla{overflow:auto;border:1px solid #cfe1ed;border-radius:11px;background:#fff;box-shadow:0 8px 22px rgba(17,70,103,.06)}
+.estudios-cobrados-fila{min-width:1080px;min-height:70px;padding:10px 14px;display:grid;grid-template-columns:minmax(185px,1.1fr) minmax(170px,1fr) minmax(120px,.65fr) minmax(120px,.7fr) minmax(115px,.6fr) minmax(260px,1.55fr);align-items:center;gap:12px;border-top:1px solid #e4edf3;color:#31546e;font-size:12px}
+.estudios-cobrados-fila.encabezado{min-height:42px;border-top:0;color:#466b84;background:#f0f7fb;font-size:9px;font-weight:850;letter-spacing:.04em;text-transform:uppercase}
+.estudios-cobrados-fila>div{min-width:0;display:grid;gap:4px}
+.estudios-cobrados-fila strong{overflow:hidden;color:#153f5e;font-size:12px;font-weight:800;text-overflow:ellipsis;white-space:nowrap}
+.estudios-cobrados-fila small{overflow:hidden;color:#70899c;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.estudios-cobrados-estado{width:max-content;padding:5px 10px;border-radius:999px;font-size:10px;font-weight:800}
+.estudios-cobrados-estado.pendiente{color:#8a6218;background:#fff0ce}
+.estudios-cobrados-estado.tomada{color:#176b4c;background:#e2f5eb}
+.estudios-cobrados-acciones{display:flex!important;align-items:center;gap:6px;flex-wrap:wrap}
+.estudios-cobrados-acciones button{min-height:32px;padding:0 9px;display:inline-flex;align-items:center;justify-content:center;gap:5px;border:1px solid #c4ddeb;border-radius:7px;color:#0878b4;background:#f8fcff;font-size:10px;font-weight:750;white-space:nowrap;cursor:pointer}
+.estudios-cobrados-acciones button:hover{border-color:#1285bd;color:#fff;background:#087db8}
+.estudios-cobrados-acciones button:disabled{opacity:.55;cursor:wait}
+.estudios-cobrados-acciones button.peligro{border-color:#e2c2c5;color:#a33b45;background:#fff8f8}
+.estudios-cobrados-acciones button.peligro:hover{border-color:#bd4a55;color:#fff;background:#b83e49}
+.estudios-cobrados-vacio{min-height:240px;display:grid;align-content:center;justify-items:center;gap:9px;color:#70889d;text-align:center}
+.estudios-cobrados-vacio svg{box-sizing:content-box;padding:12px;border-radius:50%;color:#1485bb;background:#eaf6fb}
+.estudios-cobrados-vacio strong{color:#284f6a;font-size:13px}
+.estudios-cobrados-vacio small{font-size:11px}
+.estudios-cobrados-paginacion{display:flex;align-items:center;justify-content:space-between;padding:10px 4px;color:#66839a;font-size:11px}
+.estudios-cobrados-paginacion>div{display:flex;align-items:center;gap:10px}
+.estudios-cobrados-paginacion button{width:32px;height:32px;display:grid;place-items:center;border:1px solid #cbdfea;border-radius:8px;color:#17618f;background:#fff;cursor:pointer}
+.estudios-cobrados-paginacion button:disabled{color:#adbac4;background:#f2f5f7;cursor:not-allowed}
+.estudios-cobrados-modal-fondo{position:fixed;inset:0;z-index:1600;display:grid;place-items:center;padding:16px;background:rgba(12,38,61,.48);backdrop-filter:blur(3px)}
+.estudios-cobrados-modal{width:min(440px,100%);display:grid;gap:12px;padding:20px;border:1px solid #c9dfed;border-radius:14px;color:#173d5b;background:#fff;box-shadow:0 24px 70px rgba(9,44,70,.25)}
+.estudios-cobrados-modal header{display:flex;justify-content:space-between;gap:12px;padding-bottom:12px;border-bottom:1px solid #e1edf4}
+.estudios-cobrados-modal header strong,.estudios-cobrados-modal header small{display:block}
+.estudios-cobrados-modal header strong{color:#143e5e;font-size:16px}
+.estudios-cobrados-modal header small{margin-top:4px;color:#70889b;font-size:10px}
+.estudios-cobrados-modal header button{width:30px;height:30px;border:1px solid #d3e3ed;border-radius:7px;color:#54738a;background:#f6fafc;font-size:18px;cursor:pointer}
+.estudios-cobrados-modal label{display:grid;gap:5px;color:#47677e;font-size:11px;font-weight:750}
+.estudios-cobrados-modal :is(select,input){height:38px;padding:0 10px;border:1px solid #cbdde9;border-radius:8px;color:#173d5b;background:#fbfdff;font:inherit}
+.estudios-cobrados-modal footer{display:flex;justify-content:flex-end;gap:8px;padding-top:12px;border-top:1px solid #e5eef4}
+.estudios-cobrados-modal footer button{height:36px;padding:0 12px;border:1px solid #cbdde9;border-radius:8px;color:#385b75;background:#fff;font-size:11px;font-weight:750;cursor:pointer}
+.estudios-cobrados-modal footer button[type=submit]{border-color:#087bb8;color:#fff;background:#087bb8}
+.sistema-app[data-theme="dark"] .estudios-cobrados{color:#dceaf4}
+.sistema-app[data-theme="dark"] .estudios-cobrados-cabecera h2,.sistema-app[data-theme="dark"] .estudios-cobrados-fila strong,.sistema-app[data-theme="dark"] .estudios-cobrados-vacio strong{color:#e4f2fc}
+.sistema-app[data-theme="dark"] .estudios-cobrados-cabecera p,.sistema-app[data-theme="dark"] .estudios-cobrados-paginacion,.sistema-app[data-theme="dark"] .estudios-cobrados-fila{color:#b2cadb}
+.sistema-app[data-theme="dark"] .estudios-cobrados-metricas,.sistema-app[data-theme="dark"] .estudios-cobrados-filtros,.sistema-app[data-theme="dark"] .estudios-cobrados-tabla,.sistema-app[data-theme="dark"] .estudios-cobrados-modal{border-color:#244c72;color:#eaf4fc;background:#082846}
+.sistema-app[data-theme="dark"] .estudios-cobrados-metricas span+span,.sistema-app[data-theme="dark"] .estudios-cobrados-fila,.sistema-app[data-theme="dark"] .estudios-cobrados-modal footer{border-color:#24435e}
+.sistema-app[data-theme="dark"] .estudios-cobrados-aviso,.sistema-app[data-theme="dark"] .estudios-cobrados-filtros label,.sistema-app[data-theme="dark"] .estudios-cobrados-filtros select,.sistema-app[data-theme="dark"] .estudios-cobrados-paginacion button,.sistema-app[data-theme="dark"] .estudios-cobrados-modal :is(select,input){border-color:#315270;color:#dceaf4;background:#061f3b}
+.sistema-app[data-theme="dark"] .estudios-cobrados-filtros input{color:#f1f7fc}
+.sistema-app[data-theme="dark"] .estudios-cobrados-fila.encabezado{color:#a8c1d4;background:#061f3b}
+.sistema-app[data-theme="dark"] .estudios-cobrados-fila small,.sistema-app[data-theme="dark"] .estudios-cobrados-modal header small{color:#9bb4ca}
+.sistema-app[data-theme="dark"] .estudios-cobrados-acciones button{border-color:#315775;color:#82ccf1;background:#092d50}
+.sistema-app[data-theme="dark"] .estudios-cobrados-acciones button:hover{color:#fff;background:#087db8}
+.sistema-app[data-theme="dark"] .estudios-cobrados-acciones button.peligro{border-color:#73424b;color:#ffb7bf;background:#3d1d25}
+.sistema-app[data-theme="dark"] .estudios-cobrados-modal header strong{color:#f0f7fc}
+@media(max-width:900px){.estudios-cobrados-cabecera{align-items:flex-start;flex-direction:column}.estudios-cobrados-metricas{width:max-content}}
+@media(max-width:620px){.estudios-cobrados-filtros{grid-template-columns:1fr}.estudios-cobrados-fila{min-width:950px}.estudios-cobrados-metricas span{min-width:76px;padding-inline:9px}}

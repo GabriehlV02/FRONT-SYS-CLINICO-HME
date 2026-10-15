@@ -222,7 +222,7 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
           disabled
         >
           <Icon name="plus" size={16} />
-          Nueva internaciÃ³n
+          Nueva internación
         </button>
       </div>
 

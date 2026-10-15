@@ -3,6 +3,7 @@ import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones from "./componentes/Notificaciones";
 import { obtenerInformes, obtenerPacientes } from "./datos/almacenDemo";
+import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import { leerSesion, type Sesion } from "./types/sesion";
 import VistaInicioSesion from "./vistas/autenticacion/VistaInicioSesion";
 import "./vistas/visor/BibliotecaImagenes.css";
@@ -36,6 +37,7 @@ const EnfermeraInternacionView = lazy(() => import('../flows/internacion/Enferme
 const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
 const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
+const VistaEstudiosCobrados = lazy(() => import('./vistas/VistaEstudiosCobrados'));
 const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
 const VistaBaseDatosOrthanc = lazy(() => import('./vistas/base-datos/VistaBaseDatosOrthanc'));
 const VistaConfiguracion = lazy(() => import('./vistas/configuracion/VistaConfiguracion'));
@@ -206,24 +208,15 @@ export default function Aplicacion() {
   }, [sesion]);
   useEffect(() => {
     if (!sesion || modulo !== "imagenologia") return;
-    let activo = true;
-    const controller = new AbortController();
     const actualizarLocales = () => setConteosImagenologia((actual) => ({
       ...actual,
       pacientes: obtenerPacientes().length,
       informes: Object.keys(obtenerInformes()).length,
+      estudios: obtenerSolicitudesImagenologia().length,
     }));
     actualizarLocales();
     window.addEventListener("radiuus:datos-demo", actualizarLocales);
-    void apiFetch("/api/orthanc/estudios", { signal: controller.signal })
-      .then(async (r) => (r.ok ? ((await r.json()) as unknown[]) : []))
-      .then((estudios) => {
-        if (activo) setConteosImagenologia((actual) => ({ ...actual, estudios: estudios.length }));
-      })
-      .catch(() => undefined);
     return () => {
-      activo = false;
-      controller.abort();
       window.removeEventListener("radiuus:datos-demo", actualizarLocales);
     };
   }, [sesion?.token, modulo]);
@@ -549,6 +542,8 @@ export default function Aplicacion() {
             <EsterilizacionView />
           ) : modulo === 'cuenta-quirofano' ? (
             <CuentaQuirofanoView />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "estudios" ? (
+            <VistaEstudiosCobrados />
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "base-datos" ? (
             <VistaBaseDatosOrthanc />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (

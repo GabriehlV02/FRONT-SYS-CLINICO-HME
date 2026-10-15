@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import Icon from "../../../radius/componentes/Icono";
 import { apiFetch } from "../../../radius/api";
+import { registrarSolicitudesImagenologia } from "../../../radius/datos/solicitudesImagenologiaDemo";
+import "./CajaImagenologiaDemo.css";
 import { InternacionModal } from "./InternacionModal";
 import { SolicitudLaboratorioRecepcion } from "./SolicitudLaboratorioRecepcion";
 type Tipo = "Producto" | "Insumo" | "Servicio";
@@ -14,7 +16,11 @@ type Item = {
   categoria?: string;
   subcategoria?: string;
 };
-type Linea = Item & { cantidad: number };
+type Linea = Item & {
+  cantidad: number;
+  estudioImagen?: string;
+  piezaImagen?: string;
+};
 type Pago = { id: number; metodo: string; monto: string };
 const catalogo: Item[] = [
   {
@@ -35,10 +41,11 @@ const catalogo: Item[] = [
   },
   {
     id: "rayos",
-    nombre: "Radiografía panorámica",
+    nombre: "Estudio de imagenología",
     tipo: "Servicio",
     codigo: "IMG-014",
     precio: 120,
+    categoria: "Imagenología",
   },
   {
     id: "gasa",
@@ -105,6 +112,10 @@ export function CajaRecepcionView({
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(""),
     [mensaje, setMensaje] = useState("");
+  const [imagenParaAgregar, setImagenParaAgregar] = useState<Item | null>(null);
+  const [tipoEstudioImagen, setTipoEstudioImagen] = useState("Rayos X");
+  const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
+  const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
   const resultados = useMemo(
     () =>
       catalogo.filter(
@@ -130,6 +141,37 @@ export function CajaRecepcionView({
         : [...a, { ...i, cantidad: 1 }],
     );
     setMensaje(`${i.nombre} agregado al carrito.`);
+  };
+  const prepararAgregar = (item: Item) => {
+    if (item.categoria === "Imagenología") {
+      setImagenParaAgregar(item);
+      setTipoEstudioImagen("Rayos X");
+      setPiezaEstudioImagen("Tórax");
+      setOtraPiezaImagen("");
+      return;
+    }
+    agregar(item);
+  };
+  const agregarEstudioImagen = () => {
+    if (!imagenParaAgregar) return;
+    const pieza = piezaEstudioImagen === "Otra" ? otraPiezaImagen.trim() : piezaEstudioImagen;
+    if (!pieza) return setMensaje("Indica la pieza o región del estudio.");
+    const linea: Linea = {
+      ...imagenParaAgregar,
+      id: `${imagenParaAgregar.id}-${tipoEstudioImagen}-${pieza}`,
+      nombre: `${tipoEstudioImagen} · ${pieza}`,
+      estudioImagen: tipoEstudioImagen,
+      piezaImagen: pieza,
+      cantidad: 1,
+    };
+    setLineas((actuales) => {
+      const existente = actuales.find((actual) => actual.id === linea.id);
+      return existente
+        ? actuales.map((actual) => actual.id === linea.id ? { ...actual, cantidad: actual.cantidad + 1 } : actual)
+        : [...actuales, linea];
+    });
+    setMensaje(`${linea.nombre} agregado al carrito.`);
+    setImagenParaAgregar(null);
   };
   const cantidad = (id: string, d: number) =>
     setLineas((a) =>
@@ -244,13 +286,56 @@ export function CajaRecepcionView({
   };
   const cobrar = () => {
     if (!lineas.length || pendiente > 0) return;
-    setMensaje("Venta registrada correctamente. Lista para imprimir factura.");
+    const estudiosImagen = lineas.filter((linea) => linea.estudioImagen && linea.piezaImagen);
+    if (estudiosImagen.length && (!paciente.trim() || !ciPaciente.trim())) {
+      setMensaje("Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.");
+      return;
+    }
+    if (estudiosImagen.length) {
+      registrarSolicitudesImagenologia(
+        paciente,
+        ciPaciente,
+        estudiosImagen.map((linea) => ({
+          estudio: linea.estudioImagen!,
+          pieza: linea.piezaImagen!,
+          precio: linea.precio,
+          cantidad: linea.cantidad,
+        })),
+      );
+    }
+    setMensaje(estudiosImagen.length
+      ? "Cobro de demostración registrado. La orden quedó pendiente en Imagenología."
+      : "Venta registrada correctamente. Lista para imprimir factura.");
     setLineas([]);
     setPagos([pagoNuevo(Date.now())]);
     setDescuento("");
   };
   return (
     <section className={`punto-pos ${farmacia ? "punto-pos-farmacia" : ""}`}>
+      {imagenParaAgregar && (
+        <div className="punto-imagen-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setImagenParaAgregar(null); }}>
+          <form className="punto-imagen-modal" role="dialog" aria-modal="true" aria-label="Detalle del estudio de imagenología" onSubmit={(evento) => { evento.preventDefault(); agregarEstudioImagen(); }}>
+            <header>
+              <div><span>IMAGENOLOGÍA</span><h3>Detalle del estudio</h3><small>Define la modalidad y la pieza antes de agregarla al cobro.</small></div>
+              <button type="button" aria-label="Cerrar" onClick={() => setImagenParaAgregar(null)}>×</button>
+            </header>
+            <label>Tipo de estudio
+              <select value={tipoEstudioImagen} onChange={(evento) => setTipoEstudioImagen(evento.target.value)}>
+                <option>Rayos X</option><option>Tomografía</option><option>Ecocardiograma</option><option>Otro estudio de imagen</option>
+              </select>
+            </label>
+            <label>Pieza o región
+              <select value={piezaEstudioImagen} onChange={(evento) => setPiezaEstudioImagen(evento.target.value)}>
+                <option>Tórax</option><option>Brazo</option><option>Antebrazo</option><option>Mano</option><option>Pierna</option><option>Rodilla</option><option>Pie</option><option>Craneo</option><option>Abdomen</option><option>Columna</option><option>Pelvis</option><option>Otra</option>
+              </select>
+            </label>
+            {piezaEstudioImagen === "Otra" && <label>Especifica la pieza
+              <input required autoFocus value={otraPiezaImagen} onChange={(evento) => setOtraPiezaImagen(evento.target.value)} placeholder="Ej. hombro izquierdo" />
+            </label>}
+            <footer><button type="button" onClick={() => setImagenParaAgregar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="plus" size={16} /> Agregar al cobro · {dinero(imagenParaAgregar.precio)}</button></footer>
+          </form>
+        </div>
+      )}
       {mostrandoLaboratorio && (
         <SolicitudLaboratorioRecepcion
           paciente={
@@ -802,7 +887,7 @@ export function CajaRecepcionView({
                       <b>{dinero(i.precio)}</b>
                       <small>{i.tipo}</small>
                     </div>
-                    <button type="button" onClick={() => agregar(i)}>
+                    <button type="button" onClick={() => prepararAgregar(i)}>
                       <Icon name="plus" size={16} /> Agregar
                     </button>
                   </footer>
@@ -827,7 +912,7 @@ export function CajaRecepcionView({
                     </span>
                   </div>
                   <b>{dinero(i.precio)}</b>
-                  <button type="button" onClick={() => agregar(i)}>
+                  <button type="button" onClick={() => prepararAgregar(i)}>
                     <Icon name="plus" size={16} /> Agregar
                   </button>
                 </article>

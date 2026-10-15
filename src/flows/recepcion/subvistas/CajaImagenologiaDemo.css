@@ -1,0 +1,20 @@
+.punto-imagen-fondo{position:fixed;inset:0;z-index:1500;display:grid;place-items:center;padding:18px;background:rgba(12,38,61,.48);backdrop-filter:blur(3px)}
+.punto-imagen-modal{width:min(460px,100%);display:grid;gap:14px;padding:22px;border:1px solid #c9dfed;border-radius:16px;color:#173d5b;background:#fff;box-shadow:0 24px 70px rgba(9,44,70,.25)}
+.punto-imagen-modal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:1px solid #e1edf4}
+.punto-imagen-modal>header span{color:#087db8;font-size:9px;font-weight:850;letter-spacing:.09em}
+.punto-imagen-modal>header h3{margin:4px 0;color:#143d5c;font-size:18px}
+.punto-imagen-modal>header small{color:#6c8398;font-size:11px}
+.punto-imagen-modal>header button{width:32px;height:32px;border:1px solid #d3e3ed;border-radius:8px;color:#52738b;background:#f6fafc;font-size:20px;cursor:pointer}
+.punto-imagen-modal>label{display:grid;gap:6px;color:#41627b;font-size:11px;font-weight:750}
+.punto-imagen-modal>label :is(select,input){height:40px;padding:0 11px;border:1px solid #cbdde9;border-radius:8px;color:#173d5b;background:#fbfdff;font:inherit;font-size:13px}
+.punto-imagen-modal>footer{display:flex;justify-content:flex-end;gap:9px;margin-top:3px;padding-top:14px;border-top:1px solid #e5eef4}
+.punto-imagen-modal>footer button{min-height:38px;padding:0 13px;border:1px solid #cbdde9;border-radius:8px;color:#385b75;background:#fff;font-size:12px;font-weight:750;cursor:pointer}
+.punto-imagen-modal>footer .punto-imagen-primario{display:inline-flex;align-items:center;gap:7px;border-color:#087bb8;color:#fff;background:linear-gradient(110deg,#126cd4,#079dca)}
+.sistema-app[data-theme="dark"] .punto-imagen-modal{border-color:#315270;color:#f3f8fc;background:#082846}
+.sistema-app[data-theme="dark"] .punto-imagen-modal>header{border-color:#24435e}
+.sistema-app[data-theme="dark"] .punto-imagen-modal>header h3,.sistema-app[data-theme="dark"] .punto-imagen-modal>label{color:#e6f3fc}
+.sistema-app[data-theme="dark"] .punto-imagen-modal>header small{color:#9bb4ca}
+.sistema-app[data-theme="dark"] .punto-imagen-modal>header button,.sistema-app[data-theme="dark"] .punto-imagen-modal>footer button:not(.punto-imagen-primario){border-color:#315270;color:#cfe7fb;background:#082d50}
+.sistema-app[data-theme="dark"] .punto-imagen-modal>label :is(select,input){border-color:#315270;color:#eff8ff;background:#061f3b}
+.sistema-app[data-theme="dark"] .punto-imagen-modal>footer{border-color:#24435e}
+@media(max-width:520px){.punto-imagen-modal{padding:17px}.punto-imagen-modal>footer{flex-direction:column-reverse}.punto-imagen-modal>footer button{justify-content:center;width:100%}}

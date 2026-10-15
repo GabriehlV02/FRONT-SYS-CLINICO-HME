@@ -880,7 +880,7 @@ export function CajaRecepcionView({
                 setMensaje("");
               }}
             >
-              <Icon name="plus" size={16} /> Registrar ficha clínica
+              <Icon name="plus" size={16} /> Registrar paciente
             </button>
           </div>
           <div className="punto-catalogo-filtros">

@@ -25,6 +25,7 @@ const doctores = [
   'Dr. Diego Molina',
 ];
 const consultorios = ['Consultorio 1', 'Consultorio 2', 'Consultorio 3', 'Consultorio 4'];
+const opcionesConsultorio = ['Todos los consultorios', ...consultorios];
 const nombresDia = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 const diasCalendario = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
 const meses = [
@@ -160,6 +161,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
   const [citaPorCobrar, setCitaPorCobrar] = useState<Cita | null>(null);
   const [confirmarCancelacion, setConfirmarCancelacion] = useState(false);
   const [doctor, setDoctor] = useState(medicoInicial || doctores[0]);
+  const [consultorio, setConsultorio] = useState(opcionesConsultorio[0]);
   const [citasProgramadas, setCitasProgramadas] = useState(citas);
   const [agendarAbierto, setAgendarAbierto] = useState(false);
   const [errorAgenda, setErrorAgenda] = useState('');
@@ -178,14 +180,18 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
   );
   const [calendarioAbierto, setCalendarioAbierto] = useState(false);
   const [selectorDoctorAbierto, setSelectorDoctorAbierto] = useState(false);
+  const [selectorConsultorioAbierto, setSelectorConsultorioAbierto] = useState(false);
   const selectorDoctorRef = useRef<HTMLDivElement>(null);
+  const selectorConsultorioRef = useRef<HTMLDivElement>(null);
   const calendarioRef = useRef<HTMLDivElement>(null);
   const citasVisibles = useMemo(
     () =>
       citasProgramadas.filter(
-        (cita) => doctor === doctores[0] || cita.doctor === doctor,
+        (cita) =>
+          (doctor === doctores[0] || cita.doctor === doctor) &&
+          (consultorio === opcionesConsultorio[0] || cita.consultorio === consultorio),
       ),
-    [citasProgramadas, doctor],
+    [citasProgramadas, consultorio, doctor],
   );
   const dias = useMemo(
     () =>
@@ -208,6 +214,8 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     const cerrarSelector = (event: PointerEvent) => {
       if (!selectorDoctorRef.current?.contains(event.target as Node))
         setSelectorDoctorAbierto(false);
+      if (!selectorConsultorioRef.current?.contains(event.target as Node))
+        setSelectorConsultorioAbierto(false);
       if (!calendarioRef.current?.contains(event.target as Node))
         setCalendarioAbierto(false);
     };
@@ -502,6 +510,38 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
               </div>
             )}
           </div>}
+          <span>Consultorio</span>
+          <div className="citas-doctor-selector citas-consultorio-selector" ref={selectorConsultorioRef}>
+            <button
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={selectorConsultorioAbierto}
+              onClick={() => setSelectorConsultorioAbierto((abierto) => !abierto)}
+            >
+              <strong>{consultorio}</strong>
+              <Icon name="chevronDown" size={15} />
+            </button>
+            {selectorConsultorioAbierto && (
+              <div className="citas-doctor-opciones" role="listbox" aria-label="Filtrar por consultorio">
+                {opcionesConsultorio.map((item) => (
+                  <button
+                    className={item === consultorio ? 'activo' : ''}
+                    type="button"
+                    role="option"
+                    aria-selected={item === consultorio}
+                    key={item}
+                    onClick={() => {
+                      setConsultorio(item);
+                      setSelectorConsultorioAbierto(false);
+                    }}
+                  >
+                    {item}
+                    <Icon name="check" size={14} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             className="primario citas-agendar"
             type="button"

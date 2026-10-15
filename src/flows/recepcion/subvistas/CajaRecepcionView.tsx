@@ -375,13 +375,12 @@ export function CajaRecepcionView({
               event.preventDefault();
               const formulario = event.currentTarget;
               const campo = (selector: string) => formulario.querySelector<HTMLInputElement>(selector)?.value || "";
-              const seleccionados = formulario.querySelectorAll<HTMLSelectElement>('select[required]');
               const respuesta = await apiFetch('/api/v1/pacientes', { method: 'POST', body: JSON.stringify({
                 nombres: campo('input[placeholder="Nombres"]'), apellido_paterno: campo('input[placeholder="Apellido paterno"]'), apellido_materno: campo('input[placeholder="Apellido materno"]'), ci: campo('input[placeholder="CI"]'),
                 complemento_ci: campo('input[placeholder="Complemento"]'), expedido_en: formulario.querySelector<HTMLSelectElement>('select[name="expedidoEn"]')?.value || null, nit: campo('input[placeholder="NIT"]'), razon_social: campo('input[placeholder="Razón social"]'),
-                fecha_nacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), genero: seleccionados[0]?.value, ci_con_qr: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-ci input[type="checkbox"]')?.checked || false,
-                pais: formulario.querySelectorAll<HTMLSelectElement>('select')[1]?.value || 'Bolivia', departamento: formulario.querySelectorAll<HTMLSelectElement>('select')[2]?.value || 'Cochabamba', ciudad: campo('input[placeholder="Ciudad"]'), zona_barrio: campo('input[placeholder="Zona cardinal"]'), direccion_domicilio: campo('input[placeholder="Dirección"]'),
-                responsable_nombre_completo: campo('input[placeholder="Nombre completo"]'), responsable_telefono: campo('input[placeholder="Teléfono"]'), responsable_parentesco: campo('input[placeholder="Ej. Padre, madre o tutor"]'), como_se_entero: seleccionados[1]?.value, observaciones: campo('textarea[placeholder="Observaciones"]'), habilitado: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-habilitado input')?.checked ?? true,
+                fecha_nacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), genero: formulario.querySelector<HTMLSelectElement>('select[name="genero"]')?.value, ci_con_qr: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-ci input[type="checkbox"]')?.checked || false,
+                pais: formulario.querySelector<HTMLSelectElement>('select[name="pais"]')?.value || 'Bolivia', departamento: formulario.querySelector<HTMLSelectElement>('select[name="departamento"]')?.value || 'Cochabamba', ciudad: campo('input[placeholder="Ciudad"]'), zona_barrio: campo('input[placeholder="Zona cardinal"]'), direccion_domicilio: campo('input[placeholder="Dirección"]'),
+                responsable_nombre_completo: campo('input[placeholder="Nombre completo"]'), responsable_telefono: campo('input[placeholder="Teléfono"]'), responsable_parentesco: campo('input[placeholder="Ej. Padre, madre o tutor"]'), como_se_entero: formulario.querySelector<HTMLSelectElement>('select[name="comoSeEntero"]')?.value, observaciones: campo('textarea[placeholder="Observaciones"]'), habilitado: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-habilitado input')?.checked ?? true,
               }) });
               const resultado = await respuesta.json() as { message?: string };
               if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo registrar el paciente.');
@@ -475,7 +474,7 @@ export function CajaRecepcionView({
                   </label>
                   <label>
                     Género *
-                    <select required defaultValue="">
+                    <select name="genero" required defaultValue="">
                       <option value="" disabled>
                         Seleccionar
                       </option>
@@ -491,13 +490,13 @@ export function CajaRecepcionView({
                 <div className="nuevo-paciente-campos nuevo-paciente-domicilio">
                   <label>
                     País
-                    <select defaultValue="Bolivia">
+                    <select name="pais" defaultValue="Bolivia">
                       <option>Bolivia</option>
                     </select>
                   </label>
                   <label>
                     Departamento
-                    <select defaultValue="Cochabamba">
+                    <select name="departamento" defaultValue="Cochabamba">
                       <option>Cochabamba</option>
                       <option>La Paz</option>
                       <option>Santa Cruz</option>
@@ -539,7 +538,7 @@ export function CajaRecepcionView({
                 <div className="nuevo-paciente-campos nuevo-paciente-preguntas">
                   <label className="campo-ancho">
                     ¿Cómo se enteró de nosotros? *
-                    <select required defaultValue="">
+                    <select name="comoSeEntero" required defaultValue="">
                       <option value="" disabled>
                         Seleccionar una opción
                       </option>

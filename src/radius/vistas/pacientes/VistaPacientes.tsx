@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../componentes/Icono";
 import { apiFetch } from "../../api";
+import ModalRegistroPaciente, { type PacienteRegistrado } from "./ModalRegistroPaciente";
 import {
   guardarArchivoEstudio,
   guardarEstudios,
@@ -55,6 +56,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     [tamano, setTamano] = useState(10),
     [cargando, setCargando] = useState(true),
     [abierto, setAbierto] = useState(false),
+    [registroAbierto, setRegistroAbierto] = useState(false),
     [form, setForm] = useState(inicial),
     [error, setError] = useState(""),
     [guardando, setGuardando] = useState(false),
@@ -110,6 +112,24 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     setEditando(null);
     setForm(inicial);
     setError("");
+  };
+  const pacienteRegistrado = (registrado: PacienteRegistrado) => {
+    const nuevo: Paciente = {
+      id: registrado.id,
+      nombres: registrado.nombres,
+      primerApellido: registrado.apellido_paterno,
+      segundoApellido: registrado.apellido_materno,
+      tipoDocumento: "CI",
+      numeroDocumento: registrado.ci,
+      fechaNacimiento: registrado.fecha_nacimiento,
+      sexo: registrado.genero.toLowerCase().replaceAll(" ", "_"),
+      telefono: registrado.telefono || "",
+      direccion: [registrado.ciudad, registrado.zona_barrio, registrado.direccion_domicilio].filter(Boolean).join(", "),
+      sucursal: "Central",
+      creadoEn: new Date().toISOString(),
+    };
+    setPacientes((actuales) => [nuevo, ...actuales.filter((p) => p.id !== nuevo.id)]);
+    setPagina(1);
   };
   const abrirEditar = (p: Paciente) => {
     setEditando(p);
@@ -265,7 +285,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
         {modoClinico && <label className="pacientes-filtro"><span>Sucursal</span><select value={sucursal} onChange={(e) => filtrar(() => setSucursal(e.target.value))} aria-label="Filtrar por sucursal">
           <option value="todas">Todas las sucursales</option><option value="Central">Sucursal Central</option><option value="Norte">Sucursal Norte</option><option value="Sur">Sucursal Sur</option>
         </select></label>}
-        {modoClinico && <button className="usuarios-crear pacientes-registrar" type="button" onClick={() => setAbierto(true)}><Icon name="plus" size={17} />Registrar nuevo paciente</button>}
+        {modoClinico && <button className="usuarios-crear pacientes-registrar" type="button" onClick={() => setRegistroAbierto(true)}><Icon name="plus" size={17} />Registrar nuevo paciente</button>}
       </div>
       <div className="usuarios-tabla pacientes-tabla">
         <Paginacion tam />
@@ -374,7 +394,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
         )}
       </div>
       <Paginacion />
-      {abierto && (
+      {abierto && editando && (
         <div className="usuario-modal-fondo" onClick={cerrar}>
           <form
             className="usuario-modal usuario-formulario"
@@ -532,6 +552,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           </form>
         </div>
       )}
+      {registroAbierto && <ModalRegistroPaciente onCerrar={() => setRegistroAbierto(false)} onRegistrado={pacienteRegistrado} />}
       {viendo && (
         <div className="usuario-modal-fondo" onClick={() => setViendo(null)}>
           <div

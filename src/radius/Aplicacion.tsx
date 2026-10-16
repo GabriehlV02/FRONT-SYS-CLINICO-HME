@@ -36,6 +36,7 @@ const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/At
 const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
 const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
 const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
+const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaView').then(m => ({ default: m.AnestesiologiaView })));
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
 const VistaEstudiosCobrados = lazy(() => import('./vistas/VistaEstudiosCobrados'));
 const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
@@ -537,7 +538,7 @@ export default function Aplicacion() {
           ) : modulo === 'medico-quirofano' ? (
             <div className="modulo-vacio"><span><Icon name="userCheck" size={28} /></span><p>QUIRÓFANO</p><h2>Médico quirófano</h2><small>Programación, evaluación quirúrgica y evolución postoperatoria.</small></div>
           ) : modulo === 'anestesiologia-quirofano' ? (
-            <div className="modulo-vacio"><span><Icon name="userCheck" size={28} /></span><p>QUIRÓFANO</p><h2>Anestesiología</h2><small>Evaluación preanestésica, registro anestésico y seguimiento de la recuperación del paciente.</small></div>
+            <AnestesiologiaView />
           ) : modulo === 'esterilizacion-quirofano' ? (
             <EsterilizacionView />
           ) : modulo === 'cuenta-quirofano' ? (

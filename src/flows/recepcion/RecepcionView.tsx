@@ -22,17 +22,18 @@ const subvistas: { id: SubvistaRecepcion; nombre: string; icono: IconName; descr
 export function RecepcionView({ initialAgenda = false, initialSubview }: { initialAgenda?: boolean; initialSubview?: SubvistaRecepcion }) {
   const [subvista, setSubvista] = useState<SubvistaRecepcion>(initialSubview ?? (initialAgenda ? 'citas' : 'caja'));
   const [cuentaDestino, setCuentaDestino] = useState<{ origen: 'emergencias' | 'internacion'; paciente: string } | null>(null);
+  const navegacion = <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Recepcion">
+    {subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}>
+      <span><Icon name={item.icono} size={17}/></span>
+      <strong>{item.nombre}</strong>
+      <small>{item.descripcion}</small>
+    </button>)}
+  </HorizontalSubvistaNav>;
 
   return <section className="recepcion-vista">
-    <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Recepcion">
-      {subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}>
-        <span><Icon name={item.icono} size={17}/></span>
-        <strong>{item.nombre}</strong>
-        <small>{item.descripcion}</small>
-      </button>)}
-    </HorizontalSubvistaNav>
+    {subvista !== 'caja' && navegacion}
 
-    {subvista === 'caja' && <CajaRecepcionView onAbrirCuenta={(origen, paciente) => { setCuentaDestino({ origen, paciente }); setSubvista('cuentas'); }}/>}
+    {subvista === 'caja' && <CajaRecepcionView navegacion={navegacion} onAbrirCuenta={(origen, paciente) => { setCuentaDestino({ origen, paciente }); setSubvista('cuentas'); }}/>}
     {subvista === 'citas' && <CitasRecepcionView/>}
     {subvista === 'cuentas' && <CuentasRecepcionView key={`${cuentaDestino?.origen || 'emergencias'}-${cuentaDestino?.paciente || ''}`} origenInicial={cuentaDestino?.origen} pacienteInicial={cuentaDestino?.paciente}/>}
     {subvista === 'comprobantes' && <ComprobantesRecepcionView/>}

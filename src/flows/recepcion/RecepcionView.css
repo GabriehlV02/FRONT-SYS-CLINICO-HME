@@ -1124,12 +1124,41 @@
   max-width: none;
   margin: 0;
 }
+.punto-pos-superior {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 14px;
+}
+.punto-pos-superior > .subvistas-carrusel {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.punto-pos-superior .recepcion-subvistas {
+  width: 100%;
+  margin: 0;
+}
+.punto-pos-superior .recepcion-subvistas button {
+  flex: 1 1 0;
+  min-width: 120px;
+}
 .punto-pos-cabecera {
   display: flex;
   justify-content: space-between;
   gap: 20px;
   align-items: end;
   margin: 10px 0 14px;
+}
+.punto-pos-superior .punto-pos-cabecera {
+  margin: 0;
+}
+.punto-pos-contexto {
+  flex-direction: column;
+  align-items: flex-start;
+}
+.punto-pos-contexto .punto-hacer-cotizacion {
+  flex: 0 0 auto;
 }
 .punto-contexto {
   display: flex;
@@ -1213,6 +1242,15 @@
 }
 .punto-pos-layout.con-historial { grid-template-columns: 240px minmax(0, 1fr) 360px; gap: 14px; }
 .punto-pos-layout.historial-plegado { grid-template-columns: 42px minmax(0, 1fr) 360px; gap: 12px; }
+.punto-columna-carrito {
+  display: grid;
+  gap: 12px;
+}
+.punto-columna-carrito .punto-hacer-cotizacion {
+  width: 100%;
+  min-height: 52px;
+  flex: 0 0 auto;
+}
 .punto-historial-paciente { position: sticky; top: 12px; min-width: 0; border: 1px solid #d8e5ef; border-radius: 13px; background: #fff; overflow: hidden; }
 .punto-historial-control { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 40px; border: 0; border-bottom: 1px solid #dce8f0; color: #0879af; background: #eef8fd; font-size: 11px; font-weight: 800; cursor: pointer; }
 .historial-plegado .punto-historial-paciente { border-radius: 12px; }
@@ -1896,6 +1934,12 @@
   box-shadow: 0 7px 14px rgba(217, 119, 6, .2);
 }
 @media (max-width: 620px) {
+  .punto-pos-superior {
+    flex-direction: column;
+  }
+  .punto-pos-superior > .subvistas-carrusel {
+    width: 100%;
+  }
   .punto-pos-farmacia .punto-busquedas { grid-template-columns: 1fr; }
   .punto-pos-farmacia .punto-accion-nuevo-paciente { width: 100%; }
 }

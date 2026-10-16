@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Icon from "../../../radius/componentes/Icono";
 import { apiContableFetch, apiFetch } from "../../../radius/api";
 import { registrarSolicitudesImagenologia } from "../../../radius/datos/solicitudesImagenologiaDemo";
@@ -90,12 +90,14 @@ const pacientesEjemplo = [
 export function CajaRecepcionView({
   onAbrirCuenta,
   farmacia = false,
+  navegacion,
 }: {
   onAbrirCuenta?: (
     origen: "emergencias" | "internacion",
     paciente: string,
   ) => void;
   farmacia?: boolean;
+  navegacion?: ReactNode;
 }) {
   const [busqueda, setBusqueda] = useState(""),
     [tipo, setTipo] = useState<"Todos" | Tipo>("Todos"),
@@ -744,7 +746,9 @@ export function CajaRecepcionView({
           </section>
         </div>
       )}
-      <header className="punto-pos-cabecera punto-pos-contexto">
+      <div className="punto-pos-superior">
+        {navegacion}
+        <header className="punto-pos-cabecera punto-pos-contexto">
         <div className="punto-contexto">
           <label>
             Sucursal
@@ -771,7 +775,8 @@ export function CajaRecepcionView({
             DOCUMENTOS Y CONSENTIMIENTOS
           </button>
         )}
-      </header>
+        </header>
+      </div>
       <div
         className={`punto-pos-layout ${paciente ? (historialAbierto ? "con-historial" : "historial-plegado") : ""}`}
       >

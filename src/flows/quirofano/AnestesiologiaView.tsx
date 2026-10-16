@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import Icon, { type IconName } from '../../radius/componentes/Icono';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
+import '../recepcion/RecepcionView.css';
+import '../cocina/CocinaVentasView.css';
 import './AnestesiologiaView.css';
 
 type Subvista = 'materiales' | 'informes' | 'stock';
@@ -34,7 +36,16 @@ export function AnestesiologiaView() {
     setUsos(actual => [{ material: material.nombre, cantidad, paciente: 'Paciente en quirófano', hora: new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }) }, ...actual]);
     setCantidad(1);
   };
-  return <section className="anestesia-vista">
+  return <section className="recepcion-vista anestesia-vista" aria-label="Anestesiología">
+    <div className="cocina-subvista-cabecera anestesia-navegacion">
+      <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Anestesiología">
+        {opciones.map(opcion => <button type="button" key={opcion.id} className={subvista === opcion.id ? 'activo' : ''} onClick={() => setSubvista(opcion.id)}>
+          <span><Icon name={opcion.icono} size={17}/></span>
+          <strong>{opcion.nombre}</strong>
+          <small>{opcion.id === 'materiales' ? 'Registro durante la atención quirúrgica.' : opcion.id === 'informes' ? 'Resumen y cierre anestésico.' : 'Disponibilidad y alertas de insumos.'}</small>
+        </button>)}
+      </HorizontalSubvistaNav>
+    </div>
     <header className="anestesia-cabecera"><div><p>QUIRÓFANO · ANESTESIOLOGÍA</p><h2>Gestión anestésica</h2><small>Materiales, informes y disponibilidad del área.</small></div><span className="anestesia-alerta">{alertas.length} alerta{alertas.length === 1 ? '' : 's'} de stock</span></header>
     <HorizontalSubvistaNav className="anestesia-subvistas" ariaLabel="Subvistas de Anestesiología">
       {opciones.map(opcion => <button type="button" key={opcion.id} className={subvista === opcion.id ? 'activo' : ''} onClick={() => setSubvista(opcion.id)}><Icon name={opcion.icono} size={17}/><strong>{opcion.nombre}</strong></button>)}

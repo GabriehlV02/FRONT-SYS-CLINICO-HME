@@ -1,4 +1,5 @@
 .est-vista{--est-fondo:#fff;--est-suave:#f8fcff;--est-texto:#173d60;--est-titulo:#064773;--est-muted:#69869b;--est-borde:#c9dfed;--est-azul:#087fc0;width:100%;color:var(--est-texto)}
+.esterilizacion-vista>.est-cabecera,.esterilizacion-vista>.est-subvistas{display:none}.esterilizacion-vista{padding-top:0}.esterilizacion-vista>.est-resumen,.esterilizacion-vista>.est-panel,.esterilizacion-vista>.est-aviso,.esterilizacion-vista>.est-error{margin-left:20px;margin-right:20px}
 .est-cabecera,.est-panel{border:1px solid var(--est-borde);border-radius:11px;background:var(--est-fondo)}
 .est-cabecera{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 23px;background:linear-gradient(110deg,var(--est-fondo),var(--est-suave))}
 .est-cabecera p,.est-modal>header p{margin:0 0 5px;color:var(--est-azul);font-size:10px;font-weight:900;letter-spacing:.1em}

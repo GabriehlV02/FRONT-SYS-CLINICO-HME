@@ -24,6 +24,7 @@ import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
 const RecepcionView = lazy(() => import('../flows/recepcion/RecepcionView').then(m => ({ default: m.RecepcionView })));
 const CitasRecepcionView = lazy(() => import('../flows/recepcion/subvistas/CitasRecepcionView').then(m => ({ default: m.CitasRecepcionView })));
 const FarmaciaView = lazy(() => import('../flows/farmacia/FarmaciaView').then(m => ({ default: m.FarmaciaView })));
+const AdministracionFarmaciaView = lazy(() => import('../flows/farmacia/AdministracionFarmaciaView').then(m => ({ default: m.AdministracionFarmaciaView })));
 const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
 const HistoriasClinicasView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.HistoriasClinicasView })));
 const LaboratorioView = lazy(() => import('../flows/laboratorio/LaboratorioView').then(m => ({ default: m.LaboratorioView })));
@@ -35,6 +36,9 @@ const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmer
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
 const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
 const FarmaciaInternacionView = lazy(() => import('../flows/internacion/FarmaciaInternacionView').then(m => ({ default: m.FarmaciaInternacionView })));
+const CocinaVentasView = lazy(() => import('../flows/cocina/CocinaVentasView').then(m => ({ default: m.CocinaVentasView })));
+const CocinaInternacionView = lazy(() => import('../flows/cocina/CocinaInternacionView').then(m => ({ default: m.CocinaInternacionView })));
+const CocinaAdministracionView = lazy(() => import('../flows/cocina/CocinaAdministracionView').then(m => ({ default: m.CocinaAdministracionView })));
 const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
 const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
 const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaView').then(m => ({ default: m.AnestesiologiaView })));
@@ -112,9 +116,10 @@ const modulos: Modulo[] = [
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   { id: "farmacia", nombre: "Farmacia", icono: "lab", grupo: "FARMACIA" },
   { id: "farmacia-internacion", nombre: "Internación", icono: "patient", grupo: "FARMACIA" },
-  { id: "farmacia-movimientos", nombre: "Movimientos", icono: "building", grupo: "FARMACIA" },
+  { id: "farmacia-movimientos", nombre: "Administración Farmacia", icono: "building", grupo: "FARMACIA" },
   { id: "cocina", nombre: "Cocina", icono: "building", grupo: "COCINA" },
   { id: "cocina-internacion", nombre: "Cocina Internación", icono: "building", grupo: "COCINA" },
+  { id: "cocina-administracion", nombre: "Cocina Administración", icono: "settings", grupo: "COCINA" },
   {
     id: "configuracion",
     nombre: "Configuración",
@@ -505,7 +510,7 @@ export default function Aplicacion() {
               ))}
             </nav>
           )}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : modulo.startsWith('laboratorio-') ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'farmacia-movimientos' ? <AdministracionFarmaciaView /> : modulo === 'cocina' ? <CocinaVentasView /> : modulo === 'cocina-internacion' ? <CocinaInternacionView /> : modulo === 'cocina-administracion' ? <CocinaAdministracionView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : modulo.startsWith('laboratorio-') ? (
             modulo === 'laboratorio-configuracion' ? <ConfiguracionLaboratorioView /> : <LaboratorioView key={modulo} origen={modulo === 'laboratorio-internados' ? 'internacion' : 'ambulatorio'} />
           ) : modulo === 'atencion-medica' ? (
             <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview="consulta" initialPatient={pacienteColaAtencion} />

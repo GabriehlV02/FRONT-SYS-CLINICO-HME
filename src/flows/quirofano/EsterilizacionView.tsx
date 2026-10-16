@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import Icon from '../../radius/componentes/Icono';
+import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
+import '../recepcion/RecepcionView.css';
+import '../cocina/CocinaVentasView.css';
 import { leerCronograma, type CirugiaProgramada } from './cronogramaQuirofano';
 import {
   ETIQUETAS_ESTADO, SIGUIENTES_ESTADOS, guardarEsterilizacion, leerEsterilizacion,
@@ -120,7 +123,7 @@ export function EsterilizacionView() {
   const cambiarSubvista = (destinoVista: 'sala' | 'inventario' | 'kits') => { setSubvista(destinoVista); setBusqueda(''); setFiltroEstado(''); setFiltroTipo(''); setFiltroSector(''); setAviso(''); setError(''); };
   const abrirAgregar = (id: string) => { setKitAbierto(id); setMaterialesKit([]); setBusquedaAsociar(''); setError(''); setModal('agregar'); };
 
-  return <section className="est-vista" aria-label="Esterilización de quirófano">
+  return <section className="recepcion-vista est-vista esterilizacion-vista" aria-label="Esterilización de quirófano"><div className="cocina-subvista-cabecera"><HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Esterilización"><button className={subvista === 'sala' ? 'activo' : ''} onClick={() => cambiarSubvista('sala')}><span><Icon name="lab" size={17}/></span><strong>Sala de esterilización</strong><small>Seguimiento y estados del material.</small></button><button className={subvista === 'inventario' ? 'activo' : ''} onClick={() => cambiarSubvista('inventario')}><span><Icon name="package" size={17}/></span><strong>Inventario</strong><small>Registro individual de material estéril.</small></button><button className={subvista === 'kits' ? 'activo' : ''} onClick={() => cambiarSubvista('kits')}><span><Icon name="package" size={17}/></span><strong>Kits de instrumental</strong><small>Grupos, reservas y preparación quirúrgica.</small></button></HorizontalSubvistaNav></div>
     <header className="est-cabecera"><div><p>QUIRÓFANO · ESTERILIZACIÓN</p><h2>Control de material estéril</h2><small>Inventario, kits y trazabilidad del material utilizado en cirugía.</small></div><span><Icon name="lab" size={20}/> {datos.materiales.length} materiales registrados</span></header>
     <nav className="est-subvistas" aria-label="Sub-vistas de esterilización"><button type="button" className={subvista === 'sala' ? 'activo' : ''} onClick={() => cambiarSubvista('sala')}><Icon name="lab" size={17}/> Sala de esterilización</button><button type="button" className={subvista === 'inventario' ? 'activo' : ''} onClick={() => cambiarSubvista('inventario')}><Icon name="package" size={17}/> Inventario de material</button><button type="button" className={subvista === 'kits' ? 'activo' : ''} onClick={() => cambiarSubvista('kits')}><Icon name="package" size={17}/> Kits de instrumental</button></nav>
     {aviso && <p className="est-aviso" role="status">{aviso}</p>}

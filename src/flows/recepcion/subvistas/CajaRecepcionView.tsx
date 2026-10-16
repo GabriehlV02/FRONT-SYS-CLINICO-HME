@@ -79,6 +79,14 @@ const catalogo: Item[] = [
     stock: 146,
   },
 ];
+const catalogoCocina: Item[] = [
+  { id: 'coc-desayuno', nombre: 'Desayuno hospitalario', tipo: 'Servicio', codigo: 'COC-001', precio: 18, categoria: 'Desayunos', stock: 32 },
+  { id: 'coc-almuerzo', nombre: 'Almuerzo del día', tipo: 'Servicio', codigo: 'COC-002', precio: 32, categoria: 'Almuerzos', stock: 48 },
+  { id: 'coc-cena', nombre: 'Cena ligera', tipo: 'Servicio', codigo: 'COC-003', precio: 26, categoria: 'Cenas', stock: 26 },
+  { id: 'coc-blanda', nombre: 'Dieta blanda', tipo: 'Servicio', codigo: 'COC-004', precio: 28, categoria: 'Dietas', stock: 18 },
+  { id: 'coc-liquida', nombre: 'Dieta líquida', tipo: 'Servicio', codigo: 'COC-005', precio: 22, categoria: 'Dietas', stock: 14 },
+  { id: 'coc-jugo', nombre: 'Jugo natural', tipo: 'Producto', codigo: 'COC-006', precio: 10, categoria: 'Bebidas', stock: 40 },
+];
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
 const pagoNuevo = (id: number): Pago => ({ id, metodo: "Efectivo", monto: "" });
 const pacientesEjemplo = [
@@ -90,6 +98,7 @@ const pacientesEjemplo = [
 export function CajaRecepcionView({
   onAbrirCuenta,
   farmacia = false,
+  cocina = false,
   navegacion,
 }: {
   onAbrirCuenta?: (
@@ -97,6 +106,7 @@ export function CajaRecepcionView({
     paciente: string,
   ) => void;
   farmacia?: boolean;
+  cocina?: boolean;
   navegacion?: ReactNode;
 }) {
   const [busqueda, setBusqueda] = useState(""),
@@ -168,15 +178,15 @@ export function CajaRecepcionView({
 
   const resultados = useMemo(
     () =>
-      catalogo.filter(
+      (cocina ? catalogoCocina : catalogo).filter(
         (i) =>
-          (!farmacia || i.tipo === "Producto" || i.tipo === "Insumo") &&
+          (cocina || !farmacia || i.tipo === "Producto" || i.tipo === "Insumo") &&
           (tipo === "Todos" || i.tipo === tipo) &&
           `${i.nombre} ${i.codigo} ${i.tipo}`
             .toLowerCase()
             .includes(busqueda.toLowerCase()),
       ),
-    [busqueda, tipo, farmacia],
+    [busqueda, tipo, farmacia, cocina],
   );
   const subtotal = lineas.reduce((t, i) => t + i.precio * i.cantidad, 0),
     rebaja = Math.min(Math.max(Number(descuento) || 0, 0), subtotal),
@@ -399,7 +409,7 @@ export function CajaRecepcionView({
     }
   };
   return (
-    <section className={`punto-pos ${farmacia ? "punto-pos-farmacia" : ""}`}>
+    <section className={`punto-pos ${(farmacia || cocina) ? "punto-pos-farmacia" : ""}`}>
       {imagenParaAgregar && (
         <div className="punto-imagen-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setImagenParaAgregar(null); }}>
           <form className="punto-imagen-modal" role="dialog" aria-modal="true" aria-label="Detalle del estudio de imagenología" onSubmit={(evento) => { evento.preventDefault(); agregarEstudioImagen(); }}>
@@ -763,6 +773,7 @@ export function CajaRecepcionView({
             <select defaultValue="Caja 01 · Recepción">
               <option>Caja 01 · Recepción</option>
               <option>Caja 02 · Farmacia</option>
+              {cocina && <option>Caja 03 · Cocina</option>}
             </select>
           </label>
         </div>
@@ -870,7 +881,7 @@ export function CajaRecepcionView({
                 placeholder="Buscar producto por nombre, código o categoría…"
               />
             </label>
-            {!farmacia && (
+            {!farmacia && !cocina && (
               <button
                 className="punto-accion-laboratorio"
                 type="button"
@@ -883,7 +894,7 @@ export function CajaRecepcionView({
                 <Icon name="lab" size={16} /> Laboratorio
               </button>
             )}
-            {!farmacia && (
+            {!farmacia && !cocina && (
               <button
                 className="punto-accion-internacion"
                 type="button"
@@ -1007,7 +1018,7 @@ export function CajaRecepcionView({
         <aside className="punto-carrito">
           <header>
             <div>
-              <p>{farmacia ? "CARRITO DE FARMACIA" : "CARRITO DE VENTA"}</p>
+              <p>{cocina ? "CARRITO DE COCINA" : farmacia ? "CARRITO DE FARMACIA" : "CARRITO DE VENTA"}</p>
               <strong>
                 {lineas.reduce((t, i) => t + i.cantidad, 0)} productos
               </strong>

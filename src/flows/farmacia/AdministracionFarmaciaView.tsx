@@ -1,0 +1,25 @@
+import { useState } from 'react';
+import Icon, { type IconName } from '../../radius/componentes/Icono';
+import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
+import '../recepcion/RecepcionView.css';
+import '../cocina/CocinaVentasView.css';
+
+type Vista = 'almacen' | 'movimientos' | 'ventas' | 'ingresos' | 'configuracion';
+const subvistas: { id: Vista; nombre: string; icono: IconName; descripcion: string }[] = [
+  { id: 'almacen', nombre: 'Almacén', icono: 'building', descripcion: 'Existencias y niveles de stock.' },
+  { id: 'movimientos', nombre: 'Movimientos', icono: 'audit', descripcion: 'Kardex y trazabilidad de inventario.' },
+  { id: 'ventas', nombre: 'Ventas', icono: 'asset', descripcion: 'Ventas y comprobantes de farmacia.' },
+  { id: 'ingresos', nombre: 'Ingresos', icono: 'package', descripcion: 'Recepción y alta de productos.' },
+  { id: 'configuracion', nombre: 'Configuración', icono: 'settings', descripcion: 'Parámetros operativos del área.' },
+];
+export function AdministracionFarmaciaView() {
+  const [subvista, setSubvista] = useState<Vista>('almacen');
+  const navegacion = <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Administración Farmacia">{subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}><span><Icon name={item.icono} size={17} /></span><strong>{item.nombre}</strong><small>{item.descripcion}</small></button>)}</HorizontalSubvistaNav>;
+  return <section className="recepcion-vista farmacia-admin-vista"><div className="cocina-subvista-cabecera">{navegacion}</div>{subvista === 'almacen' && <Almacen />}{subvista === 'movimientos' && <Movimientos />}{subvista === 'ventas' && <Ventas />}{subvista === 'ingresos' && <Ingresos />}{subvista === 'configuracion' && <Configuracion />}</section>;
+}
+function Vacio({ icono, titulo, detalle }: { icono: IconName; titulo: string; detalle: string }) { return <div className="cocina-vacio"><Icon name={icono} size={27} /><strong>{titulo}</strong><small>{detalle}</small></div>; }
+function Almacen() { return <section className="cocina-subvista"><header><div><p>ALMACÉN DE FARMACIA</p><h2>Existencias de productos e insumos</h2><small>Consulta disponibilidad, mínimos y alertas de reposición.</small></div><button><Icon name="plus" size={16} /> Ajuste de inventario</button></header><table><thead><tr><th>Producto</th><th>Código</th><th>Disponible</th><th>Mínimo</th><th>Estado</th></tr></thead><tbody><tr><td colSpan={5}><Vacio icono="building" titulo="No hay existencias para mostrar" detalle="El almacén se actualizará con ingresos, dispensaciones y ajustes autorizados." /></td></tr></tbody></table></section>; }
+function Movimientos() { return <section className="cocina-subvista"><header><div><p>MOVIMIENTOS</p><h2>Kardex de farmacia</h2><small>Historial de entradas, salidas, devoluciones y ajustes.</small></div><button>Exportar kardex</button></header><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Producto</th><th>Cantidad</th><th>Responsable</th></tr></thead><tbody><tr><td colSpan={5}><Vacio icono="audit" titulo="No hay movimientos registrados" detalle="Cada operación de farmacia quedará registrada en este historial." /></td></tr></tbody></table></section>; }
+function Ventas() { return <section className="cocina-subvista"><header><div><p>VENTAS</p><h2>Ventas y comprobantes de farmacia</h2><small>Resumen de operaciones realizadas desde el punto de venta.</small></div><button>Ver ventas del día</button></header><div className="cocina-kpis"><article><small>Ventas del día</small><b>Bs 0.00</b></article><article><small>Comprobantes emitidos</small><b>0</b></article><article><small>Ticket promedio</small><b>Bs 0.00</b></article></div><p className="cocina-ayuda">Las ventas se originan desde Farmacia y se consolidarán por caja, turno y responsable.</p></section>; }
+function Ingresos() { return <section className="cocina-subvista"><header><div><p>INGRESOS</p><h2>Recepción de productos</h2><small>Registra compras, transferencias y devoluciones al almacén.</small></div><button><Icon name="plus" size={16} /> Nuevo ingreso</button></header><table><thead><tr><th>Documento</th><th>Origen</th><th>Fecha</th><th>Productos</th><th>Estado</th></tr></thead><tbody><tr><td colSpan={5}><Vacio icono="package" titulo="No hay ingresos registrados" detalle="Los productos recibidos en farmacia aparecerán aquí." /></td></tr></tbody></table></section>; }
+function Configuracion() { return <section className="cocina-subvista"><header><div><p>CONFIGURACIÓN</p><h2>Parámetros de farmacia</h2><small>Define almacén, caja, alertas y responsable del área.</small></div></header><div className="cocina-config"><label>Almacén principal<select><option>Almacén Farmacia Central</option></select></label><label>Caja asociada<select><option>Caja 02 · Farmacia</option></select></label><label>Stock mínimo por defecto<input defaultValue="10" type="number" /></label><label>Responsable<input defaultValue="Administrador" /></label><button>Guardar configuración</button></div></section>; }

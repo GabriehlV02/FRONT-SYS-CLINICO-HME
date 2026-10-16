@@ -766,15 +766,6 @@ export function CajaRecepcionView({
             </select>
           </label>
         </div>
-        {!farmacia && (
-          <button
-            className="punto-hacer-cotizacion"
-            type="button"
-            onClick={() => setMostrandoCotizacion(true)}
-          >
-            DOCUMENTOS Y CONSENTIMIENTOS
-          </button>
-        )}
         </header>
       </div>
       <div

@@ -1159,6 +1159,7 @@
 }
 .punto-pos-contexto .punto-hacer-cotizacion {
   flex: 0 0 auto;
+  align-self: flex-end;
 }
 .punto-contexto {
   display: flex;
@@ -1308,9 +1309,9 @@
   white-space: nowrap;
 }
 .punto-accion-laboratorio {
-  border: 1px solid #c8d9ea;
-  color: #315b7b;
-  background: #fff;
+  border: 1px solid #cdbcf1;
+  color: #6843a7;
+  background: #f5f0ff;
 }
 .punto-accion-internacion {
   border: 1px solid #096bb5;
@@ -1397,9 +1398,9 @@
   font-weight: 700;
 }
 .punto-accion-laboratorio[aria-pressed='true'] {
-  border-color: #096bb5;
+  border-color: #7650b7;
   color: #fff;
-  background: #096bb5;
+  background: #7650b7;
 }
 .punto-laboratorio {
   display: grid;
@@ -1936,6 +1937,14 @@
 @media (max-width: 620px) {
   .punto-pos-superior {
     flex-direction: column;
+    margin-bottom: 12px;
+  }
+  .punto-pos-superior .punto-pos-contexto {
+    width: 100%;
+  }
+  .punto-pos-contexto .punto-hacer-cotizacion {
+    box-sizing: border-box;
+    width: 100%;
   }
   .punto-pos-superior > .subvistas-carrusel {
     width: 100%;
@@ -2138,6 +2147,9 @@
   gap: 16px;
   min-width: 0;
 }
+.cuentas-tratamientos{display:grid;gap:6px;padding:18px 0;color:#173d60}.cuentas-tratamientos span{color:#087db8;font-size:11px;font-weight:900;letter-spacing:.06em}.cuentas-tratamientos h2{margin:0;font-size:23px}
+.sistema-app .em-cuentas-tabs{display:inline-flex;align-self:flex-start;gap:4px;margin:0;padding:4px;border:1px solid #b9e1f2;border-radius:12px;background:#f5fcff;box-shadow:0 5px 15px rgba(7,137,195,.12)}.sistema-app .em-cuentas-tabs button{display:flex;align-items:center;justify-content:center;min-height:40px;margin:0;padding:0 17px;border:1px solid transparent;border-radius:8px;color:#087eb7;background:transparent;font-size:12px;font-weight:800;white-space:nowrap;transition:color .18s ease,background .18s ease,box-shadow .18s ease}.sistema-app .em-cuentas-tabs button:hover{color:#0577ad;background:#e6f7fd}.sistema-app .em-cuentas-tabs button.activo{border-color:#078fc8;color:#fff;background:linear-gradient(115deg,#078fc8,#1ba7dc);box-shadow:0 5px 12px rgba(7,143,200,.25)}
+@media(max-width:620px){.sistema-app .em-cuentas-tabs{display:flex;align-self:stretch;overflow-x:auto;max-width:100%;border-radius:10px}.sistema-app .em-cuentas-tabs button{flex:1 0 auto;padding-inline:13px}}
 .cuentas-encabezado {
   display: flex;
   justify-content: space-between;

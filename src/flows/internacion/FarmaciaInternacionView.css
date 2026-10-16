@@ -1,0 +1,78 @@
+.farmacia-internacion-vista{display:grid;gap:10px;color:#173d60}
+.farmacia-internacion-vista>.subvistas-carrusel{position:sticky;top:var(--clinico-topbar,70px);z-index:9;width:fit-content;max-width:100%;margin:0 0 0 0;padding:3px;border:1px solid #c4dfee;border-radius:11px;background:rgba(255,255,255,.94);box-shadow:0 8px 22px rgba(6,71,115,.1);backdrop-filter:blur(12px)}
+.farmacia-internacion-vista .recepcion-subvistas{display:flex;gap:6px;width:fit-content;max-width:100%;margin:0;padding:0!important;border:0;background:transparent}
+.farmacia-internacion-vista .recepcion-subvistas>button{display:flex;align-items:center;gap:7px;min-height:42px;padding:4px 9px;border:1px solid transparent;border-radius:8px;color:#315d7d;background:transparent;font-size:11px;font-weight:850}
+.farmacia-internacion-vista .recepcion-subvistas>button>span{display:grid;place-items:center;width:28px;height:28px;border:1px solid #c4e4f2;border-radius:7px;color:#087fc0;background:#eaf7fd}
+.farmacia-internacion-vista .recepcion-subvistas>button:hover{border-color:#b8dcec;color:#075f9d;background:#f1f9fd}
+.farmacia-internacion-vista .recepcion-subvistas>button.activo{color:#fff;background:linear-gradient(115deg,#086eaf,#0796c6 70%,#19aecb);box-shadow:0 6px 15px rgba(5,111,170,.22)}
+.farmacia-internacion-vista .recepcion-subvistas>button.activo>span{border-color:rgba(255,255,255,.34);color:#fff;background:#ffffff20}
+.fi-panel{min-width:0;overflow:hidden;border:1px solid #c9dfed;border-radius:12px;background:#fff;box-shadow:0 5px 18px rgba(6,71,115,.05)}
+.fi-encabezado{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:19px 20px;border-bottom:1px solid #e2edf4}
+.fi-encabezado p,.fi-modal header p{margin:0 0 5px;color:#087fc0;font-size:10px;font-weight:900;letter-spacing:.1em}
+.fi-encabezado h2{margin:0;color:#064773;font-size:20px}
+.fi-encabezado small{display:block;margin-top:5px;color:#69869b;font-size:11px}
+.fi-resumen{display:flex;gap:8px}
+.fi-resumen span,.fi-total{display:inline-flex;align-items:center;gap:5px;padding:8px 10px;border-radius:8px;color:#58748a;background:#f1f7fb;font-size:11px;font-weight:700;white-space:nowrap}
+.fi-resumen span:first-child{color:#925f08;background:#fff5df}
+.fi-resumen span:last-child{color:#17633d;background:#e9f7ee}
+.fi-resumen strong{font-size:14px}
+.fi-controles{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px}
+.fi-buscador{display:flex;align-items:center;gap:8px;width:min(470px,100%);height:38px;padding:0 10px;border:1px solid #c9dce8;border-radius:8px;color:#6e8ba0;background:#fbfdff}
+.fi-buscador:focus-within{border-color:#0786c3;box-shadow:0 0 0 3px #0786c31a}
+.fi-buscador input{width:100%;min-width:0;border:0;outline:0;color:#173d60;background:transparent;font:inherit;font-size:11px}
+.fi-filtros{display:flex;gap:5px;padding:3px;border:1px solid #dce8ef;border-radius:8px;background:#f5f9fc}
+.fi-filtros button{min-height:29px;padding:0 10px;border:0;border-radius:6px;color:#55738a;background:transparent;font-size:10px;font-weight:800}
+.fi-filtros button.activo{color:#fff;background:#087fc0;box-shadow:0 2px 5px #087fc033}
+.fi-lista-descargos{display:grid;gap:10px;padding:0 18px 18px}
+.fi-descargo{display:grid;gap:12px;padding:14px;border:1px solid #d9e7ef;border-radius:10px;background:#fff}
+.fi-descargo-principal{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.fi-descargo-paciente{display:flex;align-items:center;gap:10px;min-width:0}
+.fi-icono{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:9px;color:#087fc0;background:#eaf7fd}
+.fi-descargo-paciente>div{display:grid;gap:3px}
+.fi-descargo-paciente strong{color:#173d60;font-size:13px}
+.fi-descargo-paciente small,.fi-productos small,.fi-recibido-info{color:#71899b;font-size:10px}
+.fi-estado{padding:5px 9px;border-radius:20px;font-size:10px;font-weight:850;white-space:nowrap}
+.fi-estado.pendiente{color:#925f08;background:#fff3d9}
+.fi-estado.recibido{color:#17633d;background:#e9f7ee}
+.fi-productos{display:grid;gap:6px;margin-left:46px}
+.fi-productos>div{display:grid;gap:2px;padding:8px 10px;border-left:3px solid #78c8e8;border-radius:0 6px 6px 0;background:#f5fafc}
+.fi-productos strong{color:#315d7d;font-size:11px}
+.fi-acciones{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:7px}
+.fi-primario,.fi-secundario,.fi-acciones-tabla button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:0 11px;border:1px solid #087fc0;border-radius:7px;color:#fff;background:#087fc0;font:inherit;font-size:10px;font-weight:800;cursor:pointer}
+.fi-secundario,.fi-acciones-tabla button{border-color:#c9dce8;color:#315d7d;background:#fff}
+.fi-vacio{display:grid;justify-items:center;gap:8px;padding:44px 20px;text-align:center}
+.fi-vacio>span{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;color:#087fc0;background:#eaf7fd}
+.fi-vacio strong{color:#315d7d;font-size:13px}
+.fi-vacio small{max-width:460px;color:#71899b;font-size:11px;line-height:1.5}
+.fi-total{color:#0874ad;background:#eaf7fd}
+.fi-tabla-wrap{width:100%;overflow-x:auto}
+.fi-tabla{width:100%;border-collapse:collapse;text-align:left}
+.fi-tabla th{padding:11px 14px;border-top:1px solid #e5eef4;border-bottom:1px solid #dce8ef;color:#6a8497;background:#f6fafc;font-size:10px;font-weight:850;white-space:nowrap}
+.fi-tabla td{padding:13px 14px;border-bottom:1px solid #e8eff4;color:#49677e;font-size:11px;white-space:nowrap}
+.fi-tabla tbody tr:last-child td{border-bottom:0}
+.fi-tabla td strong{color:#173d60;font-size:12px}
+.fi-ubicacion{display:inline-flex;align-items:center;justify-content:center;min-width:48px;padding:5px 9px;border:1px solid #c7e4f2;border-radius:7px;color:#0874ad;background:#edf9fe;font-size:12px;font-weight:900}
+.fi-acciones-tabla{display:flex;gap:6px}
+.fi-acciones-tabla button{min-height:30px;padding:0 8px}
+.fi-modal-fondo{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:18px;background:#12314b88;backdrop-filter:blur(2px)}
+.fi-modal{width:min(540px,100%);max-height:min(90vh,800px);overflow-y:auto;border:0;border-radius:12px;background:#fff;box-shadow:0 20px 55px #06243b66}
+.fi-modal header{display:flex;justify-content:space-between;gap:16px;padding:18px;border-bottom:1px solid #dceaf2}
+.fi-modal header h3{margin:0;color:#064773;font-size:18px}
+.fi-modal header small{display:block;margin-top:4px;color:#69869b;font-size:11px}
+.fi-modal header>button{width:30px;height:30px;border:0;color:#45657e;background:transparent;font-size:25px;cursor:pointer}
+.fi-modal dl{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0;padding:16px 18px}
+.fi-modal dl>div{display:grid;gap:4px}
+.fi-modal dt{color:#7891a3;font-size:10px;font-weight:800}
+.fi-modal dd{margin:0;color:#315d7d;font-size:12px}
+.fi-modal h4{margin:0;padding:4px 18px;color:#315d7d;font-size:12px}
+.fi-modal ul{display:grid;gap:8px;margin:0;padding:12px 18px 18px;list-style:none}
+.fi-modal li{display:grid;gap:4px;padding:10px;border-radius:7px;background:#f4f9fc}
+.fi-modal li strong{color:#173d60;font-size:11px}
+.fi-modal li span{color:#71899b;font-size:10px}
+.fi-modal footer{display:flex;justify-content:flex-end;gap:8px;padding:14px 18px;border-top:1px solid #dceaf2}
+.fi-formulario{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:18px}
+.fi-formulario label{display:grid;gap:5px;color:#45657e;font-size:11px;font-weight:800}
+.fi-formulario label:first-child{grid-column:1/-1}
+.fi-formulario input{height:38px;padding:0 10px;border:1px solid #bfd8e9;border-radius:7px;color:#173d60;background:#f8fcff;font:inherit}
+.fi-error{margin:12px 18px 0;color:#a12828;font-size:11px}
+@media(max-width:700px){.fi-encabezado,.fi-controles{align-items:stretch;flex-direction:column}.fi-resumen{flex-wrap:wrap}.fi-buscador{width:auto}.fi-filtros{align-self:flex-start}.fi-descargo-principal{align-items:flex-start}.fi-productos{margin-left:0}.fi-modal dl{grid-template-columns:1fr}.fi-formulario{grid-template-columns:1fr}.fi-formulario label:first-child{grid-column:auto}}

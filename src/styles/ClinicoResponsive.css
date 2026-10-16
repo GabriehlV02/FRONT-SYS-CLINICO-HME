@@ -162,3 +162,19 @@ body { overflow-x: hidden; }
   .sistema-app :is(button,[role="button"],select,input[type="checkbox"],input[type="radio"]) { touch-action: manipulation; }
   .sistema-app button:not(.libro-navegar):not(.libro-cerrar-previa) { min-height: 44px; }
 }
+
+/* Salvaguardas compartidas para pantallas compactas: cada módulo conserva su ancho útil. */
+@media (max-width: 760px) {
+  .sistema-app *, .sistema-app *::before, .sistema-app *::after { box-sizing: border-box; }
+  .sistema-app :is(input,select,textarea) { min-width: 0; font-size: 16px; }
+  .sistema-app :is(.punto-pos-layout,.configuracion-recepcion,.cuentas-recepcion,.usuarios-admin,.usuarios-vista) { min-width: 0; max-width: 100%; }
+  .sistema-app :is(.punto-catalogo,.punto-carrito,.configuracion-recepcion-listado,.configuracion-recepcion-opciones,.usuarios-admin-tabla,.cuentas-superficie) { max-width: 100%; }
+  .sistema-app :is(.punto-catalogo-filtros,.configuracion-recepcion-opciones,.usuarios-admin-barra) { gap: 10px; }
+  .sistema-app [class*="tabla"] { max-width: 100%; }
+  .sistema-app :is(.usuario-registro-fondo,.configuracion-paquete-fondo,.punto-nuevo-paciente-fondo) { padding:10px; }
+}
+
+@media (max-width: 480px) {
+  .sistema-app :is(.punto-catalogo,.punto-carrito,.em-panel,.configuracion-recepcion-listado,.configuracion-recepcion-opciones) { border-radius: 11px; }
+  .sistema-app :is(.usuario-registro-modal,.configuracion-paquete-modal) { width: 100%; max-width: 100%; }
+}

@@ -106,9 +106,13 @@ const cuentasIniciales: CuentaPaciente[] = [
 const dinero = (valor: number) =>
   `Bs ${valor.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export function CuentasRecepcionView({ origenInicial = 'emergencias', pacienteInicial = '' }: { origenInicial?: 'emergencias' | 'internacion'; pacienteInicial?: string }) {
+export function CuentasRecepcionView({ origenInicial = 'emergencias', pacienteInicial = '' }: { origenInicial?: 'emergencias' | 'internacion' | 'tratamientos'; pacienteInicial?: string }) {
   const [origen, setOrigen] = useState(origenInicial);
-  return <><div className="em-cuentas-tabs"><button className={origen === 'emergencias' ? 'activo' : ''} onClick={() => setOrigen('emergencias')}>Emergencias</button><button className={origen === 'internacion' ? 'activo' : ''} onClick={() => setOrigen('internacion')}>Internación</button></div>{origen === 'emergencias' ? <TriajeEmergenciasView recepcion /> : <CuentasInternacionView />}</>;
+  return <><div className="em-cuentas-tabs"><button className={origen === 'emergencias' ? 'activo' : ''} onClick={() => setOrigen('emergencias')}>Emergencias</button><button className={origen === 'internacion' ? 'activo' : ''} onClick={() => setOrigen('internacion')}>Internación</button><button className={origen === 'tratamientos' ? 'activo' : ''} onClick={() => setOrigen('tratamientos')}>Procedimientos y tratamientos</button></div>{origen === 'emergencias' ? <TriajeEmergenciasView recepcion /> : origen === 'internacion' ? <CuentasInternacionView /> : <CuentasTratamientosView />}</>;
+}
+
+function CuentasTratamientosView() {
+  return <section className="cuentas-tratamientos" aria-label="Cuentas de procedimientos y tratamientos"><span>RECEPCIÓN · CUENTAS</span><h2>Procedimientos y tratamientos</h2></section>;
 }
 
 function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: string }) {

@@ -34,13 +34,16 @@ export function leerInternaciones(): RegistroInternacion[] {
   if (!disponible()) return (cache = [ejemploConfirmado]);
   try {
     const guardadas = JSON.parse(window.localStorage.getItem(clave) ?? '[]');
-    return (cache = Array.isArray(guardadas) ? [ejemploConfirmado, ...guardadas] : [ejemploConfirmado]);
+    if (!Array.isArray(guardadas)) return (cache = [ejemploConfirmado]);
+    const ejemploGuardado = guardadas.find(item => item?.id === ejemploConfirmado.id);
+    return (cache = [ejemploGuardado ?? ejemploConfirmado, ...guardadas.filter(item => item?.id !== ejemploConfirmado.id)]);
   } catch { return (cache = [ejemploConfirmado]); }
 }
 
 function guardar(registros: RegistroInternacion[]) {
   cache = registros;
-  window.localStorage.setItem(clave, JSON.stringify(cache.filter(item => item.id !== ejemploConfirmado.id)));
+  const persistentes = cache.filter(item => item.id !== ejemploConfirmado.id || JSON.stringify(item) !== JSON.stringify(ejemploConfirmado));
+  window.localStorage.setItem(clave, JSON.stringify(persistentes));
   window.dispatchEvent(new Event(evento));
 }
 
@@ -53,7 +56,12 @@ export function crearPreinternacion(datos: Omit<RegistroInternacion, 'id' | 'fec
 }
 
 export function confirmarInternacion(id: string, asignacion: Pick<RegistroInternacion, 'sala' | 'cama' | 'tipoSala'>) {
-  guardar(leerInternaciones().map(item => item.id === id ? { ...item, ...asignacion, estado: 'confirmada' as const } : item));
+  const fechaIngreso = new Date().toLocaleDateString('es-BO');
+  guardar(leerInternaciones().map(item => item.id === id ? { ...item, ...asignacion, fechaIngreso: item.fechaIngreso ?? fechaIngreso, estado: 'confirmada' as const } : item));
+}
+
+export function actualizarInternacion(id: string, cambios: Pick<RegistroInternacion, 'sala' | 'cama' | 'fechaIngreso'>) {
+  guardar(leerInternaciones().map(item => item.id === id && item.estado === 'confirmada' ? { ...item, ...cambios } : item));
 }
 
 export function suscribirInternaciones(actualizar: () => void) {

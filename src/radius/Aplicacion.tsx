@@ -34,6 +34,7 @@ const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/Config
 const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
 const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
+const FarmaciaInternacionView = lazy(() => import('../flows/internacion/FarmaciaInternacionView').then(m => ({ default: m.FarmaciaInternacionView })));
 const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
 const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
 const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaView').then(m => ({ default: m.AnestesiologiaView })));
@@ -165,7 +166,7 @@ export default function Aplicacion() {
     || sesion?.usuario.permisos.some((permiso) => /medico|consulta/.test(permiso));
   const modulosVisibles = modulos.filter((item) => {
     const perfil = sesion?.usuario.perfilAtencion;
-    if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion'].includes(item.id);
+    if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion', 'farmacia-internacion'].includes(item.id);
     if (perfil === 'medico') return ['pacientes', 'atencion-medica', 'atencion-urgencias', 'medico-internacion'].includes(item.id);
     if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'esterilizacion-quirofano'].includes(item.id);
     return true;
@@ -527,6 +528,8 @@ export default function Aplicacion() {
             <AtencionMedicaEmergenciasView />
           ) : modulo === 'enfermera-internacion' ? (
             <EnfermeraInternacionView />
+          ) : modulo === 'farmacia-internacion' ? (
+            <FarmaciaInternacionView enfermera={sesion.usuario.nombre} />
           ) : modulo === 'medico-internacion' ? (
             <div className="modulo-vacio">
               <span><Icon name="userCheck" size={28} /></span>

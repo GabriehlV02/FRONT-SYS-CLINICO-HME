@@ -8,8 +8,9 @@ import { CitasRecepcionView } from './subvistas/CitasRecepcionView';
 import { CuentasRecepcionView } from './subvistas/CuentasRecepcionView';
 import { ComprobantesRecepcionView } from './subvistas/ComprobantesRecepcionView';
 import { ReportesRecepcionView } from './subvistas/ReportesRecepcionView';
+import { ConfiguracionRecepcionView } from './subvistas/ConfiguracionRecepcionView';
 
-type SubvistaRecepcion = 'caja' | 'citas' | 'cuentas' | 'comprobantes' | 'reportes';
+type SubvistaRecepcion = 'caja' | 'citas' | 'cuentas' | 'comprobantes' | 'reportes' | 'configuracion';
 
 const subvistas: { id: SubvistaRecepcion; nombre: string; icono: IconName; descripcion: string }[] = [
   { id: 'caja', nombre: 'Caja', icono: 'asset', descripcion: 'Recepcion de pagos y admisiones.' },
@@ -17,6 +18,7 @@ const subvistas: { id: SubvistaRecepcion; nombre: string; icono: IconName; descr
   { id: 'cuentas', nombre: 'Cuentas', icono: 'fileText', descripcion: 'Cuentas abiertas y saldos.' },
   { id: 'comprobantes', nombre: 'Comprobantes', icono: 'audit', descripcion: 'Pagos recibidos desde el banco.' },
   { id: 'reportes', nombre: 'Reportes', icono: 'building', descripcion: 'Indicadores de recepcion.' },
+  { id: 'configuracion', nombre: 'Configuración', icono: 'settings', descripcion: 'Paquetes y opciones de recepción.' },
 ];
 
 export function RecepcionView({ initialAgenda = false, initialSubview }: { initialAgenda?: boolean; initialSubview?: SubvistaRecepcion }) {
@@ -38,5 +40,6 @@ export function RecepcionView({ initialAgenda = false, initialSubview }: { initi
     {subvista === 'cuentas' && <CuentasRecepcionView key={`${cuentaDestino?.origen || 'emergencias'}-${cuentaDestino?.paciente || ''}`} origenInicial={cuentaDestino?.origen} pacienteInicial={cuentaDestino?.paciente}/>}
     {subvista === 'comprobantes' && <ComprobantesRecepcionView/>}
     {subvista === 'reportes' && <ReportesRecepcionView/>}
+    {subvista === 'configuracion' && <ConfiguracionRecepcionView/>}
   </section>;
 }

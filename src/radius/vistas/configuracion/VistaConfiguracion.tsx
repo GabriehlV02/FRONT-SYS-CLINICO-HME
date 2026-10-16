@@ -3,6 +3,9 @@ import { apiFetch } from '../../api';
 import type { Sesion } from '../../types/sesion';
 import Icon from '../../componentes/Icono';
 import VistaGestionUsuarios from '../usuarios/VistaGestionUsuarios';
+import VistaUsuariosSistema from './VistaUsuariosSistema';
+import VistaRolesPermisos from '../usuarios/VistaRolesPermisos';
+import VistaAlmacenesCajas from './VistaAlmacenesCajas';
 import './VistaConfiguracion.css';
 
 type Orthanc = {
@@ -13,7 +16,7 @@ type Orthanc = {
 };
 type EventoCuenta = { id: string; tipo: 'inicio_sesion' | 'cierre_sesion' | 'perfil_actualizado' | 'contrasena_actualizada'; creadoEn: string; detalle: string; ip?: string };
 
-type SeccionConfiguracion = 'usuario' | 'sistema';
+type SeccionConfiguracion = 'usuario' | 'sistema' | 'usuarios' | 'roles-permisos' | 'almacenes-cajas';
 
 export default function VistaConfiguracion({
   initialSection = 'usuario',
@@ -21,12 +24,12 @@ export default function VistaConfiguracion({
   onCambiarTema,
   usuario,
 }: {
-  initialSection?: SeccionConfiguracion | 'usuarios';
+  initialSection?: SeccionConfiguracion;
   tema?: 'light' | 'dark';
   onCambiarTema?: (tema: 'light' | 'dark') => void;
   usuario: Sesion['usuario'];
 }) {
-  const [seccion, setSeccion] = useState<SeccionConfiguracion>(initialSection === 'usuarios' ? 'sistema' : initialSection);
+  const [seccion, setSeccion] = useState<SeccionConfiguracion>(initialSection);
   const [orthanc, setOrthanc] = useState<Orthanc | null>(null);
   const [probando, setProbando] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +40,7 @@ export default function VistaConfiguracion({
   const [seguridadAbierta, setSeguridadAbierta] = useState(false);
 
   useEffect(() => {
-    setSeccion(initialSection === 'usuarios' ? 'sistema' : initialSection);
+    setSeccion(initialSection);
   }, [initialSection]);
 
   useEffect(() => {
@@ -96,6 +99,21 @@ export default function VistaConfiguracion({
             <small>Servicios, usuarios y roles</small>
           </span>
         </button>
+        <button type="button" aria-current={seccion === 'usuarios' ? 'page' : undefined} className={seccion === 'usuarios' ? 'activo' : ''} onClick={() => setSeccion('usuarios')}>
+          <Icon name="users" size={18} />
+          <span>
+            <strong>Usuarios</strong>
+            <small>Registro de cuentas y accesos</small>
+          </span>
+        </button>
+        <button type="button" aria-current={seccion === 'roles-permisos' ? 'page' : undefined} className={seccion === 'roles-permisos' ? 'activo' : ''} onClick={() => setSeccion('roles-permisos')}>
+          <Icon name="asset" size={18} />
+          <span><strong>Roles y permisos</strong><small>Define los accesos de cada rol</small></span>
+        </button>
+        <button type="button" aria-current={seccion === 'almacenes-cajas' ? 'page' : undefined} className={seccion === 'almacenes-cajas' ? 'activo' : ''} onClick={() => setSeccion('almacenes-cajas')}>
+          <Icon name="building" size={18} />
+          <span><strong>Almacenes y cajas</strong><small>Organiza puntos de operación</small></span>
+        </button>
       </nav>
 
       {seccion === 'usuario' && (
@@ -125,6 +143,9 @@ export default function VistaConfiguracion({
         </section>
       )}
       {seccion === 'sistema' && <section className="config-contenido" aria-label="Configuración del sistema" />}
+      {seccion === 'usuarios' && <VistaUsuariosSistema />}
+      {seccion === 'roles-permisos' && <VistaRolesPermisos />}
+      {seccion === 'almacenes-cajas' && <VistaAlmacenesCajas />}
     </div>
   );
 }

@@ -113,6 +113,7 @@ const modulos: Modulo[] = [
   { id: "farmacia-internacion", nombre: "Internación", icono: "patient", grupo: "FARMACIA" },
   { id: "farmacia-movimientos", nombre: "Movimientos", icono: "building", grupo: "FARMACIA" },
   { id: "cocina", nombre: "Cocina", icono: "building", grupo: "COCINA" },
+  { id: "cocina-internacion", nombre: "Cocina Internación", icono: "building", grupo: "COCINA" },
   {
     id: "configuracion",
     nombre: "Configuración",

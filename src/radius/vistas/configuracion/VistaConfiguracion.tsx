@@ -38,6 +38,10 @@ export default function VistaConfiguracion({
   const [passwordEstado, setPasswordEstado] = useState('');
   const [guardandoPassword, setGuardandoPassword] = useState(false);
   const [seguridadAbierta, setSeguridadAbierta] = useState(false);
+  const [modoRevision, setModoRevision] = useState(() => localStorage.getItem('clinico_modo_revision') === '1');
+  const [cacheEstado, setCacheEstado] = useState('');
+  const cambiarModoRevision = (activo: boolean) => { setModoRevision(activo); window.dispatchEvent(new CustomEvent('clinico:modo-revision', { detail: activo })); };
+  const limpiarCache = async () => { try { if ('caches' in window) await Promise.all((await caches.keys()).map(cache => caches.delete(cache))); sessionStorage.removeItem('clinico_catalogo_cache'); setCacheEstado('Caché temporal limpiada correctamente.'); } catch { setCacheEstado('No se pudo limpiar la caché temporal.'); } };
 
   useEffect(() => {
     setSeccion(initialSection);
@@ -142,7 +146,7 @@ export default function VistaConfiguracion({
           </section>}
         </section>
       )}
-      {seccion === 'sistema' && <section className="config-contenido" aria-label="Configuración del sistema" />}
+      {seccion === 'sistema' && <section className="config-contenido config-sistema" aria-label="Configuración del sistema"><section className="config-tarjeta config-mantenimiento"><div><span className="config-apariencia-icono"><Icon name="settings" size={18}/></span><div><h3>Modo revisión del sistema</h3><p>Bloquea toda acción y deja el sistema disponible solo para visualización difuminada.</p></div></div><label className="config-switch"><span className="config-switch-text">{modoRevision ? 'Sistema desactivado' : 'Sistema operativo'}</span><input type="checkbox" checked={modoRevision} onChange={evento => cambiarModoRevision(evento.target.checked)} aria-label="Desactivar sistema para revisión"/><span className="config-switch-track" aria-hidden="true"><span/></span></label></section><section className="config-tarjeta config-mantenimiento"><div><span className="config-apariencia-icono"><Icon name="audit" size={18}/></span><div><h3>Limpiar caché del sistema</h3><p>Elimina archivos temporales sin borrar pacientes, configuraciones ni sesión.</p></div></div><button type="button" className="config-limpiar-cache" onClick={() => void limpiarCache()}><Icon name="close" size={16}/> Limpiar caché</button>{cacheEstado && <p className="config-cache-estado">{cacheEstado}</p>}</section></section>}
       {seccion === 'usuarios' && <VistaUsuariosSistema />}
       {seccion === 'roles-permisos' && <VistaRolesPermisos />}
       {seccion === 'almacenes-cajas' && <VistaAlmacenesCajas />}

@@ -18,9 +18,13 @@ export type CuentaEmergencia = {
 };
 export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
   const respuesta = await apiFetch(`/api/emergencias${ruta}`, body ? { method: 'POST', body: JSON.stringify(body) } : {});
-  const datos = await respuesta.json();
-  if (!respuesta.ok) throw new Error(datos.message || 'No se pudo completar la operación.');
-  return datos;
+  const contenido = await respuesta.text();
+  let datos: unknown = null;
+  try { datos = contenido ? JSON.parse(contenido) : null; }
+  catch { if (respuesta.ok) throw new Error('El servicio de emergencias devolvió una respuesta no válida.'); }
+  if (!respuesta.ok) throw new Error((datos as { message?: string } | null)?.message || 'El servicio de emergencias no está disponible.');
+  if (datos === null) throw new Error('El servicio de emergencias respondió sin información.');
+  return datos as T;
 }
 export const nombrePaciente = (c: CuentaEmergencia) => [c.identidad?.nombres, c.identidad?.apellidos].filter(Boolean).join(' ') || 'Paciente sin identificar';
 export const fechaEmergencia = (v: string) => new Date(v).toLocaleString('es-BO');

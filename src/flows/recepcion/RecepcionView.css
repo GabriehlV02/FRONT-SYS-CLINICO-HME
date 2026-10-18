@@ -1309,10 +1309,12 @@
   white-space: nowrap;
 }
 .punto-accion-laboratorio {
-  border: 1px solid #cdbcf1;
-  color: #6843a7;
-  background: #f5f0ff;
+  border: 1px solid #7046c4;
+  color: #fff;
+  background: #7046c4;
+  box-shadow: 0 5px 12px rgba(91, 52, 166, .24);
 }
+.punto-accion-laboratorio:hover { background: #5d35ad; }
 .punto-accion-internacion {
   border: 1px solid #096bb5;
   color: #fff;

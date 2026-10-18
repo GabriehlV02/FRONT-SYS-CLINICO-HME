@@ -62,6 +62,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     [guardando, setGuardando] = useState(false),
     [editando, setEditando] = useState<Paciente | null>(null),
     [viendo, setViendo] = useState<Paciente | null>(null),
+    [pacienteSeleccionado, setPacienteSeleccionado] = useState<Paciente | null>(null),
     [pacienteRadiografia, setPacienteRadiografia] = useState<Paciente | null>(
       null,
     ),
@@ -129,8 +130,13 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
       creadoEn: new Date().toISOString(),
     };
     setPacientes((actuales) => [nuevo, ...actuales.filter((p) => p.id !== nuevo.id)]);
+    setPacienteSeleccionado(nuevo);
     setPagina(1);
   };
+  const replegarSidebar = () => window.dispatchEvent(new Event("clinico:replegar-sidebar"));
+  const historialConsumos = useMemo(() => pacienteSeleccionado
+    ? estudios.filter((estudio) => estudio.pacienteId === pacienteSeleccionado.id)
+    : [], [estudios, pacienteSeleccionado]);
   const abrirEditar = (p: Paciente) => {
     setEditando(p);
     setForm({
@@ -262,7 +268,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     </div>
   );
   return (
-    <div className="usuarios-vista pacientes-vista">
+    <div className="usuarios-vista pacientes-vista" onPointerDownCapture={replegarSidebar}>
       <div className="usuarios-herramientas">
         <label className="pacientes-buscador">
           <Icon name="search" size={18} />
@@ -287,6 +293,8 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
         </select></label>}
         {modoClinico && <button className="usuarios-crear pacientes-registrar" type="button" onClick={() => setRegistroAbierto(true)}><Icon name="plus" size={17} />Registrar nuevo paciente</button>}
       </div>
+      <div className={`pacientes-con-historial ${pacienteSeleccionado ? "con-paciente" : ""}`}>
+      <div className="pacientes-listado">
       <div className="usuarios-tabla pacientes-tabla">
         <Paginacion tam />
         <div className="usuarios-fila usuarios-columnas">
@@ -304,7 +312,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           visibles.map((p) => {
             const estudio = estudioDe(p);
             return (
-              <div className="usuarios-fila" key={p.id}>
+              <div className={`usuarios-fila ${pacienteSeleccionado?.id === p.id ? "paciente-activo" : ""}`} key={p.id} onClick={() => setPacienteSeleccionado(p)}>
                 <div className="usuario-identidad">
                   <span>
                     <Icon name="users" size={19} />
@@ -394,6 +402,13 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
         )}
       </div>
       <Paginacion />
+      </div>
+      {pacienteSeleccionado && <aside className="historial-consumos" aria-label={`Historial de consumo de ${nombreCompleto(pacienteSeleccionado)}`}>
+        <header><div><p>HISTORIAL DE CONSUMOS</p><h3>{nombreCompleto(pacienteSeleccionado)}</h3><small>{pacienteSeleccionado.tipoDocumento} {pacienteSeleccionado.numeroDocumento}</small></div><button type="button" onClick={() => setPacienteSeleccionado(null)} aria-label="Cerrar historial"><Icon name="close" size={16} /></button></header>
+        <label className="historial-filtro"><span>Todos</span><select aria-label="Filtrar historial"><option>Todos</option><option>Pagados</option><option>Pendientes</option></select></label>
+        <div className="historial-lista">{historialConsumos.length ? historialConsumos.map((estudio) => <article className="consumo-card pagado" key={estudio.id}><strong>{estudio.titulo}</strong><span>HOSPITAL MARÍA ESPERANZA</span><small>{estudio.categoria}</small><footer><time>{new Date(estudio.creadaEn).toLocaleDateString("es-BO", { day: "numeric", month: "long", year: "numeric" })}</time><b>Registrado</b></footer></article>) : <div className="historial-vacio"><Icon name="fileText" size={23} /><strong>Sin consumos registrados</strong><small>Los estudios, servicios y cargos de este paciente aparecerán aquí.</small></div>}</div>
+      </aside>}
+      </div>
       {abierto && editando && (
         <div className="usuario-modal-fondo" onClick={cerrar}>
           <form

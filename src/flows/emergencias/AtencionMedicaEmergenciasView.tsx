@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { apiEmergencias, camposEvaluacion, camposIdentidad, fechaEmergencia, nombrePaciente, tiposOrden, type CuentaEmergencia, type ItemEmergencia, type OrdenEmergencia } from './emergenciasApi';
 import { OrdenesEmergencias } from './OrdenesEmergencias';
 import { HojaLaboratorios } from '../consultorio/HojaLaboratorios';
 import './TriajeEmergenciasView.css';
 import './AtencionMedicaEmergenciasView.css';
-import { nombreCubiculo } from './cubiculos';
+import { cubiculosEmergencias, nombreCubiculo } from './cubiculos';
 
 type BorradorOrden = Pick<OrdenEmergencia, 'id' | 'revision' | 'tipo' | 'titulo' | 'indicaciones' | 'dosis' | 'via' | 'frecuencia' | 'duracion' | 'itemId' | 'porHora'>;
 const nuevaOrden = (tipo = 'medicamento'): BorradorOrden => ({ id: crypto.randomUUID(), revision: 0, tipo, titulo: '', indicaciones: '', dosis: '', via: '', frecuencia: '', duracion: '', itemId: '', porHora: false });
@@ -18,6 +18,8 @@ export function AtencionMedicaEmergenciasView() {
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]), [activa, setActiva] = useState(''), [busqueda, setBusqueda] = useState('');
   const [finalizadas, setFinalizadas] = useState(false), [cargando, setCargando] = useState(true), [error, setError] = useState('');
   const [catalogo, setCatalogo] = useState<ItemEmergencia[]>([]), [errorCatalogo, setErrorCatalogo] = useState('');
+  const [iniciando, setIniciando] = useState(false), [cubiculoNuevo, setCubiculoNuevo] = useState('');
+  const [datosNuevos, setDatosNuevos] = useState({ nombres: '', apellidos: '', documento: '', telefono: '' });
   const guardando = useRef(false), secuencia = useRef(0), formularioSucio = useRef(false);
   async function cargar() {
     if (guardando.current) return;
@@ -39,9 +41,28 @@ export function AtencionMedicaEmergenciasView() {
   }, []);
   const cuenta = cuentas.find(c => c.id === activa);
   const visibles = cuentas.filter(c => (finalizadas || !c.fin) && `${c.cubiculo} ${nombrePaciente(c)} ${c.identidad?.documento || ''}`.toLowerCase().includes(busqueda.toLowerCase()));
+  async function iniciarAtencion(evento: FormEvent) {
+    evento.preventDefault();
+    if (!cubiculoNuevo) { setError('Selecciona un cubículo para iniciar la atención.'); return; }
+    guardando.current = true; setError('');
+    try {
+      const identidad = Object.fromEntries(Object.entries(datosNuevos).filter(([, valor]) => valor.trim()));
+      const creada = await apiEmergencias<CuentaEmergencia>('', { cubiculo: cubiculoNuevo, identidad, solicitudId: crypto.randomUUID() });
+      setCuentas(actuales => [creada, ...actuales.filter(item => item.id !== creada.id)]);
+      setActiva(creada.id); setIniciando(false); setCubiculoNuevo('');
+      setDatosNuevos({ nombres: '', apellidos: '', documento: '', telefono: '' });
+    } catch (e) { setError((e as Error).message); }
+    finally { guardando.current = false; }
+  }
   return <section className="emergencias-vista em-medica">
-    <header className="em-cabecera"><div><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2><small>Atención por cubículo, incluso sin identificación. Datos de enfermería actualizados cada 5 segundos.</small></div><button onClick={() => void cargar()}>Actualizar</button></header>
+    <header className="em-cabecera"><div><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2><small>Atención por cubículo, incluso sin identificación. Datos de enfermería actualizados cada 5 segundos.</small></div><div className="em-medica-cabecera-acciones"><button className="em-primario" type="button" onClick={() => setIniciando(true)}><Icon name="plus" size={16}/> Iniciar atención</button><button type="button" onClick={() => void cargar()}>Actualizar</button></div></header>
     {error && <div className="em-error" role="alert">{error}</div>}
+    {iniciando && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIniciando(false); }}><form className="em-panel em-medica-nueva" role="dialog" aria-modal="true" aria-labelledby="em-medica-inicio-titulo" onSubmit={iniciarAtencion}>
+      <header><div><span>INGRESO DIRECTO</span><h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3><p>Abre una cuenta de emergencia cuando el médico recibe primero al paciente.</p></div><button type="button" aria-label="Cerrar" onClick={() => setIniciando(false)}><Icon name="close" size={18}/></button></header>
+      <label>Cubículo de atención *<select required value={cubiculoNuevo} onChange={evento => setCubiculoNuevo(evento.target.value)}><option value="">Selecciona un cubículo</option>{cubiculosEmergencias.map(cubiculo => <option key={cubiculo.id} value={cubiculo.id}>{cubiculo.nombre}</option>)}</select></label>
+      <fieldset><legend>Datos conocidos del paciente · opcionales</legend><div className="em-form-grid">{([['nombres','Nombres'],['apellidos','Apellidos'],['documento','Documento de identidad'],['telefono','Teléfono']] as const).map(([campo, etiqueta]) => <label key={campo}>{etiqueta}<input value={datosNuevos[campo]} onChange={evento => setDatosNuevos(actual => ({ ...actual, [campo]: evento.target.value }))}/></label>)}</div></fieldset>
+      <footer><button type="button" onClick={() => setIniciando(false)}>Cancelar</button><button className="em-primario" disabled={guardando.current}><Icon name="plus" size={16}/> Iniciar y atender</button></footer>
+    </form></div>}
     <div className="em-medica-layout">
       <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => setBusqueda(e.target.value)} /></label><h3>Pacientes en emergencias</h3><small>{cuentas.filter(c => !c.fin).length} atenciones activas</small><label className="em-check"><input type="checkbox" checked={finalizadas} onChange={e => setFinalizadas(e.target.checked)} /> Incluir finalizadas</label>
         {visibles.map(c => <button key={c.id} className={`em-cubiculo ${c.id === activa ? 'seleccionado' : ''}`} disabled={guardando.current} onClick={() => {
@@ -49,7 +70,7 @@ export function AtencionMedicaEmergenciasView() {
           if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Cambiar de paciente y descartar el borrador?')) return;
           formularioSucio.current = false; setActiva(c.id);
         }}><strong>{nombreCubiculo(c.cubiculo)}</strong><span>{nombrePaciente(c)}</span><small>{c.fin ? 'Atención finalizada' : `${c.signos.length} registro(s) de signos vitales`}</small><small>{(c.ordenes || []).filter(o => o.estado === 'pendiente').length} indicaciones pendientes</small></button>)}
-        {!visibles.length && <p className="em-vacio">{cargando ? 'Cargando pacientes…' : 'No hay atenciones. Se crean desde Triaje de enfermería.'}</p>}
+        {!visibles.length && <p className="em-vacio">{cargando ? 'Cargando pacientes…' : 'No hay atenciones activas. Puedes iniciar una desde esta vista.'}</p>}
       </aside>
       {cuenta ? <AtencionPaciente key={cuenta.id} {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo }} alEditar={valor => { formularioSucio.current = valor; }} ejecutar={async (ruta, body) => {
         if (guardando.current) throw new Error('Espera a que termine la operación actual.');

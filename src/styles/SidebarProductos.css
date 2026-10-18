@@ -193,7 +193,7 @@
 .sistema-app[data-theme="dark"] .punto-busquedas label{border-color:#315d7d!important;color:#9bb4ca!important;background:#061f38!important}
 .sistema-app[data-theme="dark"] .punto-busquedas input{color:#f3f8fc!important;background:transparent!important}
 .sistema-app[data-theme="dark"] .punto-busquedas input::placeholder{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .punto-accion-laboratorio{border-color:#315d7d!important;color:#dff5ff!important;background:#082d50!important}
+.sistema-app[data-theme="dark"] .punto-accion-laboratorio{border-color:#7046c4!important;color:#fff!important;background:#7046c4!important}
 .sistema-app[data-theme="dark"] .punto-modo-vista,.sistema-app[data-theme="dark"] .punto-categorias button{border-color:#315d7d!important;background:#082d50!important}
 .sistema-app[data-theme="dark"] .punto-modo-vista button,.sistema-app[data-theme="dark"] .punto-categorias button{color:#b8d0e3!important;background:transparent!important}
 .sistema-app[data-theme="dark"] .punto-modo-vista button.activo,.sistema-app[data-theme="dark"] .punto-categorias button.activo{color:#fff!important;background:#0878bd!important}

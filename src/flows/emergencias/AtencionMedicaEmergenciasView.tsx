@@ -19,7 +19,8 @@ export function AtencionMedicaEmergenciasView() {
   const [finalizadas, setFinalizadas] = useState(false), [cargando, setCargando] = useState(true), [error, setError] = useState('');
   const [catalogo, setCatalogo] = useState<ItemEmergencia[]>([]), [errorCatalogo, setErrorCatalogo] = useState('');
   const [iniciando, setIniciando] = useState(false), [cubiculoNuevo, setCubiculoNuevo] = useState('');
-  const [datosNuevos, setDatosNuevos] = useState({ nombres: '', apellidos: '', documento: '', telefono: '' });
+  const [datosNuevos, setDatosNuevos] = useState({ nombres: '', apellidos: '', documento: '', nacimiento: '', telefono: '', familiar: '', parentesco: '', documentoFamiliar: '', telefonoFamiliar: '' });
+  const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const guardando = useRef(false), secuencia = useRef(0), formularioSucio = useRef(false);
   async function cargar() {
     if (guardando.current) return;
@@ -50,17 +51,20 @@ export function AtencionMedicaEmergenciasView() {
       const creada = await apiEmergencias<CuentaEmergencia>('', { cubiculo: cubiculoNuevo, identidad, solicitudId: crypto.randomUUID() });
       setCuentas(actuales => [creada, ...actuales.filter(item => item.id !== creada.id)]);
       setActiva(creada.id); setIniciando(false); setCubiculoNuevo('');
-      setDatosNuevos({ nombres: '', apellidos: '', documento: '', telefono: '' });
+      setDatosNuevos({ nombres: '', apellidos: '', documento: '', nacimiento: '', telefono: '', familiar: '', parentesco: '', documentoFamiliar: '', telefonoFamiliar: '' });
+      setMostrarAcompanante(false);
     } catch (e) { setError((e as Error).message); }
     finally { guardando.current = false; }
   }
   return <section className="emergencias-vista em-medica">
-    <header className="em-cabecera"><div><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2><small>Atención por cubículo, incluso sin identificación. Datos de enfermería actualizados cada 5 segundos.</small></div><div className="em-medica-cabecera-acciones"><button className="em-primario" type="button" onClick={() => setIniciando(true)}><Icon name="plus" size={16}/> Iniciar atención</button><button type="button" onClick={() => void cargar()}>Actualizar</button></div></header>
-    {error && <div className="em-error" role="alert">{error}</div>}
+    <header className="em-cabecera"><div><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2></div><div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button><button className="em-primario em-iniciar-atencion" type="button" onClick={() => setIniciando(true)}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button></div></header>
+    {error && error !== 'El servicio de emergencias no está disponible.' && <div className="em-error" role="alert">{error}</div>}
     {iniciando && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIniciando(false); }}><form className="em-panel em-medica-nueva" role="dialog" aria-modal="true" aria-labelledby="em-medica-inicio-titulo" onSubmit={iniciarAtencion}>
       <header><div><span>INGRESO DIRECTO</span><h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3><p>Abre una cuenta de emergencia cuando el médico recibe primero al paciente.</p></div><button type="button" aria-label="Cerrar" onClick={() => setIniciando(false)}><Icon name="close" size={18}/></button></header>
       <label>Cubículo de atención *<select required value={cubiculoNuevo} onChange={evento => setCubiculoNuevo(evento.target.value)}><option value="">Selecciona un cubículo</option>{cubiculosEmergencias.map(cubiculo => <option key={cubiculo.id} value={cubiculo.id}>{cubiculo.nombre}</option>)}</select></label>
-      <fieldset><legend>Datos conocidos del paciente · opcionales</legend><div className="em-form-grid">{([['nombres','Nombres'],['apellidos','Apellidos'],['documento','Documento de identidad'],['telefono','Teléfono']] as const).map(([campo, etiqueta]) => <label key={campo}>{etiqueta}<input value={datosNuevos[campo]} onChange={evento => setDatosNuevos(actual => ({ ...actual, [campo]: evento.target.value }))}/></label>)}</div></fieldset>
+      <fieldset><legend>Datos básicos del paciente · opcionales</legend><div className="em-form-grid">{([['nombres','Nombres','text'],['apellidos','Apellidos','text'],['documento','Documento de identidad','text'],['nacimiento','Fecha de nacimiento','date'],['telefono','Teléfono','tel']] as const).map(([campo, etiqueta, tipo]) => <label key={campo}>{etiqueta}<input type={tipo} maxLength={200} value={datosNuevos[campo]} onChange={evento => setDatosNuevos(actual => ({ ...actual, [campo]: evento.target.value }))}/></label>)}</div></fieldset>
+      <div className="em-acompanante-toggle"><button type="button" aria-expanded={mostrarAcompanante} aria-controls="em-medica-datos-acompanante" onClick={() => setMostrarAcompanante(abierto => !abierto)}><Icon name={mostrarAcompanante ? 'chevronDown' : 'plus'} size={16}/>{mostrarAcompanante ? 'Ocultar datos del acompañante/responsable' : 'Registrar acompañante/responsable'}</button></div>
+      <fieldset id="em-medica-datos-acompanante" hidden={!mostrarAcompanante}><legend>Datos del acompañante / responsable · opcionales</legend><div className="em-form-grid">{([['familiar','Nombre completo','text'],['parentesco','Parentesco o relación','text'],['documentoFamiliar','Documento de identidad','text'],['telefonoFamiliar','Teléfono','tel']] as const).map(([campo, etiqueta, tipo]) => <label key={campo}>{etiqueta}<input type={tipo} maxLength={200} value={datosNuevos[campo]} onChange={evento => setDatosNuevos(actual => ({ ...actual, [campo]: evento.target.value }))}/></label>)}</div></fieldset>
       <footer><button type="button" onClick={() => setIniciando(false)}>Cancelar</button><button className="em-primario" disabled={guardando.current}><Icon name="plus" size={16}/> Iniciar y atender</button></footer>
     </form></div>}
     <div className="em-medica-layout">

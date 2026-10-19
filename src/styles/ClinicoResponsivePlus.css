@@ -1,0 +1,143 @@
+/*
+ * Capa transversal de adaptaci\u00f3n. Se carga al final para que los flujos
+ * cl\u00ednicos conserven su dise\u00f1o de escritorio y sean utilizables en pantallas
+ * t\u00e1ctiles sin generar desplazamiento horizontal de la aplicaci\u00f3n.
+ */
+.sistema-app {
+  --clinico-space: clamp(12px, 2vw, 24px);
+}
+
+.sistema-app :is(section, article, header, footer, div, form, fieldset) {
+  min-width: 0;
+}
+
+.sistema-app :is(input, select, textarea) {
+  max-width: 100%;
+}
+
+.sistema-app :is(.fi-tabla-wrap, .tabla-scroll, .tabla-contenedor, .tabla-wrapper, .tabla-responsive) {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1100px) {
+  .sistema-app :is(.fi-encabezado, .recepcion-cabecera, .consultorio-cabecera, .laboratorio-cabecera, .quirofano-cabecera, .config-signos-cabecera) {
+    flex-wrap: wrap;
+  }
+
+  .sistema-app :is(.fi-encabezado > *, .recepcion-cabecera > *, .consultorio-cabecera > *, .laboratorio-cabecera > *, .quirofano-cabecera > *) {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  /* La cabecera conserva todos sus controles en una rejilla estable. */
+  .sistema-app .sistema-topbar {
+    grid-template-columns: 38px minmax(0, 1fr) 38px 38px;
+    grid-template-rows: 38px 42px;
+    min-height: 96px;
+  }
+
+  .sistema-app .sistema-topbar .topbar-boton {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .sistema-app .sistema-topbar .cola-atencion-rapida {
+    grid-column: 4;
+    grid-row: 1;
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sistema-app .sistema-topbar .cola-atencion-rapida svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sistema-app .area-trabajo {
+    padding-top: 110px !important;
+    padding-bottom: max(22px, env(safe-area-inset-bottom));
+  }
+
+  .sistema-app :is(.fi-encabezado, .recepcion-cabecera, .consultorio-cabecera, .laboratorio-cabecera, .quirofano-cabecera, .config-signos-cabecera) {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sistema-app :is(.fi-encabezado > button, .recepcion-cabecera > button, .consultorio-cabecera > button, .laboratorio-cabecera > button, .quirofano-cabecera > button) {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Las acciones no se comprimen: ocupan filas completas y son c\u00f3modas al tacto. */
+  .sistema-app :is(.fi-acciones-tabla, .acciones-tabla, .historia-acciones, .usuario-form-acciones, .modal-acciones) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    gap: 8px;
+  }
+
+  .sistema-app :is(.fi-acciones-tabla, .acciones-tabla, .historia-acciones, .usuario-form-acciones, .modal-acciones) > button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .sistema-app :is(.fi-tabla, .clinica-tabla, .recepcion-tabla, .usuarios-tabla, .orthanc-tabla, .estudios-tabla) {
+    min-width: 640px;
+  }
+
+  .sistema-app :is(.fi-tabla-wrap, .tabla-scroll, .tabla-contenedor, .tabla-wrapper, .tabla-responsive) {
+    margin-inline: calc(var(--clinico-space) * -0.25);
+    padding-inline: calc(var(--clinico-space) * 0.25);
+  }
+
+  .sistema-app :is(.modal-fondo, .orthanc-modal-fondo, .citas-modal-fondo, .usuario-modal-fondo, .recepcion-internacion-fondo, .fi-modal-fondo) {
+    align-items: end;
+    padding: 0;
+  }
+
+  .sistema-app :is(.modal-fondo > *, .orthanc-modal, .usuario-modal, .citas-modal-fondo > *, .recepcion-internacion-modal, .fi-modal) {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(92dvh, 760px);
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .sistema-app :is(.config-signos-dos-campos, .fi-formulario, .paciente-campos, .usuario-campos) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .sistema-app .sistema-topbar {
+    column-gap: 5px;
+    padding-inline: max(8px, env(safe-area-inset-left));
+  }
+
+  .sistema-app :is(.fi-acciones-tabla, .acciones-tabla, .historia-acciones, .usuario-form-acciones, .modal-acciones) {
+    grid-template-columns: 1fr;
+  }
+
+  .sistema-app :is(.pagina-cabecera h1, .recepcion-cabecera h1, .consultorio-cabecera h1, .laboratorio-cabecera h1) {
+    font-size: clamp(20px, 7vw, 26px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sistema-app *, .sistema-app *::before, .sistema-app *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

@@ -21,7 +21,8 @@ export type MovimientoEsteril = {
   cirugiaId: string;
   fecha: string;
 };
-export type EstadoEsterilizacion = { materiales: MaterialEsteril[]; kits: KitEsteril[]; movimientos: MovimientoEsteril[] };
+export type RecepcionMaterialSucio = { id: string; materialId: string; kitId: string; entregadoPor: string; uso: string; fecha: string };
+export type EstadoEsterilizacion = { materiales: MaterialEsteril[]; kits: KitEsteril[]; movimientos: MovimientoEsteril[]; recepciones: RecepcionMaterialSucio[] };
 
 export const ETIQUETAS_ESTADO: Record<EstadoMaterial, string> = {
   pendiente: 'Pendiente de esterilización',
@@ -42,7 +43,7 @@ export const SIGUIENTES_ESTADOS: Record<EstadoMaterial, EstadoMaterial[]> = {
 };
 
 const CLAVE = 'hme-esterilizacion-v1';
-const VACIO: EstadoEsterilizacion = { materiales: [], kits: [], movimientos: [] };
+const VACIO: EstadoEsterilizacion = { materiales: [], kits: [], movimientos: [], recepciones: [] };
 const fechaDemo = (diasAtras: number) => new Date(Date.now() - diasAtras * 86_400_000).toISOString();
 
 const materialesDemo: MaterialEsteril[] = [
@@ -87,7 +88,11 @@ const movimientosDemo: MovimientoEsteril[] = [
   { id: 'demo-mov-018', materialId: 'demo-material-012', desde: 'registro', hacia: 'pendiente', cirugiaId: '', fecha: fechaDemo(0) },
 ];
 
-const EJEMPLO: EstadoEsterilizacion = { materiales: materialesDemo, kits: kitsDemo, movimientos: movimientosDemo };
+const recepcionesDemo: RecepcionMaterialSucio[] = [
+  { id: 'demo-recepcion-001', materialId: 'demo-material-004', kitId: 'demo-kit-lavado', entregadoPor: 'Enfermería de quirófano', uso: 'Cirugía general', fecha: fechaDemo(0) },
+  { id: 'demo-recepcion-002', materialId: 'demo-material-005', kitId: '', entregadoPor: 'Enfermería de quirófano', uso: 'Cirugía general', fecha: fechaDemo(0) },
+];
+const EJEMPLO: EstadoEsterilizacion = { materiales: materialesDemo, kits: kitsDemo, movimientos: movimientosDemo, recepciones: recepcionesDemo };
 
 export function leerEsterilizacion(): EstadoEsterilizacion {
   try {
@@ -100,6 +105,7 @@ export function leerEsterilizacion(): EstadoEsterilizacion {
       materiales: Array.isArray(estado.materiales) ? estado.materiales : [],
       kits: Array.isArray(estado.kits) ? estado.kits : [],
       movimientos: Array.isArray(estado.movimientos) ? estado.movimientos : [],
+      recepciones: Array.isArray(estado.recepciones) ? estado.recepciones : [],
     };
   } catch { return VACIO; }
 }

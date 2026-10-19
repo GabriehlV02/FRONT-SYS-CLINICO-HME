@@ -39,8 +39,18 @@ const leerCirugiasEsterilizacion = () => {
   return programadas.length ? programadas : CIRUGIAS_DEMO;
 };
 
-export function EsterilizacionView() {
-  const [subvista, setSubvista] = useState<'sala' | 'entrega' | 'seguimiento' | 'inventario' | 'kits'>('sala');
+type SubvistaEsterilizacion = 'sala' | 'entrega' | 'seguimiento' | 'inventario' | 'kits';
+type SubvistaEsterilizacionConfig = { id: SubvistaEsterilizacion; icono: 'lab' | 'check' | 'search' | 'package'; titulo: string; descripcion: string };
+const SUBVISTAS: SubvistaEsterilizacionConfig[] = [
+  { id: 'sala', icono: 'lab', titulo: 'Recepción sucio', descripcion: 'Ingreso de material para reprocesar.' },
+  { id: 'entrega', icono: 'check', titulo: 'Entrega de material estéril', descripcion: 'Piezas limpias disponibles para entregar.' },
+  { id: 'seguimiento', icono: 'search', titulo: 'Seguimiento de esterilización', descripcion: 'Ubicación y estado de cada pieza.' },
+  { id: 'inventario', icono: 'package', titulo: 'Inventario', descripcion: 'Registro individual de material estéril.' },
+  { id: 'kits', icono: 'package', titulo: 'Kits de instrumental', descripcion: 'Grupos, reservas y preparación quirúrgica.' },
+];
+
+export function EsterilizacionView({ subvistaInicial = 'inventario', subvistasVisibles = SUBVISTAS.map(item => item.id) }: { subvistaInicial?: SubvistaEsterilizacion; subvistasVisibles?: SubvistaEsterilizacion[] }) {
+  const [subvista, setSubvista] = useState<SubvistaEsterilizacion>(subvistaInicial);
   const [datos, setDatos] = useState<EstadoEsterilizacion>(leerEsterilizacion);
   const [cirugias, setCirugias] = useState(leerCirugiasEsterilizacion);
   const [busqueda, setBusqueda] = useState('');
@@ -73,6 +83,10 @@ export function EsterilizacionView() {
     window.addEventListener('storage', actualizar);
     return () => window.removeEventListener('storage', actualizar);
   }, []);
+
+  useEffect(() => {
+    setSubvista(subvistaInicial);
+  }, [subvistaInicial]);
 
   const guardar = (nuevos: EstadoEsterilizacion, mensaje: string) => {
     try { guardarEsterilizacion(nuevos); setDatos(nuevos); setAviso(mensaje); setError(''); setModal(null); return true; }
@@ -172,9 +186,10 @@ export function EsterilizacionView() {
   const cambiarSubvista = (destinoVista: 'sala' | 'entrega' | 'seguimiento' | 'inventario' | 'kits') => { setSubvista(destinoVista); setBusqueda(''); setFiltroEstado(''); setFiltroTipo(''); setFiltroSector(''); setAviso(''); setError(''); };
   const abrirAgregar = (id: string) => { setKitAbierto(id); setMaterialesKit([]); setBusquedaAsociar(''); setError(''); setModal('agregar'); };
 
-  return <section className="recepcion-vista est-vista esterilizacion-vista" aria-label="Esterilización de quirófano"><div className="cocina-subvista-cabecera"><HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Esterilización"><button className={subvista === 'sala' ? 'activo' : ''} onClick={() => cambiarSubvista('sala')}><span><Icon name="lab" size={17}/></span><strong>Recepción sucio</strong><small>Ingreso de material para reprocesar.</small></button><button className={subvista === 'entrega' ? 'activo' : ''} onClick={() => cambiarSubvista('entrega')}><span><Icon name="check" size={17}/></span><strong>Entrega de material estéril</strong><small>Piezas limpias disponibles para entregar.</small></button><button className={subvista === 'seguimiento' ? 'activo' : ''} onClick={() => cambiarSubvista('seguimiento')}><span><Icon name="search" size={17}/></span><strong>Seguimiento de material</strong><small>Ubicación y estado de cada pieza.</small></button><button className={subvista === 'inventario' ? 'activo' : ''} onClick={() => cambiarSubvista('inventario')}><span><Icon name="package" size={17}/></span><strong>Inventario</strong><small>Registro individual de material estéril.</small></button><button className={subvista === 'kits' ? 'activo' : ''} onClick={() => cambiarSubvista('kits')}><span><Icon name="package" size={17}/></span><strong>Kits de instrumental</strong><small>Grupos, reservas y preparación quirúrgica.</small></button></HorizontalSubvistaNav></div>
+  const navegacionVisible = SUBVISTAS.filter(item => subvistasVisibles.includes(item.id));
+  return <section className="recepcion-vista est-vista esterilizacion-vista" aria-label="Esterilización de quirófano"><div className="cocina-subvista-cabecera">{navegacionVisible.length > 1 && <HorizontalSubvistaNav className={`recepcion-subvistas ${navegacionVisible.length === 2 ? 'dos-subvistas' : ''}`} ariaLabel="Subvistas de Esterilización">{navegacionVisible.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => cambiarSubvista(item.id)}><span><Icon name={item.icono} size={17}/></span><strong>{item.titulo}</strong><small>{item.descripcion}</small></button>)}</HorizontalSubvistaNav>}</div>
     <header className="est-cabecera"><div><p>QUIRÓFANO · ESTERILIZACIÓN</p><h2>Control de material estéril</h2><small>Inventario, kits y trazabilidad del material utilizado en cirugía.</small></div><span><Icon name="lab" size={20}/> {datos.materiales.length} materiales registrados</span></header>
-    <nav className="est-subvistas" aria-label="Sub-vistas de esterilización"><button type="button" className={subvista === 'sala' ? 'activo' : ''} onClick={() => cambiarSubvista('sala')}><Icon name="lab" size={17}/> Sala de esterilización</button><button type="button" className={subvista === 'inventario' ? 'activo' : ''} onClick={() => cambiarSubvista('inventario')}><Icon name="package" size={17}/> Inventario de material</button><button type="button" className={subvista === 'kits' ? 'activo' : ''} onClick={() => cambiarSubvista('kits')}><Icon name="package" size={17}/> Kits de instrumental</button></nav>
+    {navegacionVisible.length > 1 && <nav className="est-subvistas" aria-label="Sub-vistas de esterilización">{navegacionVisible.map(item => <button key={item.id} type="button" className={subvista === item.id ? 'activo' : ''} onClick={() => cambiarSubvista(item.id)}><Icon name={item.icono} size={17}/>{item.titulo}</button>)}</nav>}
     {aviso && <p className="est-aviso" role="status">{aviso}</p>}
     {error && !modal && <p className="est-error" role="alert">{error}</p>}
 

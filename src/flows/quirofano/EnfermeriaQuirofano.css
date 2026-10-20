@@ -61,8 +61,67 @@
   font-size: 17px;
 }
 
+.instrumentista-tablero { display: grid; gap: 20px; }
+.instrumentista-resumen { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
+.instrumentista-resumen h3 { margin: 5px 0; font-size: 20px; }
+.instrumentista-resumen small { display: block; max-width: 660px; }
+.instrumentista-registro { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 0 0 auto; min-height: 40px; padding: 0 14px; border: 0; border-radius: 8px; color: #fff; background: #0877bc; font-size: 12px; font-weight: 800; box-shadow: 0 8px 18px #0877bc2e; }
+.instrumentista-indicadores { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid #dbe9f3; border-radius: 10px; background: #f9fcff; }
+.instrumentista-indicadores > div { display: grid; grid-template-columns: 32px 1fr; gap: 0 10px; align-items: center; min-height: 82px; padding: 13px 16px; }
+.instrumentista-indicadores > div + div { border-left: 1px solid #dbe9f3; }
+.instrumentista-indicadores span { grid-row: 1 / 3; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; color: #0877bc; background: #e6f6fd; }
+.instrumentista-indicadores strong { color: #163d64; font-size: 22px; line-height: 1; }
+.instrumentista-indicadores small { color: #67829c; font-size: 11px; line-height: 1.35; }
+.instrumentista-listado { overflow: hidden; border: 1px solid #dce8f2; border-radius: 10px; }
+.instrumentista-listado-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 18px; border-bottom: 1px solid #dce8f2; background: #fbfdff; }
+.instrumentista-listado-cabecera p { margin: 0; color: #0877bc; font-size: 10px; font-weight: 800; letter-spacing: .09em; }
+.instrumentista-listado-cabecera h4 { margin: 4px 0 0; color: #17395e; font-size: 15px; }
+.instrumentista-listado-cabecera > span { color: #66819c; font-size: 11px; }
+.instrumentista-tabla { width: 100%; }
+.instrumentista-fila { display: grid; grid-template-columns: 1.4fr 1fr .45fr .7fr; gap: 16px; align-items: center; min-height: 58px; padding: 10px 18px; border-top: 1px solid #e5edf4; color: #254a6b; font-size: 12px; }
+.instrumentista-fila:first-child { border-top: 0; }
+.instrumentista-fila > span { min-width: 0; }
+.instrumentista-fila strong, .instrumentista-fila small { display: block; }
+.instrumentista-fila strong { color: #17395e; font-size: 12px; }
+.instrumentista-fila small { margin-top: 3px; color: #7290aa; font-size: 10px; }
+.instrumentista-columnas { min-height: 38px; color: #5480a1; background: #eef8fc; font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.instrumentista-fila b { display: inline-flex; width: fit-content; padding: 5px 8px; border-radius: 999px; font-size: 10px; white-space: nowrap; }
+.estado-dispensado { color: #0875af; background: #e8f7fd; }
+.estado-en-uso { color: #8b5a00; background: #fff4dd; }
+.estado-verificado { color: #21805a; background: #e7f7ef; }
+
+.instrumentista-agenda { display: grid; gap: 18px; }
+.instrumentista-agenda-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 17px; border-bottom: 1px solid #dce8f2; }
+.instrumentista-agenda-cabecera h3 { margin: 5px 0; font-size: 19px; }
+.instrumentista-agenda-cabecera > span { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; color: #0877bc; background: #e8f7fd; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.instrumentista-cirugias { display: grid; gap: 10px; }
+.instrumentista-cirugia { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 16px; align-items: center; width: 100%; min-height: 82px; padding: 14px 16px; border: 1px solid #dce8f2; border-radius: 10px; color: #17395e; background: #fff; text-align: left; transition: border-color .18s, background .18s, transform .18s; }
+.instrumentista-cirugia:hover { border-color: #83ccea; background: #f7fcff; transform: translateY(-1px); }
+.instrumentista-cirugia time { display: grid; place-items: center; min-height: 48px; border-radius: 9px; color: #0877bc; background: #e8f7fd; font-size: 16px; font-weight: 800; }
+.instrumentista-cirugia div { display: grid; gap: 4px; min-width: 0; }
+.instrumentista-cirugia strong { color: #17395e; font-size: 14px; }
+.instrumentista-cirugia small { color: #66819c; font-size: 12px; }
+.instrumentista-cirugia div > span { color: #4b6f8d; font-size: 11px; }
+.instrumentista-cirugia > b { display: inline-flex; align-items: center; gap: 8px; color: #47718e; font-size: 11px; white-space: nowrap; }
+.instrumentista-contexto { display: flex; align-items: flex-start; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid #dce8f2; }
+.instrumentista-contexto button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 9px; border: 0; border-radius: 7px; color: #0877bc; background: #eaf7fd; font-size: 11px; font-weight: 800; white-space: nowrap; }
+.instrumentista-contexto div { display: grid; gap: 3px; }
+.instrumentista-contexto div > span { color: #0877bc; font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.instrumentista-contexto h3 { margin: 0; font-size: 18px; }
+.instrumentista-contexto small { color: #63809d; font-size: 11px; }
+
 @media (max-width: 650px) {
   .enfermeria-q-subvistas.recepcion-subvistas {
     max-width: 100%;
   }
+  .instrumentista-resumen, .instrumentista-listado-cabecera { align-items: stretch; flex-direction: column; }
+  .instrumentista-registro { width: 100%; }
+  .instrumentista-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .instrumentista-indicadores > div:nth-child(3) { border-left: 0; border-top: 1px solid #dbe9f3; }
+  .instrumentista-indicadores > div:nth-child(4) { border-top: 1px solid #dbe9f3; }
+  .instrumentista-tabla { overflow-x: auto; }
+  .instrumentista-fila { min-width: 650px; }
+  .instrumentista-agenda-cabecera, .instrumentista-contexto { align-items: stretch; flex-direction: column; }
+  .instrumentista-cirugia { grid-template-columns: 58px minmax(0, 1fr); }
+  .instrumentista-cirugia > b { grid-column: 2; }
 }

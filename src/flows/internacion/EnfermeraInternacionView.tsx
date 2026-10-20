@@ -27,7 +27,6 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   };
 
   return <section className="internacion-enfermeria" aria-label="Enfermería de internación">
-    <header><div><p>INTERNACIÓN</p><h2>Enfermera internación</h2><small>Seguimiento de pacientes, preinternaciones y asignación de cama.</small></div><span><Icon name="patient" size={18} /> {pendientes.length} preinternación{pendientes.length === 1 ? '' : 'es'}</span></header>
     {subvista === 'internados' && pendientes.length > 0 && <section className="internacion-pendientes"><div><strong>Preinternaciones pendientes</strong><small>Una orden médica todavía no abre una cuenta. Confírmala asignando sala y cama.</small></div>{pendientes.map(item => <article key={item.id}><div><b>{item.paciente}</b><small>CI {item.ci} · Orden de {item.medico}</small><em>Preinternación</em></div><button type="button" onClick={() => { setSeleccionada(item); setSala(''); setCama(''); }}>Asignar sala y cama</button></article>)}</section>}
     <section className="internacion-listado">
       <div className="internacion-herramientas">

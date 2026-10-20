@@ -115,8 +115,8 @@ function CuentasTratamientosView() {
   return <section className="cuentas-tratamientos" aria-label="Cuentas de procedimientos y tratamientos"><span>RECEPCIÓN · CUENTAS</span><h2>Procedimientos y tratamientos</h2></section>;
 }
 
-function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: string }) {
-  const [busqueda, setBusqueda] = useState(pacienteInicial);
+function CuentasInternacionView() {
+  const [cuentaModal, setCuentaModal] = useState<CuentaPaciente | null>(null);
   const internaciones = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
   const preinternaciones = internaciones.filter((internacion) => internacion.estado === 'preinternacion');
   const cuentasConInternacion = useMemo(() => [
@@ -126,21 +126,7 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
       ingreso: internacion.fecha, responsable: 'Por registrar', total: 0, pagado: 0, estado: 'Pendiente', consumos: [],
     })),
   ], [internaciones]);
-  const [cuentaActiva, setCuentaActiva] = useState<string | null>(
-    cuentasIniciales.find((cuenta) => cuenta.paciente === pacienteInicial)?.id ?? cuentasIniciales[0].id,
-  );
-  const cuentas = useMemo(() => {
-    const termino = busqueda.trim().toLocaleLowerCase();
-    return cuentasConInternacion.filter(
-      (cuenta) =>
-        !termino ||
-          `${cuenta.paciente} ${cuenta.historia} ${cuenta.id} ${cuenta.ubicacion}`
-            .toLocaleLowerCase()
-            .includes(termino),
-    );
-  }, [busqueda, cuentasConInternacion]);
-  const seleccionada =
-    cuentasConInternacion.find((cuenta) => cuenta.id === cuentaActiva) ?? null;
+  const cuentas = cuentasConInternacion;
   const pendiente = cuentasConInternacion.reduce(
     (total, cuenta) => total + cuenta.total - cuenta.pagado,
     0,
@@ -154,18 +140,6 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
       className="cuentas-recepcion"
       aria-label="Cuentas de pacientes internados"
     >
-      <header className="cuentas-encabezado">
-        <div>
-          <span>GESTI&Oacute;N HOSPITALARIA</span>
-          <h2>Cuentas de internaci&oacute;n</h2>
-          <p>Administra las cuentas activas, consumos y pagos de pacientes internados.</p>
-        </div>
-        <div className="cuentas-api-aviso">
-          <Icon name="check" size={15} />
-          {cuentasConInternacion.length} cuentas activas
-        </div>
-      </header>
-
       <div className="cuentas-superficie">
       <div className="cuentas-kpis-clinica">
         <article>
@@ -211,80 +185,59 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
         </article>
       </div>
 
-      <div className="cuentas-filtros-clinica">
-        <label className="buscador-local">
-          <Icon name="search" size={16} />
-          <input
-            value={busqueda}
-            onChange={(event) => setBusqueda(event.target.value)}
-            placeholder="Buscar por paciente, historia o cuenta"
-          />
-        </label>
-        <button
-          type="button"
-          className="cuentas-nueva-internacion"
-          disabled
-        >
-          <Icon name="plus" size={16} />
-          Nueva internación
-        </button>
-      </div>
-
       {preinternaciones.length > 0 && <section className="cuentas-preinternaciones" aria-label="Preinternaciones pendientes"><div><strong>Preinternaciones pendientes</strong><small>Estas órdenes médicas aún no generan cuenta. La cuenta se abrirá cuando Enfermería asigne sala y cama.</small></div>{preinternaciones.map((internacion) => <article key={internacion.id}><Icon name="patient" size={16} /><span><b>{internacion.paciente}</b><small>CI {internacion.ci} · Orden de {internacion.medico}</small></span><em>Sin cuenta</em></article>)}</section>}
 
       <div className="cuentas-contenido">
         <section className="panel cuentas-listado">
-          <div className="panel-cabecera">
-            <div>
-              <span>CUENTAS ABIERTAS</span>
-              <h3>Pacientes internados</h3>
-            </div>
-            <small>
-              {cuentas.length} registro{cuentas.length === 1 ? '' : 's'}
-            </small>
-          </div>
           <div className="cuentas-tabla-wrap">
             <table className="cuentas-tabla">
+              <caption className="cuentas-tabla-descripcion">
+                Cuentas de pacientes internados
+              </caption>
+              <colgroup>
+                <col className="col-paciente" />
+                <col className="col-ubicacion" />
+                <col className="col-ingreso" />
+                <col className="col-monto" />
+                <col className="col-monto" />
+                <col className="col-acciones" />
+              </colgroup>
               <thead>
                 <tr>
-                  <th>Paciente</th>
-                  <th>Ubicación</th>
-                  <th>Ingreso</th>
-                  <th>Total</th>
-                  <th>Saldo</th>
-                  <th>Estado</th>
+                  <th scope="col">Paciente</th>
+                  <th scope="col">Ubicación</th>
+                  <th scope="col">Ingreso</th>
+                  <th scope="col" className="cuentas-monto">Total</th>
+                  <th scope="col" className="cuentas-monto">Saldo</th>
+                  <th scope="col" className="cuentas-acciones">Acciones</th>
                 </tr>
               </thead>
               <tbody>
                 {cuentas.map((cuenta) => (
                   <tr
                     key={cuenta.id}
-                    className={cuentaActiva === cuenta.id ? 'seleccionada' : ''}
-                    onClick={() => setCuentaActiva(cuenta.id)}
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ')
-                        setCuentaActiva(cuenta.id);
-                    }}
                   >
-                    <td>
+                    <td className="cuenta-paciente">
                       <strong>{cuenta.paciente}</strong>
                       <small>
                         {cuenta.historia} · {cuenta.id}
                       </small>
                     </td>
-                    <td>{cuenta.ubicacion}</td>
-                    <td>{cuenta.ingreso}</td>
-                    <td>{dinero(cuenta.total)}</td>
-                    <td>
+                    <td className="cuenta-ubicacion">{cuenta.ubicacion}</td>
+                    <td className="cuenta-ingreso">{cuenta.ingreso}</td>
+                    <td className="cuentas-monto">{dinero(cuenta.total)}</td>
+                    <td className="cuentas-monto cuenta-saldo">
                       <b>{dinero(cuenta.total - cuenta.pagado)}</b>
                     </td>
-                    <td>
-                      <em
-                        className={`estado-cuenta ${cuenta.estado.toLocaleLowerCase().replace(' ', '-')}`}
+                    <td className="cuentas-acciones">
+                      <button
+                        type="button"
+                        onClick={() => setCuentaModal(cuenta)}
+                        aria-label={`Ver detalle de la cuenta de ${cuenta.paciente}`}
                       >
-                        {cuenta.estado}
-                      </em>
+                        <Icon name="eye" size={14} />
+                        Ver detalle
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -294,24 +247,26 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
               <div className="cuentas-vacio">
                 <Icon name="search" size={20} />
                 <strong>No encontramos cuentas</strong>
-                <small>Ajusta la búsqueda o el estado seleccionado.</small>
+                <small>Aún no hay cuentas de internación.</small>
               </div>
             )}
           </div>
         </section>
 
-        <aside className="panel cuenta-detalle-clinica">
-          {seleccionada ? (
+        {cuentaModal && <div className="cuenta-modal-fondo" role="presentation" onMouseDown={() => setCuentaModal(null)}>
+        <aside className="panel cuenta-detalle-clinica" role="dialog" aria-modal="true" aria-label="Detalle de cuenta" onMouseDown={(event) => event.stopPropagation()}>
+          <button type="button" className="cuenta-modal-cerrar" onClick={() => setCuentaModal(null)} aria-label="Cerrar detalle de cuenta"><Icon name="close" size={18} /></button>
+          {cuentaModal ? (
             <>
               <div className="panel-cabecera">
                 <div>
                   <span>DETALLE DE CUENTA</span>
-                  <h3>{seleccionada.id}</h3>
+                  <h3>{cuentaModal.id}</h3>
                 </div>
                 <em
-                  className={`estado-cuenta ${seleccionada.estado.toLocaleLowerCase().replace(' ', '-')}`}
+                  className={`estado-cuenta ${cuentaModal.estado.toLocaleLowerCase().replace(' ', '-')}`}
                 >
-                  {seleccionada.estado}
+                  {cuentaModal.estado}
                 </em>
               </div>
               <div className="cuenta-paciente-resumen">
@@ -319,12 +274,12 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
                   <Icon name="patient" size={17} />
                 </span>
                 <div>
-                  <strong>{seleccionada.paciente}</strong>
+                  <strong>{cuentaModal.paciente}</strong>
                   <small>
-                    {seleccionada.historia} · Responsable:{' '}
-                    {seleccionada.responsable}
+                    {cuentaModal.historia} · Responsable:{' '}
+                    {cuentaModal.responsable}
                   </small>
-                  <small>{seleccionada.ubicacion}</small>
+                  <small>{cuentaModal.ubicacion}</small>
                 </div>
               </div>
               <div className="cuenta-consumos">
@@ -332,7 +287,7 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
                   <strong>Consumos registrados</strong>
                   <small>Origen: internación</small>
                 </header>
-                {seleccionada.consumos.map((consumo) => (
+                {cuentaModal.consumos.map((consumo) => (
                   <article key={consumo.concepto}>
                     <div>
                       <strong>{consumo.concepto}</strong>
@@ -345,24 +300,25 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
               <div className="cuenta-totales">
                 <div>
                   <span>Total consumido</span>
-                  <strong>{dinero(seleccionada.total)}</strong>
+                  <strong>{dinero(cuentaModal.total)}</strong>
                 </div>
                 <div>
-                  <span>Pagos registrados</span>
+                  <span>Adelantos aplicados</span>
                   <strong className="pagado">
-                    − {dinero(seleccionada.pagado)}
+                    − {dinero(cuentaModal.pagado)}
                   </strong>
                 </div>
                 <div className="saldo">
                   <span>Saldo pendiente</span>
                   <strong>
-                    {dinero(seleccionada.total - seleccionada.pagado)}
+                    {dinero(cuentaModal.total - cuentaModal.pagado)}
                   </strong>
                 </div>
               </div>
-              <button className="primario cuenta-accion" type="button">
-                <Icon name="arrowRight" size={16} /> Registrar pago
-              </button>
+              <div className="cuenta-adelantos">
+                <span>Adelantos de pago registrados</span>
+                <strong>{cuentaModal.pagado > 0 ? dinero(cuentaModal.pagado) : 'Sin adelantos'}</strong>
+              </div>
               <small className="cuenta-pie">
                 La sincronización con Contabilidad se habilitará desde la API de
                 consumos.
@@ -375,6 +331,7 @@ function CuentasInternacionView({ pacienteInicial = '' }: { pacienteInicial?: st
             </div>
           )}
         </aside>
+        </div>}
       </div>
       </div>
     </section>

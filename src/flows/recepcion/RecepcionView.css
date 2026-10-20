@@ -2373,7 +2373,7 @@
 }
 .cuentas-contenido {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
@@ -2383,6 +2383,9 @@
   border-color: #c9e1ef;
   border-radius: 11px;
   box-shadow: none;
+}
+.cuentas-listado {
+  padding: 0;
 }
 .cuentas-listado .panel-cabecera,
 .cuenta-detalle-clinica .panel-cabecera {
@@ -2406,30 +2409,55 @@
 .cuentas-tabla {
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
+  min-width: 840px;
+  table-layout: fixed;
+}
+.cuentas-tabla-descripcion {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.cuentas-tabla .col-paciente { width: 25%; }
+.cuentas-tabla .col-ubicacion { width: 25%; }
+.cuentas-tabla .col-ingreso { width: 12%; }
+.cuentas-tabla .col-monto { width: 13%; }
+.cuentas-tabla .col-acciones { width: 12%; }
+.cuentas-tabla thead {
+  border-bottom: 1px solid #d4e8f5;
 }
 .cuentas-tabla th {
-  padding: 12px 14px;
-  color: #316184;
-  background: #edf8fd;
-  font-size: 9px;
+  padding: 13px 18px;
+  color: #245f90;
+  background: #eaf6fc;
+  font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.4px;
   text-align: left;
   text-transform: uppercase;
 }
 .cuentas-tabla td {
-  padding: 14px;
+  padding: 15px 18px;
   border-top: 1px solid #e8f1f6;
-  color: #42647c;
-  font-size: 11px;
+  color: #335f82;
+  font-size: 12px;
+  vertical-align: middle;
 }
 .cuentas-tabla tbody tr {
   cursor: pointer;
+  transition: background .16s ease, box-shadow .16s ease;
+}
+.cuentas-tabla tbody tr:nth-child(even):not(.seleccionada) {
+  background: #fbfdff;
 }
 .cuentas-tabla tbody tr:hover,
 .cuentas-tabla tbody tr.seleccionada {
-  background: #eaf7fd;
+  background: #e5f5fd;
 }
 .cuentas-tabla tbody tr.seleccionada {
   box-shadow: inset 3px 0 #096bb5;
@@ -2440,15 +2468,46 @@
 }
 .cuentas-tabla td strong {
   color: #12384d;
-  font-size: 11px;
+  font-size: 12px;
 }
 .cuentas-tabla td small {
   margin-top: 3px;
   color: #71889a;
-  font-size: 9px;
+  font-size: 10px;
 }
+.cuenta-ubicacion { line-height: 1.4; }
+.cuenta-ingreso { white-space: nowrap; }
+.cuentas-monto {
+  text-align: right !important;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.cuenta-saldo b { font-size: 12px; }
+.cuentas-acciones { text-align: center !important; }
 .cuentas-tabla td b {
   color: #075985;
+}
+.cuentas-acciones button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #8bc9ed;
+  border-radius: 7px;
+  color: #07699f;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.cuentas-acciones button:hover {
+  border-color: #1684bc;
+  background: #dff3ff;
+}
+.cuentas-acciones button:focus-visible {
+  outline: 3px solid rgba(22, 132, 188, .28);
+  outline-offset: 2px;
 }
 .estado-cuenta {
   display: inline-block;
@@ -2472,10 +2531,38 @@
   background: #e4f5ec;
 }
 .cuenta-detalle-clinica {
-  position: sticky;
-  top: 76px;
+  position: relative;
+  width: min(780px, 100%);
+  max-height: min(840px, calc(100vh - 40px));
+  margin: auto;
+  overflow-y: auto;
   padding-bottom: 15px;
 }
+.cuenta-modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(5, 32, 57, .5);
+  backdrop-filter: blur(3px);
+}
+.cuenta-modal-cerrar {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid #c9e1ef;
+  border-radius: 8px;
+  color: #35627f;
+  background: #fff;
+}
+.cuenta-modal-cerrar:hover { background: #eaf7fd; }
 .cuenta-paciente-resumen {
   display: flex;
   gap: 10px;
@@ -2578,6 +2665,19 @@
   color: #064773;
   font-size: 14px;
 }
+.cuenta-adelantos {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 14px 16px 0;
+  padding: 11px 12px;
+  border: 1px solid #d7ebe2;
+  border-radius: 8px;
+  color: #39725b;
+  background: #f1fbf5;
+  font-size: 10px;
+}
+.cuenta-adelantos strong { color: #168552; }
 .cuenta-accion {
   width: calc(100% - 32px);
   height: 40px;

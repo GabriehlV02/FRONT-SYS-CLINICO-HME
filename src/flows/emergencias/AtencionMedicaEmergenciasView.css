@@ -5,6 +5,14 @@
 @media(max-width:1100px){.em-medica-layout{grid-template-columns:minmax(0,1fr)}.em-medica-layout>.em-cubiculos{max-height:240px;overflow:auto}.em-medica-atencion{grid-template-columns:minmax(0,1fr) 260px}}
 @media(max-width:760px){.em-medica .em-cabecera{align-items:stretch}.em-medica-cabecera-acciones{display:grid;grid-template-columns:1fr 1fr}.em-medica-cabecera-acciones button{justify-content:center}.em-medica-atencion{grid-template-columns:1fr}.em-medica-datos{grid-row:1}.em-medica-inicio{min-height:260px}.em-medica-nueva .em-form-grid{grid-template-columns:1fr}.em-medica-nueva>footer button{flex:1}}
 
+/* Inicio médico rápido: el cubículo abre la atención; la identificación se registra después. */
+.em-medica-inicio{min-height:0}
+.em-medica-nueva{width:min(780px,100%)}
+.em-medica-nueva .em-form-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.em-medica-nueva>label{margin:22px}
+.em-medica-nueva>footer{margin-top:4px}
+@media(max-width:760px){.em-medica-inicio{min-height:0}.em-medica-nueva .em-form-grid{grid-template-columns:1fr}.em-medica-nueva>footer button{flex:1}}
+
 /* Lista de cubículos con lectura de agenda en escritorio. */
 @media(min-width:761px){
   .em-medica-layout{grid-template-columns:minmax(0,1fr)!important}.em-medica-layout>.em-cubiculos{display:grid;grid-template-columns:150px minmax(190px,1fr) minmax(210px,1.2fr) 154px;gap:0;padding:0;overflow:hidden}.em-medica-layout>.em-cubiculos>.em-buscar{grid-column:1/-1;margin:14px 16px 0}.em-medica-layout>.em-cubiculos>h3{grid-column:1/-1;margin:14px 16px 2px}.em-medica-layout>.em-cubiculos>small,.em-medica-layout>.em-cubiculos>.em-check{display:none}.em-medica-layout>.em-cubiculos>.em-cubiculo{display:grid;grid-column:1/-1;grid-template-columns:150px minmax(190px,1fr) minmax(210px,1.2fr) 154px;align-items:center;gap:0;min-height:82px;padding:12px 16px;border:0;border-bottom:1px solid #dce8f0;border-radius:0;background:#fff;box-shadow:none}.em-medica-layout>.em-cubiculos>.em-cubiculo:hover{background:#f8fcff}.em-medica-layout>.em-cubiculos>.em-cubiculo.seleccionado{background:#eef9ff;box-shadow:inset 3px 0 #1299ce}.em-medica-layout>.em-cubiculos>.em-cubiculo strong{grid-column:1;font-size:14px}.em-medica-layout>.em-cubiculos>.em-cubiculo span{grid-column:2;font-size:14px;font-weight:700}.em-medica-layout>.em-cubiculos>.em-cubiculo small{grid-column:3;display:block;line-height:1.4}.em-medica-layout>.em-cubiculos>.em-cubiculo small+small{display:none}.em-medica-layout>.em-cubiculos>.em-cubiculo::after{content:'Iniciar atención';grid-column:4;justify-self:end;display:inline-flex;align-items:center;justify-content:center;min-width:130px;min-height:36px;border-radius:7px;color:#fff;background:#087fb7;font-size:12px;font-weight:800}.em-medica-layout>.em-cubiculos>.em-cubiculo.seleccionado::after{content:'Atendiendo';background:#0875a9}.em-medica-layout>.em-trabajo,.em-medica-layout>.em-medica-atencion,.em-medica-layout>.em-medica-inicio{grid-column:1/-1}

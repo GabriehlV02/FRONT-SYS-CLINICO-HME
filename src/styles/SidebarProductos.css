@@ -32,6 +32,39 @@
   .replegar-menu { position:fixed !important; top:32px !important; left:247px !important; right:auto !important; z-index:1001 !important; display:grid !important; place-items:center !important; width:46px !important; height:46px !important; border:3px solid #fff !important; border-radius:50% !important; color:#fff !important; background:linear-gradient(145deg,#20aae1,#009cae) !important; box-shadow:0 9px 22px rgba(3,134,158,.38) !important; }
   .sidebar-replegado .replegar-menu { left:63px !important; }
 }
+
+/* Perfil de cabecera: una unidad visual compacta, legible y alineada. */
+.sistema-app .sistema-topbar .perfil{
+  min-width:0;
+  height:46px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:4px 12px 4px 5px !important;
+  border:1px solid rgba(255,255,255,.26) !important;
+  border-radius:14px;
+  color:#fff;
+  background:rgba(2,62,111,.16) !important;
+  box-shadow:inset 0 1px rgba(255,255,255,.1);
+}
+.sistema-app .sistema-topbar .perfil-avatar{
+  width:36px;
+  height:36px;
+  flex:0 0 36px;
+  display:grid;
+  place-items:center;
+  border:2px solid rgba(255,255,255,.92) !important;
+  border-radius:50%;
+  color:#fff !important;
+  background:rgba(255,255,255,.13) !important;
+  box-shadow:0 2px 7px rgba(0,42,81,.16);
+}
+.sistema-app .sistema-topbar .perfil-avatar svg{width:21px;height:21px}
+.sistema-app .sistema-topbar .perfil>span:last-child{min-width:0;display:grid;gap:2px;line-height:1.1}
+.sistema-app .sistema-topbar .perfil strong{overflow:hidden;color:#fff !important;font-size:12px;font-weight:800;line-height:1.15;text-overflow:ellipsis;white-space:nowrap}
+.sistema-app .sistema-topbar .perfil small{display:flex;align-items:center;gap:5px;overflow:hidden;margin:0;color:rgba(255,255,255,.84) !important;font-size:10px;font-weight:600;line-height:1.15;text-overflow:ellipsis;white-space:nowrap}
+.sistema-app .sistema-topbar .perfil i{width:6px;height:6px;flex:0 0 6px;border:1px solid rgba(255,255,255,.8);border-radius:50%;background:#59dfa4 !important;box-shadow:0 0 0 2px rgba(89,223,164,.16)}
+@media(max-width:760px){.sistema-app .sistema-topbar .perfil{display:none}}
 @media (min-width:761px) { .sidebar-replegado .sidebar-sesion { display:none; } }
 @media (max-width:760px) { .sidebar-sesion { margin-bottom:10px; } }
 
@@ -536,4 +569,43 @@
   .sistema-topbar .perfil strong { font-size: 12px; line-height: 1.2; }
   .sistema-topbar .perfil small { margin-top: 3px; font-size: 10px; line-height: 1.2; }
   .sistema-topbar .perfil i { width: 5px; height: 5px; }
+}
+
+@media (min-width:761px) {
+  .sistema-app .sistema-topbar .perfil{height:46px;padding:4px 12px 4px 5px!important;border:1px solid rgba(255,255,255,.26)!important;border-radius:14px;background:rgba(2,62,111,.16)!important}
+  .sistema-app .sistema-topbar .perfil-avatar{width:36px;height:36px;flex-basis:36px;border:2px solid rgba(255,255,255,.92)!important;color:#fff!important;background:rgba(255,255,255,.13)!important}
+  .sistema-app .sistema-topbar .perfil-avatar svg{width:21px;height:21px}
+  .sistema-app .sistema-topbar .perfil strong{font-size:12px;line-height:1.15}
+  .sistema-app .sistema-topbar .perfil small{margin:0;font-size:10px;line-height:1.15}
+  .sistema-app .sistema-topbar .perfil i{width:6px;height:6px;flex-basis:6px;background:#59dfa4!important}
+}
+
+/* Perfil integrado: conserva identidad y presencia, sin competir con la barra superior. */
+@media (min-width:761px) {
+  .sistema-app .sistema-topbar .perfil {
+    height:40px;
+    min-height:40px;
+    gap:7px;
+    margin-left:2px;
+    padding:0 6px 0 12px !important;
+    border:0 !important;
+    border-left:1px solid rgba(255,255,255,.24) !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+  .sistema-app .sistema-topbar .perfil-avatar {
+    width:32px;
+    height:32px;
+    flex-basis:32px;
+    /* El icono ya incluye su propia silueta circular; sin un segundo aro exterior. */
+    border:0 !important;
+    color:#fff !important;
+    background:rgba(255,255,255,.08) !important;
+    box-shadow:none !important;
+  }
+  .sistema-app .sistema-topbar .perfil-avatar svg { width:19px; height:19px; }
+  .sistema-app .sistema-topbar .perfil strong { font-size:12px; font-weight:750; }
+  .sistema-app .sistema-topbar .perfil small { margin:1px 0 0; color:rgba(255,255,255,.72) !important; font-size:9px; }
+  .sistema-app .sistema-topbar .perfil i { width:5px; height:5px; flex-basis:5px; }
 }

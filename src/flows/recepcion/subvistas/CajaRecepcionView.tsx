@@ -13,6 +13,8 @@ type Item = {
   codigo: string;
   precio: number;
   stock?: number;
+  stockMinimo?: number;
+  fechaVencimiento?: string;
   categoria?: string;
   subcategoria?: string;
 };
@@ -28,6 +30,18 @@ type ClienteVenta = {
   nombre_razon_social: string;
   telefono: string | null;
   correo: string | null;
+};
+type ConsumoHistorial = { n: string; fecha: string; total: string; estado: 'Pagado' | 'No pagado' | 'Anulado' | 'Pre venta'; detalle: string };
+type ItemConsumo = { concepto: string; cantidad: number; unitario: string; total: string };
+type DetalleConsumo = { items: ItemConsumo[]; pagado: string; pagos: string[]; cajero: string; caja: string; sucursal: string };
+
+const obtenerDetalleConsumo = (consumo: ConsumoHistorial): DetalleConsumo => {
+  const base = { cajero: "Administrador", caja: "Caja 01 · Recepción", sucursal: "Hospital María Esperanza" };
+  if (consumo.n === "131910") return { ...base, pagado: "0.00", pagos: ["Pendiente de cobro"], items: [{ concepto: "Hemograma completo", cantidad: 1, unitario: "50.00", total: "50.00" }, { concepto: "Estudio de imagenología", cantidad: 1, unitario: "120.00", total: "120.00" }, { concepto: "Consulta ambulatoria", cantidad: 1, unitario: "610.00", total: "610.00" }] };
+  if (consumo.n === "131912") return { ...base, pagado: "0.00", pagos: ["Pre venta · sin cobro"], items: [{ concepto: "Estudio de imagenología", cantidad: 1, unitario: "1.200.00", total: "1.200.00" }, { concepto: "Paquete de servicios ambulatorios", cantidad: 1, unitario: "1.200.00", total: "1.200.00" }] };
+  if (consumo.n === "EM-000318") return { ...base, pagado: "0.00", pagos: ["Pendiente de cobro"], items: [{ concepto: "Oxígeno medicinal", cantidad: 2, unitario: "84.00", total: "168.00" }, { concepto: "Materiales de emergencia", cantidad: 1, unitario: "70.00", total: "70.00" }] };
+  if (consumo.n === "EM-000317") return { ...base, pagado: "0.00", pagos: ["Pendiente de cobro"], items: [{ concepto: "Medicamentos de emergencia", cantidad: 1, unitario: "65.00", total: "65.00" }, { concepto: "Insumos médicos", cantidad: 1, unitario: "30.00", total: "30.00" }] };
+  return { ...base, pagado: consumo.estado === "Pagado" ? consumo.total : "0.00", pagos: consumo.estado === "Pagado" ? ["Efectivo · Bs. " + consumo.total] : [consumo.estado === "Anulado" ? "Venta anulada · sin cobro" : "Pendiente de cobro"], items: [{ concepto: "Consulta ambulatoria", cantidad: 1, unitario: "80.00", total: "80.00" }, { concepto: "Hemograma completo", cantidad: 1, unitario: "50.00", total: "50.00" }, { concepto: "Materiales de curación", cantidad: 1, unitario: "30.00", total: "30.00" }] };
 };
 const catalogo: Item[] = [
   {
@@ -61,6 +75,8 @@ const catalogo: Item[] = [
     codigo: "INS-021",
     precio: 12,
     stock: 84,
+    stockMinimo: 30,
+    fechaVencimiento: "2027-06-30",
   },
   {
     id: "venda",
@@ -69,6 +85,8 @@ const catalogo: Item[] = [
     codigo: "INS-034",
     precio: 18,
     stock: 35,
+    stockMinimo: 40,
+    fechaVencimiento: "2026-11-12",
   },
   {
     id: "paracetamol",
@@ -77,6 +95,8 @@ const catalogo: Item[] = [
     codigo: "PRD-104",
     precio: 8,
     stock: 146,
+    stockMinimo: 50,
+    fechaVencimiento: "2026-12-15",
   },
 ];
 const catalogoCocina: Item[] = [
@@ -88,12 +108,28 @@ const catalogoCocina: Item[] = [
   { id: 'coc-jugo', nombre: 'Jugo natural', tipo: 'Producto', codigo: 'COC-006', precio: 10, categoria: 'Bebidas', stock: 40 },
 ];
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
+const alertasInventario = (item: Item) => {
+  const alertas: { tipo: "stock" | "vencimiento"; texto: string; nivel: "bajo" | "proximo" | "vencido" }[] = [];
+  if (item.stock !== undefined && item.stockMinimo !== undefined && item.stock <= item.stockMinimo) alertas.push({ tipo: "stock", texto: `Stock bajo: ${item.stock} de mínimo ${item.stockMinimo}`, nivel: "bajo" });
+  if (item.fechaVencimiento) {
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const vence = new Date(`${item.fechaVencimiento}T00:00:00`);
+    const dias = Math.ceil((vence.getTime() - hoy.getTime()) / 86_400_000);
+    if (dias < 0) alertas.push({ tipo: "vencimiento", texto: "Producto vencido", nivel: "vencido" });
+    else if (dias <= 90) alertas.push({ tipo: "vencimiento", texto: dias === 0 ? "Vence hoy" : `Vence en ${dias} día${dias === 1 ? "" : "s"}`, nivel: "proximo" });
+  }
+  return alertas;
+};
 const pagoNuevo = (id: number): Pago => ({ id, metodo: "Efectivo", monto: "" });
 const pacientesEjemplo = [
+  { nombre: "Luis Esteban Escobar Rocha", ci: "6845210" },
   { nombre: "Luis Escobar", ci: "6845210" },
   { nombre: "Luis Alberto Escobar Rojas", ci: "4982157" },
   { nombre: "María Fernández López", ci: "7351842" },
   { nombre: "Ana Rodríguez Vargas", ci: "6129478" },
+];
+const clientesEjemplo: ClienteVenta[] = [
+  { id: 'demo-luis-esteban-escobar-rocha', nombre_razon_social: 'Luis Esteban Escobar Rocha', nit_ci: '6845210', telefono: '72014568', correo: null },
 ];
 const medicosPorEspecialidad: Record<string, string[]> = {
   'Medicina general': ['Dra. Ana Morales', 'Dr. Carlos Rojas'], Pediatría: ['Dra. Sofía Quispe', 'Dr. Miguel Herrera'], Ginecología: ['Dra. Valeria Flores', 'Dra. María Paredes'], Cardiología: ['Dr. Andrés Mendoza'],
@@ -146,6 +182,7 @@ export function CajaRecepcionView({
   const [tipoEstudioImagen, setTipoEstudioImagen] = useState("Rayos X");
   const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
   const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
+  const [consumoSeleccionado, setConsumoSeleccionado] = useState<ConsumoHistorial | null>(null);
   useEffect(() => {
     if (modo !== "buscar") {
       setBuscandoClientes(false);
@@ -158,6 +195,7 @@ export function CajaRecepcionView({
       setBuscandoClientes(false);
       return;
     }
+    const clientesDemoCoincidentes = clientesEjemplo.filter((cliente) => `${cliente.nombre_razon_social} ${cliente.nit_ci} ${cliente.telefono}`.toLocaleLowerCase('es').includes(termino.toLocaleLowerCase('es')));
 
     const controller = new AbortController();
     const temporizador = window.setTimeout(() => {
@@ -167,12 +205,13 @@ export function CajaRecepcionView({
         .then(async (respuesta) => {
           const resultado = await respuesta.json() as { data?: ClienteVenta[]; message?: string };
           if (!respuesta.ok) throw new Error(resultado.message || "No se pudieron buscar los clientes.");
-          setClientesEncontrados(resultado.data || []);
+          const clientesRemotos = resultado.data || [];
+          setClientesEncontrados([...clientesDemoCoincidentes, ...clientesRemotos.filter(cliente => !clientesDemoCoincidentes.some(demo => demo.id === cliente.id))]);
         })
         .catch((error: unknown) => {
           if (controller.signal.aborted) return;
-          setClientesEncontrados([]);
-          setErrorCliente(error instanceof Error ? error.message : "No se pudieron buscar los clientes.");
+          setClientesEncontrados(clientesDemoCoincidentes);
+          setErrorCliente(clientesDemoCoincidentes.length ? "" : error instanceof Error ? error.message : "No se pudieron buscar los clientes.");
         })
         .finally(() => {
           if (!controller.signal.aborted) setBuscandoClientes(false);
@@ -290,21 +329,21 @@ export function CajaRecepcionView({
       ),
     );
   };
-  const historialPaciente =
+  const historialPaciente: ConsumoHistorial[] =
     paciente === "Luis Escobar"
       ? [
           {
             n: "EM-000318",
             fecha: "29 de septiembre de 2026 09:08",
             total: "238.00",
-            estado: "A cuenta",
+            estado: "No pagado",
             detalle: "Emergencias · Oxígeno y materiales",
           },
           {
             n: "EM-000317",
             fecha: "29 de septiembre de 2026 08:45",
             total: "95.00",
-            estado: "A cuenta",
+            estado: "No pagado",
             detalle: "Emergencias · Medicamentos e insumos",
           },
           {
@@ -327,7 +366,7 @@ export function CajaRecepcionView({
             n: "131910",
             fecha: "18 de agosto de 2026 19:17",
             total: "780.00",
-            estado: "A cuenta",
+            estado: "No pagado",
             detalle: "Descargos Ambulatorios 510",
           },
           {
@@ -347,6 +386,9 @@ export function CajaRecepcionView({
         ];
   const seleccionarCliente = (cliente: ClienteVenta) => {
     setClienteSeleccionado(cliente);
+    setPaciente(cliente.nombre_razon_social);
+    setCiPaciente(cliente.nit_ci || '');
+    setHistorialAbierto(true);
     setBusquedaCliente("");
     setRegistroCliente({ nombre: "", nitCi: "", telefono: "", correo: "" });
     setErrorCliente("");
@@ -440,8 +482,25 @@ export function CajaRecepcionView({
       setCobrando(false);
     }
   };
+  const replegarSidebarAlOperar = () => {
+    if (!farmacia && !cocina) window.dispatchEvent(new Event("clinico:replegar-sidebar"));
+  };
+  const detalleConsumoSeleccionado = consumoSeleccionado ? obtenerDetalleConsumo(consumoSeleccionado) : null;
   return (
-    <section className={`punto-pos ${(farmacia || cocina) ? "punto-pos-farmacia" : ""}`}>
+    <section className={`punto-pos ${(farmacia || cocina) ? "punto-pos-farmacia" : ""}`} onClickCapture={(evento) => { if ((evento.target as HTMLElement).closest("button")) replegarSidebarAlOperar(); }}>
+      {consumoSeleccionado && detalleConsumoSeleccionado && <div className="punto-detalle-consumo-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsumoSeleccionado(null); }}>
+        <section className={`punto-detalle-consumo estado-${consumoSeleccionado.estado.toLowerCase().replace(' ', '-')}`} role="dialog" aria-modal="true" aria-labelledby="detalle-consumo-titulo">
+          <header className="punto-detalle-consumo-cabecera">
+            <div><span>DETALLE DE CONSUMO</span><h3 id="detalle-consumo-titulo">N.º {consumoSeleccionado.n}</h3><small>{paciente || 'Paciente no identificado'} · HC-{ciPaciente || '004821'}</small></div>
+            <div className="punto-detalle-consumo-importe"><span className={`estado-${consumoSeleccionado.estado.toLowerCase().replace(' ', '-')}`}>{consumoSeleccionado.estado}</span><strong>Bs. {consumoSeleccionado.total}</strong></div>
+            <button type="button" aria-label="Cerrar detalle" onClick={() => setConsumoSeleccionado(null)}><Icon name="close" size={19}/></button>
+          </header>
+          <div className="punto-detalle-consumo-resumen"><span><b>Fecha</b>{consumoSeleccionado.fecha}</span><span><b>Sucursal</b>{detalleConsumoSeleccionado.sucursal}</span><span><b>Caja</b>{detalleConsumoSeleccionado.caja}</span><span><b>Cobró</b>{detalleConsumoSeleccionado.cajero}</span></div>
+          <section className="punto-detalle-consumo-items" aria-label="Ítems del consumo"><div className="punto-detalle-consumo-titulo"><span>CONSUMO REGISTRADO</span><small>{consumoSeleccionado.detalle}</small></div><div className="punto-detalle-consumo-tabla"><div className="punto-detalle-consumo-tabla-cabecera"><span>Ítem</span><span>Cant.</span><span>P. unit.</span><span>Total</span></div>{detalleConsumoSeleccionado.items.map((item, indice) => <div className="punto-detalle-consumo-tabla-fila" key={`${item.concepto}-${indice}`}><strong>{item.concepto}</strong><span>{item.cantidad}</span><span>Bs. {item.unitario}</span><b>Bs. {item.total}</b></div>)}</div></section>
+          <section className="punto-detalle-consumo-pago"><div><span>Total a pagar</span><strong>Bs. {consumoSeleccionado.total}</strong></div><div><span>Total pagado</span><strong>Bs. {detalleConsumoSeleccionado.pagado}</strong></div><div className="punto-detalle-consumo-metodos"><span>Método{detalleConsumoSeleccionado.pagos.length > 1 ? 's' : ''} de pago</span>{detalleConsumoSeleccionado.pagos.map(metodo => <b key={metodo}>{metodo}</b>)}</div></section>
+          <footer><button type="button" onClick={() => setConsumoSeleccionado(null)}>Cerrar</button></footer>
+        </section>
+      </div>}
       {consultaParaAgendar && <div className="punto-imagen-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsultaParaAgendar(null); }}><form className="punto-imagen-modal punto-consulta-modal" role="dialog" aria-modal="true" aria-label="Agendar consulta ambulatoria" onSubmit={evento => { evento.preventDefault(); agendarConsulta(); }}><header><div><span>CONSULTA AMBULATORIA</span><h3>Agendar consulta</h3><small>Confirma la cita antes de añadir el servicio al carrito.</small></div><button type="button" aria-label="Cerrar" onClick={() => setConsultaParaAgendar(null)}>×</button></header><label>Especialidad<select value={especialidadConsulta} onChange={evento => { const especialidad = evento.target.value; setEspecialidadConsulta(especialidad); setMedicoConsulta(medicosPorEspecialidad[especialidad][0]); }}>{Object.keys(medicosPorEspecialidad).map(especialidad => <option key={especialidad}>{especialidad}</option>)}</select></label><label>Médico sugerido<select value={medicoConsulta} onChange={evento => setMedicoConsulta(evento.target.value)}>{medicosPorEspecialidad[especialidadConsulta].map(medico => <option key={medico}>{medico}</option>)}</select></label><div className="punto-consulta-fecha"><label>Fecha<input required type="date" min={new Date().toISOString().slice(0, 10)} value={fechaConsulta} onChange={evento => setFechaConsulta(evento.target.value)} /></label><label>Hora<select required value={horaConsulta} onChange={evento => setHoraConsulta(evento.target.value)}><option value="">Seleccionar</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>14:00</option><option>15:00</option><option>16:00</option></select></label></div><footer><button type="button" onClick={() => setConsultaParaAgendar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="check" size={16} /> Agendar y añadir al carrito</button></footer></form></div>}
       {imagenParaAgregar && (
         <div className="punto-imagen-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setImagenParaAgregar(null); }}>
@@ -841,7 +900,7 @@ export function CajaRecepcionView({
               <div className="punto-historial-contenido punto-historial-nuevo">
                 <header>
                   <div>
-                    <p>CUENTAS ANTERIORES</p>
+                    <p>HISTORIAL DE CONSUMO</p>
                     <h3>{paciente}</h3>
                   </div>
                   <b>HC-004821</b>
@@ -864,7 +923,7 @@ export function CajaRecepcionView({
                 >
                   <option>Todos</option>
                   <option>Pagado</option>
-                  <option>A cuenta</option>
+                  <option>No pagado</option>
                   <option>Anulado</option>
                   <option>Pre venta</option>
                 </select>
@@ -879,6 +938,11 @@ export function CajaRecepcionView({
                       <article
                         key={c.n}
                         className={`estado-${c.estado.toLowerCase().replace(" ", "-")}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Ver detalle del consumo ${c.n}`}
+                        onClick={() => setConsumoSeleccionado(c)}
+                        onKeyDown={evento => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); setConsumoSeleccionado(c); } }}
                       >
                         <div>
                           <strong>N.º {c.n}</strong>
@@ -1009,6 +1073,9 @@ export function CajaRecepcionView({
                       {i.tipo}
                       {i.stock !== undefined ? ` · Stock ${i.stock}` : ""}
                     </span>
+                    {farmacia && alertasInventario(i).length > 0 && <div className="punto-alertas-inventario" aria-label={`Alertas de ${i.nombre}`}>
+                      {alertasInventario(i).map(alerta => <span key={alerta.tipo} className={alerta.nivel}><Icon name={alerta.tipo === "stock" ? "package" : "calendar"} size={13}/>{alerta.texto}</span>)}
+                    </div>}
                   </div>
                   <footer>
                     <div>
@@ -1067,6 +1134,8 @@ export function CajaRecepcionView({
                   type="button"
                   onClick={() => {
                     setClienteSeleccionado(null);
+                    setPaciente("");
+                    setCiPaciente("");
                   }}
                 >
                   Cambiar

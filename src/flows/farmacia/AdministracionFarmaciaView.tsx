@@ -4,7 +4,7 @@ import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav
 import '../recepcion/RecepcionView.css';
 import '../cocina/CocinaVentasView.css';
 
-type Vista = 'almacen' | 'movimientos' | 'ventas' | 'ingresos' | 'configuracion';
+type Vista = 'items-venta' | 'almacen' | 'movimientos' | 'ventas' | 'ingresos' | 'configuracion';
 const subvistas: { id: Vista; nombre: string; icono: IconName; descripcion: string }[] = [
   { id: 'almacen', nombre: 'Almacén', icono: 'building', descripcion: 'Existencias y niveles de stock.' },
   { id: 'movimientos', nombre: 'Movimientos', icono: 'audit', descripcion: 'Kardex y trazabilidad de inventario.' },
@@ -13,9 +13,9 @@ const subvistas: { id: Vista; nombre: string; icono: IconName; descripcion: stri
   { id: 'configuracion', nombre: 'Configuración', icono: 'settings', descripcion: 'Parámetros operativos del área.' },
 ];
 export function AdministracionFarmaciaView() {
-  const [subvista, setSubvista] = useState<Vista>('almacen');
+  const [subvista, setSubvista] = useState<Vista>('items-venta');
   const navegacion = <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Administración Farmacia">{subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}><span><Icon name={item.icono} size={17} /></span><strong>{item.nombre}</strong><small>{item.descripcion}</small></button>)}</HorizontalSubvistaNav>;
-  return <section className="recepcion-vista farmacia-admin-vista"><div className="cocina-subvista-cabecera">{navegacion}</div>{subvista === 'almacen' && <Almacen />}{subvista === 'movimientos' && <Movimientos />}{subvista === 'ventas' && <Ventas />}{subvista === 'ingresos' && <Ingresos />}{subvista === 'configuracion' && <Configuracion />}</section>;
+  return <section className="recepcion-vista farmacia-admin-vista"><div className="cocina-subvista-cabecera">{navegacion}</div>{subvista === 'items-venta' && <ItemsVenta />}{subvista === 'almacen' && <Almacen />}{subvista === 'movimientos' && <Movimientos />}{subvista === 'ventas' && <Ventas />}{subvista === 'ingresos' && <Ingresos />}{subvista === 'configuracion' && <Configuracion />}</section>;
 }
 function Vacio({ icono, titulo, detalle }: { icono: IconName; titulo: string; detalle: string }) { return <div className="cocina-vacio"><Icon name={icono} size={27} /><strong>{titulo}</strong><small>{detalle}</small></div>; }
 function Almacen() { return <section className="cocina-subvista"><header><div><p>ALMACÉN DE FARMACIA</p><h2>Existencias de productos e insumos</h2><small>Consulta disponibilidad, mínimos y alertas de reposición.</small></div><button><Icon name="plus" size={16} /> Ajuste de inventario</button></header><table><thead><tr><th>Producto</th><th>Código</th><th>Disponible</th><th>Mínimo</th><th>Estado</th></tr></thead><tbody><tr><td colSpan={5}><Vacio icono="building" titulo="No hay existencias para mostrar" detalle="El almacén se actualizará con ingresos, dispensaciones y ajustes autorizados." /></td></tr></tbody></table></section>; }

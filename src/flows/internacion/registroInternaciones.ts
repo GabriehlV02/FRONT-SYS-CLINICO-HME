@@ -1,4 +1,4 @@
-export type EstadoInternacion = 'preinternacion' | 'confirmada';
+export type EstadoInternacion = 'preinternacion' | 'confirmada' | 'alta';
 
 export type RegistroInternacion = {
   id: string;
@@ -17,6 +17,7 @@ export type RegistroInternacion = {
   origen?: string;
   servicio?: string;
   observaciones?: string;
+  fechaAlta?: string;
 };
 
 const clave = 'hme:internaciones';
@@ -62,6 +63,11 @@ export function confirmarInternacion(id: string, asignacion: Pick<RegistroIntern
 
 export function actualizarInternacion(id: string, cambios: Pick<RegistroInternacion, 'sala' | 'cama' | 'fechaIngreso'>) {
   guardar(leerInternaciones().map(item => item.id === id && item.estado === 'confirmada' ? { ...item, ...cambios } : item));
+}
+
+export function registrarAltaInternacion(id: string) {
+  const fechaAlta = new Date().toLocaleDateString('es-BO');
+  guardar(leerInternaciones().map(item => item.id === id && item.estado === 'confirmada' ? { ...item, estado: 'alta' as const, fechaAlta } : item));
 }
 
 export function suscribirInternaciones(actualizar: () => void) {

@@ -37,6 +37,7 @@ const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/Config
 const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
 const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
+const MedicoInternacionView = lazy(() => import('../flows/internacion/MedicoInternacionView').then(m => ({ default: m.MedicoInternacionView })));
 const FarmaciaInternacionView = lazy(() => import('../flows/internacion/FarmaciaInternacionView').then(m => ({ default: m.FarmaciaInternacionView })));
 const CocinaVentasView = lazy(() => import('../flows/cocina/CocinaVentasView').then(m => ({ default: m.CocinaVentasView })));
 const CocinaInternacionView = lazy(() => import('../flows/cocina/CocinaInternacionView').then(m => ({ default: m.CocinaInternacionView })));
@@ -80,6 +81,8 @@ type SubvistaPacientes = "pacientes" | "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
 type SubvistaAtencionAgenda = "pacientes" | "cronograma";
 type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "registro-uso" | "configuracion";
+type SubvistaMedicoInternacion = "internados" | "altas";
+type SubvistaEnfermeraInternacion = "internados" | "altas";
 type TemaSistema = "light" | "dark";
 
 const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: IconName }[] = [
@@ -132,7 +135,7 @@ const modulos: Modulo[] = [
   { id: "farmacia-movimientos", nombre: "Administración Farmacia", icono: "building", grupo: "FARMACIA" },
   { id: "cocina", nombre: "Cocina", icono: "building", grupo: "COCINA" },
   { id: "cocina-internacion", nombre: "Cocina Internación", icono: "building", grupo: "COCINA" },
-  { id: "cocina-administracion", nombre: "Cocina Administración", icono: "settings", grupo: "COCINA" },
+  { id: "cocina-administracion", nombre: "Control de Cocina", icono: "settings", grupo: "COCINA" },
   {
     id: "configuracion",
     nombre: "Configuración",
@@ -171,6 +174,8 @@ export default function Aplicacion() {
   const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
   const [subvistaAtencionAgenda, setSubvistaAtencionAgenda] = useState<SubvistaAtencionAgenda>("pacientes");
   const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
+  const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] = useState<SubvistaMedicoInternacion>("internados");
+  const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] = useState<SubvistaEnfermeraInternacion>("internados");
   const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState(signosVitalesIniciales);
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
@@ -575,16 +580,23 @@ export default function Aplicacion() {
           ) : modulo === 'atencion-urgencias' ? (
             <AtencionMedicaEmergenciasView />
           ) : modulo === 'enfermera-internacion' ? (
-            <EnfermeraInternacionView />
+            <section className="triaje-ambulatorio-vista">
+              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de internación">
+                <button type="button" aria-current={subvistaEnfermeraInternacion === 'internados' ? 'page' : undefined} className={subvistaEnfermeraInternacion === 'internados' ? 'activo' : ''} onClick={() => setSubvistaEnfermeraInternacion('internados')}><span><Icon name="patient" size={17}/></span><strong>Pacientes internados</strong><small>Pacientes activos por sala y cama.</small></button>
+                <button type="button" aria-current={subvistaEnfermeraInternacion === 'altas' ? 'page' : undefined} className={subvistaEnfermeraInternacion === 'altas' ? 'activo' : ''} onClick={() => setSubvistaEnfermeraInternacion('altas')}><span><Icon name="check" size={17}/></span><strong>Pacientes dados de alta</strong><small>Historial de internaciones finalizadas.</small></button>
+              </HorizontalSubvistaNav>
+              <EnfermeraInternacionView subvista={subvistaEnfermeraInternacion} />
+            </section>
           ) : modulo === 'farmacia-internacion' ? (
             <FarmaciaInternacionView enfermera={sesion.usuario.nombre} />
           ) : modulo === 'medico-internacion' ? (
-            <div className="modulo-vacio">
-              <span><Icon name="userCheck" size={28} /></span>
-              <p>INTERNACIÓN</p>
-              <h2>Médico internación</h2>
-              <small>Evolución clínica, indicaciones y atención médica de pacientes internados.</small>
-            </div>
+            <section className="triaje-ambulatorio-vista">
+              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de médico de internación">
+                <button type="button" aria-current={subvistaMedicoInternacion === 'internados' ? 'page' : undefined} className={subvistaMedicoInternacion === 'internados' ? 'activo' : ''} onClick={() => setSubvistaMedicoInternacion('internados')}><span><Icon name="patient" size={17}/></span><strong>Pacientes internados</strong><small>Pacientes activos por sala y cama.</small></button>
+                <button type="button" aria-current={subvistaMedicoInternacion === 'altas' ? 'page' : undefined} className={subvistaMedicoInternacion === 'altas' ? 'activo' : ''} onClick={() => setSubvistaMedicoInternacion('altas')}><span><Icon name="check" size={17}/></span><strong>Pacientes dados de alta</strong><small>Historial de internaciones finalizadas.</small></button>
+              </HorizontalSubvistaNav>
+              <MedicoInternacionView subvista={subvistaMedicoInternacion}/>
+            </section>
           ) : modulo === 'enfermera-quirofano' ? (
             <section className="enfermeria-quirofano-vista">
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Funciones de enfermería de quirófano">

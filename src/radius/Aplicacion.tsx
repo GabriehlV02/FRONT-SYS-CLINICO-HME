@@ -18,6 +18,8 @@ import "./vistas/visor/ResponsividadGlobal.css";
 import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
 import type { SignoVitalConfig } from '../flows/triaje/ConfiguracionSignosVitalesView';
 import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
+import '../flows/quirofano/EnfermeriaQuirofano.css';
+import './vistas/visor-tomografias/SubvistasTomografias.css';
 
 // Cada flujo se descarga solo cuando se abre. Al desmontarse también desaparecen
 // sus efectos, temporizadores y listeners, sin conservar pantallas ocultas.
@@ -75,7 +77,7 @@ type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
 type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecocardiogramas" | "informes" | "visor";
 type SubvistaRadiografias = "estudios" | "base-datos";
 type SubvistaTomografias = "estudios" | "visor";
-type RolEnfermeriaQuirofano = "instrumentista" | "circulante";
+type RolEnfermeriaQuirofano = "instrumentista" | "circulante" | "almacen";
 type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
 type SubvistaPacientes = "pacientes" | "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
@@ -535,7 +537,7 @@ export default function Aplicacion() {
             </nav>
           )}
           {modulo === "imagenologia" && subvistaImagenologia === "tomografias" && (
-            <nav className="imagenologia-subvistas imagenologia-subsubvistas" aria-label="Subvistas de Tomografías">
+            <nav className="ct-subvistas" aria-label="Subvistas de Tomografías">
               {subvistasTomografias.map(vista => (
                 <button key={vista.id} className={subvistaTomografias === vista.id ? "activo" : ""} onClick={() => setSubvistaTomografias(vista.id)}>
                   <span><Icon name={vista.icono} size={16} /></span>{vista.nombre}
@@ -599,11 +601,17 @@ export default function Aplicacion() {
             </section>
           ) : modulo === 'enfermera-quirofano' ? (
             <section className="enfermeria-quirofano-vista">
-              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Funciones de enfermería de quirófano">
-                <button type="button" className={rolEnfermeriaQuirofano === 'instrumentista' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('instrumentista')}><span><Icon name="patient" size={17}/></span><strong>Enfermera instrumentista</strong><small>Preparación de mesa e instrumental quirúrgico.</small></button>
-                <button type="button" className={rolEnfermeriaQuirofano === 'circulante' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('circulante')}><span><Icon name="userCheck" size={17}/></span><strong>Enfermera circulante</strong><small>Apoyo, seguridad y registro dentro del quirófano.</small></button>
-              </HorizontalSubvistaNav>
-              <div className="modulo-vacio"><span><Icon name="patient" size={28} /></span><p>QUIRÓFANO · ENFERMERÍA</p><h2>{rolEnfermeriaQuirofano === 'instrumentista' ? 'Enfermera instrumentista' : 'Enfermera circulante'}</h2><small>{rolEnfermeriaQuirofano === 'instrumentista' ? 'Preparación de mesa estéril, instrumental, conteo de gasas y apoyo al equipo quirúrgico.' : 'Verificación de sala y paciente, apoyo al equipo, coordinación de insumos y registro del procedimiento.'}</small></div>
+              <header className="enfermeria-q-cabecera"><div><p>QUIRÓFANO · ENFERMERÍA</p><h2>Atención de enfermería quirúrgica</h2><small>Preparación, asistencia y registro seguro del procedimiento.</small></div><span><Icon name="patient" size={25}/></span></header>
+    <nav className="enfermeria-q-subvistas recepcion-subvistas" aria-label="Funciones de enfermería de quirófano">
+      <button type="button" className={rolEnfermeriaQuirofano === 'instrumentista' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('instrumentista')}><span><Icon name="patient" size={17}/></span><strong>Enfermera instrumentista</strong></button>
+      <button type="button" className={rolEnfermeriaQuirofano === 'circulante' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('circulante')}><span><Icon name="userCheck" size={17}/></span><strong>Enfermera circulante</strong></button>
+      <button type="button" className={rolEnfermeriaQuirofano === 'almacen' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('almacen')}><span><Icon name="package" size={17}/></span><strong>Almacén quirófano</strong></button>
+              </nav>
+              <section className="enfermeria-q-panel">
+                {rolEnfermeriaQuirofano === 'instrumentista' ? <><p>ASISTENCIA ESTÉRIL</p><h3>Enfermera instrumentista</h3><small>Preparación de mesa estéril e instrumental, conteo de gasas y apoyo directo al equipo quirúrgico.</small></> :
+                  rolEnfermeriaQuirofano === 'circulante' ? <><p>ASISTENCIA CIRCULANTE</p><h3>Enfermera circulante</h3><small>Verificación de sala y paciente, coordinación de insumos, apoyo al equipo y registro del procedimiento.</small></> :
+                  <><p>INSUMOS QUIRÚRGICOS</p><h3>Almacén quirófano</h3><small>Consulta y control de insumos e instrumental disponibles para los procedimientos quirúrgicos.</small></>}
+              </section>
             </section>
           ) : modulo === 'medico-quirofano' ? (
             <div className="modulo-vacio"><span><Icon name="userCheck" size={28} /></span><p>QUIRÓFANO</p><h2>Médico quirófano</h2><small>Programación, evaluación quirúrgica y evolución postoperatoria.</small></div>

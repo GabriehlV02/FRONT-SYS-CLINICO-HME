@@ -3,6 +3,7 @@ import './LoginView.css';
 import './LoginPlomo.css';
 import './LoginGris.css';
 import './AnimacionesLogin.css';
+import './LoginRefinamiento.css';
 import '../../../ui/styles/LoginFields.css';
 import Icon from '../../componentes/Icono';
 import type { Sesion } from '../../types/sesion';
@@ -40,6 +41,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
   const [loading, setLoading] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [recordar, setRecordar] = useState(Boolean(usuarioRecordado));
+  const [mostrarAyudaPassword, setMostrarAyudaPassword] = useState(false);
 
   const ingresar = async (event: FormEvent) => {
     event.preventDefault(); setError(''); setLoading(true);
@@ -69,6 +71,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
           <p className="login-presentacion-kicker">HOSPITAL MARIA ESPERANZA</p>
           <h1>Tu salud,<br /><strong>nuestra prioridad</strong></h1>
           <p className="login-presentacion-texto">Sistema de gestión clínica para<br />un mejor cuidado del paciente.</p>
+          <div className="login-presentacion-beneficios" aria-label="Beneficios del sistema"><span><Icon name="check" size={15}/>Atención integrada</span><span><Icon name="audit" size={15}/>Acceso protegido</span></div>
         </div>
         <div className="login-presentacion-onda" aria-hidden="true" />
       </section>
@@ -81,8 +84,9 @@ export default function VistaInicioSesion({ onLogin }: Props) {
           {error && <div className="login-error" role="alert"><Icon name="close" size={17} /><div><strong>No se pudo iniciar sesión</strong><span>{error}</span></div></div>}
           <div className="login-field"><label className="login-label" htmlFor="clinico-usuario">Usuario</label><div className="login-input"><Icon name="users" size={19} /><input id="clinico-usuario" autoFocus required autoComplete="username" value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} placeholder="Ingresa tu usuario" /></div></div>
           <div className="login-field"><label className="login-label" htmlFor="clinico-password">Contraseña</label><div className="login-input"><Icon name="asset" size={18} /><input id="clinico-password" required type={mostrarPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Ingresa tu contraseña" /><button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { const input = e.currentTarget.previousElementSibling as HTMLInputElement; const start = input.selectionStart, end = input.selectionEnd; setMostrarPassword((v) => !v); requestAnimationFrame(() => { input.focus({ preventScroll: true }); input.setSelectionRange(start, end); }); }} aria-pressed={mostrarPassword} aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}><Icon name={mostrarPassword ? 'eyeOff' : 'eye'} size={18} /></button></div></div>
-          <div className="login-opciones"><label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Mantener sesión en este equipo</label><span>¿Olvidaste tu contraseña?</span></div>
-          <button className="login-submit" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar'} <Icon name="arrowRight" size={18} /></button>
+          <div className="login-opciones"><label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Recordar usuario en este equipo</label><button type="button" className="login-ayuda-link" onClick={() => setMostrarAyudaPassword((visible) => !visible)} aria-expanded={mostrarAyudaPassword}>¿Olvidaste tu contraseña?</button></div>
+          {mostrarAyudaPassword && <p className="login-ayuda-password" role="status">Solicita el restablecimiento de tu contraseña al administrador del sistema.</p>}
+          <button className="login-submit" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar'} {!loading && <Icon name="arrowRight" size={18} />}</button>
           <p className="login-helper">Para proteger la información clínica, no compartas tus credenciales.</p>
         </form>
       </section>

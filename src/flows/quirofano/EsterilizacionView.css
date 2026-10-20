@@ -2,11 +2,11 @@
 .esterilizacion-vista>.est-cabecera,.esterilizacion-vista>.est-subvistas{display:none}.esterilizacion-vista{padding-top:0}.esterilizacion-vista>.est-resumen,.esterilizacion-vista>.est-panel,.esterilizacion-vista>.est-aviso,.esterilizacion-vista>.est-error{margin-left:20px;margin-right:20px}
 
 /* Subvistas de esterilización: cada acceso ocupa el mismo espacio visual. */
-.esterilizacion-vista .subvistas-carrusel{width:min(100%,920px)}
+.esterilizacion-vista .subvistas-carrusel{width:min(100%,620px)}
 .esterilizacion-vista .recepcion-subvistas{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));width:100%!important;max-width:none!important;gap:5px!important}
 .esterilizacion-vista .recepcion-subvistas>button{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:100%!important;min-width:0!important;padding-inline:10px!important;gap:8px!important;text-align:left}
 .esterilizacion-vista .recepcion-subvistas>button>strong{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;line-height:1.2}
-.esterilizacion-vista .recepcion-subvistas.dos-subvistas{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.esterilizacion-vista .recepcion-subvistas.dos-subvistas{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;max-width:620px!important}
 .esterilizacion-vista .recepcion-subvistas.dos-subvistas>button{width:100%!important;min-width:0!important;flex:none!important}
 .esterilizacion-vista .recepcion-subvistas.dos-subvistas>button:not(.activo){border-color:#c3e2f1!important;background:#f7fbfe!important}
 .sistema-nav :is(.nav-central-esterilizacion,.nav-recepcion-material-sucio,.nav-entrega-material-esteril){height:38px!important;min-height:38px!important;margin:2px 0!important;padding-inline:11px!important;gap:9px!important;font-size:13px!important}

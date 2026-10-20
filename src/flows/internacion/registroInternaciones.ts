@@ -24,8 +24,14 @@ const clave = 'hme:internaciones';
 const evento = 'internacion:actualizada';
 let cache: RegistroInternacion[] | null = null;
 const ejemploConfirmado: RegistroInternacion = {
-  id: 'INT-108B', paciente: 'Camila Adriana Hidalgo Ayllón', ci: '9392922', medico: 'Dr. responsable',
+  id: 'INT-108B', paciente: 'Luis Esteban Escobar Rocha', ci: '9392922', medico: 'Dr. responsable',
   motivo: 'Seguimiento de internación', fecha: '13/10/2026', estado: 'confirmada', sala: '108', cama: 'B', tipoSala: 'Sala compartida',
+  datosPaciente: {
+    responsableNombre: 'María Elena Rocha Vargas · Madre',
+    responsableTelefono: '72014568',
+    responsableCi: '4578921',
+    responsableDireccion: 'Zona Miraflores, La Paz',
+  },
 };
 
 function disponible() { return typeof window !== 'undefined'; }

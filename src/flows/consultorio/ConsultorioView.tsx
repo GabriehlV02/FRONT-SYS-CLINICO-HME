@@ -12,7 +12,7 @@ import { obtenerEpisodios, suscribirEpisodios, type DocumentoEpisodio } from './
 
 type Subvista = 'consulta' | 'historias';
 type EpisodioHistoria = { id: string; tipo: string; medico: string; motivo: string; fecha?: string; enfermedadActual: string; examenFisico: string; antecedentes: string; notas: string; signosVitales: Record<string, string>; recetas: DocumentoEpisodio[]; ordenes: DocumentoEpisodio[]; resultados: DocumentoEpisodio[]; reconsultas: DocumentoEpisodio[] };
-type PacienteHistoria = { nombre: string; ci: string; edad: number; fechaNacimiento: string; numeroHistoria: string; datoRelevante: string; estado: 'Al día' | 'Pendiente'; episodios?: EpisodioHistoria[] };
+export type PacienteHistoria = { nombre: string; ci: string; edad: number; fechaNacimiento: string; numeroHistoria: string; datoRelevante: string; estado: 'Al día' | 'Pendiente'; episodios?: EpisodioHistoria[] };
 type PaginaLibro = { tipo: 'presentacion' | 'interior' | 'separador'; titulo: string; contenido: ReactNode };
 
 const subvistas: { id: Subvista; nombre: string; icono: IconName }[] = [
@@ -55,7 +55,7 @@ function ResumenHistoria({ paciente, onCerrar }: { paciente: PacienteHistoria; o
 
 function TapaHistoria({ paciente }: { paciente: PacienteHistoria }) { return <div className="tapa-historia"><div className="tapa-acento" aria-hidden="true" /><img className="tapa-logo" src="/logo-hospital-original.png" alt="Hospital María Esperanza" /><div className="tapa-titulo"><span>EXPEDIENTE MÉDICO</span><h2>Historia clínica</h2><i aria-hidden="true" /></div><div className="tapa-paciente"><small>PACIENTE</small><h3>{paciente.nombre}</h3></div><dl className="tapa-datos"><div><dt>CI</dt><dd>{paciente.ci}</dd></div><div><dt>Edad</dt><dd>{paciente.edad} años</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento}</dd></div><div><dt>Número de historia</dt><dd>{paciente.numeroHistoria}</dd></div></dl><div className="tapa-alerta"><span>Dato relevante</span><strong>{paciente.datoRelevante}</strong></div><footer><span>Hospital María Esperanza</span><small>Documento clínico confidencial</small></footer></div>; }
 
-function HistoriaHojeable({ paciente, onCerrar }: { paciente: PacienteHistoria; onCerrar: () => void }) {
+export function HistoriaHojeable({ paciente, onCerrar }: { paciente: PacienteHistoria; onCerrar: () => void }) {
   const [pagina, setPagina] = useState(0); const [direccion, setDireccion] = useState<'adelante' | 'atras'>('adelante'); const [libroAbierto, setLibroAbierto] = useState(false);
   const episodios = paciente.episodios ?? [];
   const [busquedaLibro, setBusquedaLibro] = useState(''); const [medicoFiltro, setMedicoFiltro] = useState(''); const [servicioFiltro, setServicioFiltro] = useState(''); const [estudioFiltro, setEstudioFiltro] = useState('');

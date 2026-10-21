@@ -42,7 +42,6 @@ export function AtencionMedicaEmergenciasView() {
   }, []);
   const cuenta = cuentas.find(c => c.id === activa);
   const visibles = cuentas.filter(c => (finalizadas || !c.fin) && `${c.cubiculo} ${nombrePaciente(c)} ${c.identidad?.documento || ''}`.toLowerCase().includes(busqueda.toLowerCase()));
-  const alternativas = visibles.filter(c => c.id !== activa);
   async function iniciarAtencion(evento: FormEvent) {
     evento.preventDefault();
     if (!cubiculoNuevo) { setErrorCubiculo('Selecciona un cubículo de atención antes de iniciar.'); setSelectorCubiculoAbierto(true); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.em-medica-nueva .em-selector-cubiculo > button')?.focus()); return; }
@@ -58,7 +57,7 @@ export function AtencionMedicaEmergenciasView() {
     } catch (e) { setError((e as Error).message); }
     finally { guardando.current = false; }
   }
-  return <section className="emergencias-vista em-medica">
+    return <section className="emergencias-vista em-medica">
     <header className="em-cabecera"><div><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2></div><div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button><button className="em-primario em-iniciar-atencion" type="button" onClick={() => setIniciando(true)}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button></div></header>
     {iniciando && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIniciando(false); }}><form className="em-panel em-medica-nueva" role="dialog" aria-modal="true" aria-labelledby="em-medica-inicio-titulo" onSubmit={iniciarAtencion}>
       <header><div><span>INGRESO DIRECTO</span><h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3><p>Selecciona un cubículo y registra los datos disponibles para abrir la atención.</p></div><button type="button" aria-label="Cerrar" onClick={() => setIniciando(false)}><Icon name="close" size={18}/></button></header>
@@ -68,15 +67,15 @@ export function AtencionMedicaEmergenciasView() {
       <footer><button type="button" onClick={() => setIniciando(false)}>Cancelar</button><button className="em-primario" disabled={guardando.current}><Icon name="plus" size={16}/> Iniciar y atender</button></footer>
     </form></div>}
     <div className="em-medica-layout">
-      {(alternativas.length > 0 || (!cuenta && visibles.length > 0)) && <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => setBusqueda(e.target.value)} /></label><h3>{cuenta ? 'Cambiar paciente' : 'Pacientes en emergencias'}</h3><small>{cuentas.filter(c => !c.fin).length} atenciones activas</small><label className="em-check"><input type="checkbox" checked={finalizadas} onChange={e => setFinalizadas(e.target.checked)} /> Incluir finalizadas</label>
-        {(cuenta ? alternativas : visibles).map(c => <button key={c.id} className={`em-cubiculo ${c.id === activa ? 'seleccionado' : ''}`} disabled={guardando.current} onClick={() => {
-          if (c.id === activa || guardando.current) return;
-          if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Cambiar de paciente y descartar el borrador?')) return;
+      {!cuenta && <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => setBusqueda(e.target.value)} /></label><h3>Pacientes en emergencias</h3><small>{cuentas.filter(c => !c.fin).length} atenciones activas</small><label className="em-check"><input type="checkbox" checked={finalizadas} onChange={e => setFinalizadas(e.target.checked)} /> Incluir finalizadas</label>
+        {visibles.map(c => <button key={c.id} className="em-cubiculo" disabled={guardando.current} onClick={() => {
+          if (guardando.current) return;
+          if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Atender a este paciente y descartar el borrador?')) return;
           formularioSucio.current = false; setActiva(c.id);
         }}><strong>{nombreCubiculo(c.cubiculo)}</strong><span>{nombrePaciente(c)}</span><small>{c.fin ? 'Atención finalizada' : `${c.signos.length} registro(s) de signos vitales`}</small><small>{(c.ordenes || []).filter(o => o.estado === 'pendiente').length} indicaciones pendientes</small></button>)}
         {!visibles.length && <p className="em-vacio">{cargando ? 'Cargando pacientes…' : 'No hay atenciones activas. Puedes iniciar una desde esta vista.'}</p>}
       </aside>}
-      {cuenta ? <AtencionPaciente key={cuenta.id} {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo }} alEditar={valor => { formularioSucio.current = valor; }} ejecutar={async (ruta, body) => {
+      {cuenta ? <AtencionPaciente key={cuenta.id} {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo }} volver={() => { if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Volver al listado y descartar el borrador?')) return; formularioSucio.current = false; setActiva(''); }} alEditar={valor => { formularioSucio.current = valor; }} ejecutar={async (ruta, body) => {
         if (guardando.current) throw new Error('Espera a que termine la operación actual.');
         guardando.current = true; secuencia.current++;
         try { const actualizada = await apiEmergencias<CuentaEmergencia>(ruta, body); secuencia.current++; setCuentas(prev => prev.map(c => c.id === actualizada.id ? actualizada : c)); }
@@ -86,9 +85,9 @@ export function AtencionMedicaEmergenciasView() {
   </section>;
 }
 
-function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, ejecutar, alEditar }: {
+function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, ejecutar, alEditar, volver }: {
   cuenta: CuentaEmergencia; catalogo: ItemEmergencia[]; errorCatalogo: string; cargarCatalogo: () => Promise<void>;
-  ejecutar: (ruta: string, body: object) => Promise<void>; alEditar: (valor: boolean) => void;
+  ejecutar: (ruta: string, body: object) => Promise<void>; alEditar: (valor: boolean) => void; volver: () => void;
 }) {
   const ultima = cuenta.evaluaciones?.at(-1);
   const [evaluacion, setEvaluacion] = useState<{ revision: number; campos: Record<string, string> } | null>(null);
@@ -114,6 +113,7 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const ultimoSigno = cuenta.signos.at(-1);
   return <div className="em-medica-atencion">
     <main className="em-trabajo">
+      <button type="button" className="em-volver-listado" onClick={volver}><Icon name="chevronLeft" size={16}/> Volver a pacientes</button>
       <header className="em-panel em-medica-cabecera"><div><p>ATENCIÓN MÉDICA · {nombreCubiculo(cuenta.cubiculo)}</p><h2>{nombrePaciente(cuenta)}</h2><small>Ingreso: {fechaEmergencia(cuenta.inicio)} · Cuenta {cuenta.id.slice(0, 8).toUpperCase()}{cuenta.fin ? ' · FINALIZADA' : ''}</small></div>
         {!cuenta.fin && <nav className="em-accesos-orden"><button onClick={() => abrirOrden('medicamento')}>Receta / indicación</button><button onClick={() => abrirOrden('laboratorio')}><Icon name="lab" size={15} /> Laboratorio</button><button onClick={() => abrirOrden('imagenologia')}><Icon name="image" size={15} /> Imagenología</button><button onClick={() => abrirOrden('internacion')}>Internación</button></nav>}
       </header>

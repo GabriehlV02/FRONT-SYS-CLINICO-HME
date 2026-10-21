@@ -55,8 +55,7 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
   };
 
   return <section className="laboratorio-vista" aria-label={`Laboratorio ${origen === 'ambulatorio' ? 'ambulatorio' : 'de internación'}`}>
-    <header className="lab-cabecera"><div><h2>Laboratorio · {origen === 'ambulatorio' ? 'Ambulatorios' : 'Internados'}</h2><p>Solicitudes de pacientes y registro de resultados.</p></div><button type="button" className="lab-boton" onClick={() => { if (modificado && !window.confirm('¿Descartar los cambios sin guardar?')) return; setModoEjemplo(!modoEjemplo); setSeleccionado(null); setModificado(false); setMensaje(''); }}>{modoEjemplo ? 'Ver solicitudes locales' : 'Ver ejemplo visual'}</button></header>
-    <p className="lab-local">{modoEjemplo ? 'Vista de ejemplo · Pacientes ficticios para probar pendientes y resultados. Los cambios del ejemplo no se guardan al recargar.' : 'Vista local · Las solicitudes y resultados se guardan únicamente en este navegador.'}</p>
+    <header className="lab-cabecera"><div><h2>Laboratorio · {origen === 'ambulatorio' ? 'Ambulatorios' : 'Internados'}</h2></div><button type="button" className="lab-boton" onClick={() => { if (modificado && !window.confirm('¿Descartar los cambios sin guardar?')) return; setModoEjemplo(!modoEjemplo); setSeleccionado(null); setModificado(false); setMensaje(''); }}>{modoEjemplo ? 'Ver solicitudes locales' : 'Ver ejemplo visual'}</button></header>
     <nav className="lab-resumen" aria-label="Estado de las solicitudes">
       {(['pendientes', 'en_proceso', 'completado', 'todos'] as const).map(id => {
         const cantidad = id === 'todos' ? delOrigen.length : delOrigen.filter(s => id === 'pendientes' ? s.estado !== 'completado' : s.estado === id).length;

@@ -42,3 +42,92 @@
 .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla{display:flex;gap:6px;min-width:74px}.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-accion{width:34px;height:34px;flex:0 0 34px;border-radius:10px;transition:transform .18s,background .18s,box-shadow .18s}.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-accion:hover{transform:translateY(-2px);box-shadow:0 6px 12px rgba(4,94,150,.14)}.sistema-app:not([data-theme="dark"]) .pacientes-vista>.usuarios-paginacion{margin:0;padding:16px 24px 20px}
 @media(max-width:1100px){.sistema-app:not([data-theme="dark"]) .pacientes-vista .usuarios-herramientas{grid-template-columns:minmax(240px,1fr) 150px 170px}.sistema-app:not([data-theme="dark"]) .pacientes-vista .usuarios-herramientas .pacientes-registrar{grid-column:1/-1;justify-content:center}}
 @media(max-width:700px){.sistema-app:not([data-theme="dark"]) .pacientes-resumen{align-items:flex-start;padding:18px}.sistema-app:not([data-theme="dark"]) .pacientes-resumen h2{font-size:20px}.sistema-app:not([data-theme="dark"]) .pacientes-resumen p{display:none}.sistema-app:not([data-theme="dark"]) .pacientes-resumen-total{min-width:0;padding:8px 10px}.sistema-app:not([data-theme="dark"]) .pacientes-resumen-total small{display:none}.sistema-app:not([data-theme="dark"]) .pacientes-vista .usuarios-herramientas{display:grid;grid-template-columns:1fr 1fr;padding:14px}.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-buscador,.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-registrar{grid-column:1/-1}.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla{margin:14px}.sistema-app:not([data-theme="dark"]) .pacientes-vista>.usuarios-paginacion{padding:12px 14px 16px}}
+
+/* El directorio de pacientes comparte la lectura sobria de Historias clínicas. */
+.sistema-app:not([data-theme="dark"]) .pacientes-vista{
+  padding:20px;
+  border-radius:12px;
+  background:#fff;
+  box-shadow:0 10px 24px rgba(6,71,115,.08);
+  font-family:Inter,Arial,sans-serif;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .usuarios-herramientas{
+  padding:0 0 16px;
+  border-bottom:0;
+  background:transparent;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-buscador,
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-filtro select{
+  height:42px;
+  border-radius:8px;
+  border-color:#b9d9ec;
+  background:#fafdff;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla{
+  margin:0;
+  border-color:#c9e0ec;
+  border-radius:10px;
+  box-shadow:none;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla>.usuarios-paginacion{
+  min-height:48px;
+  padding:0 16px;
+  border-bottom:1px solid #d7e8f1;
+  background:#fafdff;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-columnas{
+  min-height:40px;
+  color:#47718a;
+  background:#eef8fc;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-fila{
+  min-height:68px;
+  padding:0 16px;
+  border-color:#e0eef4;
+  color:#294a61;
+  font-size:12px;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-fila:not(.usuarios-columnas):hover{
+  background:#f8fcfe;
+  box-shadow:none;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-identidad{gap:12px}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-identidad>span{
+  width:36px;
+  height:36px;
+  border:0;
+  background:#e0f3fb;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-identidad strong{
+  color:#173c57;
+  font-size:13px;
+  font-weight:700;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-fila>div>span{
+  color:#294a61;
+  font-size:12px;
+  font-weight:500;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-fila>div>small{
+  color:#69869b;
+  font-size:10px;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla{
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-accion{
+  width:34px;
+  height:34px;
+  border-radius:7px;
+  box-shadow:none;
+  transform:none;
+}
+@media(max-width:700px){
+  .sistema-app:not([data-theme="dark"]) .pacientes-vista{padding:12px}
+  .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla{margin:0}
+}

@@ -295,7 +295,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
       </div>
       <div className={`pacientes-con-historial ${pacienteSeleccionado ? "con-paciente" : ""}`}>
       <div className="pacientes-listado">
-      <div className="usuarios-tabla pacientes-tabla">
+      <div className={`usuarios-tabla pacientes-tabla ${modoClinico ? "pacientes-tabla-sin-sucursal" : ""}`}>
         <Paginacion tam />
         <div className="usuarios-fila usuarios-columnas">
           <span>Paciente</span>
@@ -303,7 +303,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           <span>Documento</span>
           <span>Edad / sexo</span>
           <span>Celular</span>
-          <span>{modoClinico ? "Sucursal" : (modalidad || "Pacientes")}</span>
+          {!modoClinico && <span>{modalidad || "Pacientes"}</span>}
           <span>Acciones</span>
         </div>
         {cargando ? (
@@ -350,7 +350,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                   <strong className="dato-movil">Celular</strong>
                   <span>{p.telefono || "No registrado"}</span>
                 </div>
-                {modoClinico ? <div className="radiografia-estado"><strong className="dato-movil">Sucursal</strong><span className="estado-cargado">{p.sucursal || "Central"}</span></div> : <div className="radiografia-estado">
+                {!modoClinico && <div className="radiografia-estado">
                   <strong className="dato-movil">{modalidad || "Estudio"}</strong>
                   <span
                     className={estudio ? "estado-cargado" : "estado-pendiente"}

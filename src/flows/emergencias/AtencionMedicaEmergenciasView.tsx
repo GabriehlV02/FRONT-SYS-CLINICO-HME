@@ -13,14 +13,27 @@ const vitales = [['temperatura', 'Temperatura', '°C'], ['frecuenciaCardiaca', '
 const tiposImagen = ['Rayos X', 'Tomografía', 'Ecografía', 'Electrocardiograma', 'Holter', 'Resonancia magnética', 'Mamografía', 'Densitometría ósea'];
 const regionesImagen = ['Cráneo', 'Cuello', 'Tórax', 'Abdomen', 'Pelvis', 'Columna cervical', 'Columna dorsal', 'Columna lumbar', 'Miembro superior', 'Miembro inferior'];
 type EstudioImagen = { id: string; tipo: string; contraste: 'sin contraste' | 'con contraste'; regiones: string[] };
+const horaIngreso = (fecha: string) => new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(fecha));
+const horaActual = () => new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date());
+const edadPaciente = (nacimiento?: string) => {
+  if (!nacimiento) return 'No registrada';
+  const fecha = new Date(`${nacimiento}T00:00:00`);
+  if (Number.isNaN(fecha.getTime())) return 'No registrada';
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - fecha.getFullYear();
+  if (hoy.getMonth() < fecha.getMonth() || (hoy.getMonth() === fecha.getMonth() && hoy.getDate() < fecha.getDate())) edad--;
+  return edad >= 0 ? `${edad} años` : 'No registrada';
+};
 
 export function AtencionMedicaEmergenciasView() {
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]), [activa, setActiva] = useState(''), [busqueda, setBusqueda] = useState('');
   const [finalizadas, setFinalizadas] = useState(false), [cargando, setCargando] = useState(true), [error, setError] = useState('');
   const [catalogo, setCatalogo] = useState<ItemEmergencia[]>([]), [errorCatalogo, setErrorCatalogo] = useState('');
   const [iniciando, setIniciando] = useState(false), [cubiculoNuevo, setCubiculoNuevo] = useState('');
+  const [horaIngresoNueva, setHoraIngresoNueva] = useState('');
   const [selectorCubiculoAbierto, setSelectorCubiculoAbierto] = useState(false), [errorCubiculo, setErrorCubiculo] = useState('');
-  const [datosNuevos, setDatosNuevos] = useState({ nombres: '', apellidoPaterno: '', apellidoMaterno: '', documento: '', nacimiento: '', telefono: '' });
+  const [datosNuevos, setDatosNuevos] = useState({ nombres: '', apellidos: '', documento: '', nacimiento: '', telefono: '', familiar: '', parentesco: '', telefonoFamiliar: '', documentoFamiliar: '' });
+  const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const guardando = useRef(false), secuencia = useRef(0), formularioSucio = useRef(false), solicitud = useRef(crypto.randomUUID());
   async function cargar() {
     if (guardando.current) return;
@@ -50,31 +63,33 @@ export function AtencionMedicaEmergenciasView() {
     guardando.current = true; setError('');
     try {
       const identidad = Object.fromEntries(Object.entries(datosNuevos).filter(([, valor]) => valor.trim()));
-      const apellidos = [datosNuevos.apellidoPaterno, datosNuevos.apellidoMaterno].filter(Boolean).join(' ');
-      const creada = await apiEmergencias<CuentaEmergencia>('', { cubiculo: cubiculoNuevo, identidad: { ...identidad, apellidos }, solicitudId: solicitud.current });
+      const creada = await apiEmergencias<CuentaEmergencia>('', { cubiculo: cubiculoNuevo, identidad, horaIngreso: horaIngresoNueva, solicitudId: solicitud.current });
       setCuentas(actuales => [creada, ...actuales.filter(item => item.id !== creada.id)]);
-      setActiva(creada.id); setIniciando(false); setCubiculoNuevo(''); setSelectorCubiculoAbierto(false); solicitud.current = crypto.randomUUID();
-      setDatosNuevos({ nombres: '', apellidoPaterno: '', apellidoMaterno: '', documento: '', nacimiento: '', telefono: '' });
+      setActiva(creada.id); setIniciando(false); setCubiculoNuevo(''); setHoraIngresoNueva(''); setSelectorCubiculoAbierto(false); solicitud.current = crypto.randomUUID();
+      setDatosNuevos({ nombres: '', apellidos: '', documento: '', nacimiento: '', telefono: '', familiar: '', parentesco: '', telefonoFamiliar: '', documentoFamiliar: '' }); setMostrarAcompanante(false);
     } catch (e) { setError((e as Error).message); }
     finally { guardando.current = false; }
   }
     return <section className="emergencias-vista em-medica">
-    <header className="em-cabecera"><div><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2></div><div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button><button className="em-primario em-iniciar-atencion" type="button" onClick={() => setIniciando(true)}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button></div></header>
+    <header className="em-cabecera"><div><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2></div><div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button><button className="em-primario em-iniciar-atencion" type="button" onClick={() => { setHoraIngresoNueva(horaActual()); setMostrarAcompanante(false); setIniciando(true); }}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button></div></header>
     {iniciando && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIniciando(false); }}><form className="em-panel em-medica-nueva" role="dialog" aria-modal="true" aria-labelledby="em-medica-inicio-titulo" onSubmit={iniciarAtencion}>
       <header><div><span>INGRESO DIRECTO</span><h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3><p>Selecciona un cubículo y registra los datos disponibles para abrir la atención.</p></div><button type="button" aria-label="Cerrar" onClick={() => setIniciando(false)}><Icon name="close" size={18}/></button></header>
-      <div className="em-selector-cubiculo" onKeyDown={evento => { if (evento.key === 'Escape') setSelectorCubiculoAbierto(false); }}><span>Cubículo de atención *</span><button type="button" disabled={guardando.current || !cubiculosDisponibles.length} className={cubiculoNuevo ? 'seleccionado' : ''} aria-haspopup="listbox" aria-expanded={selectorCubiculoAbierto} onClick={() => setSelectorCubiculoAbierto(abierto => !abierto)}>{cubiculoNuevo ? nombreCubiculo(cubiculoNuevo) : cubiculosDisponibles.length ? 'Selecciona un cubículo' : 'No hay cubículos libres'}<Icon name="chevronDown" size={16} /></button>{selectorCubiculoAbierto && <div className="em-opciones-cubiculo" role="listbox" aria-label="Cubículo de atención">{cubiculosDisponibles.map(cubiculo => <button type="button" role="option" aria-selected={cubiculoNuevo === cubiculo.id} key={cubiculo.id} onClick={() => { setCubiculoNuevo(cubiculo.id); setSelectorCubiculoAbierto(false); setErrorCubiculo(''); solicitud.current = crypto.randomUUID(); }}>{cubiculoNuevo === cubiculo.id && <Icon name="check" size={15} />}{cubiculo.nombre}</button>)}</div>}</div>
+      <div className="em-inicio-datos"><div className="em-selector-cubiculo" onKeyDown={evento => { if (evento.key === 'Escape') setSelectorCubiculoAbierto(false); }}><span>Cubículo de atención *</span><button type="button" disabled={guardando.current || !cubiculosDisponibles.length} className={cubiculoNuevo ? 'seleccionado' : ''} aria-haspopup="listbox" aria-expanded={selectorCubiculoAbierto} onClick={() => setSelectorCubiculoAbierto(abierto => !abierto)}>{cubiculoNuevo ? nombreCubiculo(cubiculoNuevo) : cubiculosDisponibles.length ? 'Selecciona un cubículo' : 'No hay cubículos libres'}<Icon name="chevronDown" size={16} /></button>{selectorCubiculoAbierto && <div className="em-opciones-cubiculo" role="listbox" aria-label="Cubículo de atención">{cubiculosDisponibles.map(cubiculo => <button type="button" role="option" aria-selected={cubiculoNuevo === cubiculo.id} key={cubiculo.id} onClick={() => { setCubiculoNuevo(cubiculo.id); setSelectorCubiculoAbierto(false); setErrorCubiculo(''); solicitud.current = crypto.randomUUID(); }}>{cubiculoNuevo === cubiculo.id && <Icon name="check" size={15} />}{cubiculo.nombre}</button>)}</div>}</div><label className="em-hora-ingreso">Hora de ingreso *<input type="time" required value={horaIngresoNueva} onChange={evento => setHoraIngresoNueva(evento.target.value)} /></label></div>
       {!cubiculosDisponibles.length && <p className="em-error em-error-cubiculo" role="alert">No hay cubículos libres. Finaliza, da de alta o traslada a un paciente para liberar un espacio.</p>}
       {errorCubiculo && <p className="em-error em-error-cubiculo" role="alert">{errorCubiculo}</p>}
-      <fieldset><legend>Datos básicos del paciente · opcionales</legend><div className="em-form-grid">{([['nombres','Nombres','text'],['apellidoPaterno','Apellido paterno','text'],['apellidoMaterno','Apellido materno','text'],['documento','Documento de identidad','text'],['nacimiento','Fecha de nacimiento','date'],['telefono','Teléfono','tel']] as const).map(([campo, etiqueta, tipo]) => <label key={campo}>{etiqueta}<input type={tipo} maxLength={200} value={datosNuevos[campo]} onChange={evento => setDatosNuevos(actual => ({ ...actual, [campo]: evento.target.value }))}/></label>)}</div></fieldset>
-      <footer><button type="button" onClick={() => setIniciando(false)}>Cancelar</button><button className="em-primario" disabled={guardando.current}><Icon name="plus" size={16}/> Iniciar y atender</button></footer>
+      <fieldset><legend>Datos básicos del paciente · opcionales</legend><div className="em-form-grid">{([['nombres','Nombres','text'],['apellidos','Apellidos','text'],['documento','Documento de identidad','text'],['nacimiento','Fecha de nacimiento','date'],['telefono','Teléfono','tel']] as const).map(([campo, etiqueta, tipo]) => <label key={campo}>{etiqueta}<input type={tipo} maxLength={200} value={datosNuevos[campo]} onChange={evento => setDatosNuevos(actual => ({ ...actual, [campo]: evento.target.value }))}/></label>)}</div></fieldset>
+      <div className="em-acompanante-toggle"><button type="button" aria-expanded={mostrarAcompanante} aria-controls="em-medica-acompanante" onClick={() => setMostrarAcompanante(abierto => !abierto)}><Icon name={mostrarAcompanante ? 'chevronDown' : 'plus'} size={16}/>{mostrarAcompanante ? 'Ocultar datos del acompañante/responsable' : 'Registrar acompañante/responsable'}</button></div>
+      <fieldset id="em-medica-acompanante" className="em-medica-acompanante" hidden={!mostrarAcompanante}><legend>Datos del acompañante / responsable · opcionales</legend><div className="em-form-grid">{([['familiar','Nombre completo','text'],['parentesco','Parentesco','text'],['telefonoFamiliar','Teléfono','tel'],['documentoFamiliar','Documento de identidad','text']] as const).map(([campo, etiqueta, tipo]) => <label key={campo}>{etiqueta}<input type={tipo} maxLength={200} value={datosNuevos[campo]} onChange={evento => setDatosNuevos(actual => ({ ...actual, [campo]: evento.target.value }))}/></label>)}</div></fieldset>
+      <footer><button type="button" onClick={() => { setIniciando(false); setMostrarAcompanante(false); }}>Cancelar</button><button className="em-primario" disabled={guardando.current}><Icon name="plus" size={16}/> Iniciar y atender</button></footer>
     </form></div>}
     <div className="em-medica-layout">
       {!cuenta && <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => setBusqueda(e.target.value)} /></label><h3>Pacientes en emergencias</h3><small>{cuentas.filter(c => !c.fin).length} atenciones activas</small><label className="em-check"><input type="checkbox" checked={finalizadas} onChange={e => setFinalizadas(e.target.checked)} /> Incluir finalizadas</label>
+        {!!visibles.length && <div className="em-lista-cabecera" role="row"><span>Cubículo</span><span>Paciente</span><span>N.º HCL</span><span>Edad</span><span>Sexo</span><span>Hora ingreso</span><span>Médico de admisión</span><span>Acción</span></div>}
         {visibles.map(c => <button key={c.id} className="em-cubiculo" disabled={guardando.current} onClick={() => {
           if (guardando.current) return;
           if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Atender a este paciente y descartar el borrador?')) return;
           formularioSucio.current = false; setActiva(c.id);
-        }}><strong>{nombreCubiculo(c.cubiculo)}</strong><span>{nombrePaciente(c)}</span><small>{c.fin ? 'Atención finalizada' : `${c.signos.length} registro(s) de signos vitales`}</small><small>{(c.ordenes || []).filter(o => o.estado === 'pendiente').length} indicaciones pendientes</small></button>)}
+        }}><strong>{nombreCubiculo(c.cubiculo)}</strong><span className="em-paciente-lista">{nombrePaciente(c)}</span><span>{c.identidad?.historiaClinica || 'Sin registro'}</span><span>{edadPaciente(c.identidad?.nacimiento)}</span><span>{c.identidad?.sexo || 'No registrado'}</span><time>{horaIngreso(c.inicio)}</time><span>{c.identidad?.medicoAdmision || 'Médico de turno'}</span><span className="em-accion-lista">Atender</span></button>)}
         {!visibles.length && <p className="em-vacio">{cargando ? 'Cargando pacientes…' : 'No hay atenciones activas. Puedes iniciar una desde esta vista.'}</p>}
       </aside>}
       {cuenta ? <AtencionPaciente key={cuenta.id} {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo }} volver={() => { if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Volver al listado y descartar el borrador?')) return; formularioSucio.current = false; setActiva(''); }} alEditar={valor => { formularioSucio.current = valor; }} ejecutar={async (ruta, body) => {

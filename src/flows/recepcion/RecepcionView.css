@@ -1292,7 +1292,7 @@
 }
 .punto-busquedas {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) repeat(3, 150px);
+  grid-template-columns: minmax(280px, 1fr) repeat(2, minmax(160px, .333fr));
   gap: 10px;
 }
 .punto-accion-laboratorio,

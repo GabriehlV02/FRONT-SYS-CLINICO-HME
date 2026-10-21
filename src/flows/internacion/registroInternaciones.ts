@@ -54,7 +54,15 @@ function guardar(registros: RegistroInternacion[]) {
   window.dispatchEvent(new Event(evento));
 }
 
+const normalizarCi = (ci: string) => ci.trim().replace(/[\s-]+/g, '').toLocaleUpperCase('es');
+
+export function pacienteDisponible(ci: string, exceptoId = '') {
+  const documento = normalizarCi(ci);
+  return documento !== '' && !leerInternaciones().some(item => item.id !== exceptoId && item.estado !== 'alta' && normalizarCi(item.ci) === documento);
+}
+
 export function crearPreinternacion(datos: Omit<RegistroInternacion, 'id' | 'fecha' | 'estado'>) {
+  if (!pacienteDisponible(datos.ci)) throw new Error('Este CI ya tiene una internación activa o pendiente. No se puede registrar al mismo paciente dos veces.');
   const registro: RegistroInternacion = {
     ...datos, id: `PRE-${Date.now()}`, fecha: new Date().toLocaleDateString('es-BO'), estado: 'preinternacion',
   };
@@ -68,6 +76,8 @@ export function camaDisponible(sala: string, cama: string, exceptoId = '') {
 }
 
 export function confirmarInternacion(id: string, asignacion: Pick<RegistroInternacion, 'sala' | 'cama' | 'tipoSala'>) {
+  const paciente = leerInternaciones().find(item => item.id === id);
+  if (!paciente || !pacienteDisponible(paciente.ci, id)) throw new Error('Este CI ya tiene una internación activa. No se puede confirmar una segunda internación para el mismo paciente.');
   if (!camaDisponible(asignacion.sala ?? '', asignacion.cama ?? '', id)) throw new Error('La sala y cama seleccionadas ya están ocupadas. Elige una ubicación libre.');
   const fechaIngreso = new Date().toLocaleDateString('es-BO');
   guardar(leerInternaciones().map(item => item.id === id ? { ...item, ...asignacion, fechaIngreso: item.fechaIngreso ?? fechaIngreso, estado: 'confirmada' as const } : item));

@@ -43,7 +43,7 @@ export function InternacionModal({onCerrar,pacienteInicial,onRegistrada}:{onCerr
     guardando.current=true;
     let registro:RegistroInternacion;
     try{registro=crearPreinternacion({paciente:datos.nombre.trim(),ci:datos.ci.trim(),medico:ingreso.medico.trim(),motivo:ingreso.diagnostico.trim(),datosPaciente:datos,fechaIngreso:ingreso.fecha,horaIngreso:ingreso.hora,origen:ingreso.origen,servicio:ingreso.servicio,observaciones:ingreso.observaciones.trim()});}
-    catch{guardando.current=false;setError('No se pudo guardar. Verifica el almacenamiento del navegador e intenta nuevamente.');return;}
+    catch(error){guardando.current=false;setError((error as Error).message || 'No se pudo guardar. Verifica el almacenamiento del navegador e intenta nuevamente.');return;}
     onRegistrada?.(registro);ventana.current?.close();
   };
   const resumen=(nombre:string,n:number,filas:[string,string][])=><section className="internacion-resumen-bloque"><header><h4>{nombre}</h4><button type="button" onClick={()=>{setError('');setPaso(n);}}>Editar</button></header><dl>{filas.map(([k,v])=><div key={k}><dt>{k}</dt><dd>{v||'Sin registrar'}</dd></div>)}</dl></section>;

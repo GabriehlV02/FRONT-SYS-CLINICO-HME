@@ -15,6 +15,7 @@ export type CuentaEmergencia = {
   consumos: (ItemEmergencia & { registroId: string; cantidad: number; porHora: boolean; inicio: string; fin: string | null; ordenId?: string })[];
   evaluaciones?: { id?: string; revision: number; fecha: string; usuario: string; campos: Record<string, string> }[];
   ordenes?: OrdenEmergencia[];
+  cierre?: { condicionEgreso: 'vivo' | 'muerto'; causaEgreso: 'hospitalaria' | 'solicitada' | 'fuga' | 'transferencia' | 'deceso' | 'internacion'; observacionEgreso?: string; fecha: string; usuario: string } | null;
 };
 export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
   const respuesta = await apiFetch(`/api/emergencias${ruta}`, body ? { method: 'POST', body: JSON.stringify(body) } : {});
@@ -29,10 +30,10 @@ export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
 export const nombrePaciente = (c: CuentaEmergencia) => [c.identidad?.nombres, c.identidad?.apellidos].filter(Boolean).join(' ') || 'Paciente sin identificar';
 export const fechaEmergencia = (v: string) => new Date(v).toLocaleString('es-BO');
 export const camposEvaluacion = [
-  ['motivo', 'Motivo de atención'], ['estado', 'Estado actual / nivel de conciencia'],
-  ['antecedentes', 'Antecedentes conocidos'], ['alergias', 'Alergias conocidas o pendientes de averiguar'],
-  ['evaluacion', 'Evaluación y examen físico'], ['diagnostico', 'Impresión diagnóstica'],
-  ['plan', 'Plan y evolución'], ['informacion', 'Información obtenida / fuente de la información'],
+  ['motivoConsulta', 'Motivo de consulta'], ['enfermedadActual', 'Enfermedad actual'],
+  ['antecedentesNoPatologicos', 'Antecedentes personales no patológicos'], ['antecedentesPatologicos', 'Antecedentes personales patológicos'], ['antecedentesFamiliares', 'Antecedentes familiares'], ['antecedentesGineco', 'Antecedentes ginecoobstétricos'],
+  ['examenGeneral', 'Examen físico general'], ['cabeza', 'Examen regional · Cabeza'], ['ojos', 'Examen regional · Ojos'], ['oidos', 'Examen regional · Oídos'], ['nariz', 'Examen regional · Nariz'], ['boca', 'Examen regional · Boca'], ['cuello', 'Examen regional · Cuello'], ['torax', 'Examen regional · Tórax'], ['respiratorio', 'Examen regional · Respiratorio'], ['cardiovascular', 'Examen regional · Cardiovascular'], ['pulsos', 'Examen regional · Pulsos arteriales'], ['abdomen', 'Examen regional · Abdomen'], ['extremidades', 'Examen regional · Extremidades'], ['genitalesPerine', 'Examen regional · Genitales y periné'], ['neurologico', 'Examen neurológico'],
+  ['examenesComplementarios', 'Exámenes complementarios solicitados / revisados'], ['impresionDiagnostica', 'Impresión diagnóstica'], ['tratamiento', 'Tratamiento indicado / realizado'],
 ];
-export const camposIdentidad = [['nombres', 'Nombres'], ['apellidos', 'Apellidos'], ['documento', 'Documento'], ['nacimiento', 'Fecha de nacimiento'], ['telefono', 'Teléfono'], ['direccion', 'Dirección'], ['familiar', 'Familiar / acompañante'], ['parentesco', 'Parentesco'], ['telefonoFamiliar', 'Teléfono del acompañante'], ['documentoFamiliar', 'Documento del acompañante']];
+export const camposIdentidad = [['nombres', 'Nombres'], ['apellidos', 'Apellidos'], ['documento', 'Documento'], ['nacimiento', 'Fecha de nacimiento'], ['sexo', 'Sexo'], ['procedencia', 'Procedencia'], ['telefono', 'Teléfono'], ['direccion', 'Dirección'], ['profesion', 'Profesión / ocupación'], ['familiar', 'Familiar / acompañante'], ['parentesco', 'Parentesco'], ['telefonoFamiliar', 'Teléfono del acompañante'], ['documentoFamiliar', 'Documento del acompañante']];
 export const tiposOrden = [['medicamento', 'Medicamento / receta'], ['servicio', 'Servicio / procedimiento'], ['laboratorio', 'Laboratorio'], ['imagenologia', 'Imagenología'], ['internacion', 'Internación'], ['cuidado', 'Cuidado / indicación general']];

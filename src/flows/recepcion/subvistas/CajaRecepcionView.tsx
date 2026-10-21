@@ -159,6 +159,7 @@ export function CajaRecepcionView({
     [mostrandoLaboratorio, setMostrandoLaboratorio] = useState(false),
     [mostrandoInternacion, setMostrandoInternacion] = useState(false),
     [mostrandoNuevoPaciente, setMostrandoNuevoPaciente] = useState(false),
+    [registroPacienteParaCobro, setRegistroPacienteParaCobro] = useState(false),
     [mostrandoCotizacion, setMostrandoCotizacion] = useState(false),
     [modo, setModo] = useState<"inicio" | "buscar" | "registrar">("inicio"),
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
@@ -573,7 +574,16 @@ export function CajaRecepcionView({
               }) });
               const resultado = await respuesta.json() as { message?: string };
               if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo registrar el paciente.');
+              if (registroPacienteParaCobro) {
+                const nombrePaciente = [campo('input[placeholder="Nombres"]'), campo('input[placeholder="Apellido paterno"]'), campo('input[placeholder="Apellido materno"]')].filter(Boolean).join(' ');
+                const respuestaCliente = await apiContableFetch('/v1/clientes', { method: 'POST', body: JSON.stringify({ nombre_razon_social: nombrePaciente, nit_ci: campo('input[placeholder="CI"]') || null, telefono: campo('input[placeholder="+591"]') || null, correo: null }) });
+                const clienteCreado = await respuestaCliente.json() as { data?: ClienteVenta; message?: string; errors?: Record<string, string[]> };
+                if (!respuestaCliente.ok || !clienteCreado.data) throw new Error(Object.values(clienteCreado.errors || {}).flat()[0] || clienteCreado.message || 'El paciente fue registrado, pero no se pudo habilitar para cobro.');
+                seleccionarCliente(clienteCreado.data);
+                setMensaje('Paciente registrado y seleccionado para el cobro.');
+              }
               window.dispatchEvent(new Event('pacientes:actualizados'));
+              setRegistroPacienteParaCobro(false);
               setMostrandoNuevoPaciente(false);
             }}
           >
@@ -1008,6 +1018,7 @@ export function CajaRecepcionView({
               className="punto-accion-nuevo-paciente"
               type="button"
               onClick={() => {
+                setRegistroPacienteParaCobro(false);
                 setMostrandoNuevoPaciente(true);
                 setMensaje("");
               }}
@@ -1127,7 +1138,7 @@ export function CajaRecepcionView({
           </header>
           <section className="punto-cliente">
             <header>
-              <strong>Cliente</strong>
+              <strong>Paciente para cobro</strong>
               {clienteSeleccionado && (
                 <button
                   className="cliente-cambiar"
@@ -1145,10 +1156,10 @@ export function CajaRecepcionView({
             {!clienteSeleccionado && modo === "inicio" && (
               <div className="cliente-acciones">
                 <button type="button" onClick={() => { setErrorCliente(""); setModo("buscar"); }}>
-                  <Icon name="search" size={15} /> Buscar cliente
+                  <Icon name="search" size={15} /> Buscar paciente
                 </button>
-                <button type="button" onClick={() => { setErrorCliente(""); setModo("registrar"); }}>
-                  <Icon name="plus" size={15} /> Registrar cliente
+                <button type="button" onClick={() => { setRegistroPacienteParaCobro(true); setMostrandoNuevoPaciente(true); setMensaje(""); }}>
+                  <Icon name="plus" size={15} /> Registrar paciente
                 </button>
               </div>
             )}
@@ -1187,7 +1198,7 @@ export function CajaRecepcionView({
                         </button>
                       ))
                     ) : (
-                      <p>No hay coincidencias. Puedes registrar al cliente para esta venta.</p>
+                      <p>No hay coincidencias. Puedes registrar al paciente para esta venta.</p>
                     )}
                   </div>
                 )}
@@ -1261,7 +1272,7 @@ export function CajaRecepcionView({
             {clienteSeleccionado && (
               <button className="cliente-resumen" type="button">
                 <span>
-                  <small>Cliente de venta</small>
+                  <small>Paciente para cobro</small>
                   <b>{clienteSeleccionado.nombre_razon_social}</b>
                 </span>
                 <span>

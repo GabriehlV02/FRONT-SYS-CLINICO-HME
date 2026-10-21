@@ -1014,17 +1014,6 @@ export function CajaRecepcionView({
                 <Icon name="plus" size={16} /> Internación
               </button>
             )}
-            <button
-              className="punto-accion-nuevo-paciente"
-              type="button"
-              onClick={() => {
-                setRegistroPacienteParaCobro(false);
-                setMostrandoNuevoPaciente(true);
-                setMensaje("");
-              }}
-            >
-              <Icon name="plus" size={16} /> Registrar paciente
-            </button>
           </div>
           <div className="punto-catalogo-filtros">
             <div className="punto-categorias">

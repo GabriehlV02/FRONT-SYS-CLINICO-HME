@@ -1241,7 +1241,7 @@
   gap: 18px;
   align-items: start;
 }
-.punto-pos-layout.con-historial { grid-template-columns: 240px minmax(0, 1fr) 360px; gap: 14px; }
+.punto-pos-layout.con-historial { grid-template-columns: minmax(310px, 350px) minmax(0, 1fr) 360px; gap: 18px; }
 .punto-pos-layout.historial-plegado { grid-template-columns: 42px minmax(0, 1fr) 360px; gap: 12px; }
 .punto-columna-carrito {
   display: grid;
@@ -1252,13 +1252,13 @@
   min-height: 52px;
   flex: 0 0 auto;
 }
-.punto-historial-paciente { position: sticky; top: 12px; min-width: 0; border: 1px solid #d8e5ef; border-radius: 13px; background: #fff; overflow: hidden; }
-.punto-historial-control { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 40px; border: 0; border-bottom: 1px solid #dce8f0; color: #0879af; background: #eef8fd; font-size: 11px; font-weight: 800; cursor: pointer; }
+.punto-historial-paciente { position: sticky; top: 12px; min-width: 0; border: 1px solid #cfe3ef; border-radius: 15px; background: linear-gradient(160deg, #fff, #f8fcff); overflow: hidden; box-shadow: 0 10px 26px rgba(22, 76, 111, .09); }
+.punto-historial-control { display: flex; align-items: center; justify-content: center; gap: 7px; width: 100%; min-height: 44px; border: 0; border-bottom: 1px solid #dce8f0; color: #0879af; background: linear-gradient(90deg, #f4fbff, #e7f6fd); font-size: 12px; font-weight: 850; cursor: pointer; }
 .historial-plegado .punto-historial-paciente { border-radius: 12px; }
 .historial-plegado .punto-historial-control { min-height: 46px; padding: 0; border: 1px solid #159fd2; border-radius: 11px; color: #fff; background: linear-gradient(145deg, #18b5e5, #087fb7); box-shadow: 0 5px 12px #078fc840; }
 .historial-plegado .punto-historial-control:hover { border-color: #087fb7; color: #fff; background: linear-gradient(145deg, #39c7ee, #078dc5); box-shadow: 0 7px 15px #078fc860; }
 .historial-plegado .punto-historial-control:active { transform: translateY(1px); box-shadow: 0 3px 8px #078fc850; }
-.punto-historial-contenido { display: grid; gap: 12px; padding: 11px; }
+.punto-historial-contenido { display: grid; gap: 14px; padding: 16px; }
 .punto-estado-internacion { position: sticky; top: 0; z-index: 1; display: grid; gap: 4px; padding: 10px; border: 1px solid #d7e7f0; border-radius: 9px; background: #f7fbfe; }
 .punto-estado-internacion small { color: #54728a; font-size: 9px; font-weight: 800; letter-spacing: .55px; }
 .punto-estado-internacion strong { color: #3b6885; font-size: 13px; }
@@ -1266,9 +1266,9 @@
 .punto-estado-internacion.internado { border-color: #f4cc86; background: #fff8e9; }
 .punto-estado-internacion.internado strong { color: #9a6416; }
 .punto-historial-contenido > header { display: grid; gap: 4px; }
-.punto-historial-contenido > header p { margin: 0; color: #0879af; font-size: 9px; font-weight: 850; letter-spacing: .75px; }
-.punto-historial-contenido > header h3 { margin: 0; color: #244662; font-size: 13px; line-height: 1.25; }
-.punto-historial-contenido > header b { color: #648097; font-size: 10px; }
+.punto-historial-contenido > header p { margin: 0; color: #0879af; font-size: 10px; font-weight: 900; letter-spacing: .85px; }
+.punto-historial-contenido > header h3 { margin: 0; color: #173f5e; font-size: 15px; line-height: 1.3; }
+.punto-historial-contenido > header b { color: #648097; font-size: 11px; }
 .punto-historial-lista { display: grid; gap: 7px; max-height: 390px; overflow: auto; }
 .punto-historial-lista article { display: grid; gap: 4px; padding: 9px; border: 1px solid #e0eaf1; border-radius: 8px; }
 .punto-historial-lista small { color: #6b8294; font-size: 9px; }.punto-historial-lista strong { color: #294a65; font-size: 11px; }.punto-historial-lista b { color: #0879af; font-size: 11px; }.punto-historial-vacio { margin: 0; color: #71889b; font-size: 11px; line-height: 1.55; text-align: center; }

@@ -62,12 +62,19 @@ export function crearPreinternacion(datos: Omit<RegistroInternacion, 'id' | 'fec
   return registro;
 }
 
+export function camaDisponible(sala: string, cama: string, exceptoId = '') {
+  const ubicacion = `${sala.trim().toLocaleLowerCase('es')}|${cama.trim().toLocaleLowerCase('es')}`;
+  return !leerInternaciones().some(item => item.id !== exceptoId && item.estado === 'confirmada' && `${item.sala?.trim().toLocaleLowerCase('es')}|${item.cama?.trim().toLocaleLowerCase('es')}` === ubicacion);
+}
+
 export function confirmarInternacion(id: string, asignacion: Pick<RegistroInternacion, 'sala' | 'cama' | 'tipoSala'>) {
+  if (!camaDisponible(asignacion.sala ?? '', asignacion.cama ?? '', id)) throw new Error('La sala y cama seleccionadas ya están ocupadas. Elige una ubicación libre.');
   const fechaIngreso = new Date().toLocaleDateString('es-BO');
   guardar(leerInternaciones().map(item => item.id === id ? { ...item, ...asignacion, fechaIngreso: item.fechaIngreso ?? fechaIngreso, estado: 'confirmada' as const } : item));
 }
 
 export function actualizarInternacion(id: string, cambios: Pick<RegistroInternacion, 'sala' | 'cama' | 'fechaIngreso'>) {
+  if (!camaDisponible(cambios.sala ?? '', cambios.cama ?? '', id)) throw new Error('La sala y cama seleccionadas ya están ocupadas. Elige una ubicación libre.');
   guardar(leerInternaciones().map(item => item.id === id && item.estado === 'confirmada' ? { ...item, ...cambios } : item));
 }
 

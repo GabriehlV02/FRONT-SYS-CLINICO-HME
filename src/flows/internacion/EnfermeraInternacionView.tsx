@@ -1,6 +1,6 @@
 import { useState, useSyncExternalStore } from 'react';
 import Icon from '../../radius/componentes/Icono';
-import { confirmarInternacion, leerInternaciones, suscribirInternaciones, type RegistroInternacion } from './registroInternaciones';
+import { camaDisponible, confirmarInternacion, leerInternaciones, suscribirInternaciones, type RegistroInternacion } from './registroInternaciones';
 import './EnfermeraInternacionView.css';
 import './EnfermeraInternacionTabla.css';
 
@@ -19,10 +19,13 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   const pacientesVisibles = subvista === 'internados' ? internados : altas;
   const termino = busqueda.trim().toLocaleLowerCase('es');
   const pacientesFiltrados = pacientesVisibles.filter(item => !termino || [item.paciente, item.ci, item.sala, item.cama, item.medico].some(valor => valor?.toLocaleLowerCase('es').includes(termino)));
+  const ubicacionDisponible = !seleccionada || !sala.trim() || !cama.trim() || camaDisponible(sala, cama, seleccionada.id);
 
   const confirmar = () => {
     if (!seleccionada || !sala.trim() || !cama.trim()) return;
-    confirmarInternacion(seleccionada.id, { sala: sala.trim(), cama: cama.trim(), tipoSala });
+    if (!ubicacionDisponible) return;
+    try { confirmarInternacion(seleccionada.id, { sala: sala.trim(), cama: cama.trim(), tipoSala }); }
+    catch (error) { window.alert((error as Error).message); return; }
     setSeleccionada(null);
   };
 
@@ -38,6 +41,6 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
       {subvista === 'altas' && pacientesFiltrados.length > 0 && <div className="internacion-altas-cabecera"><span>PACIENTE</span><span>HISTORIA CLÍNICA</span><span>MÉDICO RESPONSABLE</span><span>SALA Y CAMA</span><span>FECHA DE INGRESO</span><span>FECHA DE ALTA</span><span>ESTADO</span></div>}
       {pacientesFiltrados.length ? pacientesFiltrados.map(item => subvista === 'internados' ? <article className="internacion-fila-tabla" key={item.id}><b className="internacion-chip">{item.sala || '—'}</b><b className="internacion-chip">{item.cama || '—'}</b><div className="internacion-paciente"><span><Icon name="patient" size={18} /></span><strong>{item.paciente}</strong></div><strong>HC-{item.ci}</strong><strong>{item.medico}</strong><strong>{item.fechaIngreso || item.fecha}</strong><em>Internado</em><button type="button" onClick={() => setSeleccionada(item)}><Icon name="patient" size={16} /> Atender</button></article> : <article className="internacion-alta-fila" key={item.id}><div className="internacion-paciente"><span><Icon name="patient" size={18} /></span><span><strong>{item.paciente}</strong><small>CI {item.ci}</small></span></div><strong>HC-{item.ci}</strong><strong>{item.medico}</strong><strong>Sala {item.sala || '—'} · Cama {item.cama || '—'}</strong><strong>{item.fechaIngreso || item.fecha}</strong><strong>{item.fechaAlta || 'Sin registro'}</strong><em className="alta">Alta registrada</em></article>) : <div className="internacion-listado-vacio"><Icon name={subvista === 'internados' ? 'patient' : 'check'} size={26}/><strong>{busqueda ? 'No se encontraron coincidencias' : subvista === 'internados' ? 'No hay pacientes internados' : 'No hay altas registradas'}</strong><small>{busqueda ? 'Prueba con otro nombre, CI, sala o cama.' : subvista === 'internados' ? 'Los ingresos confirmados aparecerán aquí.' : 'Las altas médicas aparecerán aquí.'}</small></div>}
     </section>
-    {seleccionada && <div className="internacion-modal-fondo" role="presentation"><section className="internacion-modal" role="dialog" aria-modal="true" aria-labelledby="asignar-cama-titulo"><header><div><p>CONFIRMAR INTERNACIÓN</p><h3 id="asignar-cama-titulo">{seleccionada.paciente}</h3><small>CI {seleccionada.ci}. Al confirmar se registrará como internación y se habilitará su cuenta en Recepción.</small></div><button type="button" aria-label="Cerrar" onClick={() => setSeleccionada(null)}>×</button></header><div className="internacion-form"><label>Sala<input autoFocus value={sala} onChange={event => setSala(event.target.value)} placeholder="Ej.: 108" /></label><label>Cama<input value={cama} onChange={event => setCama(event.target.value)} placeholder="Ej.: B" /></label><label>Tipo de sala<select value={tipoSala} onChange={event => setTipoSala(event.target.value)}><option>Sala compartida</option><option>Habitación privada</option><option>Unidad de cuidados intermedios</option></select></label></div><footer><button type="button" onClick={() => setSeleccionada(null)}>Cancelar</button><button type="button" disabled={!sala.trim() || !cama.trim()} onClick={confirmar}>Confirmar ingreso</button></footer></section></div>}
+    {seleccionada && <div className="internacion-modal-fondo" role="presentation"><section className="internacion-modal" role="dialog" aria-modal="true" aria-labelledby="asignar-cama-titulo"><header><div><p>CONFIRMAR INTERNACIÓN</p><h3 id="asignar-cama-titulo">{seleccionada.paciente}</h3><small>CI {seleccionada.ci}. Al confirmar se registrará como internación y se habilitará su cuenta en Recepción.</small></div><button type="button" aria-label="Cerrar" onClick={() => setSeleccionada(null)}>×</button></header><div className="internacion-form"><label>Sala<input autoFocus value={sala} onChange={event => setSala(event.target.value)} placeholder="Ej.: 108" /></label><label>Cama<input value={cama} onChange={event => setCama(event.target.value)} placeholder="Ej.: B" /></label><label>Tipo de sala<select value={tipoSala} onChange={event => setTipoSala(event.target.value)}><option>Sala compartida</option><option>Habitación privada</option><option>Unidad de cuidados intermedios</option></select></label></div>{!ubicacionDisponible && <p className="internacion-error" role="alert">Esta sala y cama están ocupadas. Selecciona una ubicación libre.</p>}<footer><button type="button" onClick={() => setSeleccionada(null)}>Cancelar</button><button type="button" disabled={!sala.trim() || !cama.trim() || !ubicacionDisponible} onClick={confirmar}>Confirmar ingreso</button></footer></section></div>}
   </section>;
 }

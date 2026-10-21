@@ -163,7 +163,8 @@ function VistaInternados() {
       setError('Completa la fecha de ingreso, la sala y la cama.');
       return;
     }
-    actualizarInternacion(editando.id, { sala: sala.trim(), cama: cama.trim(), fechaIngreso });
+    try { actualizarInternacion(editando.id, { sala: sala.trim(), cama: cama.trim(), fechaIngreso }); }
+    catch (error) { setError((error as Error).message); return; }
     setEditando(null);
   };
 

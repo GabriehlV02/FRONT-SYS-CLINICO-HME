@@ -60,11 +60,12 @@ export default function AgendaImagenologiaView() {
 
     <div className="agenda-imagenologia-contenido">
       <section className="agenda-estudios-lista">
-        <header><span>HORA</span><span>PACIENTE</span><span>ESTUDIO PROGRAMADO</span><span>PREPARACIÓN</span><span>ESTADO</span><span>ACCIÓN</span></header>
+        <header><span>HORA</span><span>PACIENTE</span><span>TIPO DE ESTUDIO</span><span>PARTE / PIEZA</span><span>PREPARACIÓN</span><span>ESTADO</span><span>ACCIÓN</span></header>
         {pendientes.length ? pendientes.map((estudio) => <article key={estudio.id}>
           <time>{estudio.hora}</time>
           <div className="agenda-estudio-paciente"><i>{estudio.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</i><span><strong>{estudio.paciente}</strong><small>CI {estudio.ci}</small></span></div>
-          <div className="agenda-estudio-modalidad"><b className={modalidadClase(estudio.modalidad)}><Icon name={estudio.modalidad === 'Electrocardiograma' || estudio.modalidad === 'Holter' ? 'audit' : 'image'} size={16}/>{estudio.modalidad}</b><strong>{estudio.estudio}</strong></div>
+          <div className="agenda-estudio-modalidad"><b className={modalidadClase(estudio.modalidad)}><Icon name={estudio.modalidad === 'Electrocardiograma' || estudio.modalidad === 'Holter' ? 'audit' : 'image'} size={16}/>{estudio.modalidad}</b></div>
+          <div className="agenda-estudio-parte"><strong>{estudio.estudio}</strong></div>
           <div className="agenda-estudio-preparacion"><Icon name="fileText" size={16}/><span>{estudio.preparacion}</span></div>
           <span className={`agenda-estudio-estado ${estudio.estado === 'Confirmado' ? 'confirmado' : 'preparacion'}`}>{estudio.estado}</span>
           <button type="button" onClick={() => setCompletados((actuales) => new Set(actuales).add(estudio.id))}><Icon name="camera" size={15}/> Iniciar estudio</button>

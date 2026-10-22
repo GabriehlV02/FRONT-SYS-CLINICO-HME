@@ -180,7 +180,7 @@ const abreviaturasUnidades: Record<string, string> = {
   "Escala numérica": "pts",
   "Sin unidad": "s/u",
 };
-export function ConfiguracionSignosVitalesView({
+function EditorSignosVitalesView({
   signos,
   onChange,
 }: {
@@ -696,4 +696,27 @@ export function ConfiguracionSignosVitalesView({
       </div>
     </section>
   );
+}
+
+type ServicioSignos = "consulta-ambulatoria" | "emergencias" | "internacion" | "terapia-intensiva" | "quirofano";
+
+const serviciosSignos: { id: ServicioSignos; nombre: string; descripcion: string }[] = [
+  { id: "consulta-ambulatoria", nombre: "Servicio de Consulta Ambulatoria", descripcion: "Signos para consulta externa y agenda médica." },
+  { id: "emergencias", nombre: "Servicio de Emergencias", descripcion: "Signos para triaje y atención de urgencias." },
+  { id: "internacion", nombre: "Servicio de Internación", descripcion: "Monitoreo de pacientes hospitalizados." },
+  { id: "terapia-intensiva", nombre: "Servicio de Terapia Intensiva", descripcion: "Vigilancia clínica de alta frecuencia." },
+  { id: "quirofano", nombre: "Servicio de Quirófano", descripcion: "Control pre, intra y postoperatorio." },
+];
+
+export function ConfiguracionSignosVitalesView({ signos, onChange }: { signos: SignoVitalConfig[]; onChange: (signos: SignoVitalConfig[]) => void }) {
+  const [servicioActivo, setServicioActivo] = useState<ServicioSignos | null>(null);
+  const [signosPorServicio, setSignosPorServicio] = useState<Record<ServicioSignos, SignoVitalConfig[]>>(() => Object.fromEntries(serviciosSignos.map(servicio => [servicio.id, servicio.id === "consulta-ambulatoria" ? signos : signos.map(signo => ({ ...signo }))])) as Record<ServicioSignos, SignoVitalConfig[]>);
+  const servicio = serviciosSignos.find(actual => actual.id === servicioActivo);
+  const actualizarSignos = (actualizados: SignoVitalConfig[]) => {
+    if (!servicioActivo) return;
+    setSignosPorServicio(actual => ({ ...actual, [servicioActivo]: actualizados }));
+    if (servicioActivo === "consulta-ambulatoria") onChange(actualizados);
+  };
+  if (servicioActivo && servicio) return <section className="config-signos-servicio-editor"><button type="button" className="config-signos-volver" onClick={() => setServicioActivo(null)}><Icon name="chevronLeft" size={16} /> Volver a servicios</button><p>CONFIGURACIÓN DE SIGNOS · {servicio.nombre.toUpperCase()}</p><h2>{servicio.nombre}</h2><small>{servicio.descripcion} Los cambios se aplican solo a este servicio.</small><EditorSignosVitalesView signos={signosPorServicio[servicioActivo]} onChange={actualizarSignos} /></section>;
+  return <section className="config-signos-servicios" aria-label="Servicios configurables"><header><div><p>CONFIGURACIÓN CLÍNICA</p><h2>Signos vitales por servicio</h2><small>Selecciona un servicio para definir los signos vitales que utiliza.</small></div><span>{serviciosSignos.length} servicios</span></header><section className="config-signos-lista config-signos-tabla-servicios"><header><div><strong>Servicios asistenciales</strong><small>Cada servicio mantiene su propia configuración.</small></div></header><div className="config-signos-tabla"><div className="config-signos-encabezado config-signos-encabezado-servicios"><span>Servicio</span><span>Descripción</span><span>Signos configurados</span><span>Acción</span></div>{serviciosSignos.map(servicio => <article className="config-signos-fila-servicio" key={servicio.id}><strong>{servicio.nombre}</strong><span>{servicio.descripcion}</span><b>{signosPorServicio[servicio.id].length} campos</b><button type="button" className="config-signos-accion-editar" onClick={() => setServicioActivo(servicio.id)}><Icon name="edit" size={15} /> Editar</button></article>)}</div></section></section>;
 }

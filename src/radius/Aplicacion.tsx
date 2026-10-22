@@ -131,9 +131,9 @@ const modulos: Modulo[] = [
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'userCheck', grupo: 'QUIRÓFANO' },
   { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'userCheck', grupo: 'QUIRÓFANO' },
   { id: 'cuenta-quirofano', nombre: 'Cuenta quirófano', icono: 'cash', grupo: 'QUIRÓFANO' },
-  { id: 'central-esterilizacion', nombre: 'Almacenes de central', icono: 'lab', grupo: 'ESTERILIZACIÓN' },
+  { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'lab', grupo: 'ESTERILIZACIÓN' },
   { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'package', grupo: 'ESTERILIZACIÓN' },
-  { id: 'entrega-material-esteril', nombre: 'Material estéril', icono: 'check', grupo: 'ESTERILIZACIÓN' },
+  { id: 'entrega-material-esteril', nombre: 'Almacén de Esterilización', icono: 'check', grupo: 'ESTERILIZACIÓN' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-configuracion', nombre: 'Tipos de laboratorio', icono: 'settings', grupo: 'LABORATORIO' },
@@ -173,6 +173,16 @@ function TablaSubvistaPaciente({ vista }: { vista: 'historias' | 'estudios' }) {
 
 export default function Aplicacion() {
   const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
+  useEffect(() => {
+    if (!sesion?.token) return;
+    const controller = new AbortController();
+    apiFetch('/api/session', { signal: controller.signal }).then(async r => {
+      if (!r.ok) return;
+      const datos = await r.json() as { usuario: Sesion['usuario'] };
+      setSesion(actual => actual ? { ...actual, usuario: datos.usuario } : null);
+    }).catch(() => undefined);
+    return () => controller.abort();
+  }, [sesion?.token]);
   const [modulo, setModulo] = useState("");
   const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
   const [subvistaRadiografias, setSubvistaRadiografias] = useState<SubvistaRadiografias>("estudios");
@@ -631,11 +641,11 @@ export default function Aplicacion() {
           ) : modulo === 'anestesiologia-quirofano' ? (
             <AnestesiologiaView />
           ) : modulo === 'central-esterilizacion' ? (
-            <EsterilizacionView subvistasVisibles={['inventario', 'kits']} />
+            <EsterilizacionView titulo="Inventario de material" subvistasVisibles={['inventario', 'kits']} />
           ) : modulo === 'recepcion-material-sucio' ? (
             <EsterilizacionView subvistaInicial="sala" subvistasVisibles={['sala', 'seguimiento']} />
           ) : modulo === 'entrega-material-esteril' ? (
-            <EsterilizacionView subvistaInicial="entrega" subvistasVisibles={['entrega', 'seguimiento']} />
+            <EsterilizacionView titulo="Almacén de Esterilización" subvistaInicial="entrega" subvistasVisibles={['entrega', 'seguimiento']} />
           ) : modulo === 'cuenta-quirofano' ? (
             <CuentaQuirofanoView />
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "estudios" ? (

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
 import '../recepcion/RecepcionView.css';
@@ -49,13 +49,12 @@ const SUBVISTAS: SubvistaEsterilizacionConfig[] = [
   { id: 'kits', icono: 'package', titulo: 'Kits de instrumental', descripcion: 'Grupos, reservas y preparación quirúrgica.' },
 ];
 
-export function EsterilizacionView({ subvistaInicial = 'inventario', subvistasVisibles = SUBVISTAS.map(item => item.id) }: { subvistaInicial?: SubvistaEsterilizacion; subvistasVisibles?: SubvistaEsterilizacion[] }) {
+export function EsterilizacionView({ titulo = 'Control de material estéril', subvistaInicial = 'inventario', subvistasVisibles = SUBVISTAS.map(item => item.id) }: { titulo?: string; subvistaInicial?: SubvistaEsterilizacion; subvistasVisibles?: SubvistaEsterilizacion[] }) {
   const [subvista, setSubvista] = useState<SubvistaEsterilizacion>(subvistaInicial);
   const [datos, setDatos] = useState<EstadoEsterilizacion>(leerEsterilizacion);
   const [cirugias, setCirugias] = useState(leerCirugiasEsterilizacion);
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('');
-  const [filtroTipo, setFiltroTipo] = useState('');
   const [filtroSector, setFiltroSector] = useState('');
   const [modal, setModal] = useState<'material' | 'kit' | 'agregar' | 'estado' | 'recepcion' | 'etiqueta' | null>(null);
   const [formMaterial, setFormMaterial] = useState(MATERIAL_VACIO);
@@ -67,7 +66,11 @@ export function EsterilizacionView({ subvistaInicial = 'inventario', subvistasVi
   const [filtroEspecialidad, setFiltroEspecialidad] = useState('');
   const [filtroKitEstado, setFiltroKitEstado] = useState('');
   const [kitAbierto, setKitAbierto] = useState<string | null>(null);
+  const [inspeccionKitAbierta, setInspeccionKitAbierta] = useState(false);
+  const inspeccionKitDialog = useRef<HTMLDialogElement>(null);
   const [materialAbierto, setMaterialAbierto] = useState<string | null>(null);
+  const [seguimientoAbierto, setSeguimientoAbierto] = useState(false);
+  const seguimientoDialog = useRef<HTMLDialogElement>(null);
   const [destino, setDestino] = useState<EstadoMaterial | ''>('');
   const [cirugiaId, setCirugiaId] = useState('');
   const [aviso, setAviso] = useState('');
@@ -88,16 +91,25 @@ export function EsterilizacionView({ subvistaInicial = 'inventario', subvistasVi
     setSubvista(subvistaInicial);
   }, [subvistaInicial]);
 
+  useEffect(() => {
+    const dialogo = seguimientoDialog.current;
+    if (seguimientoAbierto && dialogo && !dialogo.open) dialogo.showModal();
+  }, [seguimientoAbierto]);
+
+  useEffect(() => {
+    const dialogo = inspeccionKitDialog.current;
+    if (inspeccionKitAbierta && dialogo && !dialogo.open) dialogo.showModal();
+  }, [inspeccionKitAbierta]);
+
   const guardar = (nuevos: EstadoEsterilizacion, mensaje: string) => {
     try { guardarEsterilizacion(nuevos); setDatos(nuevos); setAviso(mensaje); setError(''); setModal(null); return true; }
     catch { setError('No se pudo guardar. Revisa que el almacenamiento de este navegador esté disponible.'); return false; }
   };
-  const tipos = [...new Set(datos.materiales.map(item => item.tipo))].sort();
   const sectores = [...new Set(datos.materiales.map(item => item.sector))].sort();
   const materialesVisibles = useMemo(() => datos.materiales.filter(item => {
     const texto = `${item.codigo} ${item.nombre} ${item.tipo} ${item.marca} ${item.serie}`.toLowerCase();
-    return texto.includes(busqueda.toLowerCase()) && (!filtroEstado || item.estado === filtroEstado) && (!filtroTipo || item.tipo === filtroTipo) && (!filtroSector || item.sector === filtroSector);
-  }).sort((a, b) => a.nombre.localeCompare(b.nombre)), [datos.materiales, busqueda, filtroEstado, filtroTipo, filtroSector]);
+    return texto.includes(busqueda.toLowerCase()) && (!filtroEstado || item.estado === filtroEstado) && (!filtroSector || (subvista === 'inventario' ? ubicacionMaterial(item, cirugias) : item.sector) === filtroSector);
+  }).sort((a, b) => a.nombre.localeCompare(b.nombre)), [datos.materiales, busqueda, filtroEstado, filtroSector, subvista, cirugias]);
   const especialidades = [...new Set([...ESPECIALIDADES, ...datos.kits.flatMap(item => item.especialidades || [])])];
   const kitsVisibles = datos.kits.filter(item => `${item.nombre} ${item.descripcion} ${(item.especialidades || []).join(' ')}`.toLowerCase().includes(busquedaKit.toLowerCase()) && (!filtroEspecialidad || (item.especialidades || []).includes(filtroEspecialidad)) && (!filtroKitEstado || estadoKit(item, datos.materiales) === filtroKitEstado));
   const kitSeleccionado = datos.kits.find(item => item.id === kitAbierto);
@@ -182,13 +194,13 @@ export function EsterilizacionView({ subvistaInicial = 'inventario', subvistasVi
   };
 
   const abrirMovimiento = (id: string) => { setMaterialAbierto(id); setDestino(''); setCirugiaId(''); setError(''); setModal('estado'); setCirugias(leerCirugiasEsterilizacion()); };
-  const verSeguimiento = (id: string) => { setMaterialAbierto(id); setSubvista('seguimiento'); setBusqueda(''); setFiltroEstado(''); setFiltroTipo(''); setFiltroSector(''); setError(''); };
-  const cambiarSubvista = (destinoVista: 'sala' | 'entrega' | 'seguimiento' | 'inventario' | 'kits') => { setSubvista(destinoVista); setBusqueda(''); setFiltroEstado(''); setFiltroTipo(''); setFiltroSector(''); setAviso(''); setError(''); };
-  const abrirAgregar = (id: string) => { setKitAbierto(id); setMaterialesKit([]); setBusquedaAsociar(''); setError(''); setModal('agregar'); };
+  const verSeguimiento = (id: string) => { setMaterialAbierto(id); setCirugias(leerCirugiasEsterilizacion()); setSeguimientoAbierto(true); };
+  const cambiarSubvista = (destinoVista: 'sala' | 'entrega' | 'seguimiento' | 'inventario' | 'kits') => { setSubvista(destinoVista); setBusqueda(''); setFiltroEstado(''); setFiltroSector(''); setAviso(''); setError(''); };
+  const abrirAgregar = (id: string) => { inspeccionKitDialog.current?.close(); setKitAbierto(id); setMaterialesKit([]); setBusquedaAsociar(''); setError(''); setModal('agregar'); };
 
   const navegacionVisible = SUBVISTAS.filter(item => subvistasVisibles.includes(item.id));
   return <section className="recepcion-vista est-vista esterilizacion-vista" aria-label="Esterilización de quirófano"><div className="cocina-subvista-cabecera">{navegacionVisible.length > 1 && <HorizontalSubvistaNav className={`recepcion-subvistas ${navegacionVisible.length === 2 ? 'dos-subvistas' : ''}`} ariaLabel="Subvistas de Esterilización">{navegacionVisible.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => cambiarSubvista(item.id)}><span><Icon name={item.icono} size={17}/></span><strong>{item.titulo}</strong><small>{item.descripcion}</small></button>)}</HorizontalSubvistaNav>}</div>
-    <header className="est-cabecera"><div><p>QUIRÓFANO · ESTERILIZACIÓN</p><h2>Control de material estéril</h2><small>Inventario, kits y trazabilidad del material utilizado en cirugía.</small></div><span><Icon name="lab" size={20}/> {datos.materiales.length} materiales registrados</span></header>
+    <header className="est-cabecera"><div><p>QUIRÓFANO · ESTERILIZACIÓN</p><h2>{titulo}</h2><small>Inventario, kits y trazabilidad del material utilizado en cirugía.</small></div><span><Icon name="lab" size={20}/> {datos.materiales.length} materiales registrados</span></header>
     {navegacionVisible.length > 1 && <nav className="est-subvistas" aria-label="Sub-vistas de esterilización">{navegacionVisible.map(item => <button key={item.id} type="button" className={subvista === item.id ? 'activo' : ''} onClick={() => cambiarSubvista(item.id)}><Icon name={item.icono} size={17}/>{item.titulo}</button>)}</nav>}
     {aviso && <p className="est-aviso" role="status">{aviso}</p>}
     {error && !modal && <p className="est-error" role="alert">{error}</p>}
@@ -203,16 +215,42 @@ export function EsterilizacionView({ subvistaInicial = 'inventario', subvistasVi
       {materialSeleccionado && <section className="est-panel est-historial"><header><div><h3>Historial · {materialSeleccionado.nombre}</h3><small>{materialSeleccionado.codigo} · {movimientos.length} movimientos registrados</small></div><button type="button" onClick={() => setMaterialAbierto(null)} aria-label="Cerrar historial"><Icon name="close" size={16}/></button></header><div className="est-historial-lista">{movimientos.map(item => <div key={item.id}><time>{new Date(item.fecha).toLocaleString('es-BO')}</time><strong>{item.desde === 'registro' ? 'Registro inicial' : ETIQUETAS_ESTADO[item.desde]} → {ETIQUETAS_ESTADO[item.hacia]}</strong><small>{cirugias.find(c => c.id === item.cirugiaId)?.cuenta || 'Sin cirugía asignada'}</small></div>)}</div></section>}
     </>}
 
-    {subvista === 'inventario' && <>
-      <section className="est-panel"><header><div><h3>Inventario de material</h3><small>Las piezas conservan su registro individual aunque pertenezcan a varios kits.</small></div><button className="est-principal" type="button" onClick={() => { setError(''); setFormMaterial(MATERIAL_VACIO); setModal('material'); }}><Icon name="plus" size={16}/> Registrar material</button></header><div className="est-filtros"><label><Icon name="search" size={16}/><input aria-label="Buscar material" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar material o instrumento"/></label><select aria-label="Filtrar por tipo" value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)}><option value="">Todos los tipos</option>{tipos.map(item => <option key={item}>{item}</option>)}</select><select aria-label="Filtrar por sector" value={filtroSector} onChange={e => setFiltroSector(e.target.value)}><option value="">Todos los sectores</option>{sectores.map(item => <option key={item}>{item}</option>)}</select><select aria-label="Filtrar por estado" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}><option value="">Todos los estados</option>{Object.entries(ETIQUETAS_ESTADO).map(([id, nombre]) => <option key={id} value={id}>{nombre}</option>)}</select></div><TablaMateriales materiales={materialesVisibles} cirugias={cirugias} onAccion={verSeguimiento} accion="Ver seguimiento"/></section>
-    </>}
-
+    {subvista === 'inventario' && <section className="est-panel">
+      <header><h3>Inventario de material</h3><button className="est-principal" type="button" onClick={() => { setError(''); setFormMaterial(MATERIAL_VACIO); setModal('material'); }}><Icon name="plus" size={16}/> Registrar nuevo material</button></header>
+      <div className="est-filtros"><label><Icon name="search" size={16}/><input aria-label="Buscar material" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por código o nombre"/></label><select aria-label="Filtrar por ubicación" value={filtroSector} onChange={e => setFiltroSector(e.target.value)}><option value="">Todas las ubicaciones</option>{[...new Set(datos.materiales.map(item => ubicacionMaterial(item, cirugias)))].sort().map(item => <option key={item}>{item}</option>)}</select><select aria-label="Filtrar por estado" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}><option value="">Todos los estados</option>{Object.entries(ETIQUETAS_ESTADO).map(([id, nombre]) => <option key={id} value={id}>{nombre}</option>)}</select></div>
+      <div className="est-tabla-scroll"><table aria-label="Inventario de material"><thead><tr><th>Código</th><th>Nombre</th><th>Ubicación</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{materialesVisibles.map(item => {
+        const ubicacion = ubicacionMaterial(item, cirugias);
+        return <tr key={item.id}><td>{item.codigo}</td><td><strong>{item.nombre}</strong></td><td>{ubicacion}</td><td><span className={`est-estado ${item.estado}`}>{ETIQUETAS_ESTADO[item.estado]}</span></td><td><button type="button" onClick={() => verSeguimiento(item.id)}>Ver seguimiento</button></td></tr>;
+      })}{!materialesVisibles.length && <tr><td colSpan={5}>No hay materiales que coincidan con la búsqueda.</td></tr>}</tbody></table></div>
+    </section>}
     {subvista === 'kits' && <section className="est-panel est-kits-panel"><header><div><h3>Kits y grupos de instrumental</h3><small>Cada instrumento conserva su estado y puede pertenecer a varios kits.</small></div><button className="est-principal" type="button" onClick={() => { setError(''); setFormKit(KIT_VACIO); setMaterialesKit([]); setEspecialidadesKit([]); setBusquedaAsociar(''); setModal('kit'); }}><Icon name="plus" size={16}/> Crear nuevo kit</button></header>
       <div className="est-filtros"><label><Icon name="search" size={16}/><input aria-label="Buscar kit" value={busquedaKit} onChange={e => setBusquedaKit(e.target.value)} placeholder="Buscar kit o especialidad"/></label><select aria-label="Filtrar kits por especialidad" value={filtroEspecialidad} onChange={e => setFiltroEspecialidad(e.target.value)}><option value="">Todas las especialidades</option>{especialidades.map(item => <option key={item}>{item}</option>)}</select><select aria-label="Filtrar kits por estado" value={filtroKitEstado} onChange={e => setFiltroKitEstado(e.target.value)}><option value="">Todos los estados</option>{Object.entries(ETIQUETAS_KIT).map(([id, nombre]) => <option key={id} value={id}>{nombre}</option>)}</select></div>
-      {kitsVisibles.length ? <div className="est-kits est-kits-tarjetas">{kitsVisibles.map(kit => <article key={kit.id} className={kitAbierto === kit.id ? 'est-kit-tarjeta activo' : 'est-kit-tarjeta'}><div className="est-kit-tarjeta-info"><Icon name="package" size={20}/><span><strong>{kit.nombre}</strong><small>{kit.materialIds.length} instrumentos · {(kit.especialidades || []).join(', ') || 'Sin especialidad'}</small></span><b className={`est-kit-estado ${estadoKit(kit, datos.materiales)}`}>{ETIQUETAS_KIT[estadoKit(kit, datos.materiales)]}</b></div><div className="est-kit-acciones"><button type="button" onClick={() => { setKitAbierto(kit.id); setCirugiaId(''); setError(''); setCirugias(leerCirugiasEsterilizacion()); }}>Inspeccionar</button><button type="button" onClick={() => abrirAgregar(kit.id)}>Añadir materiales</button></div></article>)}</div> : <div className="est-vacio"><Icon name="package" size={26}/><strong>No hay kits con estos filtros</strong><small>Crea un kit o ajusta la búsqueda.</small></div>}
-      {kitSeleccionado && <div className="est-kit-detalle"><div className="est-kit-detalle-cabecera"><div><h4>Inspección · {kitSeleccionado.nombre}</h4><small>{(kitSeleccionado.especialidades || []).join(', ') || 'Sin especialidad'} · {kitSeleccionado.descripcion || 'Listado de instrumental'}</small></div><button type="button" onClick={() => abrirAgregar(kitSeleccionado.id)}>+ Añadir materiales</button></div><ul>{kitSeleccionado.materialIds.map(id => { const item = datos.materiales.find(material => material.id === id); return <li key={id}><span>{item?.nombre || 'Material no disponible'} <small>{item?.codigo || 'Sin código'}</small></span><b className={`est-estado ${item?.estado || 'pendiente'}`}>{item ? item.estado === 'cirugia' || item.estado === 'reservado' ? 'Ocupado · ' + ETIQUETAS_ESTADO[item.estado] : ETIQUETAS_ESTADO[item.estado] : 'Sin registro'}</b></li>; })}</ul><div className="est-kit-reserva"><select aria-label="Cirugía para reservar el kit" value={cirugiaId} onChange={e => setCirugiaId(e.target.value)}><option value="">Seleccionar cirugía programada</option>{cirugiasOrdenadas.map(item => <option key={item.id} value={item.id}>{etiquetaCirugia(item)}</option>)}</select><button type="button" onClick={reservarKit} disabled={!cirugiasOrdenadas.length}>Reservar kit</button></div>{error && <p className="est-error" role="alert">{error}</p>}</div>}
+      {kitsVisibles.length ? <div className="est-kits est-kits-tarjetas">{kitsVisibles.map(kit => <article key={kit.id} className={kitAbierto === kit.id ? 'est-kit-tarjeta activo' : 'est-kit-tarjeta'}><div className="est-kit-tarjeta-info"><Icon name="package" size={20}/><span><strong>{kit.nombre}</strong><small>{kit.materialIds.length} instrumentos · {(kit.especialidades || []).join(', ') || 'Sin especialidad'}</small></span><b className={`est-kit-estado ${estadoKit(kit, datos.materiales)}`}>{ETIQUETAS_KIT[estadoKit(kit, datos.materiales)]}</b></div><div className="est-kit-acciones"><button type="button" onClick={() => { setKitAbierto(kit.id); setCirugiaId(''); setError(''); setAviso(''); setCirugias(leerCirugiasEsterilizacion()); setInspeccionKitAbierta(true); }}>Inspeccionar</button><button type="button" onClick={() => abrirAgregar(kit.id)}>Añadir materiales</button></div></article>)}</div> : <div className="est-vacio"><Icon name="package" size={26}/><strong>No hay kits con estos filtros</strong><small>Crea un kit o ajusta la búsqueda.</small></div>}
+
     </section>}
 
+    <dialog ref={inspeccionKitDialog} className="est-modal est-seguimiento-modal est-kit-inspeccion" aria-labelledby="inspeccion-kit-titulo" onClose={() => setInspeccionKitAbierta(false)} onClick={event => {
+      if (event.target !== event.currentTarget) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.currentTarget.close();
+    }}>
+      <header><div><p>INSPECCIÓN DEL KIT</p><h3 id="inspeccion-kit-titulo">{kitSeleccionado?.nombre || 'Inspección de kit'}</h3></div><button type="button" aria-label="Cerrar inspección del kit" onClick={() => inspeccionKitDialog.current?.close()}><Icon name="close" size={17}/></button></header>
+      {kitSeleccionado && <div className="est-kit-detalle"><div className="est-kit-detalle-cabecera"><div><small>{(kitSeleccionado.especialidades || []).join(', ') || 'Sin especialidad'} · {kitSeleccionado.descripcion || 'Listado de instrumental'}</small></div><button type="button" onClick={() => abrirAgregar(kitSeleccionado.id)}>+ Añadir materiales</button></div><ul>{kitSeleccionado.materialIds.map(id => { const item = datos.materiales.find(material => material.id === id); return <li key={id}><span>{item?.nombre || 'Material no disponible'} <small>{item?.codigo || 'Sin código'}</small></span><b className={`est-estado ${item?.estado || 'pendiente'}`}>{item ? item.estado === 'cirugia' || item.estado === 'reservado' ? 'Ocupado · ' + ETIQUETAS_ESTADO[item.estado] : ETIQUETAS_ESTADO[item.estado] : 'Sin registro'}</b></li>; })}</ul><div className="est-kit-reserva"><select aria-label="Cirugía para reservar el kit" value={cirugiaId} onChange={e => setCirugiaId(e.target.value)}><option value="">Seleccionar cirugía programada</option>{cirugiasOrdenadas.map(item => <option key={item.id} value={item.id}>{etiquetaCirugia(item)}</option>)}</select><button type="button" onClick={reservarKit} disabled={!cirugiasOrdenadas.length}>Reservar kit</button></div>{error && <p className="est-error" role="alert">{error}</p>}{aviso && <p className="est-ayuda" role="status">{aviso}</p>}<footer><button type="button" onClick={() => inspeccionKitDialog.current?.close()}>Cerrar</button></footer></div>}
+    </dialog>
+
+    <dialog ref={seguimientoDialog} className="est-modal est-seguimiento-modal" aria-labelledby="seguimiento-material-titulo" onClose={() => setSeguimientoAbierto(false)} onClick={event => {
+      if (event.target !== event.currentTarget) return;
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) event.currentTarget.close();
+    }}>
+      <header><div><p>SEGUIMIENTO DEL MATERIAL</p><h3 id="seguimiento-material-titulo">{materialSeleccionado?.nombre || 'Historial del material'}</h3></div><button type="button" aria-label="Cerrar seguimiento" onClick={() => seguimientoDialog.current?.close()}><Icon name="close" size={17}/></button></header>
+      {materialSeleccionado && <div className="est-seguimiento-contenido">
+        <div className="est-modal-identidad"><strong>{materialSeleccionado.codigo}</strong><small>Ubicación: {ubicacionMaterial(materialSeleccionado, cirugias)}</small><span className={`est-estado ${materialSeleccionado.estado}`}>{ETIQUETAS_ESTADO[materialSeleccionado.estado]}</span></div>
+        <h4>Historial de movimientos</h4>
+        {movimientos.length ? <div className="est-historial-lista">{movimientos.map(item => <div key={item.id}><time>{new Date(item.fecha).toLocaleString('es-BO')}</time><strong>{item.desde === 'registro' ? 'Registro inicial' : ETIQUETAS_ESTADO[item.desde]} → {ETIQUETAS_ESTADO[item.hacia]}</strong><small>{cirugias.find(c => c.id === item.cirugiaId)?.cuenta || 'Sin cirugía asignada'}</small></div>)}</div> : <p className="est-ayuda">Este material todavía no tiene movimientos registrados.</p>}
+        <footer><button type="button" onClick={() => seguimientoDialog.current?.close()}>Cerrar</button></footer>
+      </div>}
+    </dialog>
     {modal && <div className="est-modal-fondo" role="presentation" onMouseDown={() => setModal(null)}><section className="est-modal" role="dialog" aria-modal="true" aria-label={modal === 'recepcion' ? 'Recepción de material sucio' : modal === 'material' ? 'Registrar material estéril' : modal === 'kit' ? 'Crear kit de instrumental' : modal === 'agregar' ? 'Añadir materiales al kit' : 'Registrar movimiento de material'} onMouseDown={e => e.stopPropagation()}><header><div><p>ESTERILIZACIÓN</p><h3>{modal === 'recepcion' ? 'Recepción de material sucio' : modal === 'material' ? 'Registrar nuevo material' : modal === 'kit' ? 'Crear kit o grupo' : modal === 'agregar' ? `Añadir materiales · ${kitSeleccionado?.nombre || ''}` : 'Registrar movimiento'}</h3></div><button type="button" aria-label="Cerrar ventana" onClick={() => setModal(null)}><Icon name="close" size={17}/></button></header>
       {modal === 'etiqueta' && materialEtiqueta && <div className="est-etiqueta-vista"><EtiquetaCodigo material={materialEtiqueta}/><div className="est-etiqueta-acciones"><button type="button" onClick={() => window.print()}>Imprimir</button><button type="button" onClick={() => setModal(null)}>Cerrar</button></div></div>}
       {modal === 'recepcion' && <form onSubmit={registrarRecepcion}><div className="est-form-grid"><label>Entregado por *<input required value={entregadoPor} onChange={e => setEntregadoPor(e.target.value)} placeholder="Nombre del personal que entrega"/></label><label>Utilizado en / procedencia *<input required list="cirugias-con-material" value={usoMaterial} onChange={e => setUsoMaterial(e.target.value)} placeholder="Selecciona una cirugía o escribe la procedencia"/><datalist id="cirugias-con-material">{cirugiasConMaterial.map(cirugia => <option key={cirugia.id} value={etiquetaCirugia(cirugia)} />)}</datalist></label></div><div className="est-recepcion-selector"><fieldset className="est-recepcion-lista"><legend>Material disponible</legend><label className="est-recepcion-buscar"><Icon name="search" size={16}/><input value={busquedaRecepcion} onChange={e => setBusquedaRecepcion(e.target.value)} placeholder="Buscar por nombre, código o serie"/></label><button className="est-lector-codigo" type="button" onClick={leerCodigoBarras}><Icon name="camera" size={16}/> Lector de código de barras</button>{materialesFiltradosRecepcion.length ? materialesFiltradosRecepcion.map(item => { const kit = datos.kits.find(grupo => grupo.materialIds.includes(item.id)); return <label key={item.id}><input type="checkbox" checked={materialesRecibidos.includes(item.id)} onChange={() => setMaterialesRecibidos(actual => actual.includes(item.id) ? actual.filter(id => id !== item.id) : [...actual, item.id])}/><span><strong>{item.nombre}</strong><small>{item.codigo} · {item.serie || item.tipo}</small></span><em>{kit?.nombre || 'Pieza individual'}</em></label>; }) : <p>No se encontraron piezas disponibles.</p>}</fieldset><aside className="est-recepcion-seleccion"><strong>Seleccionado ({materialesRecibidos.length})</strong>{materialesRecibidos.length ? <ul>{materialesRecibidos.map(id => { const item = datos.materiales.find(material => material.id === id); return <li key={id}><span>{item?.nombre}<small>{item?.codigo}</small></span><button type="button" onClick={() => setMaterialesRecibidos(actual => actual.filter(materialId => materialId !== id))} aria-label={`Quitar ${item?.nombre || 'material'}`}><Icon name="close" size={14}/></button></li>; })}</ul> : <p>Selecciona las piezas recibidas para revisarlas aquí.</p>}</aside></div>{error && <p className="est-error" role="alert">{error}</p>}<footer><button type="button" onClick={() => setModal(null)}>Cancelar</button><button type="submit">Registrar recepción ({materialesRecibidos.length})</button></footer></form>}
@@ -235,4 +273,10 @@ function RecepcionSucio({ recepciones, materiales, kits, onAbrir }: { recepcione
 
 function TablaMateriales({ materiales, cirugias, onAccion, accion }: { materiales: MaterialEsteril[]; cirugias: CirugiaProgramada[]; onAccion: (id: string) => void; accion: string }) {
   return materiales.length ? <div className="est-tabla-scroll"><table><thead><tr><th>Material / código</th><th>Tipo y serie</th><th>Sector / ubicación</th><th>Estado</th><th>Cirugía asignada</th><th>Acción</th></tr></thead><tbody>{materiales.map(item => { const cirugia = cirugias.find(c => c.id === item.cirugiaId); const ubicacion = item.estado === 'cirugia' ? cirugia?.quirofano : item.estado === 'esterilizacion' ? 'Sala de esterilización' : item.sector; return <tr key={item.id}><td><strong>{item.nombre}</strong><small>{item.codigo}</small></td><td>{item.tipo}<small>{item.serie || item.marca || 'Sin serie'}</small></td><td>{ubicacion || item.sector}<small>Origen: {item.sector}</small></td><td><span className={`est-estado ${item.estado}`}>{ETIQUETAS_ESTADO[item.estado]}</span></td><td>{cirugia ? <><strong>{cirugia.cuenta}</strong><small>{cirugia.fecha} · {cirugia.hora}</small></> : <span className="est-sin-cirugia">Sin asignar</span>}</td><td><button type="button" onClick={() => onAccion(item.id)}>{accion}</button></td></tr>; })}</tbody></table></div> : <div className="est-vacio"><Icon name="package" size={26}/><strong>No hay materiales con estos filtros</strong><small>Registra una pieza en Inventario o ajusta la búsqueda.</small></div>;
+}
+
+function ubicacionMaterial(item: MaterialEsteril, cirugias: CirugiaProgramada[]): string {
+  if (item.estado === 'esterilizacion') return 'Sala de esterilización';
+  if (item.estado === 'cirugia') return cirugias.find(cirugia => cirugia.id === item.cirugiaId)?.quirofano || item.sector;
+  return item.sector;
 }

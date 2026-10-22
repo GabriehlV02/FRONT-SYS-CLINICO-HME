@@ -14,7 +14,7 @@ const subvistas: { id: Vista; nombre: string; icono: IconName; descripcion: stri
   { id: 'configuracion', nombre: 'Configuración', icono: 'settings', descripcion: 'Parámetros operativos del área.' },
 ];
 export function AdministracionFarmaciaView() {
-  const [subvista, setSubvista] = useState<Vista>('items-venta');
+  const [subvista, setSubvista] = useState<Vista>('almacen');
   const navegacion = <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Administración Farmacia">{subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}><span><Icon name={item.icono} size={17} /></span><strong>{item.nombre}</strong><small>{item.descripcion}</small></button>)}</HorizontalSubvistaNav>;
   return <section className="recepcion-vista farmacia-admin-vista"><div className="cocina-subvista-cabecera">{navegacion}</div>{subvista === 'items-venta' && <ItemsVenta />}{subvista === 'almacen' && <Almacen />}{subvista === 'movimientos' && <Movimientos />}{subvista === 'ventas' && <Ventas />}{subvista === 'ingresos' && <Ingresos />}{subvista === 'configuracion' && <Configuracion />}</section>;
 }

@@ -29,14 +29,6 @@ export function RecetarioMedico({ paciente, medico, abierto, onAbrir, onCerrar, 
 
 
 type ProductoReceta = { id: string; nombre: string; codigo: string; tipo: string; unidad: string; categoria?: string; grupo?: string; via?: string };
-const medicamentosPrueba: ProductoReceta[] = [
-  { id: 'demo-receta-001', codigo: 'DEMO-001', nombre: 'Demoalivio · Comprimidos · Prueba', tipo: 'producto', unidad: 'Comprimido', via: 'Oral' },
-  { id: 'demo-receta-002', codigo: 'DEMO-002', nombre: 'Democalma · Cápsulas · Prueba', tipo: 'producto', unidad: 'Cápsula', via: 'Oral' },
-  { id: 'demo-receta-003', codigo: 'DEMO-003', nombre: 'Demojarabe · Frasco 120 mL · Prueba', tipo: 'producto', unidad: 'Frasco', via: 'Oral' },
-  { id: 'demo-receta-004', codigo: 'DEMO-004', nombre: 'Democrema · Tubo 30 g · Prueba', tipo: 'producto', unidad: 'Tubo', via: 'Tópica' },
-  { id: 'demo-receta-005', codigo: 'DEMO-005', nombre: 'Demogotas · Frasco 10 mL · Prueba', tipo: 'producto', unidad: 'Frasco', via: 'Oftálmica' },
-  { id: 'demo-receta-006', codigo: 'DEMO-006', nombre: 'Demospray · Frasco 20 mL · Prueba', tipo: 'producto', unidad: 'Frasco', via: 'Tópica' },
-];
 const normalizarMedicamento = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 function NuevaReceta({ paciente, medico, onCerrar, onGuardar }: { paciente: CitaConfirmada; medico: string; onCerrar: () => void; onGuardar: (receta: DocumentoEpisodio) => void }) {
   const dialogo = useRef<HTMLDialogElement>(null), formulario = useRef<HTMLFormElement>(null), buscador = useRef<HTMLInputElement>(null);
@@ -44,7 +36,7 @@ function NuevaReceta({ paciente, medico, onCerrar, onGuardar }: { paciente: Cita
   const [medicamentos, setMedicamentos] = useState<MedicamentoReceta[]>([]);
   const [borrador, setBorrador] = useState<MedicamentoReceta>(nuevoMedicamento);
   const [editando, setEditando] = useState<string | null>(null);
-  const [catalogo, setCatalogo] = useState<ProductoReceta[]>(medicamentosPrueba);
+  const [catalogo, setCatalogo] = useState<ProductoReceta[]>([]);
   const [cargando, setCargando] = useState(true), [errorCatalogo, setErrorCatalogo] = useState('');
   const [busqueda, setBusqueda] = useState(''), [busquedaAbierta, setBusquedaAbierta] = useState(false), [indice, setIndice] = useState(-1);
   const [error, setError] = useState(''), [aviso, setAviso] = useState('');
@@ -57,7 +49,7 @@ function NuevaReceta({ paciente, medico, onCerrar, onGuardar }: { paciente: Cita
       if (!respuesta.ok) throw new Error();
       const datos: unknown = await respuesta.json();
       if (!Array.isArray(datos)) throw new Error();
-      setCatalogo([...medicamentosPrueba, ...(datos as ProductoReceta[]).filter(p => p.tipo === 'producto' && typeof p.nombre === 'string' && !medicamentosPrueba.some(demo => demo.id === p.id))]);
+      setCatalogo((datos as ProductoReceta[]).filter(p => p.tipo === 'producto' && typeof p.nombre === 'string'));
     } catch { setErrorCatalogo('No se pudo consultar el catálogo. Puedes reintentar o utilizar el nombre escrito.'); }
     finally { setCargando(false); }
   };

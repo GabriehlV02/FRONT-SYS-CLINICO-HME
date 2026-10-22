@@ -43,70 +43,6 @@ const obtenerDetalleConsumo = (consumo: ConsumoHistorial): DetalleConsumo => {
   if (consumo.n === "EM-000317") return { ...base, pagado: "0.00", pagos: ["Pendiente de cobro"], items: [{ concepto: "Medicamentos de emergencia", cantidad: 1, unitario: "65.00", total: "65.00" }, { concepto: "Insumos médicos", cantidad: 1, unitario: "30.00", total: "30.00" }] };
   return { ...base, pagado: consumo.estado === "Pagado" ? consumo.total : "0.00", pagos: consumo.estado === "Pagado" ? ["Efectivo · Bs. " + consumo.total] : [consumo.estado === "Anulado" ? "Venta anulada · sin cobro" : "Pendiente de cobro"], items: [{ concepto: "Consulta ambulatoria", cantidad: 1, unitario: "80.00", total: "80.00" }, { concepto: "Hemograma completo", cantidad: 1, unitario: "50.00", total: "50.00" }, { concepto: "Materiales de curación", cantidad: 1, unitario: "30.00", total: "30.00" }] };
 };
-const catalogo: Item[] = [
-  {
-    id: "consulta",
-    nombre: "Consulta ambulatoria",
-    tipo: "Servicio",
-    codigo: "SRV-001",
-    precio: 80,
-  },
-  {
-    id: "hemograma",
-    nombre: "Hemograma completo",
-    tipo: "Servicio",
-    codigo: "LAB-009",
-    precio: 50,
-    categoria: "Laboratorio",
-    subcategoria: "Hematología",
-  },
-  {
-    id: "rayos",
-    nombre: "Estudio de imagenología",
-    tipo: "Servicio",
-    codigo: "IMG-014",
-    precio: 120,
-    categoria: "Imagenología",
-  },
-  {
-    id: "gasa",
-    nombre: "Gasa estéril 10 × 10 cm",
-    tipo: "Insumo",
-    codigo: "INS-021",
-    precio: 12,
-    stock: 84,
-    stockMinimo: 30,
-    fechaVencimiento: "2027-06-30",
-  },
-  {
-    id: "venda",
-    nombre: "Venda elástica 10 cm",
-    tipo: "Insumo",
-    codigo: "INS-034",
-    precio: 18,
-    stock: 35,
-    stockMinimo: 40,
-    fechaVencimiento: "2026-11-12",
-  },
-  {
-    id: "paracetamol",
-    nombre: "Paracetamol 500 mg",
-    tipo: "Producto",
-    codigo: "PRD-104",
-    precio: 8,
-    stock: 146,
-    stockMinimo: 50,
-    fechaVencimiento: "2026-12-15",
-  },
-];
-const catalogoCocina: Item[] = [
-  { id: 'coc-desayuno', nombre: 'Desayuno hospitalario', tipo: 'Servicio', codigo: 'COC-001', precio: 18, categoria: 'Desayunos', stock: 32 },
-  { id: 'coc-almuerzo', nombre: 'Almuerzo del día', tipo: 'Servicio', codigo: 'COC-002', precio: 32, categoria: 'Almuerzos', stock: 48 },
-  { id: 'coc-cena', nombre: 'Cena ligera', tipo: 'Servicio', codigo: 'COC-003', precio: 26, categoria: 'Cenas', stock: 26 },
-  { id: 'coc-blanda', nombre: 'Dieta blanda', tipo: 'Servicio', codigo: 'COC-004', precio: 28, categoria: 'Dietas', stock: 18 },
-  { id: 'coc-liquida', nombre: 'Dieta líquida', tipo: 'Servicio', codigo: 'COC-005', precio: 22, categoria: 'Dietas', stock: 14 },
-  { id: 'coc-jugo', nombre: 'Jugo natural', tipo: 'Producto', codigo: 'COC-006', precio: 10, categoria: 'Bebidas', stock: 40 },
-];
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
 const alertasInventario = (item: Item) => {
   const alertas: { tipo: "stock" | "vencimiento"; texto: string; nivel: "bajo" | "proximo" | "vencido" }[] = [];
@@ -165,6 +101,20 @@ export function CajaRecepcionView({
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(""),
     [mensaje, setMensaje] = useState("");
+  const [catalogo, setCatalogo] = useState<Item[]>([]);
+  const [errorCatalogo, setErrorCatalogo] = useState('');
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
+  const [recargaCatalogo, setRecargaCatalogo] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController(); setCargandoCatalogo(true); setErrorCatalogo('');
+    apiFetch('/api/catalogo', { signal: controller.signal }).then(async r => {
+      const respuesta = await r.json(); if (!r.ok) throw new Error(respuesta.message || 'No se pudo consultar el catálogo compartido.');
+      return respuesta.data as (Omit<Item, 'tipo'> & { tipo: string })[];
+    }).then(datos => setCatalogo(datos.map(i => ({ ...i, tipo: i.tipo === 'servicio' ? 'Servicio' : i.tipo === 'insumo' ? 'Insumo' : 'Producto' }))))
+      .catch(error => { if (!controller.signal.aborted) setErrorCatalogo(error.message); })
+      .finally(() => { if (!controller.signal.aborted) setCargandoCatalogo(false); });
+    return () => controller.abort();
+  }, [recargaCatalogo]);
   const [imagenParaAgregar, setImagenParaAgregar] = useState<Item | null>(null);
   const [consultaParaAgendar, setConsultaParaAgendar] = useState<Item | null>(null);
   const [especialidadConsulta, setEspecialidadConsulta] = useState('Medicina general');
@@ -239,7 +189,7 @@ export function CajaRecepcionView({
 
   const resultados = useMemo(
     () =>
-      (cocina ? catalogoCocina : catalogo).map(item => item.id === 'consulta' ? { ...item, precio: precioConsulta } : item).filter(
+      catalogo.filter(
         (i) =>
           (cocina || !farmacia || i.tipo === "Producto" || i.tipo === "Insumo") &&
           (tipo === "Todos" || i.tipo === tipo) &&
@@ -247,7 +197,7 @@ export function CajaRecepcionView({
             .toLowerCase()
             .includes(busqueda.toLowerCase()),
       ),
-    [busqueda, tipo, farmacia, cocina, precioConsulta],
+    [busqueda, tipo, farmacia, cocina, catalogo],
   );
   const subtotal = lineas.reduce((t, i) => t + i.precio * i.cantidad, 0),
     rebaja = Math.min(Math.max(Number(descuento) || 0, 0), subtotal),
@@ -979,7 +929,11 @@ export function CajaRecepcionView({
           </aside>
         )}
         <section className="punto-catalogo">
+          {cargandoCatalogo && <p role="status">Consultando productos y servicios del contable…</p>}
+          {errorCatalogo && <p role="alert">{errorCatalogo} <button type="button" onClick={() => setRecargaCatalogo(v => v + 1)}>Reintentar</button></p>}
+          {!cargandoCatalogo && !errorCatalogo && catalogo.length === 0 && <p role="status">No hay productos ni servicios activos en el catálogo contable.</p>}
           <div className="punto-busquedas">
+            <button type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}>Actualizar catálogo</button>
             <label>
               <Icon name="search" size={17} />
               <input

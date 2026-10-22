@@ -20,7 +20,7 @@ export default function VistaUsuariosSistema() {
   const [error, setError] = useState('');
 
   const cargar = async () => { setCargando(true); try { const respuesta = await apiFetch('/api/v1/usuarios'); const datos = await respuesta.json(); if (!respuesta.ok) throw new Error(); setUsuarios(datos.data ?? []); } catch { setUsuarios([]); } finally { setCargando(false); } };
-  useEffect(() => { void cargar(); void apiFetch('/api/v1/roles').then(r => r.ok ? r.json() : { data: [] }).then(d => setRoles(d.data?.length ? d.data : [{ id: 'admin-temporal', nombre: 'Administrador' }])).catch(() => setRoles([{ id: 'admin-temporal', nombre: 'Administrador' }])); }, []);
+  useEffect(() => { void cargar(); void apiFetch('/api/v1/roles').then(r => r.ok ? r.json() : { data: [] }).then(d => setRoles(d.data ?? [])).catch(() => { setRoles([]); setError('No se pudieron cargar los roles compartidos.'); }); }, []);
   const visibles = useMemo(() => usuarios.filter(item => { const texto = `${item.nombres} ${item.apellido_paterno ?? item.apellidos ?? ''} ${item.apellido_materno ?? ''} ${item.ci ?? ''} ${item.correo ?? ''} ${item.usuario}`.toLowerCase(); return texto.includes(busqueda.toLowerCase()) && (filtroRol === 'TODOS' || item.rol === filtroRol); }), [usuarios, busqueda, filtroRol]);
   const actualizar = (campo: keyof typeof inicial, valor: string) => { setFormulario(actual => ({ ...actual, [campo]: valor })); setError(''); };
   const abrir = () => { setFormulario(inicial); setError(''); setModal(true); };

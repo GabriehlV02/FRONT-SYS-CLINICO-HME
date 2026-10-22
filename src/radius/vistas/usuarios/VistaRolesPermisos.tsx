@@ -30,7 +30,6 @@ const flujos: Flujo[] = [
 ];
 
 const rolVacio = (): Rol => ({ id: '', nombre: '', descripcion: '', permisos: [], activo: true });
-const rolAdministrador = (): Rol => ({ id: 'admin-temporal', nombre: 'Administrador', descripcion: 'Acceso completo a todos los flujos y acciones del sistema clínico.', permisos: flujos.flatMap(f => f.permisos.map(p => p.codigo)), activo: true });
 
 export default function VistaRolesPermisos() {
   const [roles, setRoles] = useState<Rol[]>([]);
@@ -39,7 +38,7 @@ export default function VistaRolesPermisos() {
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState('');
   const todos = useMemo(() => flujos.flatMap(f => f.permisos.map(p => p.codigo)), []);
-  const cargar = async () => { setCargando(true); try { const r = await apiFetch('/api/v1/roles'); const d = await r.json(); if (!r.ok) throw new Error(); setRoles(d.data?.length ? d.data : [rolAdministrador()]); } catch { setRoles([rolAdministrador()]); } finally { setCargando(false); } };
+  const cargar = async () => { setCargando(true); try { const r = await apiFetch('/api/v1/roles'); const d = await r.json(); if (!r.ok) throw new Error(); setRoles(d.data ?? []); } catch { setRoles([]); setMensaje('No se pudieron consultar los roles compartidos.'); } finally { setCargando(false); } };
   useEffect(() => { void cargar(); }, []);
   const alternar = (codigo: string) => setRol(a => ({ ...a, permisos: a.permisos.includes(codigo) ? a.permisos.filter(p => p !== codigo) : [...a.permisos, codigo] }));
   const alternarFlujo = (flujo: Flujo) => { const codigos = flujo.permisos.map(p => p.codigo); const completo = codigos.every(c => rol.permisos.includes(c)); setRol(a => ({ ...a, permisos: completo ? a.permisos.filter(c => !codigos.includes(c)) : [...new Set([...a.permisos, ...codigos])] })); };
@@ -48,7 +47,7 @@ export default function VistaRolesPermisos() {
   return <section className="roles-editor-vista">
     <main className="roles-editor-principal">
       <section className="roles-datos"><label>Nombre del rol<input value={rol.nombre} onChange={e => setRol({ ...rol, nombre: e.target.value })} placeholder="Ej. Recepcionista" maxLength={100}/></label><label>Descripción<textarea value={rol.descripcion ?? ''} onChange={e => setRol({ ...rol, descripcion: e.target.value })} placeholder="Describe las responsabilidades de este rol" rows={2}/></label></section>
-      <div className="roles-permisos-titulo"><div><h3>Permisos por flujo</h3><p>Marca las vistas y acciones disponibles para este rol.</p></div><button type="button" onClick={() => setRol(a => ({ ...a, permisos: a.permisos.length === todos.length ? [] : todos }))}><Icon name="check" size={15}/>{rol.permisos.length === todos.length ? 'Quitar todos' : 'Seleccionar todos'}</button></div>
+      <div className="roles-permisos-titulo"><div><h3>Permisos por flujo</h3><p>Marca las vistas y acciones disponibles para este rol.</p></div><button type="button" onClick={() => setRol(a => { const otros = a.permisos.filter(p => !todos.includes(p)); return { ...a, permisos: todos.every(p => a.permisos.includes(p)) ? otros : [...otros, ...todos] }; })}><Icon name="check" size={15}/>{todos.every(p => rol.permisos.includes(p)) ? 'Quitar todos' : 'Seleccionar todos'}</button></div>
       <div className="roles-flujos">{flujos.map(flujo => { const cantidad = flujo.permisos.filter(p => rol.permisos.includes(p.codigo)).length; return <article className="roles-flujo" key={flujo.id}><header><span><Icon name={flujo.icono} size={18}/></span><div><h3>{flujo.nombre}</h3><p>{flujo.descripcion}</p></div><label className="roles-check-todo"><input type="checkbox" checked={cantidad === flujo.permisos.length} onChange={() => alternarFlujo(flujo)}/><i/><b>{cantidad}/{flujo.permisos.length}</b></label></header><div className="roles-permisos-lista">{flujo.permisos.map(permiso => <label className="roles-permiso" key={permiso.codigo}><input type="checkbox" checked={rol.permisos.includes(permiso.codigo)} onChange={() => alternar(permiso.codigo)}/><span className="roles-checkbox"><Icon name="check" size={13}/></span><span><strong>{permiso.nombre}</strong><small>{permiso.descripcion}</small></span></label>)}</div></article>; })}</div>
       <footer className="roles-editor-acciones">{mensaje && <p className={mensaje.includes('correctamente') ? 'correcto' : 'error'}>{mensaje}</p>}<button type="button" onClick={() => { setRol(rolVacio()); setMensaje(''); }}>Limpiar</button><button type="button" className="primario" disabled={guardando} onClick={() => void guardar()}><Icon name="check" size={16}/>{guardando ? 'Guardando…' : rol.id ? 'Guardar cambios' : 'Registrar rol'}</button></footer>
     </main>

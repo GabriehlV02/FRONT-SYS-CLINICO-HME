@@ -72,4 +72,4 @@
   .em-lista-cabecera > span::before { display: none; }
 }
 
-.em-medica .em-cabecera-con-paciente>.em-volver-listado{color:#fff!important;background:#087fb7!important;border:1px solid #087fb7!important;box-shadow:0 5px 13px rgba(8,127,183,.22)!important}.em-medica .em-cabecera-con-paciente>.em-volver-listado:hover{color:#fff!important;background:#066b9b!important;border-color:#066b9b!important}.em-medica .em-cabecera-con-paciente>.em-volver-listado svg{color:inherit}
+.emergencias-vista.em-medica .em-cabecera-con-paciente>.em-volver-listado{color:#fff!important;background:#c83232!important;border:1px solid #b9272d!important;box-shadow:0 5px 13px rgba(200,50,50,.25)!important}.emergencias-vista.em-medica .em-cabecera-con-paciente>.em-volver-listado:hover{color:#fff!important;background:#a91f29!important;border-color:#981b24!important}.emergencias-vista.em-medica .em-cabecera-con-paciente>.em-volver-listado svg{color:inherit}

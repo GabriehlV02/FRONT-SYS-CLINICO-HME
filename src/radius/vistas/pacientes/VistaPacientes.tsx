@@ -301,7 +301,8 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           <span>Paciente</span>
           <span>Fecha de nacimiento</span>
           <span>Documento</span>
-          <span>Edad / sexo</span>
+          <span>Edad</span>
+          <span>Sexo</span>
           <span>Celular</span>
           {!modoClinico && <span>{modalidad || "Pacientes"}</span>}
           <span>Acciones</span>
@@ -338,13 +339,12 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                   </span>
                 </div>
                 <div>
-                  <strong className="dato-movil">Edad / sexo</strong>
-                  <span>
-                    {calcularEdad(p.fechaNacimiento) === null
-                      ? "No registrada"
-                      : `${calcularEdad(p.fechaNacimiento)} años`}
-                  </span>
-                  <small>{p.sexo.replace("_", " ")}</small>
+                  <strong className="dato-movil">Edad</strong>
+                  <span>{calcularEdad(p.fechaNacimiento) === null ? "No registrada" : `${calcularEdad(p.fechaNacimiento)} años`}</span>
+                </div>
+                <div>
+                  <strong className="dato-movil">Sexo</strong>
+                  <span>{p.sexo.replace("_", " ") || "No registrado"}</span>
                 </div>
                 <div>
                   <strong className="dato-movil">Celular</strong>

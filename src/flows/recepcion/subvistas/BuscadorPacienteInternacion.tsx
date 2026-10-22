@@ -5,8 +5,8 @@ import { obtenerPacientes, type PacienteDemo } from '../../../radius/datos/almac
 export const nombrePaciente = (p: PacienteDemo) => [p.nombres, p.primerApellido, p.segundoApellido].filter(Boolean).join(' ');
 const normalizar = (valor: string) => valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
 
-export function BuscadorPacienteInternacion({ valor, ciInicial, onCambiar, onSeleccionar }: {
-  valor: string; ciInicial?: string; onCambiar: (valor: string) => void; onSeleccionar: (p: PacienteDemo) => void;
+export function BuscadorPacienteInternacion({ valor, ci, ciInicial, onCambiar, onSeleccionar }: {
+  valor: string; ci: string; ciInicial?: string; onCambiar: (valor: string) => void; onSeleccionar: (p: PacienteDemo) => void;
 }) {
   const [pacientes, setPacientes] = useState<PacienteDemo[]>([]);
   const [abierto, setAbierto] = useState(false);
@@ -44,6 +44,12 @@ export function BuscadorPacienteInternacion({ valor, ciInicial, onCambiar, onSel
     const encontrado = pacientes.find(p => p.numeroDocumento === ciInicial);
     if (encontrado) { seleccionadoInicial.current = true; seleccionar.current(encontrado); }
   }, [pacientes, cargando, ciInicial]);
+  useEffect(() => {
+    const documento = normalizar(ci);
+    if (!documento) return;
+    const encontrado = pacientes.find(p => normalizar(p.numeroDocumento) === documento);
+    if (encontrado) seleccionar.current(encontrado);
+  }, [pacientes, ci]);
   const consulta = normalizar(valor);
   const coincidencias = consulta ? pacientes.filter(p => consulta.split(/\s+/).every(parte => normalizar(`${nombrePaciente(p)} ${p.numeroDocumento}`).includes(parte))).slice(0, 8) : [];
   const elegir = (p: PacienteDemo) => { onSeleccionar(p); setAbierto(false); setActivo(-1); };

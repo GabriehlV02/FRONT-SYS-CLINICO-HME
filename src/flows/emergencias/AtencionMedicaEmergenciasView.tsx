@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import AnamnesisEmergencia from './AnamnesisEmergencia';
+import RevisionSistemas from './RevisionSistemas';
 import Icon from '../../radius/componentes/Icono';
 import { apiEmergencias, camposIdentidad, fechaEmergencia, nombrePaciente, tiposOrden, type CuentaEmergencia, type ItemEmergencia, type OrdenEmergencia } from './emergenciasApi';
-import { OrdenesEmergencias } from './OrdenesEmergencias';
 import { HojaLaboratorios } from '../consultorio/HojaLaboratorios';
 import './TriajeEmergenciasView.css';
 import './AtencionMedicaEmergenciasView.css';
@@ -27,7 +28,7 @@ const edadPaciente = (nacimiento?: string) => {
   return edad >= 0 ? `${edad} años` : 'No registrada';
 };
 
-export function AtencionMedicaEmergenciasView() {
+export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuentaInicialId?: string }) {
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]), [activa, setActiva] = useState(''), [busqueda, setBusqueda] = useState('');
   const [finalizadas, setFinalizadas] = useState(false), [cargando, setCargando] = useState(true), [error, setError] = useState('');
   const [catalogo, setCatalogo] = useState<ItemEmergencia[]>([]), [errorCatalogo, setErrorCatalogo] = useState('');
@@ -40,7 +41,7 @@ export function AtencionMedicaEmergenciasView() {
   async function cargar() {
     if (guardando.current) return;
     const lectura = ++secuencia.current;
-    try { const datos = await apiEmergencias<{ cuentas: CuentaEmergencia[] }>(); if (lectura === secuencia.current) { setCuentas(datos.cuentas); setError(''); } }
+    try { const datos = await apiEmergencias<{ cuentas: CuentaEmergencia[] }>(); if (lectura === secuencia.current) { setCuentas(actuales => JSON.stringify(actuales) === JSON.stringify(datos.cuentas) ? actuales : datos.cuentas); setError(''); } }
     catch (e) { if (lectura === secuencia.current) setError((e as Error).message); }
     finally { setCargando(false); }
   }
@@ -55,6 +56,9 @@ export function AtencionMedicaEmergenciasView() {
     window.addEventListener('beforeunload', salir);
     return () => { clearInterval(t); secuencia.current++; window.removeEventListener('beforeunload', salir); };
   }, []);
+  useEffect(() => {
+    if (cuentaInicialId && cuentas.some(cuenta => cuenta.id === cuentaInicialId)) setActiva(cuentaInicialId);
+  }, [cuentaInicialId, cuentas]);
   const cuenta = cuentas.find(c => c.id === activa);
   const visibles = cuentas.filter(c => (finalizadas || !c.fin) && `${c.cubiculo} ${nombrePaciente(c)} ${c.identidad?.documento || ''}`.toLowerCase().includes(busqueda.toLowerCase()));
   const cubiculosDisponibles = cubiculosEmergencias.filter(cubiculo => !cuentas.some(cuenta => !cuenta.fin && cuenta.cubiculo === cubiculo.id));
@@ -77,8 +81,10 @@ export function AtencionMedicaEmergenciasView() {
     } catch (e) { setError((e as Error).message); }
     finally { guardando.current = false; }
   }
-    return <section className="emergencias-vista em-medica">
-    <header className={`em-cabecera ${cuenta ? 'em-cabecera-con-paciente' : ''}`}>{cuenta && <button type="button" className="em-volver-listado" onClick={volverAlListado}><Icon name="chevronLeft" size={17}/> Regresar</button>}<div className="em-cabecera-titulo"><p>EMERGENCIAS · ATENCIÓN MÉDICA</p><h2>Evaluación y tratamiento</h2></div><div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button><button className="em-primario em-iniciar-atencion" type="button" onClick={() => { setHoraIngresoNueva(horaActual()); setMostrarAcompanante(false); setIniciando(true); }}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button></div></header>
+    return <section className="emergencias-vista em-medica"
+      onPointerDownCapture={() => window.dispatchEvent(new Event('clinico:replegar-sidebar'))}
+      onFocusCapture={() => window.dispatchEvent(new Event('clinico:replegar-sidebar'))}>
+    <header className={`em-cabecera ${cuenta ? 'em-cabecera-con-paciente' : ''}`}>{cuenta && <button type="button" className="em-volver-listado" onClick={volverAlListado}><Icon name="chevronLeft" size={17}/> Regresar</button>}<div className="em-cabecera-titulo"><p>EMERGENCIAS · ATENCIÓN MÉDICA</p></div><div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button><button className="em-primario em-iniciar-atencion" type="button" onClick={() => { setHoraIngresoNueva(horaActual()); setMostrarAcompanante(false); setIniciando(true); }}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button></div></header>
     {iniciando && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIniciando(false); }}><form className="em-panel em-medica-nueva" role="dialog" aria-modal="true" aria-labelledby="em-medica-inicio-titulo" onSubmit={iniciarAtencion}>
       <header><div><span>INGRESO DIRECTO</span><h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3><p>Selecciona un cubículo y registra los datos disponibles para abrir la atención.</p></div><button type="button" aria-label="Cerrar" onClick={() => setIniciando(false)}><Icon name="close" size={18}/></button></header>
       <div className="em-inicio-datos"><div className="em-selector-cubiculo" onKeyDown={evento => { if (evento.key === 'Escape') setSelectorCubiculoAbierto(false); }}><span>Cubículo de atención *</span><button type="button" disabled={guardando.current || !cubiculosDisponibles.length} className={cubiculoNuevo ? 'seleccionado' : ''} aria-haspopup="listbox" aria-expanded={selectorCubiculoAbierto} onClick={() => setSelectorCubiculoAbierto(abierto => !abierto)}>{cubiculoNuevo ? nombreCubiculo(cubiculoNuevo) : cubiculosDisponibles.length ? 'Selecciona un cubículo' : 'No hay cubículos libres'}<Icon name="chevronDown" size={16} /></button>{selectorCubiculoAbierto && <div className="em-opciones-cubiculo" role="listbox" aria-label="Cubículo de atención">{cubiculosDisponibles.map(cubiculo => <button type="button" role="option" aria-selected={cubiculoNuevo === cubiculo.id} key={cubiculo.id} onClick={() => { setCubiculoNuevo(cubiculo.id); setSelectorCubiculoAbierto(false); setErrorCubiculo(''); solicitud.current = crypto.randomUUID(); }}>{cubiculoNuevo === cubiculo.id && <Icon name="check" size={15} />}{cubiculo.nombre}</button>)}</div>}</div><label className="em-hora-ingreso">Hora de ingreso *<input type="time" required value={horaIngresoNueva} onChange={evento => setHoraIngresoNueva(evento.target.value)} /></label></div>
@@ -117,6 +123,7 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const [orden, setOrden] = useState<BorradorOrden | null>(null), [buscarItem, setBuscarItem] = useState('');
   const [estudiosImagen, setEstudiosImagen] = useState<EstudioImagen[]>([]), [tipoImagen, setTipoImagen] = useState('Rayos X');
   const [valoresSignos, setValoresSignos] = useState<Record<string, string>>({}), [observacionSignos, setObservacionSignos] = useState('');
+  const evolucionDialogo = useRef<HTMLDialogElement>(null);
   const [identidad, setIdentidad] = useState<{ revision: number; datos: Record<string, string> } | null>(null);
   const [ocupado, setOcupado] = useState(false), [error, setError] = useState(''), [mensaje, setMensaje] = useState('');
   const bloqueo = useRef(false), editorOrden = useRef<HTMLDivElement>(null);
@@ -137,10 +144,16 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const totalConsumido = cuenta.consumos.reduce((total, consumo) => total + consumo.precio * consumo.cantidad, 0);
   const estudios = (cuenta.ordenes || []).filter(ordenActual => ['laboratorio', 'imagenologia'].includes(ordenActual.tipo));
   return <div className="em-medica-atencion">
-    <main className="em-trabajo">
+    <main key={`paneles-atencion-v2-${cuenta.id}`} className="em-trabajo">
       <header className="em-panel em-medica-cabecera em-ficha-atencion"><div className="em-ficha-principal"><p>ATENCIÓN MÉDICA · {nombreCubiculo(cuenta.cubiculo)}</p><h2>{nombrePaciente(cuenta)}</h2><div className="em-ficha-datos"><span><b>Cuenta</b>{cuenta.id.slice(0, 8).toUpperCase()}</span><span><b>Ingreso</b>{fechaEmergencia(cuenta.inicio)}</span><span><b>Historia clínica</b>{cuenta.identidad?.historiaClinica || 'Sin registro'}</span><span><b>Responsable</b>{cuenta.identidad?.familiar || 'Sin registro'}</span><span><b>Profesional</b>{cuenta.identidad?.medicoAdmision || 'Sin registro'}</span><span><b>Diagnóstico</b>{cuenta.evaluaciones?.at(-1)?.campos.diagnostico || 'Sin registro'}</span></div></div><div className="em-ficha-total"><small>Total consumido</small><strong>Bs {totalConsumido.toFixed(2)}</strong><small>{cuenta.consumos.some(consumo => consumo.porHora && !consumo.fin) ? 'Incluye servicios en curso' : 'Registrado en la cuenta'}</small>{!cuenta.fin && datosPacienteIncompletos(cuenta.identidad) && <button className="em-completar-paciente" type="button" onClick={() => setIdentidad({ revision: cuenta.revision, datos: { ...(cuenta.identidad || {}) } })}><Icon name="edit" size={15} /> Completar datos del paciente</button>}</div>{!cuenta.fin && <nav className="em-accesos-orden"><button onClick={() => abrirOrden('medicamento')}>Receta / indicación</button><button onClick={() => abrirOrden('laboratorio')}><Icon name="lab" size={15} /> Laboratorio</button><button onClick={() => abrirOrden('imagenologia')}><Icon name="image" size={15} /> Imagenología</button><button onClick={() => abrirOrden('internacion')}>Internación</button></nav>}</header>
       {error && <div className="em-error" role="alert">{error}</div>}{mensaje && <div className="em-aviso" role="status">{mensaje}</div>}
       {identidad && <div className="em-modal-orden" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIdentidad(null); }}><section className="em-panel em-orden-estudio" role="dialog" aria-modal="true" aria-labelledby="em-datos-paciente-titulo"><header className="em-panel-titulo"><div><h3 id="em-datos-paciente-titulo">Completar datos del paciente</h3><small>Revisa lo registrado y completa o corrige la información conocida.</small></div><button type="button" aria-label="Cerrar" onClick={() => setIdentidad(null)}><Icon name="close" size={18} /></button></header><form onSubmit={async evento => { evento.preventDefault(); if (await guardar(`/${cuenta.id}/identidad`, { ...identidad.datos, revision: identidad.revision }, 'Datos del paciente actualizados.')) setIdentidad(null); }}><div className="em-form-grid">{camposIdentidad.map(([campo, etiqueta]) => <label key={campo}>{etiqueta}<input type={campo === 'nacimiento' ? 'date' : 'text'} maxLength={200} value={identidad.datos[campo] || ''} onChange={evento => setIdentidad(actual => actual ? { ...actual, datos: { ...actual.datos, [campo]: evento.target.value } } : actual)} /></label>)}</div><div className="em-acciones"><button type="button" onClick={() => setIdentidad(null)}>Cancelar</button><button className="em-primario" disabled={ocupado}>Guardar datos</button></div></form></section></div>}
+      <AnamnesisEmergencia key={`anamnesis-${cuenta.id}`} cuentaId={cuenta.id} cerrada={Boolean(cuenta.fin)} inicial={cuenta.evaluaciones?.at(-1)?.campos.enfermedadActual} />
+      <RevisionSistemas key={`revision-${cuenta.id}`} cuentaId={cuenta.id} cerrada={Boolean(cuenta.fin)} />
+      <section className="em-panel em-diagnostico-final" aria-labelledby="em-diagnostico-final-titulo">
+        <header className="em-panel-titulo"><h3 id="em-diagnostico-final-titulo">Diagnóstico Final</h3></header>
+        <p className="em-vacio">{cuenta.evaluaciones?.at(-1)?.campos.diagnostico || 'Aún no se ha registrado el diagnóstico final.'}</p>
+      </section>
       <section className="em-panel em-cierre-emergencia"><header className="em-panel-titulo"><div><h3>Cierre de atención de emergencia</h3><small>Completa este paso al finalizar. Se registra automáticamente el tiempo de estadía.</small></div>{!cuenta.fin && !cierre && <button onClick={() => setCierre({ condicionEgreso: 'vivo', causaEgreso: 'hospitalaria', observacionEgreso: '' })}>Finalizar atención</button>}</header>
         {cierre ? <form onSubmit={async e => { e.preventDefault(); if (!window.confirm('¿Finalizar esta atención? Ya no se podrán registrar nuevas evaluaciones u órdenes.')) return; if (await guardar(`/${cuenta.id}/cierre`, cierre, 'Atención de emergencia finalizada.')) setCierre(null); }}><div className="em-form-grid"><label>Condición de egreso<select value={cierre.condicionEgreso} onChange={e => setCierre({ ...cierre, condicionEgreso: e.target.value as typeof cierre.condicionEgreso })}><option value="vivo">Vivo</option><option value="muerto">Muerto</option></select></label><label>Causa de alta de emergencia<select value={cierre.causaEgreso} onChange={e => setCierre({ ...cierre, causaEgreso: e.target.value as typeof cierre.causaEgreso })}><option value="hospitalaria">Alta hospitalaria</option><option value="solicitada">Alta solicitada</option><option value="fuga">Fuga</option><option value="transferencia">Transferencia</option><option value="deceso">Deceso</option><option value="internacion">Internación</option></select></label></div><label>Observación de egreso<textarea maxLength={3000} value={cierre.observacionEgreso} onChange={e => setCierre({ ...cierre, observacionEgreso: e.target.value })} placeholder="Resumen, destino, recomendaciones o información relevante del egreso" /></label><div className="em-acciones"><button type="button" onClick={() => setCierre(null)}>Cancelar</button><button className="em-primario" disabled={ocupado}>Confirmar cierre de atención</button></div></form> : cuenta.cierre ? <div className="em-cierre-registrado"><strong>Atención finalizada · {fechaEmergencia(cuenta.cierre.fecha)}</strong><span>Condición: {cuenta.cierre.condicionEgreso === 'vivo' ? 'Vivo' : 'Muerto'} · Causa: {cuenta.cierre.causaEgreso}</span>{cuenta.cierre.observacionEgreso && <p>{cuenta.cierre.observacionEgreso}</p>}<small>Registrado por {cuenta.cierre.usuario}</small></div> : <p className="em-vacio">Pendiente de cierre. Se registrarán condición, causa de egreso, observación y tiempo de estadía.</p>}
       </section>
@@ -161,11 +174,15 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
           <div className="em-acciones"><button type="button" onClick={() => setOrden(null)}>Cancelar</button><button className="em-primario" disabled={ocupado || !!cuenta.fin}>Enviar a enfermería</button></div>
         </form>
       </section>}</div>
-      <OrdenesEmergencias {...{ cuenta, catalogo, guardar, ocupado }} editar={o => abrirOrden(o.tipo, o)} />
     </main>
     <aside className="em-medica-datos">
       <details className="em-panel em-signos-desplegable"><summary><span><strong>Signos vitales</strong><small>Registrados por enfermería</small></span><Icon name="patient" size={20} /></summary><div className="em-signos-contenido">
-        <div className="em-signos-acciones"><small>{ultimoSigno ? `Última medición: ${fechaEmergencia(ultimoSigno.fecha)}` : 'Sin mediciones registradas.'}</small></div>
+        <div className="em-signos-acciones"><button type="button" onClick={() => evolucionDialogo.current?.showModal()}>Ver evolución</button></div>
+        <dialog ref={evolucionDialogo} className="em-evolucion-dialogo" aria-labelledby="em-evolucion-titulo" onClick={e => { if (e.target === e.currentTarget) evolucionDialogo.current?.close(); }}>
+          <div className="em-evolucion-interior"><header className="em-panel-titulo"><div><h3 id="em-evolucion-titulo">Evolución de signos vitales</h3><small>{nombrePaciente(cuenta)}</small></div><button type="button" autoFocus onClick={() => evolucionDialogo.current?.close()} aria-label="Cerrar evolución de signos vitales"><Icon name="close" size={18}/></button></header>
+          {cuenta.signos.length ? <div className="em-evolucion-tabla"><table><thead><tr><th scope="col">Fecha y hora</th>{vitales.map(([clave, titulo, unidad]) => <th scope="col" key={clave}>{titulo}<br/><small>{unidad}</small></th>)}<th scope="col">Observación</th></tr></thead><tbody>{[...cuenta.signos].sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha)).map(s => <tr key={s.id}><th scope="row">{fechaEmergencia(s.fecha)}</th>{vitales.map(([clave]) => <td key={clave}>{s.valores[clave] ?? '—'}</td>)}<td>{s.observacion || '—'}</td></tr>)}</tbody></table></div> : <p className="em-vacio">Aún no hay mediciones registradas para mostrar su evolución.</p>}
+          </div>
+        </dialog>
         {!cuenta.fin && <form className="em-form-signos" onSubmit={async evento => { evento.preventDefault(); const valores = Object.fromEntries(Object.entries(valoresSignos).filter(([, valor]) => valor !== '').map(([campo, valor]) => [campo, Number(valor)])); if (await guardar(`/${cuenta.id}/signos`, { valores, observacion: observacionSignos }, 'Signos vitales guardados.')) { setValoresSignos({}); setObservacionSignos(''); } }}><div className="em-medica-vitales">{vitales.map(([k, t, u]) => <label key={k}><small>{t}</small><span><input type="number" min="0" max={k === 'saturacion' ? 100 : undefined} step="any" value={valoresSignos[k] || ''} onChange={evento => setValoresSignos(actual => ({ ...actual, [k]: evento.target.value }))} />{u}</span></label>)}</div><label>Observación<textarea maxLength={1000} value={observacionSignos} onChange={evento => setObservacionSignos(evento.target.value)} placeholder="Opcional" /></label><div className="em-acciones"><button className="em-primario" disabled={ocupado}>Guardar signos</button></div></form>}
         {cuenta.fin && <div className="em-medica-vitales">{vitales.map(([k, t, u]) => <div key={k}><small>{t}</small><strong>{ultimoSigno?.valores[k] === undefined ? '—' : `${ultimoSigno.valores[k]} ${u}`}</strong></div>)}</div>}
         {ultimoSigno?.observacion && <p className="em-texto-clinico">{ultimoSigno.observacion}</p>}
@@ -173,6 +190,10 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
       </div></details>
       <section className="em-panel em-resultados-estudios"><header className="em-panel-titulo"><div><h3>Resultados de estudios</h3><small>Laboratorio e imagenología solicitados</small></div><span>{estudios.length}</span></header>
         {estudios.length ? <ul>{estudios.map(estudio => { const resultado = estudio.aplicaciones.at(-1)?.observacion; return <li key={estudio.id}><div><strong>{estudio.titulo || (estudio.tipo === 'laboratorio' ? 'Estudio de laboratorio' : 'Estudio de imagenología')}</strong><small>{estudio.indicaciones || 'Sin detalle adicional'}</small></div><div><em className={`em-estado-estudio ${estudio.estado}`}>{estadoEstudio(estudio)}</em>{resultado && <p>{resultado}</p>}</div></li>; })}</ul> : <p className="em-vacio">Aún no hay estudios solicitados para este paciente.</p>}
+      </section>
+      <section className="em-panel em-resultados-estudios em-resumen-ordenes" aria-label="Órdenes y medicamentos">
+        <header className="em-panel-titulo"><div><h3>Órdenes y medicamentos</h3><small>Indicaciones médicas del paciente</small></div><span>{(cuenta.ordenes || []).filter(o => !['laboratorio', 'imagenologia'].includes(o.tipo)).length}</span></header>
+        {(cuenta.ordenes || []).some(o => !['laboratorio', 'imagenologia'].includes(o.tipo)) ? <ul>{(cuenta.ordenes || []).filter(o => !['laboratorio', 'imagenologia'].includes(o.tipo)).map(o => <li key={o.id}><div><strong>{o.titulo || tiposOrden.find(([tipo]) => tipo === o.tipo)?.[1] || 'Orden médica'}</strong><small>{o.indicaciones}</small>{[o.dosis, o.via, o.frecuencia, o.duracion].some(Boolean) && <small>{[o.dosis, o.via, o.frecuencia, o.duracion].filter(Boolean).join(' · ')}</small>}<em className={`em-estado-estudio ${o.estado}`}>{estadoEstudio(o)}</em></div></li>)}</ul> : <p className="em-vacio">Aún no hay órdenes ni medicamentos registrados para este paciente.</p>}
       </section>
       <section className="em-panel"><h3>Actividad de enfermería</h3><small>{cuenta.consumos.length} consumo(s) registrado(s)</small>{cuenta.consumos.filter(c => c.porHora && !c.fin).map(c => <p className="em-servicio-activo" key={c.registroId}>● {c.nombre}<small>En uso desde {fechaEmergencia(c.inicio)}</small></p>)}</section>
     </aside>

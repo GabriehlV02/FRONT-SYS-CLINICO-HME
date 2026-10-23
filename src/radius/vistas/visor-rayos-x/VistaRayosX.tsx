@@ -62,7 +62,8 @@ export default function VistaRayosX() {
     [arrastrando, setArrastrando] = useState<"mover" | "ventana" | null>(null);
   const [cargando, setCargando] = useState(false),
     [mensajeCarga, setMensajeCarga] = useState(""),
-    [corte, setCorte] = useState({ actual: 1, total: 1 });
+    [corte, setCorte] = useState({ actual: 1, total: 1 }),
+    [pantallaCompleta, setPantallaCompleta] = useState(false);
   const archivo = useRef<HTMLInputElement>(null),
     carpeta = useRef<HTMLInputElement>(null),
     dicomControl = useRef<ControlDicom | null>(null),
@@ -92,6 +93,12 @@ export default function VistaRayosX() {
         creadaEn: e.creadaEn,
       })),
     );
+  }, []);
+  useEffect(() => {
+    const actualizarPantallaCompleta = () => setPantallaCompleta(document.fullscreenElement === estacion.current);
+    document.addEventListener("fullscreenchange", actualizarPantallaCompleta);
+    actualizarPantallaCompleta();
+    return () => document.removeEventListener("fullscreenchange", actualizarPantallaCompleta);
   }, []);
   const restablecerRaster = () => {
     setZoom(1);
@@ -157,6 +164,7 @@ export default function VistaRayosX() {
   };
   const procesarSeleccion = async (lista: FileList | null) => {
     if (!lista?.length) return;
+    void abrirPantallaCompleta();
     const seleccion = Array.from(lista);
     setCargando(true);
     setMensajeCarga(
@@ -187,6 +195,7 @@ export default function VistaRayosX() {
     }
   };
   const abrirEstudioGuardado = useCallback(async (estudio: EstudioDemo) => {
+    void abrirPantallaCompleta();
     setEstudiosOrthanc([]);
     setCargando(true);
     setMensajeCarga(`Abriendo ${estudio.nombreArchivo}…`);
@@ -208,6 +217,7 @@ export default function VistaRayosX() {
     }
   }, []);
   const abrirEstudioOrthanc = async (estudio: EstudioOrthanc) => {
+    void abrirPantallaCompleta();
     setCargando(true);
     setMensajeCarga(`Abriendo ${estudio.descripcion || "estudio DICOM"}…`);
     try {
@@ -299,10 +309,17 @@ export default function VistaRayosX() {
     );
   }, []);
 
+  const abrirPantallaCompleta = async () => {
+    try {
+      if (!document.fullscreenElement) await estacion.current?.requestFullscreen();
+    } catch {
+      /* El navegador puede bloquear la solicitud fuera de un gesto directo. */
+    }
+  };
   const alternarPantallaCompleta = async () => {
     try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await estacion.current?.requestFullscreen();
+      if (document.fullscreenElement === estacion.current) await document.exitFullscreen();
+      else await abrirPantallaCompleta();
     } catch {
       /* El navegador puede bloquear la solicitud fuera de un gesto directo. */
     }
@@ -670,6 +687,9 @@ export default function VistaRayosX() {
               Centrar
             </button>
             <button onClick={restablecer}>Restablecer</button>
+            <button disabled={!actual} onClick={() => void alternarPantallaCompleta()}>
+              {pantallaCompleta ? "Salir de pantalla completa" : "Pantalla completa"}
+            </button>
             <span className="rx-toolbar-separador" />
             <button
               className="rx-exportar"

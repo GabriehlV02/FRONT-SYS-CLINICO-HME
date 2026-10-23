@@ -2,6 +2,9 @@ import { leerSesion } from './types/sesion';
 
 export async function apiFetch(input: string, init: RequestInit = {}) {
   const token = leerSesion()?.token;
+  if (import.meta.env.DEV && token === 'frontend-demo-local') {
+    return new Response(JSON.stringify({ message: 'Modo frontend: API no disponible.', code: 'DEMO_LOCAL' }), { status: 503, headers: { 'Content-Type': 'application/json' } });
+  }
   const headers = new Headers(init.headers);
   if (token) headers.set('Authorization', `Bearer ${token}`);
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');

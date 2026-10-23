@@ -6,6 +6,7 @@ import './AnimacionesLogin.css';
 import './LoginRefinamiento.css';
 import '../../../ui/styles/LoginFields.css';
 import Icon from '../../componentes/Icono';
+import { notificar } from '../../componentes/Notificaciones';
 import type { Sesion } from '../../types/sesion';
 
 type Props = { onLogin: (sesion: Sesion) => void };
@@ -46,15 +47,37 @@ export default function VistaInicioSesion({ onLogin }: Props) {
   const ingresar = async (event: FormEvent) => {
     event.preventDefault(); setError(''); setLoading(true);
     try {
+      if (import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname) && form.usuario === 'admin' && form.password === 'admin') {
+        const sesion: Sesion = {
+          token: 'frontend-demo-local',
+          expiresAt: Date.now() + 8 * 60 * 60 * 1000,
+          usuario: { nombre: 'Administrador (demo local)', usuario: 'admin', rol: 'ADMINISTRADOR', tipoInicio: 'admin_sistema', permisos: [] },
+        };
+        localStorage.removeItem('pulso_session');
+        sessionStorage.setItem('pulso_session', JSON.stringify(sesion));
+        onLogin(sesion);
+        return;
+      }
       const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, dispositivo: sistemaCliente() }) });
       const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const mensaje = response.status === 401
+          ? 'Verifica tu usuario y contraseña, o solicita acceso al administrador.'
+          : response.status === 422
+            ? 'Completa el usuario y la contraseña para continuar.'
+            : response.status === 429
+              ? 'Se realizaron muchos intentos. Espera un momento antes de volver a intentar.'
+              : 'El servicio de autenticación no está disponible. Intenta nuevamente en unos minutos.';
+        notificar('error', `No se pudo iniciar sesión · Error ${response.status}`, mensaje);
+        return;
+      }
       if (!response.ok) throw new Error(data.message || 'No se pudo iniciar sesión.');
       const sesion: Sesion = { token: data.token, expiresAt: data.expiresAt, dispositivo: data.dispositivo, usuario: data.usuario };
       if (recordar) localStorage.setItem('pulso_usuario_recordado', form.usuario.trim());
       else localStorage.removeItem('pulso_usuario_recordado');
       localStorage.removeItem('pulso_session'); sessionStorage.removeItem('pulso_session');
       (recordar ? localStorage : sessionStorage).setItem('pulso_session', JSON.stringify(sesion)); onLogin(sesion);
-    } catch (e) { setError(mensajeAmigable(e)); }
+    } catch { setError(''); notificar('error', 'No se pudo iniciar sesión · Error de conexión', 'No pudimos conectar con el servidor. Verifica tu conexión e intenta otra vez.'); }
     finally { setLoading(false); }
   };
 

@@ -1,4 +1,5 @@
 import { apiFetch } from '../../radius/api';
+import { leerSesion } from '../../radius/types/sesion';
 
 export type ItemEmergencia = { id: string; codigo: string; nombre: string; tipo: 'servicio' | 'producto'; unidad: string; precio: number; categoria?: string; grupo?: string };
 export type OrdenEmergencia = {
@@ -18,6 +19,35 @@ export type CuentaEmergencia = {
   cierre?: { condicionEgreso: 'vivo' | 'muerto'; causaEgreso: 'hospitalaria' | 'solicitada' | 'fuga' | 'transferencia' | 'deceso' | 'internacion'; observacionEgreso?: string; fecha: string; usuario: string } | null;
 };
 export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
+  if (import.meta.env.DEV && leerSesion()?.token === 'frontend-demo-local') {
+    const clave = 'clinico-emergencias-demo-v1';
+    const cuentas: CuentaEmergencia[] = JSON.parse(sessionStorage.getItem(clave) || '[]');
+    const datos = (body || {}) as Record<string, any>;
+    const fecha = new Date().toISOString();
+    if (ruta === '/catalogo') return [] as T;
+    if (!ruta && !body) return { cuentas } as T;
+    let cuenta: CuentaEmergencia;
+    if (!ruta) {
+      if (cuentas.some(c => !c.fin && c.cubiculo === datos.cubiculo)) throw new Error('Ese cubículo ya está ocupado.');
+      cuenta = { id: crypto.randomUUID(), cubiculo: datos.cubiculo, inicio: fecha, fin: null, revision: 1, identidad: datos.identidad || null, signos: [], consumos: [], evaluaciones: [], ordenes: [] };
+      cuentas.push(cuenta);
+    } else {
+      const [id, accion] = ruta.split('/').filter(Boolean);
+      const encontrada = cuentas.find(c => c.id === id);
+      if (!encontrada) throw new Error('Atención demo no encontrada.');
+      cuenta = encontrada;
+      if (accion === 'evaluacion') (cuenta.evaluaciones ||= []).push({ id: crypto.randomUUID(), revision: 1, fecha, usuario: 'Admin demo', campos: datos.campos || datos });
+      else if (accion === 'identidad') cuenta.identidad = { ...cuenta.identidad, ...datos };
+      else if (accion === 'orden') {
+        const orden = { tipo: '', titulo: '', indicaciones: '', dosis: '', via: '', frecuencia: '', duracion: '', itemId: '', porHora: false, ...datos, id: crypto.randomUUID(), revision: 1, fecha, usuario: 'Admin demo', estado: 'pendiente', aplicaciones: [], historial: [] } as OrdenEmergencia;
+        (cuenta.ordenes ||= []).push(orden);
+      } else if (accion === 'cierre') { cuenta.fin = fecha; cuenta.cierre = { ...datos, fecha, usuario: 'Admin demo' } as CuentaEmergencia['cierre']; }
+      else throw new Error('Esta operación todavía no está disponible en la demo local.');
+      cuenta.revision++;
+    }
+    sessionStorage.setItem(clave, JSON.stringify(cuentas));
+    return cuenta as T;
+  }
   const respuesta = await apiFetch(`/api/emergencias${ruta}`, body ? { method: 'POST', body: JSON.stringify(body) } : {});
   const contenido = await respuesta.text();
   let datos: unknown = null;

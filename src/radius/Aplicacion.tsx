@@ -184,6 +184,7 @@ export default function Aplicacion() {
     return () => controller.abort();
   }, [sesion?.token]);
   const [modulo, setModulo] = useState("");
+  const [emergenciaEnAtencion, setEmergenciaEnAtencion] = useState('');
   const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
   const [subvistaRadiografias, setSubvistaRadiografias] = useState<SubvistaRadiografias>("estudios");
   const [subvistaTomografias, setSubvistaTomografias] = useState<SubvistaTomografias>("estudios");
@@ -196,6 +197,7 @@ export default function Aplicacion() {
   const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
   const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] = useState<SubvistaMedicoInternacion>("internados");
   const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] = useState<SubvistaEnfermeraInternacion>("internados");
+  const [subvistaTerapia, setSubvistaTerapia] = useState<'monitorizacion' | 'registros'>('monitorizacion');
   const cirugiaSeleccionada = cirugiasProgramadas.find((cirugia) => cirugia.id === cirugiaInstrumentista) ?? null;
   const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState(signosVitalesIniciales);
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
@@ -340,7 +342,7 @@ export default function Aplicacion() {
     window.addEventListener("radiuus:navegar", navegar);
     return () => window.removeEventListener("radiuus:navegar", navegar);
   }, []);
-  if (!sesion) return <VistaInicioSesion onLogin={setSesion} />;
+  if (!sesion) return <><CentroNotificaciones /><VistaInicioSesion onLogin={setSesion} /></>;
   const moduloActual = modulos.find((item) => item.id === modulo);
   const subvistaActual = subvistasImagenologia.find((item) => item.id === subvistaImagenologia) ?? subvistasImagenologia[0];
   const actual = moduloActual && modulo === "imagenologia"
@@ -597,9 +599,20 @@ export default function Aplicacion() {
               {subvistaTriajeAmbulatorio === 'configuracion' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={setSignosVitalesConfigurados} />}
             </section>
           ) : modulo === 'triaje-emergencias' ? (
-            <TriajeEmergenciasView />
+            <TriajeEmergenciasView onAtender={emergenciaId => { setEmergenciaEnAtencion(emergenciaId); setModulo('atencion-urgencias'); }} />
           ) : modulo === 'atencion-urgencias' ? (
-            <AtencionMedicaEmergenciasView />
+            <AtencionMedicaEmergenciasView cuentaInicialId={emergenciaEnAtencion} />
+          ) : modulo === 'enfermera-terapia-intensiva' ? (
+            <section className="triaje-ambulatorio-vista">
+              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de terapia intensiva">
+                <button type="button" aria-current={subvistaTerapia === 'monitorizacion' ? 'page' : undefined} className={subvistaTerapia === 'monitorizacion' ? 'activo' : ''} onClick={() => setSubvistaTerapia('monitorizacion')}><span><Icon name="patient" size={17}/></span><strong>Monitorización</strong><small>Seguimiento de pacientes en terapia intensiva.</small></button>
+                <button type="button" aria-current={subvistaTerapia === 'registros' ? 'page' : undefined} className={subvistaTerapia === 'registros' ? 'activo' : ''} onClick={() => setSubvistaTerapia('registros')}><span><Icon name="audit" size={17}/></span><strong>Registros</strong><small>Registros de enfermería de terapia intensiva.</small></button>
+              </HorizontalSubvistaNav>
+              <section className="em-panel" aria-labelledby="terapia-subvista-titulo">
+                <header className="em-panel-titulo"><h2 id="terapia-subvista-titulo">{subvistaTerapia === 'monitorizacion' ? 'Monitorización' : 'Registros'}</h2></header>
+                <p className="em-vacio">{subvistaTerapia === 'monitorizacion' ? 'No hay pacientes en monitorización.' : 'Aún no hay registros de enfermería.'}</p>
+              </section>
+            </section>
           ) : modulo === 'enfermera-internacion' ? (
             <section className="triaje-ambulatorio-vista">
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de internación">

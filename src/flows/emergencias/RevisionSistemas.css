@@ -1,0 +1,14 @@
+.revision-sistemas-lista{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.em-medica .revision-sistema{min-width:0;margin:0;padding:14px;border:1px solid #d4e5f0;border-radius:12px;background:#f8fbfe}
+.revision-sistema legend{padding:0 7px;color:#173f67;font-size:14px;font-weight:750}
+.revision-sistema>p{margin:0 0 12px;color:#6b859d;font-size:12px}
+.revision-opciones{display:flex;flex-wrap:wrap;gap:7px}
+.em-medica .revision-opciones label{display:flex;flex-direction:row;align-items:center;gap:6px;margin:0;padding:7px 9px;border:1px solid #cbdfea;border-radius:8px;background:#fff;color:#315c7e;font-size:12px;cursor:pointer}
+.em-medica .revision-opciones label.seleccionada{background:#e3f4fc;border-color:#078dc2;color:#076c9c}
+.em-medica .revision-opciones input{width:14px;height:14px;margin:0;accent-color:#087fb7}
+.revision-opciones label:focus-within{outline:2px solid #078dc2;outline-offset:2px}
+.revision-pendiente{display:block;margin-top:8px;color:#7891a8;font-size:11px}
+.em-medica .revision-detalle{display:grid;gap:6px;margin-top:12px;font-size:12px;color:#41647d}
+.em-medica .revision-detalle textarea{width:100%;box-sizing:border-box;min-height:66px;resize:vertical;padding:9px 11px;border:1px solid #cbdfea;border-radius:8px;background:#fff;font:inherit;line-height:1.5}
+.revision-detalle textarea:focus{outline:2px solid #8bd4f2;outline-offset:1px}
+@media(max-width:850px){.revision-sistemas-lista{grid-template-columns:1fr}}

@@ -23,6 +23,11 @@
 .em-medica .em-anamnesis .anamnesis-texto { min-width:0; }
 .em-medica .em-anamnesis .anamnesis-texto > label { display:block; margin-bottom:8px; font-size:13px; font-weight:700; color:#315c7e; }
 .em-medica .em-anamnesis .anamnesis-edicion fieldset { min-width:0; margin:0; padding:12px; }
+.em-medica .em-anamnesis .anamnesis-edicion fieldset { border-color:#84c8e7; border-style:solid; background:#eaf7fd; box-shadow:0 3px 10px rgba(18,117,166,.08); }
+.em-medica .em-anamnesis .anamnesis-edicion fieldset legend { color:#0b6f9e; background:#eaf7fd; }
+.em-medica .em-anamnesis .anamnesis-edicion .anamnesis-adjuntar { border-color:#56aed6; background:#fff; box-shadow:0 2px 5px rgba(18,117,166,.1); }
+.em-medica .em-anamnesis .anamnesis-edicion .anamnesis-camara { border-color:#56aed6; background:#d9f1fb; box-shadow:0 2px 5px rgba(18,117,166,.1); }
+.em-medica .em-anamnesis .anamnesis-edicion fieldset>small { color:#426f8c; font-weight:600; }
 .em-medica .em-anamnesis .anamnesis-edicion .anamnesis-adjuntar,
 .em-medica .em-anamnesis .anamnesis-camara { display:flex; flex-direction:row; width:100%; margin:0 0 8px; align-items:center; justify-content:center; gap:8px; padding:10px; min-height:42px; border:1px solid #b9dced; border-radius:9px; color:#0877aa; background:#fff; font-size:13px; font-weight:700; }
 .em-medica .em-anamnesis .anamnesis-preview { margin:8px 0; overflow:hidden; border-radius:8px; background:#122f47; }

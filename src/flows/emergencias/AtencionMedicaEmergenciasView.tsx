@@ -28,9 +28,57 @@ const edadPaciente = (nacimiento?: string) => {
   return edad >= 0 ? `${edad} años` : 'No registrada';
 };
 
+const estadoPaciente = (cuenta: CuentaEmergencia) => {
+  const campos = cuenta.evaluaciones?.at(-1)?.campos || {};
+  const valor = `${campos.estadoPaciente || campos.gravedad || campos.clasificacion || ''}`.trim().toLowerCase();
+  if (valor.includes('crit')) return { etiqueta: 'Crítico', clase: 'critico' };
+  if (valor.includes('grave')) return { etiqueta: 'Grave', clase: 'grave' };
+  if (valor.includes('estable')) return { etiqueta: 'Estable', clase: 'estable' };
+  if (valor.includes('leve')) return { etiqueta: 'Leve', clase: 'leve' };
+  return { etiqueta: 'Sin clasificar', clase: 'sin-clasificar' };
+};
+
+function GraficaEvolucionSignos({ mediciones, signo }: { mediciones: CuentaEmergencia['signos']; signo: string }) {
+  const configuracion = vitales.find(([clave]) => clave === signo) || vitales[0];
+  const [, titulo, unidad] = configuracion;
+  const lecturas = [...mediciones]
+    .sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha))
+    .map(medicion => ({ fecha: medicion.fecha, valor: Number(medicion.valores[signo]) }))
+    .filter(lectura => Number.isFinite(lectura.valor));
+
+  if (!lecturas.length) return <p className="em-vacio em-evolucion-sin-datos">No hay registros de {titulo.toLowerCase()} para graficar.</p>;
+
+  const ancho = 760, alto = 280, izquierda = 56, derecha = 20, arriba = 24, abajo = 48;
+  const valores = lecturas.map(lectura => lectura.valor);
+  const minimoBase = Math.min(...valores), maximoBase = Math.max(...valores);
+  const margen = Math.max((maximoBase - minimoBase) * 0.12, 1);
+  const minimo = minimoBase - margen, maximo = maximoBase + margen, rango = maximo - minimo || 1;
+  const areaAncho = ancho - izquierda - derecha, areaAlto = alto - arriba - abajo;
+  const x = (indice: number) => lecturas.length === 1 ? izquierda + areaAncho / 2 : izquierda + (indice / (lecturas.length - 1)) * areaAncho;
+  const y = (valor: number) => arriba + ((maximo - valor) / rango) * areaAlto;
+  const puntos = lecturas.map((lectura, indice) => `${x(indice)},${y(lectura.valor)}`).join(' ');
+  const formatoHora = (fecha: string) => new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(fecha));
+
+  return <section className="em-grafica-signos" aria-label={`Gráfica temporal de ${titulo}`}>
+    <div className="em-grafica-resumen"><strong>{titulo}</strong><span>{lecturas.length} {lecturas.length === 1 ? 'medición' : 'mediciones'} · {unidad}</span></div>
+    <svg viewBox={`0 0 ${ancho} ${alto}`} role="img" aria-label={`Evolución de ${titulo} en el tiempo`}>
+      {[0, 1, 2, 3, 4].map(indice => {
+        const valor = maximo - (indice / 4) * rango;
+        const posicionY = arriba + (indice / 4) * areaAlto;
+        return <g key={indice}><line className="em-grafica-guia" x1={izquierda} x2={ancho - derecha} y1={posicionY} y2={posicionY} /><text className="em-grafica-eje" x={izquierda - 9} y={posicionY + 4} textAnchor="end">{valor.toFixed(1)}</text></g>;
+      })}
+      <line className="em-grafica-eje-linea" x1={izquierda} x2={izquierda} y1={arriba} y2={alto - abajo} />
+      <line className="em-grafica-eje-linea" x1={izquierda} x2={ancho - derecha} y1={alto - abajo} y2={alto - abajo} />
+      <polyline className="em-grafica-linea" points={puntos} />
+      {lecturas.map((lectura, indice) => <g key={`${lectura.fecha}-${indice}`}><circle className="em-grafica-punto" cx={x(indice)} cy={y(lectura.valor)} r="4" /><title>{`${fechaEmergencia(lectura.fecha)}: ${lectura.valor} ${unidad}`}</title>{(indice === 0 || indice === lecturas.length - 1 || lecturas.length <= 4) && <text className="em-grafica-eje" x={x(indice)} y={alto - 18} textAnchor="middle">{formatoHora(lectura.fecha)}</text>}</g>)}
+      <text className="em-grafica-unidad" x={izquierda} y="14">{unidad}</text>
+    </svg>
+  </section>;
+}
+
 export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuentaInicialId?: string }) {
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]), [activa, setActiva] = useState(''), [busqueda, setBusqueda] = useState('');
-  const [finalizadas, setFinalizadas] = useState(false), [cargando, setCargando] = useState(true), [error, setError] = useState('');
+  const [subvista, setSubvista] = useState<'atencion' | 'historial'>('atencion'), [cargando, setCargando] = useState(true), [error, setError] = useState('');
   const [catalogo, setCatalogo] = useState<ItemEmergencia[]>([]), [errorCatalogo, setErrorCatalogo] = useState('');
   const [iniciando, setIniciando] = useState(false), [cubiculoNuevo, setCubiculoNuevo] = useState('');
   const [horaIngresoNueva, setHoraIngresoNueva] = useState('');
@@ -60,7 +108,7 @@ export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuenta
     if (cuentaInicialId && cuentas.some(cuenta => cuenta.id === cuentaInicialId)) setActiva(cuentaInicialId);
   }, [cuentaInicialId, cuentas]);
   const cuenta = cuentas.find(c => c.id === activa);
-  const visibles = cuentas.filter(c => (finalizadas || !c.fin) && `${c.cubiculo} ${nombrePaciente(c)} ${c.identidad?.documento || ''}`.toLowerCase().includes(busqueda.toLowerCase()));
+  const visibles = cuentas.filter(c => (subvista === 'historial' ? Boolean(c.fin) : !c.fin) && `${c.cubiculo} ${nombrePaciente(c)} ${c.identidad?.documento || ''}`.toLowerCase().includes(busqueda.toLowerCase()));
   const cubiculosDisponibles = cubiculosEmergencias.filter(cubiculo => !cuentas.some(cuenta => !cuenta.fin && cuenta.cubiculo === cubiculo.id));
   const volverAlListado = () => {
     if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Volver al listado y descartar el borrador?')) return;
@@ -84,7 +132,7 @@ export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuenta
     return <section className="emergencias-vista em-medica"
       onPointerDownCapture={() => window.dispatchEvent(new Event('clinico:replegar-sidebar'))}
       onFocusCapture={() => window.dispatchEvent(new Event('clinico:replegar-sidebar'))}>
-    <header className={`em-cabecera ${cuenta ? 'em-cabecera-con-paciente' : ''}`}>{cuenta && <button type="button" className="em-volver-listado" onClick={volverAlListado}><Icon name="chevronLeft" size={17}/> Regresar</button>}<div className="em-cabecera-titulo"><p>EMERGENCIAS · ATENCIÓN MÉDICA</p></div><div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button><button className="em-primario em-iniciar-atencion" type="button" onClick={() => { setHoraIngresoNueva(horaActual()); setMostrarAcompanante(false); setIniciando(true); }}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button></div></header>
+    <header className={`em-cabecera ${cuenta ? 'em-cabecera-con-paciente' : ''}`}>{cuenta && <button type="button" className="em-volver-listado" onClick={volverAlListado}><Icon name="chevronLeft" size={17}/> Regresar</button>}<div className="em-cabecera-titulo"><p>EMERGENCIAS · ATENCIÓN MÉDICA</p>{!cuenta && <nav className="em-subvistas" aria-label="Vistas de atención médica"><button type="button" className={subvista === 'atencion' ? 'activa' : ''} onClick={() => setSubvista('atencion')}>Atención emergencias</button><button type="button" className={subvista === 'historial' ? 'activa' : ''} onClick={() => setSubvista('historial')}>Historial de atención</button></nav>}</div>{!cuenta && <div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button>{subvista === 'atencion' && <button className="em-primario em-iniciar-atencion" type="button" onClick={() => { setHoraIngresoNueva(horaActual()); setMostrarAcompanante(false); setIniciando(true); }}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button>}</div>}</header>
     {iniciando && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIniciando(false); }}><form className="em-panel em-medica-nueva" role="dialog" aria-modal="true" aria-labelledby="em-medica-inicio-titulo" onSubmit={iniciarAtencion}>
       <header><div><span>INGRESO DIRECTO</span><h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3><p>Selecciona un cubículo y registra los datos disponibles para abrir la atención.</p></div><button type="button" aria-label="Cerrar" onClick={() => setIniciando(false)}><Icon name="close" size={18}/></button></header>
       <div className="em-inicio-datos"><div className="em-selector-cubiculo" onKeyDown={evento => { if (evento.key === 'Escape') setSelectorCubiculoAbierto(false); }}><span>Cubículo de atención *</span><button type="button" disabled={guardando.current || !cubiculosDisponibles.length} className={cubiculoNuevo ? 'seleccionado' : ''} aria-haspopup="listbox" aria-expanded={selectorCubiculoAbierto} onClick={() => setSelectorCubiculoAbierto(abierto => !abierto)}>{cubiculoNuevo ? nombreCubiculo(cubiculoNuevo) : cubiculosDisponibles.length ? 'Selecciona un cubículo' : 'No hay cubículos libres'}<Icon name="chevronDown" size={16} /></button>{selectorCubiculoAbierto && <div className="em-opciones-cubiculo" role="listbox" aria-label="Cubículo de atención">{cubiculosDisponibles.map(cubiculo => <button type="button" role="option" aria-selected={cubiculoNuevo === cubiculo.id} key={cubiculo.id} onClick={() => { setCubiculoNuevo(cubiculo.id); setSelectorCubiculoAbierto(false); setErrorCubiculo(''); solicitud.current = crypto.randomUUID(); }}>{cubiculoNuevo === cubiculo.id && <Icon name="check" size={15} />}{cubiculo.nombre}</button>)}</div>}</div><label className="em-hora-ingreso">Hora de ingreso *<input type="time" required value={horaIngresoNueva} onChange={evento => setHoraIngresoNueva(evento.target.value)} /></label></div>
@@ -96,13 +144,13 @@ export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuenta
       <footer><button type="button" onClick={() => { setIniciando(false); setMostrarAcompanante(false); }}>Cancelar</button><button className="em-primario" disabled={guardando.current}><Icon name="plus" size={16}/> Iniciar y atender</button></footer>
     </form></div>}
     <div className="em-medica-layout">
-      {!cuenta && <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => setBusqueda(e.target.value)} /></label><label className="em-check"><input type="checkbox" checked={finalizadas} onChange={e => setFinalizadas(e.target.checked)} /> Incluir finalizadas</label>
-        {!!visibles.length && <div className="em-lista-cabecera" role="row"><span>Cubículo</span><span>Paciente</span><span>N.º HCL</span><span>Edad</span><span>Sexo</span><span>Hora ingreso</span><span>Médico de admisión</span><span>Acción</span></div>}
+      {!cuenta && <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => setBusqueda(e.target.value)} /></label><small className="em-subvista-ayuda">{subvista === 'historial' ? 'Atenciones finalizadas' : 'Atenciones activas en cubículos de emergencia'}</small>
+        {!!visibles.length && <div className="em-lista-cabecera" role="row"><span>Cubículo</span><span>Paciente</span><span>N.º HCL</span><span>Edad</span><span>Sexo</span><span>Hora ingreso</span><span>Médico de admisión</span><span>Estado</span><span>Acción</span></div>}
         {visibles.map(c => <button key={c.id} className="em-cubiculo" disabled={guardando.current} onClick={() => {
           if (guardando.current) return;
           if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Atender a este paciente y descartar el borrador?')) return;
           formularioSucio.current = false; setActiva(c.id);
-        }}><strong>{nombreCubiculo(c.cubiculo)}</strong><span className="em-paciente-lista">{nombrePaciente(c)}</span><span>{c.identidad?.historiaClinica || 'Sin registro'}</span><span>{edadPaciente(c.identidad?.nacimiento)}</span><span>{c.identidad?.sexo || 'No registrado'}</span><time>{horaIngreso(c.inicio)}</time><span>{c.identidad?.medicoAdmision || 'Médico de turno'}</span><span className="em-accion-lista">Atender</span></button>)}
+        }}><strong>{nombreCubiculo(c.cubiculo)}</strong><span className="em-paciente-lista">{nombrePaciente(c)}</span><span>{c.identidad?.historiaClinica || 'Sin registro'}</span><span>{edadPaciente(c.identidad?.nacimiento)}</span><span>{c.identidad?.sexo || 'No registrado'}</span><time>{horaIngreso(c.inicio)}</time><span>{c.identidad?.medicoAdmision || 'Médico de turno'}</span><span className={`em-estado-paciente ${estadoPaciente(c).clase}`}>{estadoPaciente(c).etiqueta}</span><span className="em-accion-lista">Atender</span></button>)}
         {!visibles.length && <p className="em-vacio">{cargando ? 'Cargando pacientes…' : 'No hay atenciones activas. Puedes iniciar una desde esta vista.'}</p>}
       </aside>}
       {cuenta ? <AtencionPaciente key={cuenta.id} {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo }} alEditar={valor => { formularioSucio.current = valor; }} ejecutar={async (ruta, body) => {
@@ -123,6 +171,8 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const [orden, setOrden] = useState<BorradorOrden | null>(null), [buscarItem, setBuscarItem] = useState('');
   const [estudiosImagen, setEstudiosImagen] = useState<EstudioImagen[]>([]), [tipoImagen, setTipoImagen] = useState('Rayos X');
   const [valoresSignos, setValoresSignos] = useState<Record<string, string>>({}), [observacionSignos, setObservacionSignos] = useState('');
+  const [signoEvolucion, setSignoEvolucion] = useState('temperatura');
+  const [registroSignosAbierto, setRegistroSignosAbierto] = useState(false), [horaSignos, setHoraSignos] = useState(horaActual());
   const evolucionDialogo = useRef<HTMLDialogElement>(null);
   const [identidad, setIdentidad] = useState<{ revision: number; datos: Record<string, string> } | null>(null);
   const [ocupado, setOcupado] = useState(false), [error, setError] = useState(''), [mensaje, setMensaje] = useState('');
@@ -140,7 +190,8 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
     setOrden(existente ? { ...existente } : nuevaOrden(tipo)); setBuscarItem(''); setEstudiosImagen([]); setTipoImagen('Rayos X');
     window.setTimeout(() => editorOrden.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
   }
-  const ultimoSigno = cuenta.signos.at(-1);
+  const ultimoSigno = [...cuenta.signos].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha))[0];
+  const abrirRegistroSignos = () => { setValoresSignos({}); setObservacionSignos(''); setHoraSignos(horaActual()); setRegistroSignosAbierto(true); };
   const totalConsumido = cuenta.consumos.reduce((total, consumo) => total + consumo.precio * consumo.cantidad, 0);
   const estudios = (cuenta.ordenes || []).filter(ordenActual => ['laboratorio', 'imagenologia'].includes(ordenActual.tipo));
   const datosPaciente = cuenta.identidad || {};
@@ -193,14 +244,16 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
     </main>
     <aside className="em-medica-datos">
       <details className="em-panel em-signos-desplegable"><summary><span><strong>Signos vitales</strong><small>Registrados por enfermería</small></span><Icon name="patient" size={20} /></summary><div className="em-signos-contenido">
-        <div className="em-signos-acciones"><button type="button" onClick={() => evolucionDialogo.current?.showModal()}>Ver evolución</button></div>
+        <p className="em-ultima-toma">{ultimoSigno ? <>Última toma: <time dateTime={ultimoSigno.fecha}>{fechaEmergencia(ultimoSigno.fecha)}</time></> : 'Aún no hay tomas de signos vitales registradas.'}</p>
         <dialog ref={evolucionDialogo} className="em-evolucion-dialogo" aria-labelledby="em-evolucion-titulo" onClick={e => { if (e.target === e.currentTarget) evolucionDialogo.current?.close(); }}>
           <div className="em-evolucion-interior"><header className="em-panel-titulo"><div><h3 id="em-evolucion-titulo">Evolución de signos vitales</h3><small>{nombrePaciente(cuenta)}</small></div><button type="button" autoFocus onClick={() => evolucionDialogo.current?.close()} aria-label="Cerrar evolución de signos vitales"><Icon name="close" size={18}/></button></header>
-          {cuenta.signos.length ? <div className="em-evolucion-tabla"><table><thead><tr><th scope="col">Fecha y hora</th>{vitales.map(([clave, titulo, unidad]) => <th scope="col" key={clave}>{titulo}<br/><small>{unidad}</small></th>)}<th scope="col">Observación</th></tr></thead><tbody>{[...cuenta.signos].sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha)).map(s => <tr key={s.id}><th scope="row">{fechaEmergencia(s.fecha)}</th>{vitales.map(([clave]) => <td key={clave}>{s.valores[clave] ?? '—'}</td>)}<td>{s.observacion || '—'}</td></tr>)}</tbody></table></div> : <p className="em-vacio">Aún no hay mediciones registradas para mostrar su evolución.</p>}
+          {cuenta.signos.length ? <><div className="em-evolucion-controles" role="group" aria-label="Signo vital a graficar">{vitales.map(([clave, titulo, unidad]) => <button key={clave} type="button" className={signoEvolucion === clave ? 'activo' : ''} aria-pressed={signoEvolucion === clave} onClick={() => setSignoEvolucion(clave)}>{titulo}<small>{unidad}</small></button>)}</div><GraficaEvolucionSignos mediciones={cuenta.signos} signo={signoEvolucion} /><details className="em-evolucion-tabla"><summary>Ver mediciones registradas ({cuenta.signos.length})</summary><div><table><thead><tr><th scope="col">Fecha y hora</th>{vitales.map(([clave, titulo, unidad]) => <th scope="col" key={clave}>{titulo}<br/><small>{unidad}</small></th>)}<th scope="col">Observación</th></tr></thead><tbody>{[...cuenta.signos].sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha)).map(s => <tr key={s.id}><th scope="row">{fechaEmergencia(s.fecha)}</th>{vitales.map(([clave]) => <td key={clave}>{s.valores[clave] ?? '—'}</td>)}<td>{s.observacion || '—'}</td></tr>)}</tbody></table></div></details></> : <p className="em-vacio">Aún no hay mediciones registradas para mostrar su evolución.</p>}
           </div>
         </dialog>
-        {!cuenta.fin && <form className="em-form-signos" onSubmit={async evento => { evento.preventDefault(); const valores = Object.fromEntries(Object.entries(valoresSignos).filter(([, valor]) => valor !== '').map(([campo, valor]) => [campo, Number(valor)])); if (await guardar(`/${cuenta.id}/signos`, { valores, observacion: observacionSignos }, 'Signos vitales guardados.')) { setValoresSignos({}); setObservacionSignos(''); } }}><div className="em-medica-vitales">{vitales.map(([k, t, u]) => <label key={k}><small>{t}</small><span><input type="number" min="0" max={k === 'saturacion' ? 100 : undefined} step="any" value={valoresSignos[k] || ''} onChange={evento => setValoresSignos(actual => ({ ...actual, [k]: evento.target.value }))} />{u}</span></label>)}</div><label>Observación<textarea maxLength={1000} value={observacionSignos} onChange={evento => setObservacionSignos(evento.target.value)} placeholder="Opcional" /></label><div className="em-acciones"><button className="em-primario" disabled={ocupado}>Guardar signos</button></div></form>}
-        {cuenta.fin && <div className="em-medica-vitales">{vitales.map(([k, t, u]) => <div key={k}><small>{t}</small><strong>{ultimoSigno?.valores[k] === undefined ? '—' : `${ultimoSigno.valores[k]} ${u}`}</strong></div>)}</div>}
+        <div className="em-medica-vitales em-ultimo-signo">{vitales.map(([k, t, u]) => <div key={k}><small>{t}</small><strong>{ultimoSigno?.valores[k] === undefined ? '—' : `${ultimoSigno.valores[k]} ${u}`}</strong></div>)}</div>
+        <div className="em-signos-acciones"><button type="button" onClick={() => evolucionDialogo.current?.showModal()}>Ver evolución</button></div>
+        {!cuenta.fin && <div className="em-signos-registro-accion"><button type="button" className="em-primario" onClick={abrirRegistroSignos}><Icon name="plus" size={16} /> Registrar signos vitales</button></div>}
+        {registroSignosAbierto && <div className="em-modal-orden em-modal-signos" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setRegistroSignosAbierto(false); }}><section className="em-panel em-orden-estudio" role="dialog" aria-modal="true" aria-labelledby="em-registro-signos-titulo"><header className="em-panel-titulo"><div><h3 id="em-registro-signos-titulo">Registrar signos vitales</h3><small>La hora actual se propone automáticamente; puedes corregirla si la medición fue tomada antes.</small></div><button type="button" aria-label="Cerrar" onClick={() => setRegistroSignosAbierto(false)}><Icon name="close" size={18} /></button></header><form onSubmit={async evento => { evento.preventDefault(); const valores = Object.fromEntries(Object.entries(valoresSignos).filter(([, valor]) => valor !== '').map(([campo, valor]) => [campo, Number(valor)])); if (!Object.keys(valores).length) { setError('Registra al menos un signo vital.'); return; } if (await guardar(`/${cuenta.id}/signos`, { valores, observacion: observacionSignos, hora: horaSignos }, 'Signos vitales guardados.')) setRegistroSignosAbierto(false); }}><label className="em-hora-registro">Hora de medición<input type="time" required value={horaSignos} onChange={evento => setHoraSignos(evento.target.value)} /></label><div className="em-medica-vitales">{vitales.map(([k, t, u]) => <label key={k}><small>{t}</small><span><input type="number" min="0" max={k === 'saturacion' ? 100 : undefined} step="any" value={valoresSignos[k] || ''} onChange={evento => setValoresSignos(actual => ({ ...actual, [k]: evento.target.value }))} />{u}</span></label>)}</div><label>Observación<textarea maxLength={1000} value={observacionSignos} onChange={evento => setObservacionSignos(evento.target.value)} placeholder="Opcional" /></label><div className="em-acciones"><button type="button" onClick={() => setRegistroSignosAbierto(false)}>Cancelar</button><button className="em-primario" disabled={ocupado}>Guardar signos</button></div></form></section></div>}
         {ultimoSigno?.observacion && <p className="em-texto-clinico">{ultimoSigno.observacion}</p>}
         {cuenta.signos.length > 1 && <details><summary>Mediciones anteriores ({cuenta.signos.length - 1})</summary>{cuenta.signos.slice(0, -1).reverse().map(s => <p key={s.id}><strong>{fechaEmergencia(s.fecha)}</strong><br />{vitales.filter(([k]) => s.valores[k] !== undefined).map(([k, t, u]) => `${t}: ${s.valores[k]} ${u}`).join(' · ')}{s.observacion && ` · ${s.observacion}`}</p>)}</details>}
       </div></details>

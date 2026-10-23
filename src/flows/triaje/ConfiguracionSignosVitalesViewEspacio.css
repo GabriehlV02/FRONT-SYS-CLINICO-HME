@@ -60,6 +60,7 @@
   font-size: 12px;
 }
 
+.config-signos-asignados-herramientas{display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid #dce9f1;background:#f8fcff}.config-signos-asignados-herramientas label{display:flex;align-items:center;flex:1;gap:7px;height:38px;padding:0 10px;border:1px solid #bfd8e7;border-radius:7px;color:#1475a6;background:#fff}.config-signos-asignados-herramientas input{width:100%;border:0;outline:0;color:#214861;font:inherit;font-size:12px}.config-signos-asignados-herramientas button{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 12px;border:1px solid #0875b9;border-radius:7px;color:#fff;background:#0875b9;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap}.config-signos-asignados-herramientas button:hover{background:#066b9f}.config-signos-sin-resultados{margin:0;padding:26px 16px;color:#668096;font-size:12px;text-align:center}@media(max-width:600px){.config-signos-asignados-herramientas{flex-direction:column}.config-signos-asignados-herramientas button{width:100%}}
 .config-signos-herramientas > .config-signos-guardar:hover {
   background: linear-gradient(135deg, #0798dd, #086aaa);
   box-shadow: 0 7px 15px rgb(8 103 158 / 28%);

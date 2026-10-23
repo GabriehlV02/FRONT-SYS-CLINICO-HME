@@ -37,6 +37,14 @@ export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
       if (!encontrada) throw new Error('Atención demo no encontrada.');
       cuenta = encontrada;
       if (accion === 'evaluacion') (cuenta.evaluaciones ||= []).push({ id: crypto.randomUUID(), revision: 1, fecha, usuario: 'Admin demo', campos: datos.campos || datos });
+      else if (accion === 'signos') {
+        const valores = datos.valores || {};
+        if (!Object.keys(valores).length) throw new Error('Registra al menos un signo vital.');
+        const registro = new Date();
+        if (/^\d{2}:\d{2}$/.test(datos.hora || '')) { const [hora, minuto] = datos.hora.split(':').map(Number); registro.setHours(hora, minuto, 0, 0); }
+        cuenta.signos.push({ id: crypto.randomUUID(), fecha: registro.toISOString(), valores, observacion: datos.observacion || '' });
+        cuenta.signos.sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha));
+      }
       else if (accion === 'identidad') cuenta.identidad = { ...cuenta.identidad, ...datos };
       else if (accion === 'orden') {
         const orden = { tipo: '', titulo: '', indicaciones: '', dosis: '', via: '', frecuencia: '', duracion: '', itemId: '', porHora: false, ...datos, id: crypto.randomUUID(), revision: 1, fecha, usuario: 'Admin demo', estado: 'pendiente', aplicaciones: [], historial: [] } as OrdenEmergencia;

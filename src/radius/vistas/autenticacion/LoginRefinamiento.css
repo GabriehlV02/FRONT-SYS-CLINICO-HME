@@ -37,3 +37,80 @@
 @media(max-width:1100px) and (min-width:901px){.login-page-clinico .login-shell{grid-template-columns:minmax(0,.9fr) minmax(470px,1.1fr)!important}.login-page-clinico .login-presentacion{padding:48px!important}.login-presentacion-pie{left:48px}.login-page-clinico .login-presentacion h1{font-size:48px!important}.login-page-clinico .login-acceso{padding:42px!important}}
 @media(max-width:900px){.login-page.login-page-clinico{padding:14px!important;background:#dff5ff!important}.login-page-clinico .login-shell{display:block!important;height:auto!important;min-height:calc(100dvh - 28px)!important;background-position:35% center!important}.login-page-clinico .login-presentacion{min-height:330px!important;align-items:flex-end!important;padding:42px!important}.login-page-clinico .login-presentacion-contenido{padding:0!important}.login-page-clinico .login-presentacion h1{font-size:42px!important}.login-page-clinico .login-presentacion-pie{display:none}.login-page-clinico .login-acceso{margin:0!important;border-width:1px 0 0!important;border-radius:26px 26px 0 0!important;padding:44px!important}}
 @media(max-width:560px){.login-page.login-page-clinico{padding:0!important}.login-page-clinico .login-shell{min-height:100dvh!important;border-radius:0!important}.login-page-clinico .login-presentacion{min-height:265px!important;padding:28px!important}.login-page-clinico .login-logo{width:225px!important}.login-page-clinico .login-presentacion-kicker{margin:20px 0 8px!important}.login-page-clinico .login-presentacion h1{font-size:34px!important}.login-page-clinico .login-presentacion-texto{display:none}.login-page-clinico .login-acceso{padding:34px 23px 42px!important;border-radius:22px 22px 0 0!important}.login-page-clinico .login-card h1{font-size:38px!important}.login-page-clinico .login-subtitulo{margin-bottom:28px!important}}
+.login-page-clinico .login-shell{grid-template-columns:minmax(0,1fr) minmax(450px,.92fr);width:min(1440px,calc(100vw - 64px));min-height:min(820px,calc(100dvh - 48px));border-radius:26px;box-shadow:0 28px 74px rgba(4,67,106,.17),0 2px 8px rgba(4,67,106,.06)}
+.login-page-clinico .login-presentacion{background:linear-gradient(145deg,#f9fdff 0%,#eaf7ff 53%,#c5e7f8 100%)}
+.login-page-clinico .login-presentacion-contenido{width:min(500px,76%);padding-bottom:16px}
+.login-page-clinico .login-logo{width:min(360px,100%);max-height:132px}
+.login-page-clinico .login-presentacion-kicker{margin:62px 0 15px;font-size:10px;letter-spacing:.17em}
+.login-page-clinico .login-presentacion h1{font-size:clamp(42px,4vw,60px);line-height:1.04}
+.login-page-clinico .login-presentacion-texto{max-width:360px;margin-top:19px;font-size:15px}
+.login-presentacion-beneficios{display:flex;flex-wrap:wrap;gap:9px;margin-top:25px}
+.login-presentacion-beneficios span{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid rgba(68,151,192,.2);border-radius:999px;color:#276183;background:rgba(255,255,255,.64);font-size:10px;font-weight:750}
+.login-presentacion-beneficios svg{color:#0783c7}
+.login-page-clinico .login-acceso{padding:44px clamp(34px,5vw,76px);background:rgba(255,255,255,.91)}
+.login-page-clinico .login-card{width:min(100%,470px);padding:10px 0 8px}
+.login-page-clinico .login-icono-acceso{width:48px;height:48px;margin-bottom:20px;border:1px solid #e1f0f8;border-radius:14px}
+.login-page-clinico .login-kicker{margin-bottom:9px;font-size:9px}
+.login-page-clinico .login-card h1{font-size:clamp(35px,2.8vw,45px);letter-spacing:-.04em}
+.login-page-clinico .login-subtitulo{margin:8px 0 27px;font-size:13px}
+.login-page-clinico .login-field{margin-top:16px}
+.login-page-clinico .login-input{height:54px;border-radius:11px}
+.login-page-clinico .login-opciones{margin:17px 0 23px;gap:12px;font-size:10px}
+.login-page-clinico .login-opciones label{line-height:1.4}
+.login-page-clinico .login-opciones input{accent-color:#087fc0}
+.login-page-clinico .login-ayuda-link{padding:2px 0;border:0;color:#087fc0;background:transparent;font:inherit;font-weight:750;text-align:right;cursor:pointer}
+.login-page-clinico .login-ayuda-link:hover{text-decoration:underline}
+.login-page-clinico .login-ayuda-link:focus-visible{outline:2px solid #078bd5;outline-offset:3px;border-radius:3px}
+.login-page-clinico .login-ayuda-password{margin:-12px 0 17px;padding:10px 12px;border:1px solid #cde5f2;border-radius:8px;color:#35617d;background:#f2f9fd;font-size:11px;line-height:1.45}
+.login-page-clinico .login-submit{height:56px;border-radius:11px;background:linear-gradient(105deg,#075184,#087fc0);box-shadow:0 11px 22px rgba(3,91,145,.2)}
+.login-page-clinico .login-submit:hover:not(:disabled){box-shadow:0 15px 27px rgba(3,91,145,.27)}
+.login-page-clinico .login-acceso-nota{margin:15px 0 0;color:#7890a4;font-size:10px;text-align:center}
+@media(max-width:900px){.login-page-clinico .login-shell{grid-template-columns:1fr;width:min(650px,calc(100vw - 32px));min-height:0}.login-page-clinico .login-presentacion{min-height:300px}.login-page-clinico .login-presentacion-contenido{width:min(500px,82%);padding:38px 0}.login-page-clinico .login-presentacion-kicker{margin:30px 0 12px}.login-page-clinico .login-acceso{padding:36px 44px 42px}}
+@media(max-width:560px){.login-page-clinico .login-shell{width:100%;border-radius:18px}.login-page-clinico .login-presentacion{min-height:245px}.login-page-clinico .login-presentacion-contenido{width:82%;padding:26px 0}.login-page-clinico .login-logo{width:min(270px,90%);max-height:90px}.login-page-clinico .login-presentacion-kicker{margin:20px 0 9px;font-size:9px}.login-page-clinico .login-presentacion h1{font-size:34px}.login-page-clinico .login-presentacion-texto{margin-top:11px;font-size:12px}.login-presentacion-beneficios{gap:6px;margin-top:14px}.login-presentacion-beneficios span{padding:6px 8px;font-size:9px}.login-page-clinico .login-acceso{padding:27px 23px 30px}.login-page-clinico .login-card h1{font-size:34px}.login-page-clinico .login-subtitulo{margin-bottom:22px}.login-page-clinico .login-opciones{align-items:flex-start}.login-page-clinico .login-opciones>label{max-width:190px}.login-page-clinico .login-ayuda-link{max-width:125px}}
+@media(prefers-reduced-motion:reduce){.login-page-clinico .login-shell,.login-page-clinico .login-presentacion-contenido,.login-page-clinico .login-card{animation:none!important}}
+
+/* El acceso es una pantalla completa: nunca debe crear desplazamiento de página. */
+html:has(.login-page-clinico),
+body:has(.login-page-clinico),
+#root:has(.login-page-clinico) {
+  block-size: 100%;
+  overflow: hidden;
+}
+
+.login-page.login-page-clinico {
+  --login-gutter: clamp(12px, 2vw, 30px);
+  block-size: 100dvh;
+  min-block-size: 0 !important;
+  padding: var(--login-gutter) !important;
+  overflow: hidden !important;
+}
+
+.login-page-clinico .login-shell {
+  block-size: calc(100dvh - (var(--login-gutter) * 2));
+  min-block-size: 0 !important;
+  max-block-size: calc(100dvh - (var(--login-gutter) * 2));
+}
+
+.login-page-clinico .login-presentacion,
+.login-page-clinico .login-acceso {
+  min-block-size: 0 !important;
+}
+
+@media (max-height: 900px) and (min-width: 901px) {
+  .login-page-clinico .login-presentacion { padding-block: clamp(32px, 5vh, 58px) !important; }
+  .login-page-clinico .login-presentacion-kicker { margin-top: clamp(28px, 5vh, 48px) !important; }
+  .login-page-clinico .login-presentacion h1 { font-size: clamp(40px, 3.8vw, 54px) !important; }
+  .login-page-clinico .login-presentacion-texto { margin-top: 16px !important; font-size: 14px !important; }
+  .login-page-clinico .login-presentacion-beneficios { margin-top: 18px; }
+  .login-page-clinico .login-acceso { padding: clamp(26px, 4vh, 44px) clamp(32px, 5vw, 64px) !important; }
+  .login-page-clinico .login-card { padding: 28px !important; }
+  .login-page-clinico .login-icono-acceso { width: 44px !important; height: 44px !important; margin-bottom: 14px !important; }
+  .login-page-clinico .login-card h1 { font-size: 36px !important; }
+  .login-page-clinico .login-subtitulo { margin-bottom: 20px !important; }
+  .login-page-clinico .login-field { margin-top: 13px !important; }
+  .login-page-clinico .login-input,
+  .login-page-clinico .login-input:focus-within { height: 50px !important; }
+  .login-page-clinico .login-opciones { margin: 15px 0 18px !important; }
+  .login-page-clinico .login-submit { height: 50px !important; }
+  .login-page-clinico .login-helper { margin-top: 12px !important; }
+}

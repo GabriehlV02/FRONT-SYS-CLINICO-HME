@@ -40,6 +40,16 @@ export default function VistaConfiguracion({
   const [seguridadAbierta, setSeguridadAbierta] = useState(false);
   const [modoRevision, setModoRevision] = useState(() => localStorage.getItem('clinico_modo_revision') === '1');
   const [cacheEstado, setCacheEstado] = useState('');
+  const nombrePerfil = usuario.nombre?.trim() || usuario.usuario || 'Usuario';
+  const nombreCorto = nombrePerfil.split(/\s+/)[0];
+  const inicialesPerfil = nombrePerfil.split(/\s+/).slice(0, 2).map(parte => parte[0]).join('').toUpperCase();
+  const datosPerfil = [
+    { etiqueta: 'Nombre de usuario', valor: usuario.usuario, icono: 'users' as const, ayuda: 'Identificador para iniciar sesión' },
+    { etiqueta: 'Correo electrónico', valor: usuario.correo, icono: 'audit' as const, ayuda: 'Canal para recuperar tu cuenta' },
+    { etiqueta: 'Documento de identidad', valor: usuario.ci, icono: 'asset' as const, ayuda: 'Dato de identificación personal' },
+    { etiqueta: 'Teléfono', valor: usuario.telefono, icono: 'patient' as const, ayuda: 'Número personal de contacto' },
+  ];
+  const datosRegistrados = datosPerfil.filter(dato => Boolean(dato.valor?.trim())).length;
   const cambiarModoRevision = (activo: boolean) => { setModoRevision(activo); window.dispatchEvent(new CustomEvent('clinico:modo-revision', { detail: activo })); };
   const limpiarCache = async () => { try { if ('caches' in window) await Promise.all((await caches.keys()).map(cache => caches.delete(cache))); sessionStorage.removeItem('clinico_catalogo_cache'); setCacheEstado('Caché temporal limpiada correctamente.'); } catch { setCacheEstado('No se pudo limpiar la caché temporal.'); } };
 
@@ -137,8 +147,9 @@ export default function VistaConfiguracion({
             </label>
           </section>
           <section className="config-tarjeta config-perfil-actual" aria-labelledby="config-perfil-titulo">
-            <header><div><span className="config-perfil-avatar"><Icon name="users" size={24} /></span><div><p>PERFIL EN USO</p><h3 id="config-perfil-titulo">{usuario.nombre}</h3><small>Información de registro y acceso al sistema clínico</small></div></div><span className="config-perfil-acciones"><span className="config-perfil-rol">{usuario.rol}</span><button type="button" onClick={() => setSeguridadAbierta(actual => !actual)} aria-expanded={seguridadAbierta}><Icon name="settings" size={15} />{seguridadAbierta ? 'Cerrar' : 'Editar'}</button></span></header>
-            <div className="config-perfil-datos"><div><small>Usuario</small><strong>{usuario.usuario || 'No registrado'}</strong></div><div><small>Correo electrónico</small><strong>{usuario.correo || 'No registrado'}</strong></div><div><small>Documento de identidad</small><strong>{usuario.ci || 'No registrado'}</strong></div><div><small>Teléfono</small><strong>{usuario.telefono || 'No registrado'}</strong></div></div>
+            <header><div className="config-perfil-identidad"><span className="config-perfil-avatar" aria-hidden="true">{inicialesPerfil || <Icon name="users" size={24} />}</span><div><p>MI PERFIL</p><h3 id="config-perfil-titulo">Hola, {nombreCorto}</h3><strong className="config-perfil-nombre">{nombrePerfil}</strong><small>Estos son los datos vinculados con tu acceso al sistema clínico.</small></div></div><span className="config-perfil-acciones"><span className="config-perfil-estado"><i /> Cuenta activa</span><span className="config-perfil-rol">{usuario.rol}</span><button type="button" onClick={() => setSeguridadAbierta(actual => !actual)} aria-expanded={seguridadAbierta}><Icon name="settings" size={15} />{seguridadAbierta ? 'Cerrar seguridad' : 'Seguridad'}</button></span></header>
+            <div className="config-perfil-resumen"><div><strong>Tus datos personales</strong><span>{datosRegistrados === datosPerfil.length ? 'Tu información está completa.' : `${datosRegistrados} de ${datosPerfil.length} datos registrados`}</span></div><div className="config-perfil-progreso" aria-label={`${datosRegistrados} de ${datosPerfil.length} datos registrados`}><span style={{ width: `${datosRegistrados / datosPerfil.length * 100}%` }} /></div>{datosRegistrados < datosPerfil.length && <small>Los datos pendientes pueden ser completados por un administrador del sistema.</small>}</div>
+            <div className="config-perfil-datos">{datosPerfil.map(dato => <article key={dato.etiqueta} className={dato.valor ? 'completo' : 'pendiente'}><span className="config-perfil-dato-icono"><Icon name={dato.icono} size={18} /></span><div><small>{dato.etiqueta}</small><strong>{dato.valor || 'Pendiente de completar'}</strong><em>{dato.valor ? dato.ayuda : 'Solicita la actualización a un administrador'}</em></div>{dato.valor ? <span className="config-perfil-verificado"><Icon name="check" size={12} /> Registrado</span> : <span className="config-perfil-faltante">Pendiente</span>}</article>)}</div>
           </section>
           {seguridadAbierta && <section className="config-tarjeta config-seguridad" aria-labelledby="config-password-titulo">
             <header><div><h3 id="config-password-titulo">Cambiar contraseña</h3><p>Actualiza tu contraseña de acceso de forma segura.</p></div><Icon name="settings" size={20} /></header>

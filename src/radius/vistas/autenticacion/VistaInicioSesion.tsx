@@ -42,7 +42,11 @@ export default function VistaInicioSesion({ onLogin }: Props) {
   const [loading, setLoading] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [recordar, setRecordar] = useState(Boolean(usuarioRecordado));
-  const [mostrarAyudaPassword, setMostrarAyudaPassword] = useState(false);
+  const [recuperacionVisible, setRecuperacionVisible] = useState(false);
+  const [recuperacion, setRecuperacion] = useState({ identificador: usuarioRecordado, codigo: '', contrasena: '', confirmar: '' });
+  const [recuperando, setRecuperando] = useState(false);
+  const [mensajeRecuperacion, setMensajeRecuperacion] = useState('');
+  const [errorRecuperacion, setErrorRecuperacion] = useState('');
 
   const ingresar = async (event: FormEvent) => {
     event.preventDefault(); setError(''); setLoading(true);
@@ -81,6 +85,28 @@ export default function VistaInicioSesion({ onLogin }: Props) {
     finally { setLoading(false); }
   };
 
+  const solicitarCodigo = async () => {
+    setRecuperando(true); setErrorRecuperacion(''); setMensajeRecuperacion('');
+    try {
+      const response = await fetch('/api/recuperar-contrasena', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identificador: recuperacion.identificador }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message);
+      setMensajeRecuperacion(data.message || 'Revisa tu correo para continuar.');
+    } catch (error) { setErrorRecuperacion(error instanceof Error ? error.message : 'No pudimos enviar el código. Intenta nuevamente.'); }
+    finally { setRecuperando(false); }
+  };
+
+  const restablecerContrasena = async () => {
+    setRecuperando(true); setErrorRecuperacion(''); setMensajeRecuperacion('');
+    try {
+      const response = await fetch('/api/restablecer-contrasena', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identificador: recuperacion.identificador, codigo: recuperacion.codigo, contrasena_nueva: recuperacion.contrasena, confirmar_contrasena: recuperacion.confirmar }) });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message);
+      setMensajeRecuperacion(data.message || 'Contraseña actualizada.'); setRecuperacion((actual) => ({ ...actual, codigo: '', contrasena: '', confirmar: '' }));
+    } catch (error) { setErrorRecuperacion(error instanceof Error ? error.message : 'No pudimos restablecer la contraseña.'); }
+    finally { setRecuperando(false); }
+  };
+
   return <main className="login-page login-page-clinico">
     <svg className="triangulo-fondo triangulo-superior" viewBox="0 0 500 430" aria-hidden="true"><path d="M245 20Q265-13 285 20L485 365Q505 400 465 400H65Q25 400 45 365Z" /></svg>
     <svg className="triangulo-fondo triangulo-inferior" viewBox="0 0 500 430" aria-hidden="true"><path d="M245 20Q265-13 285 20L485 365Q505 400 465 400H65Q25 400 45 365Z" /></svg>
@@ -91,24 +117,29 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       <section className="login-presentacion" aria-label="Información del Hospital Maria Esperanza">
         <div className="login-presentacion-contenido">
           <img src="/logo-hospital-original.png" alt="Hospital Maria Esperanza" className="login-logo" />
-          <p className="login-presentacion-kicker">HOSPITAL MARIA ESPERANZA</p>
+          <p className="login-presentacion-kicker"><span />HOSPITAL MARIA ESPERANZA</p>
           <h1>Tu salud,<br /><strong>nuestra prioridad</strong></h1>
           <p className="login-presentacion-texto">Sistema de gestión clínica para<br />un mejor cuidado del paciente.</p>
-          <div className="login-presentacion-beneficios" aria-label="Beneficios del sistema"><span><Icon name="check" size={15}/>Atención integrada</span><span><Icon name="audit" size={15}/>Acceso protegido</span></div>
         </div>
+        <p className="login-presentacion-pie"><span /> Plataforma clínica institucional</p>
         <div className="login-presentacion-onda" aria-hidden="true" />
       </section>
       <section className="login-acceso">
         <form className="login-card" onSubmit={ingresar}>
-          <div className="login-icono-acceso" aria-hidden="true"><Icon name="users" size={27} /></div>
-          <p className="login-kicker">ACCESO AL SISTEMA</p>
+          <p className="login-kicker">PORTAL CLÍNICO</p>
           <h1>Iniciar sesión</h1>
           <p className="login-subtitulo">Accede al sistema clínico con tu cuenta</p>
           {error && <div className="login-error" role="alert"><Icon name="close" size={17} /><div><strong>No se pudo iniciar sesión</strong><span>{error}</span></div></div>}
           <div className="login-field"><label className="login-label" htmlFor="clinico-usuario">Usuario</label><div className="login-input"><Icon name="users" size={19} /><input id="clinico-usuario" autoFocus required autoComplete="username" value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} placeholder="Ingresa tu usuario" /></div></div>
           <div className="login-field"><label className="login-label" htmlFor="clinico-password">Contraseña</label><div className="login-input"><Icon name="asset" size={18} /><input id="clinico-password" required type={mostrarPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Ingresa tu contraseña" /><button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { const input = e.currentTarget.previousElementSibling as HTMLInputElement; const start = input.selectionStart, end = input.selectionEnd; setMostrarPassword((v) => !v); requestAnimationFrame(() => { input.focus({ preventScroll: true }); input.setSelectionRange(start, end); }); }} aria-pressed={mostrarPassword} aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}><Icon name={mostrarPassword ? 'eyeOff' : 'eye'} size={18} /></button></div></div>
-          <div className="login-opciones"><label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Recordar usuario en este equipo</label><button type="button" className="login-ayuda-link" onClick={() => setMostrarAyudaPassword((visible) => !visible)} aria-expanded={mostrarAyudaPassword}>¿Olvidaste tu contraseña?</button></div>
-          {mostrarAyudaPassword && <p className="login-ayuda-password" role="status">Solicita el restablecimiento de tu contraseña al administrador del sistema.</p>}
+          <div className="login-opciones"><label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Recordar usuario en este equipo</label><button type="button" className="login-ayuda-link" onClick={() => { setRecuperacionVisible((visible) => !visible); setMensajeRecuperacion(''); setErrorRecuperacion(''); }} aria-expanded={recuperacionVisible}>¿Olvidaste tu contraseña?</button></div>
+          {recuperacionVisible && <section className="login-recuperacion" aria-label="Recuperar contraseña">
+            <div className="login-recuperacion-cabecera"><strong>Recupera tu acceso</strong><span>Te enviaremos un código al correo registrado.</span></div>
+            {!mensajeRecuperacion.includes('actualizada') && <div className="login-recuperacion-form"><input required value={recuperacion.identificador} onChange={(e) => setRecuperacion({ ...recuperacion, identificador: e.target.value })} placeholder="Usuario o correo electrónico" autoComplete="username" /><button type="button" onClick={solicitarCodigo} disabled={recuperando}>{recuperando ? 'Enviando…' : 'Enviar código'}</button></div>}
+            {mensajeRecuperacion && !mensajeRecuperacion.includes('actualizada') && <div className="login-recuperacion-restablecer"><input required inputMode="numeric" pattern="[0-9]{6}" value={recuperacion.codigo} onChange={(e) => setRecuperacion({ ...recuperacion, codigo: e.target.value })} placeholder="Código de 6 dígitos" /><input required minLength={8} type="password" value={recuperacion.contrasena} onChange={(e) => setRecuperacion({ ...recuperacion, contrasena: e.target.value })} placeholder="Nueva contraseña (mín. 8 caracteres)" autoComplete="new-password" /><input required minLength={8} type="password" value={recuperacion.confirmar} onChange={(e) => setRecuperacion({ ...recuperacion, confirmar: e.target.value })} placeholder="Confirma tu contraseña" autoComplete="new-password" /><button type="button" onClick={restablecerContrasena} disabled={recuperando}>{recuperando ? 'Guardando…' : 'Crear nueva contraseña'}</button></div>}
+            {mensajeRecuperacion && <p className="login-recuperacion-mensaje" role="status">{mensajeRecuperacion}</p>}
+            {errorRecuperacion && <p className="login-recuperacion-error" role="alert">{errorRecuperacion}</p>}
+          </section>}
           <button className="login-submit" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar'} {!loading && <Icon name="arrowRight" size={18} />}</button>
           <p className="login-helper">Para proteger la información clínica, no compartas tus credenciales.</p>
         </form>

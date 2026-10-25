@@ -40,6 +40,7 @@ const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmer
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
 const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
 const MedicoInternacionView = lazy(() => import('../flows/internacion/MedicoInternacionView').then(m => ({ default: m.MedicoInternacionView })));
+const TerapiaIntensivaView = lazy(() => import('../flows/internacion/TerapiaIntensivaView').then(m => ({ default: m.TerapiaIntensivaView })));
 const FarmaciaInternacionView = lazy(() => import('../flows/internacion/FarmaciaInternacionView').then(m => ({ default: m.FarmaciaInternacionView })));
 const CocinaVentasView = lazy(() => import('../flows/cocina/CocinaVentasView').then(m => ({ default: m.CocinaVentasView })));
 const CocinaInternacionView = lazy(() => import('../flows/cocina/CocinaInternacionView').then(m => ({ default: m.CocinaInternacionView })));
@@ -136,6 +137,7 @@ const modulos: Modulo[] = [
   { id: 'entrega-material-esteril', nombre: 'Almacén de Esterilización', icono: 'check', grupo: 'ESTERILIZACIÓN' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
+  { id: 'laboratorio-almacen', nombre: 'Laboratorio almacén', icono: 'package', grupo: 'LABORATORIO' },
   { id: 'laboratorio-configuracion', nombre: 'Tipos de laboratorio', icono: 'settings', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   { id: "atencion-agenda", nombre: "Atención / Agenda", icono: "calendar", grupo: "IMAGENOLOGÍA" },
@@ -370,6 +372,7 @@ export default function Aplicacion() {
       localStorage.setItem("pulso_sidebar_replegado", siguiente ? "1" : "0");
       return siguiente;
     });
+  const replegarSidebarAlInteractuar = () => window.dispatchEvent(new Event('clinico:replegar-sidebar'));
   return (
     <main
       className={`sistema-app ${sidebarReplegado ? "sidebar-replegado" : ""} ${modoRevision ? "modo-revision" : ""}`}
@@ -533,7 +536,7 @@ export default function Aplicacion() {
             </article>)}</div>
           </aside>
         </div>}
-        <div className="area-trabajo">
+        <div className="area-trabajo" onPointerDownCapture={replegarSidebarAlInteractuar} onFocusCapture={replegarSidebarAlInteractuar}>
           <Suspense fallback={<div className="modulo-vacio" role="status"><span><Icon name="patient" size={28} /></span><p>CARGANDO</p><h2>Preparando flujo…</h2><small>Activando únicamente los recursos de esta área.</small></div>}>
           {modulo === "imagenologia" && (
             <nav className="imagenologia-subvistas" aria-label="Subvistas de Imagenología">
@@ -581,7 +584,7 @@ export default function Aplicacion() {
             </nav>
           )}
           {modulo === 'atencion-agenda' && <section className="triaje-ambulatorio-vista"><HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Atención y agenda"><button type="button" className={subvistaAtencionAgenda === 'pacientes' ? 'activo' : ''} onClick={() => setSubvistaAtencionAgenda('pacientes')}><span><Icon name="patient" size={17}/></span><strong>Pacientes agendados</strong><small>Estudios y atenciones pendientes.</small></button><button type="button" className={subvistaAtencionAgenda === 'cronograma' ? 'activo' : ''} onClick={() => setSubvistaAtencionAgenda('cronograma')}><span><Icon name="calendar" size={17}/></span><strong>Cronograma semanal</strong><small>Agenda por día y horario.</small></button></HorizontalSubvistaNav></section>}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'atencion-agenda' ? (subvistaAtencionAgenda === 'pacientes' ? <AgendaImagenologiaView /> : <CronogramaEstudiosView />) : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'farmacia-movimientos' ? <AdministracionFarmaciaView /> : modulo === 'cocina' ? <CocinaVentasView /> : modulo === 'cocina-internacion' ? <CocinaInternacionView /> : modulo === 'cocina-administracion' ? <CocinaAdministracionView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : modulo.startsWith('laboratorio-') ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'atencion-agenda' ? (subvistaAtencionAgenda === 'pacientes' ? <AgendaImagenologiaView /> : <CronogramaEstudiosView />) : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'farmacia-movimientos' ? <AdministracionFarmaciaView /> : modulo === 'cocina' ? <CocinaVentasView /> : modulo === 'cocina-internacion' ? <CocinaInternacionView /> : modulo === 'cocina-administracion' ? <CocinaAdministracionView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : ['laboratorio-ambulatorios', 'laboratorio-internados', 'laboratorio-configuracion'].includes(modulo) ? (
             modulo === 'laboratorio-configuracion' ? <ConfiguracionLaboratorioView /> : <LaboratorioView key={modulo} origen={modulo === 'laboratorio-internados' ? 'internacion' : 'ambulatorio'} />
           ) : modulo === 'atencion-medica' ? (
             <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview="consulta" initialPatient={pacienteColaAtencion} />
@@ -608,10 +611,7 @@ export default function Aplicacion() {
                 <button type="button" aria-current={subvistaTerapia === 'monitorizacion' ? 'page' : undefined} className={subvistaTerapia === 'monitorizacion' ? 'activo' : ''} onClick={() => setSubvistaTerapia('monitorizacion')}><span><Icon name="patient" size={17}/></span><strong>Monitorización</strong><small>Seguimiento de pacientes en terapia intensiva.</small></button>
                 <button type="button" aria-current={subvistaTerapia === 'registros' ? 'page' : undefined} className={subvistaTerapia === 'registros' ? 'activo' : ''} onClick={() => setSubvistaTerapia('registros')}><span><Icon name="audit" size={17}/></span><strong>Registros</strong><small>Registros de enfermería de terapia intensiva.</small></button>
               </HorizontalSubvistaNav>
-              <section className="em-panel" aria-labelledby="terapia-subvista-titulo">
-                <header className="em-panel-titulo"><h2 id="terapia-subvista-titulo">{subvistaTerapia === 'monitorizacion' ? 'Monitorización' : 'Registros'}</h2></header>
-                <p className="em-vacio">{subvistaTerapia === 'monitorizacion' ? 'No hay pacientes en monitorización.' : 'Aún no hay registros de enfermería.'}</p>
-              </section>
+              {subvistaTerapia === 'monitorizacion' ? <TerapiaIntensivaView /> : <section className="em-panel" aria-labelledby="terapia-subvista-titulo"><header className="em-panel-titulo"><h2 id="terapia-subvista-titulo">Registros</h2></header><p className="em-vacio">Aún no hay registros de enfermería.</p></section>}
             </section>
           ) : modulo === 'enfermera-internacion' ? (
             <section className="triaje-ambulatorio-vista">

@@ -13,6 +13,7 @@ type Cita = {
   paciente: string;
   ci: string;
   doctor: string;
+  especialidad?: string;
   consultorio?: string;
   motivo: string;
   estado: EstadoCita;
@@ -192,6 +193,14 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
           (consultorio === opcionesConsultorio[0] || cita.consultorio === consultorio),
       ),
     [citasProgramadas, consultorio, doctor],
+  );
+  const reservasVisibles = useMemo(
+    () => citasVisibles.filter((cita) => Boolean(cita.id) && cita.estado === 'Por confirmar').sort((a, b) => {
+      const fechaA = a.fecha ?? fechaParaInput(sumarDias(semana, a.dia));
+      const fechaB = b.fecha ?? fechaParaInput(sumarDias(semana, b.dia));
+      return `${fechaA} ${a.hora}`.localeCompare(`${fechaB} ${b.hora}`);
+    }),
+    [citasVisibles, semana],
   );
   const dias = useMemo(
     () =>
@@ -567,6 +576,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
         </span>
         <small>{citasVisibles.length} citas programadas</small>
       </div>
+      <div className="citas-tablero">
       <section className="panel citas-agenda">
         <div className="agenda-tabla">
           <div className="agenda-encabezado">
@@ -654,6 +664,21 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
           ))}
         </div>
       </section>
+      <aside className="panel citas-reservas" aria-labelledby="citas-reservas-titulo">
+        <header><div><p>RESERVAS DE CONSULTA WEB</p><h2 id="citas-reservas-titulo">Pendientes de confirmación</h2></div></header>
+        <div className="citas-reservas-lista">
+          {reservasVisibles.map((cita) => {
+            const fecha = cita.fecha ? new Date(`${cita.fecha}T00:00:00`) : sumarDias(semana, cita.dia);
+            return <button type="button" key={cita.id ?? `${cita.paciente}-${cita.hora}-${cita.dia}`} className={`citas-reserva ${cita.estado.toLowerCase().replace(' ', '-')}`} onClick={() => setCitaInspeccionada(cita)}>
+              <div className="citas-reserva-fecha"><strong>{fecha.toLocaleDateString('es-BO', { day: '2-digit', month: 'short' })}</strong><span>{cita.hora}</span></div>
+              <div className="citas-reserva-detalle"><strong>{cita.paciente}</strong><span>Especialidad · {cita.especialidad || cita.motivo}</span><small>Médico · {cita.doctor}</small></div>
+              <em>{cita.estado}</em>
+            </button>;
+          })}
+          {!reservasVisibles.length && <p className="citas-reservas-vacio">No hay reservas web pendientes de confirmación con los filtros seleccionados.</p>}
+        </div>
+      </aside>
+      </div>
       {citaInspeccionada && (
         <div
           className="citas-modal-fondo"

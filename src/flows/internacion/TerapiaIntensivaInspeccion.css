@@ -1,0 +1,30 @@
+.uci-inspeccion{display:grid;gap:14px}
+.uci-inspeccion-cabecera{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:17px 20px;border:1px solid #cfe4ef;border-top:3px solid #087fc0;border-radius:12px;background:#fff;box-shadow:0 5px 18px rgba(21,78,116,.05)}
+.uci-inspeccion-cabecera>button{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 12px;border:1px solid #9bcfe9;border-radius:8px;background:#f5fbff;color:#0873a9;font-size:12px;font-weight:800;white-space:nowrap}
+.uci-inspeccion-cabecera>button:hover{background:#087fc0;color:#fff}
+.uci-inspeccion-cabecera p{margin:0 0 4px;color:#087fc0;font-size:11px;font-weight:900;letter-spacing:.08em}
+.uci-inspeccion-cabecera h2{margin:0;color:#083f6b;font-size:21px}
+.uci-inspeccion-cabecera small{display:block;margin-top:5px;color:#6685a1;font-size:13px}
+.uci-inspeccion-cabecera>b{padding:7px 10px;border-radius:6px;background:#d7f4e7;color:#08794f;font-size:11px;white-space:nowrap}
+.uci-inspeccion-tablero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:14px}
+.uci-inspeccion-monitor,.uci-inspeccion-camara{display:flex;flex-direction:column;min-height:445px;overflow:hidden;border:1px solid #b9dcec;border-radius:10px;background:#fff}
+.uci-inspeccion-monitor>header,.uci-inspeccion-camara>header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #bfddea;background:#edf8fe;color:#165780;font-size:12px;font-weight:900}
+.uci-inspeccion-monitor>header span,.uci-inspeccion-camara>header span{display:flex;align-items:center;gap:7px}
+.uci-inspeccion-monitor>header i,.uci-inspeccion-camara>header i{width:8px;height:8px;border-radius:50%;background:#18a86d;box-shadow:0 0 0 4px #d7f5e7}
+.uci-inspeccion-monitor>header small,.uci-inspeccion-camara>header small{color:#5e829f;font-size:12px;font-weight:800}
+.uci-inspeccion-camara>header small{display:flex;align-items:center;gap:6px;color:#168663}
+.uci-inspeccion-signos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:18px}
+.uci-inspeccion-signos>div{padding:13px 14px;border:1px solid #e3f0f6;border-radius:8px;background:#fbfdff}
+.uci-inspeccion-signos small{display:block;color:#5d7e9b;font-size:12px;font-weight:800}
+.uci-inspeccion-signos strong{display:block;margin-top:4px;color:#006198;font-size:29px;line-height:1}
+.uci-inspeccion-signos em{margin-left:5px;color:#5d7e9b;font-size:11px;font-style:normal}
+.uci-inspeccion-trazo{display:flex;flex:1;align-items:flex-end;min-height:185px;padding:16px 18px 22px}
+.uci-inspeccion-trazo svg{width:100%;height:100%}
+.uci-inspeccion-trazo path{fill:none;stroke:#19a56f;stroke-width:4;vector-effect:non-scaling-stroke}
+.uci-inspeccion-monitor>p{margin:auto;padding:20px;color:#6d8ba5;font-size:16px}
+.uci-inspeccion-video{position:relative;display:flex;flex:1;align-items:center;justify-content:center;overflow:hidden;min-height:380px;background:repeating-linear-gradient(0deg,#123c54 0,#123c54 7px,#173f57 8px,#173f57 9px)}
+.uci-inspeccion-video>span{position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:6px;background:rgba(4,36,58,.75);color:#e9f8ff;font-size:13px;font-weight:900}
+.uci-inspeccion-video time{position:absolute;right:14px;bottom:12px;color:#d7eefb;font-size:11px;font-weight:700}
+.uci-inspeccion-video .uci-camara-cama{transform:scale(1.35);transform-origin:center 67%}
+@media(max-width:900px){.uci-inspeccion-tablero{grid-template-columns:1fr}.uci-inspeccion-cabecera{grid-template-columns:auto 1fr}.uci-inspeccion-cabecera>b{grid-column:2;justify-self:start}.uci-inspeccion-monitor,.uci-inspeccion-camara{min-height:390px}}
+@media(max-width:560px){.uci-inspeccion-cabecera{grid-template-columns:1fr;gap:11px;padding:14px}.uci-inspeccion-cabecera>b{grid-column:auto}.uci-inspeccion-signos{grid-template-columns:1fr;padding:12px}.uci-inspeccion-monitor,.uci-inspeccion-camara{min-height:350px}.uci-inspeccion-video{min-height:310px}}

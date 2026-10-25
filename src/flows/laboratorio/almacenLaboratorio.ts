@@ -3,7 +3,7 @@ import { evaluarFormula, validarFormula, type FormulaLaboratorio } from './formu
 import type { RangoReferencia } from './rangosLaboratorio';
 
 export type OrigenLaboratorio = 'ambulatorio' | 'internacion';
-export type EstadoLaboratorio = 'pendiente' | 'en_proceso' | 'completado';
+export type EstadoLaboratorio = 'pendiente' | 'en_proceso' | 'completado' | 'anulado';
 export type AdjuntoLaboratorio = { id: string; nombre: string; tipo: string; contenido: string };
 export type ResultadoLaboratorio = { id: string; parametro: string; valor: string; unidad: string; referencia: string; notaReferencia?: string; rangoReferencia?: RangoReferencia; tipo?: 'numero' | 'texto'; parametroId?: string; formula?: FormulaLaboratorio; observacion?: string; registradoEn?: string; adjuntos?: AdjuntoLaboratorio[] };
 export type EstudioLaboratorio = { id: string; nombre: string; resultados: ResultadoLaboratorio[] };
@@ -16,7 +16,7 @@ export type SolicitudLaboratorio = {
 
 const clave = 'clinico.laboratorio.solicitudes.v1';
 const evento = 'laboratorio:actualizado';
-const estados: EstadoLaboratorio[] = ['pendiente', 'en_proceso', 'completado'];
+const estados: EstadoLaboratorio[] = ['pendiente', 'en_proceso', 'completado', 'anulado'];
 
 export function leerSolicitudesLaboratorio(): SolicitudLaboratorio[] {
   const contenido = localStorage.getItem(clave);
@@ -78,7 +78,7 @@ export function crearSolicitudLaboratorio(
   if (!paciente.ci.trim() || !paciente.paciente.trim() || !estudios.length) throw new Error('Selecciona un paciente y al menos un estudio.');
   const existentes = leerSolicitudesLaboratorio();
   const unicos = [...new Map(estudios.map(e => [e.id, e])).values()];
-  const repetidos = existentes.filter(s => s.consultaId === paciente.consultaId && s.origen === origen && s.estado !== 'completado')
+  const repetidos = existentes.filter(s => s.consultaId === paciente.consultaId && s.origen === origen && !['completado', 'anulado'].includes(s.estado))
     .flatMap(s => s.estudios.map(e => e.id));
   const nuevos = unicos.filter(e => !repetidos.includes(e.id));
   if (!nuevos.length) throw new Error('Estos estudios ya están pendientes para esta consulta.');
@@ -101,7 +101,7 @@ export function guardarResultadosLaboratorio(solicitud: SolicitudLaboratorio, fi
   const solicitudes = leerSolicitudesLaboratorio();
   const actual = solicitudes.find(s => s.id === solicitud.id);
   if (!actual) throw new Error('La solicitud ya no está disponible.');
-  if (actual.estado === 'completado') throw new Error('Los resultados finalizados son de solo lectura.');
+  if (['completado', 'anulado'].includes(actual.estado)) throw new Error('Los resultados finalizados o anulados son de solo lectura.');
   if (actual.actualizadoEn !== solicitud.actualizadoEn) throw new Error('La solicitud cambió en otra pestaña. Vuelve a abrirla antes de guardar.');
   if (solicitud.estudios.length !== actual.estudios.length || solicitud.estudios.some(e => !actual.estudios.some(a => a.id === e.id))) throw new Error('Los estudios de la solicitud no coinciden.');
   for (const e of actual.estudios) for (const r of e.resultados) if (r.parametroId) {
@@ -162,7 +162,7 @@ export function calcularResultadosLaboratorio(solicitud: SolicitudLaboratorio) {
 }
 
 export function actualizarReferenciasLaboratorio(solicitud: SolicitudLaboratorio) {
-  if (solicitud.estado === 'completado') throw new Error('Las referencias de resultados finalizados son de solo lectura.');
+  if (['completado', 'anulado'].includes(solicitud.estado)) throw new Error('Las referencias de resultados finalizados o anulados son de solo lectura.');
   const catalogo = leerCatalogoLaboratorio();
   let encontrados = 0;
   const estudios = solicitud.estudios.map(e => {

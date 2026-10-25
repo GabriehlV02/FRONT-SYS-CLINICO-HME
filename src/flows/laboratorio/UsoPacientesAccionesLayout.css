@@ -1,0 +1,26 @@
+.uso-pacientes-listado > header,
+.uso-pacientes-listado > article {
+  grid-template-columns: minmax(170px, 0.9fr) minmax(200px, 1.25fr) 92px 150px !important;
+}
+
+.uso-pacientes-acciones {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.uso-pacientes-acciones button {
+  min-width: 62px !important;
+}
+
+.uso-pacientes-listado article b.anulado {
+  color: #8b3c4a;
+  background: #fff0f2;
+}
+
+@media (max-width: 660px) {
+  .uso-pacientes-listado > header,
+  .uso-pacientes-listado > article {
+    min-width: 700px !important;
+  }
+}

@@ -92,8 +92,8 @@ export default function VistaConfiguracion({
         <button type="button" aria-current={seccion === 'usuario' ? 'page' : undefined} className={seccion === 'usuario' ? 'activo' : ''} onClick={() => setSeccion('usuario')}>
           <Icon name="users" size={18} />
           <span>
-            <strong>Configuración de usuario</strong>
-            <small>Cuenta y preferencias personales</small>
+            <strong>Mi usuario</strong>
+            <small>Mi cuenta y preferencias personales</small>
           </span>
         </button>
         <button type="button" aria-current={seccion === 'sistema' ? 'page' : undefined} className={seccion === 'sistema' ? 'activo' : ''} onClick={() => setSeccion('sistema')}>

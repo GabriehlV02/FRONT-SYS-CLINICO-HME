@@ -26,7 +26,7 @@ export function ejemplosLaboratorio(origen: OrigenLaboratorio): SolicitudLaborat
   const fechaAnterior = new Date(new Date(fecha).getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const anterior: SolicitudLaboratorio = {
     ...structuredClone(ejemploFormula), id: `ejemplo-formula-historico-${origen}`, consultaId: `ejemplo-formula-historico-${origen}`,
-    fecha: fechaAnterior, actualizadoEn: fechaAnterior, finalizadoEn: fechaAnterior, estado: 'completado', registradoPor: 'Laboratorio · Ejemplo',
+    fecha: fechaAnterior, actualizadoEn: fechaAnterior, finalizadoEn: fechaAnterior, estado: 'anulado', registradoPor: 'Laboratorio · Ejemplo',
     observacion: 'Orden anterior ficticia para consultar el historial. Sus resultados son de solo lectura.',
   };
   const valoresAnteriores: Record<string, string> = { 'demo-total': '205', 'demo-hdl': '45', 'demo-tg': '100' };

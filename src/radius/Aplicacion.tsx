@@ -14,10 +14,12 @@ import "./vistas/visor/SidebarMejoras.css";
 import "./vistas/visor/SubvistasGlobal.css";
 import "./vistas/visor/TitulosUnicos.css";
 import "./vistas/visor/ResponsividadGlobal.css";
+import "./vistas/visor/PerfilAcceso.css";
 
 import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
 import type { SignoVitalConfig } from '../flows/triaje/ConfiguracionSignosVitalesView';
 import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
+import { InstrumentistaPreparacionView } from '../flows/quirofano/InstrumentistaPreparacionView';
 import '../flows/quirofano/EnfermeriaQuirofano.css';
 import './vistas/visor-tomografias/SubvistasTomografias.css';
 
@@ -33,6 +35,7 @@ const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView'
 const HistoriasClinicasView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.HistoriasClinicasView })));
 const LaboratorioView = lazy(() => import('../flows/laboratorio/LaboratorioView').then(m => ({ default: m.LaboratorioView })));
 const ConfiguracionLaboratorioView = lazy(() => import('../flows/laboratorio/ConfiguracionLaboratorioView').then(m => ({ default: m.ConfiguracionLaboratorioView })));
+const LaboratorioAlmacenView = lazy(() => import('../flows/laboratorio/LaboratorioAlmacenView').then(m => ({ default: m.LaboratorioAlmacenView })));
 const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
 const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTriajeView').then(m => ({ default: m.RegistroUsoTriajeView })));
 const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
@@ -144,9 +147,9 @@ const modulos: Modulo[] = [
   { id: "farmacia", nombre: "Farmacia", icono: "lab", grupo: "FARMACIA" },
   { id: "farmacia-internacion", nombre: "Internación", icono: "patient", grupo: "FARMACIA" },
   { id: "farmacia-movimientos", nombre: "Administración Farmacia", icono: "building", grupo: "FARMACIA" },
-  { id: "cocina", nombre: "Cocina", icono: "building", grupo: "COCINA" },
-  { id: "cocina-internacion", nombre: "Cocina Internación", icono: "building", grupo: "COCINA" },
-  { id: "cocina-administracion", nombre: "Control de Cocina", icono: "settings", grupo: "COCINA" },
+  { id: "cocina", nombre: "Cocina", icono: "utensils", grupo: "COCINA" },
+  { id: "cocina-internacion", nombre: "Cocina Internación", icono: "utensils", grupo: "COCINA" },
+  { id: "cocina-administracion", nombre: "Control de Cocina", icono: "warehouse", grupo: "COCINA" },
   {
     id: "configuracion",
     nombre: "Configuración",
@@ -200,7 +203,8 @@ export default function Aplicacion() {
   const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] = useState<SubvistaMedicoInternacion>("internados");
   const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] = useState<SubvistaEnfermeraInternacion>("internados");
   const [subvistaTerapia, setSubvistaTerapia] = useState<'monitorizacion' | 'registros'>('monitorizacion');
-  const cirugiaSeleccionada = cirugiasProgramadas.find((cirugia) => cirugia.id === cirugiaInstrumentista) ?? null;
+  const cirugiaSeleccionadaReal = cirugiasProgramadas.find((cirugia) => cirugia.id === cirugiaInstrumentista) ?? null;
+  const cirugiaSeleccionada = cirugiaSeleccionadaReal ?? cirugiasProgramadas[0];
   const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState(signosVitalesIniciales);
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
@@ -503,7 +507,7 @@ export default function Aplicacion() {
           </button>
           {verAvisos && <section className="pulso-avisos" aria-label="Notificaciones recientes"><h2>Notificaciones</h2><button onClick={() => setVerAvisos(false)}>Cerrar</button>{avisos.length ? avisos.map((a, i) => <article key={i}><strong>{a.titulo}</strong><p>{a.mensaje}</p></article>) : <p>No hay notificaciones en esta sesión.</p>}</section>}
           {esMedico && <button className="cola-atencion-rapida" type="button" onClick={() => setColaAtencionAbierta(true)}><Icon name="userCheck" size={17} /> Cola de atención</button>}
-          <div className="perfil">
+          <button className="perfil" type="button" onClick={() => { setModulo("configuracion"); setSubvistaConfiguracion("usuario"); }} aria-label="Abrir Mi usuario">
             <span className="perfil-avatar">
               <Icon name="users" size={21} />
             </span>
@@ -514,7 +518,7 @@ export default function Aplicacion() {
                 {sesion.usuario.rol}
               </small>
             </span>
-          </div>
+          </button>
           <button
             className="salir-rapido"
             onClick={cerrarSesion}
@@ -584,7 +588,7 @@ export default function Aplicacion() {
             </nav>
           )}
           {modulo === 'atencion-agenda' && <section className="triaje-ambulatorio-vista"><HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Atención y agenda"><button type="button" className={subvistaAtencionAgenda === 'pacientes' ? 'activo' : ''} onClick={() => setSubvistaAtencionAgenda('pacientes')}><span><Icon name="patient" size={17}/></span><strong>Pacientes agendados</strong><small>Estudios y atenciones pendientes.</small></button><button type="button" className={subvistaAtencionAgenda === 'cronograma' ? 'activo' : ''} onClick={() => setSubvistaAtencionAgenda('cronograma')}><span><Icon name="calendar" size={17}/></span><strong>Cronograma semanal</strong><small>Agenda por día y horario.</small></button></HorizontalSubvistaNav></section>}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'atencion-agenda' ? (subvistaAtencionAgenda === 'pacientes' ? <AgendaImagenologiaView /> : <CronogramaEstudiosView />) : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'farmacia-movimientos' ? <AdministracionFarmaciaView /> : modulo === 'cocina' ? <CocinaVentasView /> : modulo === 'cocina-internacion' ? <CocinaInternacionView /> : modulo === 'cocina-administracion' ? <CocinaAdministracionView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : ['laboratorio-ambulatorios', 'laboratorio-internados', 'laboratorio-configuracion'].includes(modulo) ? (
+          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion}/> : modulo === 'atencion-agenda' ? (subvistaAtencionAgenda === 'pacientes' ? <AgendaImagenologiaView /> : <CronogramaEstudiosView />) : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'farmacia-movimientos' ? <AdministracionFarmaciaView /> : modulo === 'cocina' ? <CocinaVentasView /> : modulo === 'cocina-internacion' ? <CocinaInternacionView /> : modulo === 'cocina-administracion' ? <CocinaAdministracionView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : modulo === 'laboratorio-almacen' ? <LaboratorioAlmacenView /> : ['laboratorio-ambulatorios', 'laboratorio-internados', 'laboratorio-configuracion'].includes(modulo) ? (
             modulo === 'laboratorio-configuracion' ? <ConfiguracionLaboratorioView /> : <LaboratorioView key={modulo} origen={modulo === 'laboratorio-internados' ? 'internacion' : 'ambulatorio'} />
           ) : modulo === 'atencion-medica' ? (
             <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview="consulta" initialPatient={pacienteColaAtencion} />
@@ -640,7 +644,7 @@ export default function Aplicacion() {
       <button type="button" className={rolEnfermeriaQuirofano === 'almacen' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('almacen')}><span><Icon name="package" size={17}/></span><strong>Almacén quirófano</strong></button>
               </nav>
               <section className="enfermeria-q-panel">
-                {rolEnfermeriaQuirofano === 'instrumentista' ? (cirugiaSeleccionada ? <div className="instrumentista-tablero">
+                {rolEnfermeriaQuirofano === 'instrumentista' ? (cirugiaSeleccionadaReal ? <InstrumentistaPreparacionView cirugia={cirugiaSeleccionada} onVolver={() => setCirugiaInstrumentista(null)} /> : Date.now() < 0 && cirugiaSeleccionada ? <div className="instrumentista-tablero">
                   <div className="instrumentista-contexto"><button type="button" onClick={() => setCirugiaInstrumentista(null)}><Icon name="chevronLeft" size={16} /> Cirugías programadas</button><div><span>{cirugiaSeleccionada.sala} · {cirugiaSeleccionada.hora}</span><h3>{cirugiaSeleccionada.procedimiento}</h3><small>{cirugiaSeleccionada.paciente} · {cirugiaSeleccionada.cirujano}</small></div></div>
                   <div className="instrumentista-indicadores" aria-label="Resumen de actividad de la cirugía seleccionada"><div><span><Icon name="package" size={18} /></span><strong>18</strong><small>Instrumentos dispensados</small></div><div><span><Icon name="check" size={18} /></span><strong>3</strong><small>Conteos verificados</small></div><div><span><Icon name="patient" size={18} /></span><strong>1</strong><small>Cirugía seleccionada</small></div><div><span><Icon name="audit" size={18} /></span><strong>0</strong><small>Observaciones pendientes</small></div></div>
                   <div className="instrumentista-listado"><div className="instrumentista-tabla" role="table" aria-label="Material dispensado para la cirugía seleccionada"><div className="instrumentista-fila instrumentista-columnas" role="row"><span>Instrumental / kit</span><span>Procedimiento</span><span>Hora</span><span>Estado</span></div><div className="instrumentista-fila" role="row"><span><strong>Kit de cirugía general</strong><small>KIT-CG-021 · 24 piezas</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>08:15</span><span><b className="estado-dispensado">Dispensado</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Pinza Backhaus</strong><small>INST-004 · Serie BAC-004</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>08:18</span><span><b className="estado-en-uso">En uso</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Set de laparotomía</strong><small>KIT-LAP-008 · 36 piezas</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>10:05</span><span><b className="estado-dispensado">Dispensado</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Gasas estériles 10 × 10</strong><small>INS-GAS-110 · 4 paquetes</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>10:12</span><span><b className="estado-verificado">Conteo verificado</b></span></div></div></div>

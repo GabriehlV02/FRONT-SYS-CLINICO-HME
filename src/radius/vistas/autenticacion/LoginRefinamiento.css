@@ -29,3 +29,50 @@
 @media(max-width:900px){.login-page-clinico .login-shell{grid-template-columns:1fr;width:min(650px,calc(100vw - 32px));min-height:0}.login-page-clinico .login-presentacion{min-height:300px}.login-page-clinico .login-presentacion-contenido{width:min(500px,82%);padding:38px 0}.login-page-clinico .login-presentacion-kicker{margin:30px 0 12px}.login-page-clinico .login-acceso{padding:36px 44px 42px}}
 @media(max-width:560px){.login-page-clinico .login-shell{width:100%;border-radius:18px}.login-page-clinico .login-presentacion{min-height:245px}.login-page-clinico .login-presentacion-contenido{width:82%;padding:26px 0}.login-page-clinico .login-logo{width:min(270px,90%);max-height:90px}.login-page-clinico .login-presentacion-kicker{margin:20px 0 9px;font-size:9px}.login-page-clinico .login-presentacion h1{font-size:34px}.login-page-clinico .login-presentacion-texto{margin-top:11px;font-size:12px}.login-presentacion-beneficios{gap:6px;margin-top:14px}.login-presentacion-beneficios span{padding:6px 8px;font-size:9px}.login-page-clinico .login-acceso{padding:27px 23px 30px}.login-page-clinico .login-card h1{font-size:34px}.login-page-clinico .login-subtitulo{margin-bottom:22px}.login-page-clinico .login-opciones{align-items:flex-start}.login-page-clinico .login-opciones>label{max-width:190px}.login-page-clinico .login-ayuda-link{max-width:125px}}
 @media(prefers-reduced-motion:reduce){.login-page-clinico .login-shell,.login-page-clinico .login-presentacion-contenido,.login-page-clinico .login-card{animation:none!important}}
+
+/* El acceso debe caber completo en el alto visible de una laptop.  La
+   composicion anterior imponia 820px mas el padding exterior y provocaba
+   scroll incluso con el formulario totalmente visible. */
+@media (min-width:901px){
+  .login-page.login-page-clinico{
+    height:100dvh;
+    min-height:0;
+    overflow:hidden;
+    padding:clamp(12px,2vh,24px) clamp(18px,2vw,30px)!important;
+  }
+
+  .login-page-clinico .login-shell{
+    height:100%;
+    min-height:0!important;
+  }
+}
+
+/* Laptop pequena o ventana baja: conserva las dos columnas, pero compacta
+   cada bloque para que no sea necesario desplazarse verticalmente. */
+@media (min-width:901px) and (max-height:820px){
+  .login-page-clinico .login-shell{grid-template-columns:minmax(0,1fr) minmax(390px,.9fr)!important}
+  .login-page-clinico .login-presentacion{padding:clamp(28px,5vh,48px) clamp(34px,5vw,70px)!important}
+  .login-page-clinico .login-logo{width:min(280px,100%)!important;max-height:96px!important;padding:10px 14px!important}
+  .login-page-clinico .login-presentacion-kicker{margin:clamp(22px,4vh,38px) 0 9px!important;font-size:9px!important}
+  .login-page-clinico .login-presentacion h1{font-size:clamp(36px,4vw,52px)!important}
+  .login-page-clinico .login-presentacion-texto{margin-top:13px!important;font-size:13px!important;line-height:1.45!important}
+  .login-presentacion-beneficios{margin-top:15px!important;gap:6px!important}
+  .login-presentacion-beneficios span{padding:6px 8px!important;font-size:9px!important}
+
+  .login-page-clinico .login-acceso{padding:clamp(20px,4vh,34px) clamp(28px,4vw,52px)!important}
+  .login-page-clinico .login-card{width:min(100%,430px)!important;padding:0!important}
+  .login-page-clinico .login-icono-acceso{width:42px!important;height:42px!important;margin-bottom:12px!important;border-radius:12px!important}
+  .login-page-clinico .login-card h1{font-size:clamp(31px,3vw,38px)!important}
+  .login-page-clinico .login-subtitulo{margin:7px 0 18px!important;font-size:12px!important}
+  .login-page-clinico .login-field{margin-top:12px!important}
+  .login-page-clinico .login-label{margin-bottom:6px!important;font-size:11px!important}
+  .login-page-clinico .login-input,.login-page-clinico .login-input:focus-within{height:48px!important}
+  .login-page-clinico .login-opciones{margin:13px 0 16px!important;font-size:10px!important}
+  .login-page-clinico .login-submit{height:49px!important}
+  .login-page-clinico .login-acceso-nota{margin-top:11px!important}
+}
+
+/* En telefonos se conserva el flujo vertical natural para no recortar campos. */
+@media (max-width:900px){
+  .login-page.login-page-clinico{height:auto;min-height:100dvh;overflow:auto}
+}

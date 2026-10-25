@@ -6,7 +6,7 @@ import './ModalResultadosLaboratorio.css';
 
 const fecha = (valor: string) => new Date(valor).toLocaleString('es-BO', { dateStyle: 'short', timeStyle: 'short' });
 const codigo = (s: SolicitudLaboratorio) => s.id.startsWith('ejemplo-') ? s.id.replace('ejemplo-', '').toUpperCase() : s.id.slice(0, 8).toUpperCase();
-const estados = { pendiente: 'Pendiente', en_proceso: 'En proceso', completado: 'Finalizado' };
+const estados = { pendiente: 'Pendiente', en_proceso: 'En proceso', completado: 'Terminado', anulado: 'Anulado' };
 
 export function ModalResultadosLaboratorio({ ordenActual, seleccionada, solicitudes, onElegir, onCerrar, editorActual, editorHistorial, mensaje }: {
   ordenActual: SolicitudLaboratorio; seleccionada: SolicitudLaboratorio; solicitudes: SolicitudLaboratorio[];

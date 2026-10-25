@@ -1,0 +1,160 @@
+/*
+ * Compatibilidad para vistas cargadas de forma diferida.
+ * Algunos flujos declaran colores literales y su CSS se carga después del tema
+ * principal; esta capa conserva la paleta nocturna en todo el espacio de trabajo.
+ */
+.sistema-app[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo {
+  color: var(--text) !important;
+  background-color: var(--app-bg) !important;
+  background-image: var(--app-bg-pattern) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  .config-pestanas, .subvistas-nav, .recepcion-subvistas, .consultorio-subvistas,
+  .imagenologia-subvistas, .laboratorio-almacen-subvistas, .lab-resumen
+) {
+  border-color: var(--border) !important;
+  background: var(--panel-2) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  .config-pestanas button, .subvistas-nav button, .recepcion-subvistas button,
+  .consultorio-subvistas button, .imagenologia-subvistas button,
+  .laboratorio-almacen-subvistas button, .lab-resumen button
+) {
+  color: var(--muted) !important;
+  border-color: transparent !important;
+  background: transparent !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  .config-pestanas button:hover, .subvistas-nav button:hover, .recepcion-subvistas button:hover,
+  .consultorio-subvistas button:hover, .imagenologia-subvistas button:hover,
+  .laboratorio-almacen-subvistas button:hover, .lab-resumen button:hover
+) {
+  color: var(--heading) !important;
+  background: var(--panel-3) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  .config-pestanas button.activo, .subvistas-nav button.activo, .recepcion-subvistas button.activo,
+  .consultorio-subvistas button.activo, .imagenologia-subvistas button.activo,
+  .laboratorio-almacen-subvistas button.activo, .lab-resumen button.activo
+) {
+  color: var(--primary-text) !important;
+  border-color: var(--primary) !important;
+  background: var(--primary-gradient) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  .config-pestanas button > svg, .subvistas-nav button > svg, .recepcion-subvistas button > svg,
+  .consultorio-subvistas button > svg, .imagenologia-subvistas button > svg,
+  .laboratorio-almacen-subvistas button > svg
+) {
+  color: var(--primary) !important;
+  border-color: var(--border-strong) !important;
+  background: var(--primary-soft) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  .config-pestanas button.activo > svg, .subvistas-nav button.activo > svg,
+  .recepcion-subvistas button.activo > svg, .consultorio-subvistas button.activo > svg,
+  .imagenologia-subvistas button.activo > svg, .laboratorio-almacen-subvistas button.activo > svg
+) {
+  color: var(--primary-text) !important;
+  border-color: color-mix(in srgb, var(--primary) 72%, white) !important;
+  background: color-mix(in srgb, var(--primary-strong) 75%, #000) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  [class*="tarjeta"], [class*="card"], [class*="panel"], [class*="tabla"],
+  [class*="listado"], [class*="formulario"], [class*="form-"], [class*="detalle"],
+  [class*="resumen"], [class*="catalogo"], [class*="inventario"], [class*="contenido"]
+) {
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  [class*="tarjeta"], [class*="card"], [class*="panel"], [class*="tabla"],
+  [class*="listado"], [class*="formulario"], [class*="form-"], [class*="detalle"],
+  [class*="resumen"], [class*="catalogo"], [class*="inventario"]
+) {
+  background-color: var(--panel) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(
+  thead, th, [class*="cabecera"], [class*="encabezado"], [class*="columnas"],
+  [class*="filtros"], [class*="herramientas"]
+) {
+  border-color: var(--border) !important;
+  background-color: var(--panel-2) !important;
+  color: var(--muted) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(h1, h2, h3, h4, h5, strong, b) {
+  color: var(--heading) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(p, small, label, dt, dd, time) {
+  color: var(--muted) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(td, li, option) {
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+  background-color: transparent !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(input, select, textarea, [contenteditable="true"]) {
+  color: var(--text) !important;
+  border-color: var(--border-strong) !important;
+  background: var(--field) !important;
+  color-scheme: dark;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(input, textarea)::placeholder {
+  color: var(--subtle) !important;
+  opacity: 1;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo button:not(.boton-principal):not(.usuarios-crear):not(.primario):not(.login-submit) {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  background-color: var(--field) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo :is(.boton-principal, .usuarios-crear, .primario, .login-submit) {
+  color: var(--primary-text) !important;
+  border-color: var(--primary) !important;
+  background: var(--primary-gradient) !important;
+}
+
+.sistema-app[data-theme="dark"] :is(
+  dialog, .usuario-modal, .orthanc-modal, .lab-resultados-modal, .modal-imagen,
+  [class*="modal"] [role="dialog"]
+) {
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+  background-color: var(--panel) !important;
+}
+
+.sistema-app[data-theme="dark"] :is(.usuario-modal-fondo, .orthanc-modal-fondo, .modal-fondo, [class*="modal-fondo"], [class*="overlay"]) {
+  background-color: #020b16c9 !important;
+}
+
+/* Estados conservan significado sin volver a tonos claros. */
+.sistema-app[data-theme="dark"] .area-trabajo :is(.pendiente, .alerta, .warning) { color: var(--warning) !important; background-color: var(--warning-bg) !important; }
+.sistema-app[data-theme="dark"] .area-trabajo :is(.completado, .terminado, .activo, .success) { color: var(--success) !important; background-color: var(--success-bg) !important; }
+.sistema-app[data-theme="dark"] .area-trabajo :is(.anulado, .inactivo, .error, .danger) { color: var(--danger) !important; background-color: var(--danger-bg) !important; }
+.sistema-app[data-theme="dark"] .area-trabajo :is(.en_proceso, .proceso, .info) { color: #9edfff !important; background-color: var(--primary-soft) !important; }
+
+@media (max-width: 760px) {
+  .sistema-app[data-theme="dark"] .area-trabajo :is(.config-pestanas, .subvistas-nav, .recepcion-subvistas, .consultorio-subvistas, .imagenologia-subvistas, .laboratorio-almacen-subvistas) {
+    background: var(--panel-2) !important;
+  }
+}

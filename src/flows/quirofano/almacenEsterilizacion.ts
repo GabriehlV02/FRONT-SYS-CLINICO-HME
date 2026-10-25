@@ -112,4 +112,5 @@ export function leerEsterilizacion(): EstadoEsterilizacion {
 
 export function guardarEsterilizacion(estado: EstadoEsterilizacion): void {
   localStorage.setItem(CLAVE, JSON.stringify(estado));
+  window.dispatchEvent(new Event('hme:esterilizacion:actualizado'));
 }

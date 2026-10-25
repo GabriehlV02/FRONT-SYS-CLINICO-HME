@@ -8,12 +8,13 @@ import {
 import './LaboratorioView.css';
 import './CargaResultados.css';
 import './FilasResultados.css';
+import './EstadoAnulado.css';
 import { EstadoReferenciaLaboratorio } from './EstadoReferenciaLaboratorio';
 import { leerSesion } from '../../radius/types/sesion';
 import { ejemplosLaboratorio } from './ejemplosLaboratorio';
 import { ModalResultadosLaboratorio } from './ModalResultadosLaboratorio';
 
-const etiquetas: Record<EstadoLaboratorio, string> = { pendiente: 'Pendiente', en_proceso: 'En proceso', completado: 'Finalizado' };
+const etiquetas: Record<EstadoLaboratorio, string> = { pendiente: 'Pendiente', en_proceso: 'En proceso', completado: 'Terminado', anulado: 'Anulado' };
 const fecha = (valor: string) => new Date(valor).toLocaleString('es-BO', { dateStyle: 'short', timeStyle: 'short' });
 
 export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
@@ -43,7 +44,7 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
   const visibles = delOrigen.filter(s => {
     const dia = new Date(s.fecha).toLocaleDateString('en-CA');
     return `${s.paciente} ${s.ci} ${s.medico} ${s.estudios.map(e => e.nombre).join(' ')}`.toLocaleLowerCase().includes(busqueda.trim().toLocaleLowerCase())
-      && (filtro === 'todos' || (filtro === 'pendientes' ? s.estado !== 'completado' : s.estado === filtro))
+      && (filtro === 'todos' || (filtro === 'pendientes' ? !['completado', 'anulado'].includes(s.estado) : s.estado === filtro))
       && (!desde || dia >= desde) && (!hasta || dia <= hasta);
   });
   const todas = modoEjemplo ? ejemplos : solicitudes;
@@ -57,12 +58,12 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
   return <section className="laboratorio-vista" aria-label={`Laboratorio ${origen === 'ambulatorio' ? 'ambulatorio' : 'de internación'}`}>
     <header className="lab-cabecera"><div><h2>Laboratorio · {origen === 'ambulatorio' ? 'Ambulatorios' : 'Internados'}</h2></div><button type="button" className="lab-boton" onClick={() => { if (modificado && !window.confirm('¿Descartar los cambios sin guardar?')) return; setModoEjemplo(!modoEjemplo); setSeleccionado(null); setModificado(false); setMensaje(''); }}>{modoEjemplo ? 'Ver solicitudes locales' : 'Ver ejemplo visual'}</button></header>
     <nav className="lab-resumen" aria-label="Estado de las solicitudes">
-      {(['pendientes', 'en_proceso', 'completado', 'todos'] as const).map(id => {
-        const cantidad = id === 'todos' ? delOrigen.length : delOrigen.filter(s => id === 'pendientes' ? s.estado !== 'completado' : s.estado === id).length;
+      {(['pendientes', 'en_proceso', 'completado', 'anulado', 'todos'] as const).map(id => {
+        const cantidad = id === 'todos' ? delOrigen.length : delOrigen.filter(s => id === 'pendientes' ? !['completado', 'anulado'].includes(s.estado) : s.estado === id).length;
         return <button key={id} type="button" aria-pressed={filtro === id} className={filtro === id ? 'activo' : ''} onClick={() => setFiltro(id)}><span>{id === 'todos' ? 'Todas las solicitudes' : id === 'pendientes' ? 'Por completar' : etiquetas[id]}</span><strong>{cantidad}</strong></button>;
       })}
     </nav>
-    <div className="lab-filtros"><label className="lab-busqueda"><Icon name="search" size={17}/><input aria-label="Buscar solicitudes de laboratorio" placeholder="Paciente, CI, médico o estudio" value={busqueda} onChange={e => setBusqueda(e.target.value)}/></label><label>Estado<select value={filtro} onChange={e => setFiltro(e.target.value as typeof filtro)}><option value="pendientes">Por completar</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="completado">Finalizado</option><option value="todos">Todos</option></select></label><label>Desde<input type="date" value={desde} onChange={e => setDesde(e.target.value)}/></label><label>Hasta<input type="date" value={hasta} min={desde || undefined} onChange={e => setHasta(e.target.value)}/></label></div>
+    <div className="lab-filtros"><label className="lab-busqueda"><Icon name="search" size={17}/><input aria-label="Buscar solicitudes de laboratorio" placeholder="Paciente, CI, médico o estudio" value={busqueda} onChange={e => setBusqueda(e.target.value)}/></label><label>Estado<select value={filtro} onChange={e => setFiltro(e.target.value as typeof filtro)}><option value="pendientes">Por completar</option><option value="pendiente">Pendiente</option><option value="en_proceso">En proceso</option><option value="completado">Terminado</option><option value="anulado">Anulado</option><option value="todos">Todos</option></select></label><label>Desde<input type="date" value={desde} onChange={e => setDesde(e.target.value)}/></label><label>Hasta<input type="date" value={hasta} min={desde || undefined} onChange={e => setHasta(e.target.value)}/></label></div>
     {error && <p className="lab-error" role="alert">{error}</p>}
     {mensaje && <p className="lab-mensaje" role="status">{mensaje}</p>}
     <div className="lab-tablero">

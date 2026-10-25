@@ -84,6 +84,7 @@
 
 /* Triaje: misma bandeja clínica amplia usada en Atención médica. */
 .em-triaje-cabecera{margin-bottom:16px;border-top:0}.em-triaje-cabecera p{margin:0;color:#078dc2;font-size:12px;font-weight:700;letter-spacing:.5px}.em-triaje-cabecera h2{margin:9px 0 0;color:#173f62;font-size:24px}.em-triaje-cabecera-acciones{display:flex;align-items:center;gap:10px}.em-triaje-cabecera-acciones button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:148px;min-height:44px;padding:10px 16px;border-radius:9px;font-weight:800}.em-triaje-cabecera-acciones .em-actualizar{border-color:#85c9e7;color:#086e9f;background:#e7f6fc;box-shadow:0 5px 14px rgba(8,127,183,.1)}.em-triaje-cabecera-acciones .em-actualizar:hover:not(:disabled){border-color:#087fb7;color:#fff;background:#1598c9}.em-triaje-cabecera-acciones .em-primario{box-shadow:0 7px 15px rgba(8,127,183,.18)}
+.emergencias-vista:has(> .em-triaje-cabecera){gap:10px}.em-triaje-cabecera{margin-bottom:0}.em-triaje-cabecera h2{margin-top:3px;line-height:1.15}.em-triaje-cabecera-acciones button{min-height:38px;padding-block:7px}
 @media (min-width: 761px) {
   .em-distribucion.atencion-activa { grid-template-columns: minmax(0, 1fr); }
   .em-distribucion.atencion-activa > .em-trabajo { grid-column: 1; }

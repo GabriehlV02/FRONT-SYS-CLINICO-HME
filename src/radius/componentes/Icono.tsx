@@ -1,6 +1,6 @@
 import type { ReactNode, SVGProps } from 'react';
 
-export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'refresh' | 'check' | 'arrowRight' | 'download' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'calendar' | 'edit' | 'trash' | 'cash' | 'print';
+export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'utensils' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'refresh' | 'check' | 'arrowRight' | 'download' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'calendar' | 'edit' | 'trash' | 'cash' | 'print';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; size?: number };
 
 const paths: Record<IconName, ReactNode> = {
@@ -9,6 +9,7 @@ const paths: Record<IconName, ReactNode> = {
   asset: <><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4h8v2M3 11h18M8 15h3m3 0h2"/><circle cx="6" cy="9" r=".5" fill="currentColor"/></>,
   audit: <><path d="M9 5H6a2 2 0 0 0-2 2v13h13v-3M9 3h6v4H9z"/><circle cx="16" cy="12" r="4"/><path d="m19 15 3 3m-7-6 1 1 2-2"/></>,
   building: <><path d="M4 21V5l8-3v19M12 8h8v13M8 7v1m0 4v1m0 4v1m8-6v1m0 4v1M2 21h20"/></>,
+  utensils: <><path d="M6 3v8m-2-8v5a2 2 0 0 0 4 0V3m-2 8v10"/><path d="M15 3v18m0-18c2.8 2 4 5.1 4 9h-4"/></>,
   fileText: <><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5M9 12h6m-6 4h6"/></>,
   users: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3.25" fill="currentColor" stroke="none"/><path d="M3.85 20.15C4.65 14.85 7.75 12 12 12s7.35 2.85 8.15 8.15A10.05 10.05 0 0 1 12 22a10.05 10.05 0 0 1-8.15-1.85Z" fill="currentColor" stroke="none"/></>,
   patient: <><circle cx="10" cy="7.5" r="3.25"/><path d="M3.5 20v-1.2a6.5 6.5 0 0 1 11.8-3.8"/><circle cx="17.5" cy="16.5" r="4"/><path d="M17.5 14.4v4.2m-2.1-2.1h4.2"/></>,

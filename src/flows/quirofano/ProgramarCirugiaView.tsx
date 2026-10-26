@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Icon from '../../radius/componentes/Icono';
+import { apiFetch } from '../../radius/api';
 import type { CirugiaProgramada } from './cronogramaQuirofano';
+import { guardarAsignacionQuirofano } from './asignacionesQuirofano';
 import './ProgramarCirugiaView.css';
 import './ProgramarDetalleView.css';
 
@@ -13,6 +15,10 @@ const fechaLocalConDesplazamiento = (dias: number) => {
 const PROFESIONALES = ['Dr. Luis Esteban Escobar Rocha', 'Dra. Ana Sofía Quispe Vargas', 'Dr. Diego Andrés Salazar Cruz', 'Dra. María Salazar', 'Dr. Ricardo Paredes', 'Dra. Luisa Fernández', 'Lic. Elena Morales', 'Lic. Patricia Flores', 'Lic. Andrea Soria', 'Lic. Miguel Álvarez'];
 const QUIROFANOS = ['Quirófano 1 · General', 'Quirófano 2 · Especialidades', 'Quirófano 3 · Ambulatorio'];
 type Asignacion = { cirujano1: string; cirujano2: string; ayudante1: string; ayudante2: string; instrumentista: string; circulante: string; otro: string; quirofano: string; fecha: string; hora: string };
+type UsuarioSistema = { id: string; nombres?: string; nombre?: string; apellido_paterno?: string | null; apellido_materno?: string | null; apellido?: string; apellidos?: string | null; rol?: string | null; rolId?: string; estado?: string };
+
+const nombreUsuario = (usuario: UsuarioSistema) => [usuario.nombres ?? usuario.nombre, usuario.apellido_paterno ?? usuario.apellido ?? usuario.apellidos, usuario.apellido_materno].filter(Boolean).join(' ');
+const esEnfermera = (usuario: UsuarioSistema) => /enfermer/i.test(`${usuario.rol ?? ''} ${usuario.rolId ?? ''}`) && !/inactivo/i.test(usuario.estado ?? '');
 
 export function ProgramarCirugiaView({ cirugias }: { cirugias: CirugiaProgramada[] }) {
   const [busqueda, setBusqueda] = useState('');
@@ -20,8 +26,27 @@ export function ProgramarCirugiaView({ cirugias }: { cirugias: CirugiaProgramada
   const [desde, setDesde] = useState(fechaMinima);
   const [hasta, setHasta] = useState('');
   const [programadas, setProgramadas] = useState<string[]>([]);
+  const [enfermeras, setEnfermeras] = useState<string[]>([]);
   const [seleccionada, setSeleccionada] = useState<CirugiaProgramada | null>(null);
   const [asignacion, setAsignacion] = useState<Asignacion | null>(null);
+  useEffect(() => {
+    const cargarEnfermeras = async () => {
+      try {
+        const respuesta = await apiFetch('/api/v1/usuarios');
+        const resultado = await respuesta.json() as { data?: UsuarioSistema[] } | UsuarioSistema[];
+        if (!respuesta.ok) throw new Error();
+        const usuarios = Array.isArray(resultado) ? resultado : resultado.data ?? [];
+        setEnfermeras([...new Set(usuarios.filter(esEnfermera).map(nombreUsuario).filter(Boolean))].sort());
+      } catch {
+        try {
+          const respuesta = await apiFetch('/api/usuarios');
+          const usuarios = await respuesta.json() as UsuarioSistema[];
+          setEnfermeras([...new Set((Array.isArray(usuarios) ? usuarios : []).filter(esEnfermera).map(nombreUsuario).filter(Boolean))].sort());
+        } catch { setEnfermeras([]); }
+      }
+    };
+    void cargarEnfermeras();
+  }, []);
   const cirugiasDisponibles = useMemo<CirugiaProgramada[]>(() => cirugias.length ? cirugias : [
     { id: 'ejemplo-hernia', cuenta: 'CQ-2026-1048', paciente: 'María Fernanda López García', ci: '6894521 LP', medico: 'Dr. Luis Esteban Escobar Rocha', tipo: 'Hernioplastía inguinal', quirofano: 'Quirófano 1 · General', fecha: fechaLocalConDesplazamiento(0), hora: '08:00' },
     { id: 'ejemplo-colecistectomia', cuenta: 'CQ-2026-1052', paciente: 'Carlos Alberto Mendoza Rojas', ci: '7459823 LP', medico: 'Dra. Ana Sofía Quispe Vargas', tipo: 'Colecistectomía laparoscópica', quirofano: 'Quirófano 2 · Especialidades', fecha: fechaLocalConDesplazamiento(0), hora: '10:30' },
@@ -42,6 +67,7 @@ export function ProgramarCirugiaView({ cirugias }: { cirugias: CirugiaProgramada
   };
   const confirmarProgramacion = () => {
     if (!seleccionada || !asignacion) return;
+    guardarAsignacionQuirofano({ cirugiaId: seleccionada.id, paciente: seleccionada.paciente, procedimiento: seleccionada.tipo, instrumentista: asignacion.instrumentista, circulante: asignacion.circulante });
     setProgramadas(actual => actual.includes(seleccionada.id) ? actual : [...actual, seleccionada.id]);
     setSeleccionada(null);
     setAsignacion(null);
@@ -49,7 +75,10 @@ export function ProgramarCirugiaView({ cirugias }: { cirugias: CirugiaProgramada
   const completa = Boolean(asignacion?.cirujano1 && asignacion.ayudante1 && asignacion.ayudante2 && asignacion.instrumentista && asignacion.circulante && asignacion.quirofano && asignacion.fecha && asignacion.hora);
 
   if (seleccionada && asignacion) {
-    const selector = (campo: keyof Asignacion, etiqueta: string, opcional = false) => <label>{etiqueta}{opcional && <small>Opcional</small>}<select required={!opcional} value={asignacion[campo]} onChange={evento => setAsignacion({ ...asignacion, [campo]: evento.target.value })}><option value="">Seleccionar profesional</option>{PROFESIONALES.map(profesional => <option key={profesional}>{profesional}</option>)}</select></label>;
+    const selector = (campo: keyof Asignacion, etiqueta: string, opcional = false) => {
+      const opciones = campo === 'instrumentista' || campo === 'circulante' ? enfermeras : PROFESIONALES;
+      return <label>{etiqueta}{opcional && <small>Opcional</small>}<select required={!opcional} value={asignacion[campo]} onChange={evento => setAsignacion({ ...asignacion, [campo]: evento.target.value })}><option value="">{opciones.length ? 'Seleccionar profesional' : 'No hay enfermeras registradas'}</option>{opciones.map(profesional => <option key={profesional}>{profesional}</option>)}</select></label>;
+    };
     return <section className="programar-detalle" aria-labelledby="programar-detalle-titulo">
       <header><button type="button" onClick={() => { setSeleccionada(null); setAsignacion(null); }}><Icon name="chevronLeft" size={16}/> Cirugías agendadas</button><div><p>QUIRÓFANO · ASIGNACIÓN</p><h2 id="programar-detalle-titulo">Confirmar programación quirúrgica</h2></div></header>
       <div className="programar-detalle-resumen"><article><p>DATOS DEL PACIENTE</p><strong>{seleccionada.paciente}</strong><div><span><b>CI</b>{seleccionada.ci}</span><span><b>Cuenta</b>{seleccionada.cuenta}</span></div></article><article><p>PROCEDIMIENTO</p><strong>{seleccionada.tipo}</strong><div><span><b>Médico de referencia</b>{seleccionada.medico || 'Sin profesional asignado'}</span><span><b>Horario solicitado</b>{seleccionada.fecha.split('-').reverse().join('/')} · {seleccionada.hora}</span></div></article></div>

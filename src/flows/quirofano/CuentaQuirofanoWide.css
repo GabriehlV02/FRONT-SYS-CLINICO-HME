@@ -6,29 +6,83 @@
 
 .cuenta-q-subvistas {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  max-width: 100%;
   margin-bottom: 14px;
+  padding: 3px;
+  overflow-x: auto;
+  border: 1px solid #c4dfee;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 8px 22px rgba(6, 71, 115, .1);
 }
 
 .cuenta-q-subvistas button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  min-height: 38px;
-  padding: 0 13px;
-  border: 1px solid #b9d8e9;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
   border-radius: 8px;
   color: #315d7d;
-  background: #fff;
+  background: transparent;
+  cursor: pointer;
+  transition: color .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+.cuenta-q-subvistas button > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #c4e4f2;
+  border-radius: 7px;
+  color: #087fc0;
+  background: #eaf7fd;
+}
+
+.cuenta-q-subvistas button strong {
+  color: inherit;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.cuenta-q-subvistas button:hover {
+  border-color: #b8dcec;
+  color: #075f9d;
+  background: #f1f9fd;
+  transform: translateY(-1px);
 }
 
 .cuenta-q-subvistas button.activo {
   border-color: #087fc0;
   color: #fff;
-  background: #087fc0;
+  background: linear-gradient(115deg, #086eaf, #0796c6 70%, #19aecb);
+  box-shadow: 0 6px 15px rgba(5, 111, 170, .22);
+}
+
+.cuenta-q-subvistas button.activo > span {
+  border-color: rgba(255, 255, 255, .34);
+  color: #fff;
+  background: rgba(255, 255, 255, .16);
+}
+
+.cuenta-q-subvistas button.activo::after {
+  position: absolute;
+  right: 9px;
+  bottom: 0;
+  left: 9px;
+  height: 2px;
+  border-radius: 3px 3px 0 0;
+  background: #9be9f4;
+  content: '';
 }
 
 .cuenta-q-programada {

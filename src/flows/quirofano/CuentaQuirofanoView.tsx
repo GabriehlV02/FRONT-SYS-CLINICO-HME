@@ -95,7 +95,12 @@ export function CuentaQuirofanoView() {
   const listo = Boolean(datosPaciente && acompananteCompleto && cirugia.medico && cirugia.tipo && cirugia.quirofano && cirugia.fecha && cirugia.hora);
 
   return <section className="cuenta-q" aria-label="Cuenta quirófano">
-    <nav className="cuenta-q-subvistas" aria-label="Quirófano"><button type="button" className={vista === 'programar' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('programar'); }}><Icon name="calendar" size={16}/> Programar cirugía</button><button type="button" className={vista === 'cronograma' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('cronograma'); }}><Icon name="calendar" size={16}/> Cronograma de quirófanos</button><button type="button" className={vista === 'historial' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('historial'); }}><Icon name="fileText" size={16}/> Historial de quirófano</button><button type="button" className={vista === 'cirugias-admin' ? 'activo' : ''} onClick={() => setVista('cirugias-admin')}><Icon name="fileText" size={16}/> Cirugías admin</button></nav>
+    <nav className="cuenta-q-subvistas" aria-label="Quirófano">
+      <button type="button" className={vista === 'programar' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('programar'); }}><span><Icon name="calendar" size={16}/></span><strong>Programar cirugía</strong></button>
+      <button type="button" className={vista === 'cronograma' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('cronograma'); }}><span><Icon name="calendar" size={16}/></span><strong>Cronograma de quirófanos</strong></button>
+      <button type="button" className={vista === 'historial' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('historial'); }}><span><Icon name="fileText" size={16}/></span><strong>Historial de quirófano</strong></button>
+      <button type="button" className={vista === 'cirugias-admin' ? 'activo' : ''} onClick={() => setVista('cirugias-admin')}><span><Icon name="fileText" size={16}/></span><strong>Cirugías admin</strong></button>
+    </nav>
     {vista === 'programar' && <ProgramarCirugiaView cirugias={cirugias}/>}
     {vista === 'historial' && <HistorialQuirofanoView cirugias={cirugias}/>}
     {vista === 'cirugias-admin' && <CirugiasAdminView/>}

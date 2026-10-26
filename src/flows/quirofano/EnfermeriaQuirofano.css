@@ -144,3 +144,4 @@
   .instrumentista-paciente { padding-left: 0; border-left: 0; }
   .instrumentista-cirugia > b { grid-column: 2; }
 }
+.instrumentista-agenda-vacia{display:grid;justify-items:center;gap:7px;padding:44px 18px;color:#6d879b;text-align:center}.instrumentista-agenda-vacia svg{color:#0b8cca}.instrumentista-agenda-vacia strong{color:#174b70;font-size:13px}.instrumentista-agenda-vacia small{font-size:11px}

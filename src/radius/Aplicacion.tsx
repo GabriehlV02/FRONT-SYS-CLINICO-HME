@@ -21,6 +21,7 @@ import type { SignoVitalConfig } from '../flows/triaje/ConfiguracionSignosVitale
 import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
 import { InstrumentistaPreparacionView } from '../flows/quirofano/InstrumentistaPreparacionView';
 import { CirculanteAsistenciaView } from '../flows/quirofano/CirculanteAsistenciaView';
+import { buscarAsignacionQuirofano, normalizarNombre } from '../flows/quirofano/asignacionesQuirofano';
 import '../flows/quirofano/EnfermeriaQuirofano.css';
 import './vistas/visor-tomografias/SubvistasTomografias.css';
 
@@ -136,7 +137,7 @@ const modulos: Modulo[] = [
   { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'patient', grupo: 'QUIRÓFANO' },
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'userCheck', grupo: 'QUIRÓFANO' },
   { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'userCheck', grupo: 'QUIRÓFANO' },
-  { id: 'cuenta-quirofano', nombre: 'Cuenta quirófano', icono: 'cash', grupo: 'QUIRÓFANO' },
+  { id: 'cuenta-quirofano', nombre: 'Registro de cirugías', icono: 'cash', grupo: 'QUIRÓFANO' },
   { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'lab', grupo: 'ESTERILIZACIÓN' },
   { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'package', grupo: 'ESTERILIZACIÓN' },
   { id: 'entrega-material-esteril', nombre: 'Almacén de Esterilización', icono: 'check', grupo: 'ESTERILIZACIÓN' },
@@ -206,8 +207,27 @@ export default function Aplicacion() {
   const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] = useState<SubvistaMedicoInternacion>("internados");
   const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] = useState<SubvistaEnfermeraInternacion>("internados");
   const [subvistaTerapia, setSubvistaTerapia] = useState<'monitorizacion' | 'registros'>('monitorizacion');
-  const cirugiaSeleccionadaReal = cirugiasProgramadas.find((cirugia) => cirugia.id === cirugiaInstrumentista) ?? null;
-  const cirugiaSeleccionada = cirugiaSeleccionadaReal ?? cirugiasProgramadas[0];
+  const [versionAsignaciones, setVersionAsignaciones] = useState(0);
+  useEffect(() => {
+    const actualizar = () => setVersionAsignaciones(version => version + 1);
+    window.addEventListener('hme:quirofano:asignaciones-actualizadas', actualizar);
+    window.addEventListener('storage', actualizar);
+    return () => { window.removeEventListener('hme:quirofano:asignaciones-actualizadas', actualizar); window.removeEventListener('storage', actualizar); };
+  }, []);
+  const esAdministrador = /administrador|admin/i.test(sesion?.usuario.rol ?? '');
+  const nombreSesion = normalizarNombre([sesion?.usuario.nombre, sesion?.usuario.apellidos].filter(Boolean).join(' '));
+  const cirugiasVisiblesEnfermeria = cirugiasProgramadas.filter(cirugia => {
+    if (esAdministrador) return true;
+    if (rolEnfermeriaQuirofano === 'almacen') return true;
+    const asignacion = buscarAsignacionQuirofano(cirugia);
+    const responsable = rolEnfermeriaQuirofano === 'instrumentista' ? (asignacion?.instrumentista || cirugia.instrumentista) : (asignacion?.circulante || cirugia.circulante);
+    return Boolean(nombreSesion && normalizarNombre(responsable) === nombreSesion);
+  });
+  void versionAsignaciones;
+  const cirugiaSeleccionadaReal = cirugiasVisiblesEnfermeria.find((cirugia) => cirugia.id === cirugiaInstrumentista) ?? null;
+  const cirugiaSeleccionadaBase = cirugiaSeleccionadaReal ?? cirugiasVisiblesEnfermeria[0];
+  const asignacionSeleccionada = cirugiaSeleccionadaBase ? buscarAsignacionQuirofano(cirugiaSeleccionadaBase) : undefined;
+  const cirugiaSeleccionada = cirugiaSeleccionadaBase ? { ...cirugiaSeleccionadaBase, instrumentista: asignacionSeleccionada?.instrumentista || cirugiaSeleccionadaBase.instrumentista, circulante: asignacionSeleccionada?.circulante || cirugiaSeleccionadaBase.circulante } : cirugiaSeleccionadaBase;
   const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState(signosVitalesIniciales);
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
@@ -224,7 +244,7 @@ export default function Aplicacion() {
     || sesion?.usuario.permisos.some((permiso) => /medico|consulta/.test(permiso));
   const modulosVisibles = modulos.filter((item) => {
     const perfil = sesion?.usuario.perfilAtencion;
-    if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion', 'farmacia-internacion'].includes(item.id);
+    if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion', 'farmacia-internacion', 'enfermera-quirofano'].includes(item.id);
     if (perfil === 'medico') return ['pacientes', 'atencion-medica', 'atencion-urgencias', 'medico-internacion'].includes(item.id);
     if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'central-esterilizacion', 'recepcion-material-sucio', 'entrega-material-esteril'].includes(item.id);
     return true;
@@ -642,8 +662,8 @@ export default function Aplicacion() {
             <section className="enfermeria-quirofano-vista">
               <header className="enfermeria-q-cabecera"><div><p>QUIRÓFANO · ENFERMERÍA</p><h2>Atención de enfermería quirúrgica</h2></div><span><Icon name="patient" size={25}/></span></header>
     <nav className="enfermeria-q-subvistas recepcion-subvistas" aria-label="Funciones de enfermería de quirófano">
-      <button type="button" className={rolEnfermeriaQuirofano === 'instrumentista' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('instrumentista')}><span><Icon name="patient" size={17}/></span><strong>Enfermera instrumentista</strong></button>
-      <button type="button" className={rolEnfermeriaQuirofano === 'circulante' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('circulante')}><span><Icon name="userCheck" size={17}/></span><strong>Enfermera circulante</strong></button>
+      <button type="button" className={rolEnfermeriaQuirofano === 'instrumentista' ? 'activo' : ''} onClick={() => { setRolEnfermeriaQuirofano('instrumentista'); setCirugiaInstrumentista(null); }}><span><Icon name="patient" size={17}/></span><strong>Enfermera instrumentista</strong></button>
+      <button type="button" className={rolEnfermeriaQuirofano === 'circulante' ? 'activo' : ''} onClick={() => { setRolEnfermeriaQuirofano('circulante'); setCirugiaInstrumentista(null); }}><span><Icon name="userCheck" size={17}/></span><strong>Enfermera circulante</strong></button>
       <button type="button" className={rolEnfermeriaQuirofano === 'almacen' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('almacen')}><span><Icon name="package" size={17}/></span><strong>Almacén quirófano</strong></button>
               </nav>
               <section className="enfermeria-q-panel">
@@ -651,7 +671,7 @@ export default function Aplicacion() {
                   <div className="instrumentista-contexto"><button type="button" onClick={() => setCirugiaInstrumentista(null)}><Icon name="chevronLeft" size={16} /> Cirugías programadas</button><div><span>{cirugiaSeleccionada.sala} · {cirugiaSeleccionada.hora}</span><h3>{cirugiaSeleccionada.procedimiento}</h3><small>{cirugiaSeleccionada.paciente} · {cirugiaSeleccionada.cirujano}</small></div></div>
                   <div className="instrumentista-indicadores" aria-label="Resumen de actividad de la cirugía seleccionada"><div><span><Icon name="package" size={18} /></span><strong>18</strong><small>Instrumentos dispensados</small></div><div><span><Icon name="check" size={18} /></span><strong>3</strong><small>Conteos verificados</small></div><div><span><Icon name="patient" size={18} /></span><strong>1</strong><small>Cirugía seleccionada</small></div><div><span><Icon name="audit" size={18} /></span><strong>0</strong><small>Observaciones pendientes</small></div></div>
                   <div className="instrumentista-listado"><div className="instrumentista-tabla" role="table" aria-label="Material dispensado para la cirugía seleccionada"><div className="instrumentista-fila instrumentista-columnas" role="row"><span>Instrumental / kit</span><span>Procedimiento</span><span>Hora</span><span>Estado</span></div><div className="instrumentista-fila" role="row"><span><strong>Kit de cirugía general</strong><small>KIT-CG-021 · 24 piezas</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>08:15</span><span><b className="estado-dispensado">Dispensado</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Pinza Backhaus</strong><small>INST-004 · Serie BAC-004</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>08:18</span><span><b className="estado-en-uso">En uso</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Set de laparotomía</strong><small>KIT-LAP-008 · 36 piezas</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>10:05</span><span><b className="estado-dispensado">Dispensado</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Gasas estériles 10 × 10</strong><small>INS-GAS-110 · 4 paquetes</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>10:12</span><span><b className="estado-verificado">Conteo verificado</b></span></div></div></div>
-                </div> : <div className="instrumentista-agenda"><div className="instrumentista-agenda-cabecera"><div><p>CIRUGÍAS PROGRAMADAS</p><h3>Selecciona una cirugía para preparar su instrumental</h3><small>El registro de dispensaciones y conteos se habilita al ingresar a una cirugía agendada.</small></div><span>{cirugiasProgramadas.length} programadas</span></div><div className="instrumentista-cirugias">{cirugiasProgramadas.map((cirugia) => <button type="button" className="instrumentista-cirugia" key={cirugia.id} onClick={() => setCirugiaInstrumentista(cirugia.id)}><time>{cirugia.hora}</time><div className="instrumentista-procedimiento"><small>TIPO DE CIRUGÍA</small><strong>{cirugia.procedimiento}</strong></div><div className="instrumentista-paciente"><small>PACIENTE</small><strong>{cirugia.paciente}</strong><span>{cirugia.sala} · {cirugia.cirujano}</span></div><b>{cirugia.estado}<Icon name="chevronRight" size={16} /></b></button>)}</div></div>) :
+                </div> : <div className="instrumentista-agenda"><div className="instrumentista-agenda-cabecera"><div><p>CIRUGÍAS PROGRAMADAS</p><h3>Selecciona una cirugía para preparar su instrumental</h3><small>{esAdministrador ? 'Como administrador puedes consultar todas las cirugías.' : 'Solo se muestran las cirugías en las que tienes una asignación.'}</small></div><span>{cirugiasVisiblesEnfermeria.length} programadas</span></div><div className="instrumentista-cirugias">{cirugiasVisiblesEnfermeria.length ? cirugiasVisiblesEnfermeria.map((cirugia) => <button type="button" className="instrumentista-cirugia" key={cirugia.id} onClick={() => setCirugiaInstrumentista(cirugia.id)}><time>{cirugia.hora}</time><div className="instrumentista-procedimiento"><small>TIPO DE CIRUGÍA</small><strong>{cirugia.procedimiento}</strong></div><div className="instrumentista-paciente"><small>PACIENTE</small><strong>{cirugia.paciente}</strong><span>{cirugia.sala} · {cirugia.cirujano}</span></div><b>{cirugia.estado}<Icon name="chevronRight" size={16} /></b></button>) : <div className="instrumentista-agenda-vacia"><Icon name="calendar" size={28}/><strong>No tienes cirugías asignadas</strong><small>Cuando seas asignada como instrumentista o circulante, la cirugía aparecerá aquí.</small></div>}</div></div>) :
                   rolEnfermeriaQuirofano === 'circulante' ? <><p>ASISTENCIA CIRCULANTE</p><h3>Enfermera circulante</h3><small>Verificación de sala y paciente, coordinación de insumos, apoyo al equipo y registro del procedimiento.</small></> :
                   <div className="almacen-quirofano-contenido"><nav className="enfermeria-q-subsubvistas recepcion-subvistas" aria-label="Quirófanos del almacén"><button type="button" className={subvistaAlmacenQuirofano === 'quirofano-1' ? 'activo' : ''} onClick={() => setSubvistaAlmacenQuirofano('quirofano-1')}><span><Icon name="package" size={16}/></span><strong>Quirófano 1</strong></button><button type="button" className={subvistaAlmacenQuirofano === 'quirofano-2' ? 'activo' : ''} onClick={() => setSubvistaAlmacenQuirofano('quirofano-2')}><span><Icon name="package" size={16}/></span><strong>Quirófano 2</strong></button></nav><div className="almacen-quirofano-resumen"><p>INSUMOS QUIRÚRGICOS · {subvistaAlmacenQuirofano === 'quirofano-1' ? 'QUIRÓFANO 1' : 'QUIRÓFANO 2'}</p><h3>Almacén {subvistaAlmacenQuirofano === 'quirofano-1' ? 'Quirófano 1' : 'Quirófano 2'}</h3><small>Consulta y control de insumos e instrumental disponibles para los procedimientos de este quirófano.</small></div></div>}
               </section>

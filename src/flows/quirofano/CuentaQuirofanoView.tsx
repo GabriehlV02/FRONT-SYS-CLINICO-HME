@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { apiFetch } from '../../radius/api';
 import { CronogramaQuirofanoView } from './CronogramaQuirofanoView';
+import { ProgramarCirugiaView } from './ProgramarCirugiaView';
+import { HistorialQuirofanoView } from './HistorialQuirofanoView';
 import { ConsentimientosQuirofano } from './ConsentimientosQuirofano';
 import { CirugiasAdminView } from './CirugiasAdminView';
 import { guardarCirugia, leerCronograma } from './cronogramaQuirofano';
@@ -39,7 +41,7 @@ const pacientes: Paciente[] = [
 ];
 
 export function CuentaQuirofanoView() {
-  const [vista, setVista] = useState<'cuenta' | 'cronograma' | 'cirugias-admin'>('cuenta');
+  const [vista, setVista] = useState<'cuenta' | 'programar' | 'cronograma' | 'historial' | 'cirugias-admin'>('programar');
   const [cirugias, setCirugias] = useState(leerCronograma);
   const [fechaCronograma, setFechaCronograma] = useState('');
   const [errorCuenta, setErrorCuenta] = useState('');
@@ -80,7 +82,7 @@ export function CuentaQuirofanoView() {
     setNuevo({ nombres: '', apellidoPaterno: '', apellidoMaterno: '', ci: '', complemento: '', expedidoEn: '', nit: '', razonSocial: '', nacimiento: '', telefono: '', genero: '', pais: '', departamento: '', ciudad: '', zona: '', direccion: '' });
     setAcompanante({ nombres: '', apellidoPaterno: '', apellidoMaterno: '', ci: '', nacimiento: '', vinculo: '', telefono: '' });
     setCirugia({ medico: '', tipo: '', quirofano: '', fecha: '', hora: '' });
-    setCuenta(''); setErrorCuenta(''); setVista('cuenta');
+    setCuenta(''); setErrorCuenta(''); setVista('cronograma');
   };
   const abrirCuenta = () => {
     if (!datosPaciente || !acompananteCompleto || !cirugia.medico || !cirugia.tipo || !cirugia.quirofano || !cirugia.fecha || !cirugia.hora) return;
@@ -93,9 +95,11 @@ export function CuentaQuirofanoView() {
   const listo = Boolean(datosPaciente && acompananteCompleto && cirugia.medico && cirugia.tipo && cirugia.quirofano && cirugia.fecha && cirugia.hora);
 
   return <section className="cuenta-q" aria-label="Cuenta quirófano">
-    <nav className="cuenta-q-subvistas" aria-label="Cuenta quirófano"><button type="button" className={vista === 'cuenta' ? 'activo' : ''} onClick={() => setVista('cuenta')}><Icon name="cash" size={16}/> Apertura de cuenta</button><button type="button" className={vista === 'cronograma' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('cronograma'); }}><Icon name="calendar" size={16}/> Cronograma de quirófanos</button><button type="button" className={vista === 'cirugias-admin' ? 'activo' : ''} onClick={() => setVista('cirugias-admin')}><Icon name="fileText" size={16}/> Cirugías admin</button></nav>
+    <nav className="cuenta-q-subvistas" aria-label="Quirófano"><button type="button" className={vista === 'programar' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('programar'); }}><Icon name="calendar" size={16}/> Programar cirugía</button><button type="button" className={vista === 'cronograma' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('cronograma'); }}><Icon name="calendar" size={16}/> Cronograma de quirófanos</button><button type="button" className={vista === 'historial' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('historial'); }}><Icon name="fileText" size={16}/> Historial de quirófano</button><button type="button" className={vista === 'cirugias-admin' ? 'activo' : ''} onClick={() => setVista('cirugias-admin')}><Icon name="fileText" size={16}/> Cirugías admin</button></nav>
+    {vista === 'programar' && <ProgramarCirugiaView cirugias={cirugias}/>}
+    {vista === 'historial' && <HistorialQuirofanoView cirugias={cirugias}/>}
     {vista === 'cirugias-admin' && <CirugiasAdminView/>}
-    {vista === 'cronograma' && <>{cuenta && <div className="cuenta-q-programada" role="status"><Icon name="check" size={17}/> Cuenta {cuenta} aperturada y cirugía añadida al cronograma.</div>}<CronogramaQuirofanoView key={fechaCronograma} cirugias={cirugias} fechaInicial={fechaCronograma} onNuevaCuenta={nuevaCuenta}/></>}
+    {vista === 'cronograma' && <>{cuenta && <div className="cuenta-q-programada" role="status"><Icon name="check" size={17}/> Cuenta {cuenta} aperturada y cirugía añadida al cronograma.</div>}<CronogramaQuirofanoView key={fechaCronograma} cirugias={cirugias} fechaInicial={fechaCronograma}/></>}
     {vista === 'cuenta' && <>
     <header className="cuenta-q-cabecera"><div><p>QUIRÓFANO · APERTURA DE CUENTA</p><h2 id="cuenta-q-titulo">Programar cirugía</h2><small>Verifica al paciente y su acompañante antes de registrar la cuenta quirúrgica.</small></div><span><Icon name="cash" size={18}/> Nueva cuenta</span></header>
     {cuenta && <section className="cuenta-q-exito" role="status"><Icon name="check" size={20}/><div><strong>Cuenta {cuenta} aperturada</strong><small>{datosPaciente?.nombre} · {cirugia.tipo} · {cirugia.fecha} a las {cirugia.hora} · {cirugia.quirofano}</small></div><button type="button" onClick={nuevaCuenta}>Registrar otra</button></section>}

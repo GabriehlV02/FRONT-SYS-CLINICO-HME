@@ -3,27 +3,112 @@ import Icon from '../../radius/componentes/Icono';
 import type { CirugiaProgramada } from './cronogramaQuirofano';
 import './CronogramaQuirofanoView.css';
 
+type FiltroSala = 'todos' | 'quirofano-1' | 'quirofano-2';
+
 const fechaLocal = () => {
   const hoy = new Date();
   return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
 };
 
-export function CronogramaQuirofanoView({ cirugias, fechaInicial, onNuevaCuenta }: {
+const fechaDesdeTexto = (fecha: string) => {
+  const [anio, mes, dia] = fecha.split('-').map(Number);
+  return new Date(anio, mes - 1, dia);
+};
+
+const claveFecha = (fecha: Date) =>
+  `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
+
+const nombreSala = (quirofano: string) => {
+  const coincidencia = quirofano.match(/quirófano\s*\d+/i);
+  return coincidencia?.[0] ?? quirofano;
+};
+
+export function CronogramaQuirofanoView({ cirugias, fechaInicial }: {
   cirugias: CirugiaProgramada[];
   fechaInicial: string;
-  onNuevaCuenta: () => void;
 }) {
-  const [fecha, setFecha] = useState(fechaInicial || fechaLocal());
-  const [sala, setSala] = useState('');
-  const salas = useMemo(() => [...new Set(['Quirófano 1 · General', 'Quirófano 2 · Especialidades', 'Quirófano 3 · Ambulatorio', ...cirugias.map(c => c.quirofano)])], [cirugias]);
-  const salasVisibles = sala ? [sala] : salas;
-  const delDia = useMemo(() => cirugias.filter(c => c.fecha === fecha).sort((a, b) => a.hora.localeCompare(b.hora)), [cirugias, fecha]);
-  const visibles = delDia.filter(c => !sala || c.quirofano === sala);
-  const horas = [...new Set(visibles.map(c => c.hora))];
+  const inicio = fechaDesdeTexto(fechaInicial || fechaLocal());
+  const [mesVisible, setMesVisible] = useState(() => new Date(inicio.getFullYear(), inicio.getMonth(), 1));
+  const [sala, setSala] = useState<FiltroSala>('todos');
+
+  const cirugiasFiltradas = useMemo(() => cirugias.filter(cirugia => {
+    if (sala === 'todos') return true;
+    const numero = sala === 'quirofano-1' ? '1' : '2';
+    return new RegExp(`quirófano\\s*${numero}(?:\\D|$)`, 'i').test(cirugia.quirofano);
+  }), [cirugias, sala]);
+
+  const cirugiasPorFecha = useMemo(() => {
+    const resultado = new Map<string, CirugiaProgramada[]>();
+    cirugiasFiltradas.forEach(cirugia => {
+      const lista = resultado.get(cirugia.fecha) ?? [];
+      lista.push(cirugia);
+      lista.sort((a, b) => a.hora.localeCompare(b.hora));
+      resultado.set(cirugia.fecha, lista);
+    });
+    return resultado;
+  }, [cirugiasFiltradas]);
+
+  const dias = useMemo(() => {
+    const primerDia = new Date(mesVisible.getFullYear(), mesVisible.getMonth(), 1);
+    const ultimoDia = new Date(mesVisible.getFullYear(), mesVisible.getMonth() + 1, 0);
+    const espaciosIniciales = (primerDia.getDay() + 6) % 7;
+    const totalCeldas = Math.ceil((espaciosIniciales + ultimoDia.getDate()) / 7) * 7;
+    return Array.from({ length: totalCeldas }, (_, indice) => {
+      const numero = indice - espaciosIniciales + 1;
+      return numero >= 1 && numero <= ultimoDia.getDate()
+        ? new Date(mesVisible.getFullYear(), mesVisible.getMonth(), numero)
+        : null;
+    });
+  }, [mesVisible]);
+
+  const cambiarMes = (desplazamiento: number) =>
+    setMesVisible(actual => new Date(actual.getFullYear(), actual.getMonth() + desplazamiento, 1));
+
+  const irAHoy = () => {
+    const hoy = new Date();
+    setMesVisible(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+  };
+
+  const tituloMes = new Intl.DateTimeFormat('es-BO', { month: 'long', year: 'numeric' }).format(mesVisible);
+  const hoy = fechaLocal();
+  const cirugiasDelMes = cirugiasFiltradas.filter(cirugia => {
+    const fecha = fechaDesdeTexto(cirugia.fecha);
+    return fecha.getFullYear() === mesVisible.getFullYear() && fecha.getMonth() === mesVisible.getMonth();
+  }).length;
 
   return <section className="cronograma-q" aria-labelledby="cronograma-q-titulo">
-    <header className="cronograma-q-cabecera"><div><p>QUIRÓFANO · PROGRAMACIÓN</p><h2 id="cronograma-q-titulo">Cronograma de uso de quirófanos</h2><small>Cirugías programadas por fecha, hora y sala.</small></div><button type="button" onClick={onNuevaCuenta}><Icon name="plus" size={16}/> Nueva cuenta</button></header>
-    <div className="cronograma-q-filtros"><label>Fecha<input type="date" value={fecha} onChange={e => setFecha(e.target.value)}/></label><label>Quirófano<select value={sala} onChange={e => setSala(e.target.value)}><option value="">Todos los quirófanos</option>{salas.map(item => <option key={item} value={item}>{item}</option>)}</select></label><span>{visibles.length} {visibles.length === 1 ? 'cirugía programada' : 'cirugías programadas'}</span></div>
-    {horas.length ? <div className="cronograma-q-desborde"><div className="cronograma-q-grilla" style={{ gridTemplateColumns: `82px repeat(${salasVisibles.length}, minmax(210px, 1fr))` }}><div className="cronograma-q-esquina">Hora</div>{salasVisibles.map(item => <div className="cronograma-q-sala" key={item}>{item}</div>)}{horas.map(hora => <div className="cronograma-q-fila" key={hora}><time>{hora}</time>{salasVisibles.map(item => { const cirugia = delDia.find(c => c.hora === hora && c.quirofano === item); return <div className="cronograma-q-celda" key={item}>{cirugia && <article><strong>{cirugia.paciente}</strong><small>CI {cirugia.ci} · {cirugia.cuenta}</small><span>{cirugia.tipo}</span><small>{cirugia.medico}</small></article>}</div>; })}</div>)}</div></div> : <div className="cronograma-q-vacio"><Icon name="calendar" size={28}/><strong>No hay cirugías programadas para esta fecha</strong><small>Elige otra fecha o apertura una cuenta para añadir una cirugía al cronograma.</small></div>}
+    <header className="cronograma-q-cabecera">
+      <div><p>QUIRÓFANO · PROGRAMACIÓN</p><h2 id="cronograma-q-titulo">Cronograma de uso de quirófanos</h2><small>Vista mensual de las cirugías programadas por fecha, hora y sala.</small></div>
+    </header>
+    <div className="cronograma-q-barra">
+      <div className="cronograma-q-filtros" role="group" aria-label="Filtrar por quirófano">
+        <span>Quirófano</span>
+        {([['todos', 'Todos'], ['quirofano-1', 'Quirófano 1'], ['quirofano-2', 'Quirófano 2']] as const).map(([valor, etiqueta]) =>
+          <button key={valor} type="button" className={sala === valor ? 'activo' : ''} onClick={() => setSala(valor)}>{etiqueta}</button>)}
+      </div>
+      <div className="cronograma-q-navegacion">
+        <button type="button" aria-label="Mes anterior" onClick={() => cambiarMes(-1)}>‹</button>
+        <button type="button" className="cronograma-q-hoy" onClick={irAHoy}>Hoy</button>
+        <button type="button" aria-label="Mes siguiente" onClick={() => cambiarMes(1)}>›</button>
+      </div>
+    </div>
+    <div className="cronograma-q-mes"><div><h3>{tituloMes}</h3><span>{cirugiasDelMes} {cirugiasDelMes === 1 ? 'cirugía programada' : 'cirugías programadas'}</span></div></div>
+    <div className="cronograma-q-calendario">
+      <div className="cronograma-q-semana">{['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(dia => <div key={dia}>{dia}</div>)}</div>
+      <div className="cronograma-q-dias">
+        {dias.map((dia, indice) => {
+          if (!dia) return <div className="cronograma-q-dia cronograma-q-dia-vacio" key={`vacio-${indice}`} />;
+          const clave = claveFecha(dia);
+          const eventos = cirugiasPorFecha.get(clave) ?? [];
+          return <div className={`cronograma-q-dia${clave === hoy ? ' es-hoy' : ''}`} key={clave}>
+            <div className="cronograma-q-numero"><time dateTime={clave}>{dia.getDate()}</time>{eventos.length > 0 && <span>{eventos.length}</span>}</div>
+            <div className="cronograma-q-eventos">{eventos.map(cirugia => <article className={cirugia.quirofano.toLowerCase().includes('2') ? 'sala-2' : 'sala-1'} key={cirugia.id} title={`${cirugia.paciente} · ${cirugia.tipo}`}>
+              <div><strong>{cirugia.hora}</strong><span>{nombreSala(cirugia.quirofano)}</span></div><b>{cirugia.tipo}</b><small>{cirugia.paciente}</small>
+            </article>)}</div>
+          </div>;
+        })}
+      </div>
+    </div>
+    {cirugiasDelMes === 0 && <div className="cronograma-q-sin-eventos"><Icon name="calendar" size={20}/><span>No hay cirugías programadas en este mes para el filtro seleccionado.</span></div>}
   </section>;
 }

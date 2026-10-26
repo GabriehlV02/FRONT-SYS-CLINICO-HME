@@ -72,6 +72,7 @@ const medicosPorEspecialidad: Record<string, string[]> = {
 };
 export function CajaRecepcionView({
   onAbrirCuenta,
+  onAgendarCirugia,
   farmacia = false,
   cocina = false,
   navegacion,
@@ -80,6 +81,7 @@ export function CajaRecepcionView({
     origen: "emergencias" | "internacion",
     paciente: string,
   ) => void;
+  onAgendarCirugia?: () => void;
   farmacia?: boolean;
   cocina?: boolean;
   navegacion?: ReactNode;
@@ -933,7 +935,6 @@ export function CajaRecepcionView({
           {errorCatalogo && <p className="punto-catalogo-error" role="alert"><span>{errorCatalogo}</span><button type="button" onClick={() => setRecargaCatalogo(v => v + 1)}>Reintentar</button></p>}
           {!cargandoCatalogo && !errorCatalogo && catalogo.length === 0 && <p role="status">No hay productos ni servicios activos en el catálogo contable.</p>}
           <div className="punto-busquedas">
-            <button className="punto-actualizar-catalogo" type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}>Actualizar catálogo</button>
             <label>
               <Icon name="search" size={17} />
               <input
@@ -942,6 +943,7 @@ export function CajaRecepcionView({
                 placeholder="Buscar producto por nombre, código o categoría…"
               />
             </label>
+            <button className="punto-actualizar-catalogo" type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}><Icon name="refresh" size={15}/> Actualizar</button>
             {!farmacia && !cocina && (
               <button
                 className="punto-accion-laboratorio"
@@ -953,6 +955,11 @@ export function CajaRecepcionView({
                 }}
               >
                 <Icon name="lab" size={16} /> Laboratorio
+              </button>
+            )}
+            {!farmacia && !cocina && (
+              <button className="punto-accion-cirugia" type="button" onClick={onAgendarCirugia}>
+                <Icon name="calendar" size={16} /> Agendar cirugía
               </button>
             )}
             {!farmacia && !cocina && (

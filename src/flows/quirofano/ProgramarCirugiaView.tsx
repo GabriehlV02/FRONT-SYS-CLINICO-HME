@@ -20,7 +20,7 @@ type UsuarioSistema = { id: string; nombres?: string; nombre?: string; apellido_
 const nombreUsuario = (usuario: UsuarioSistema) => [usuario.nombres ?? usuario.nombre, usuario.apellido_paterno ?? usuario.apellido ?? usuario.apellidos, usuario.apellido_materno].filter(Boolean).join(' ');
 const esEnfermera = (usuario: UsuarioSistema) => /enfermer/i.test(`${usuario.rol ?? ''} ${usuario.rolId ?? ''}`) && !/inactivo/i.test(usuario.estado ?? '');
 
-export function ProgramarCirugiaView({ cirugias }: { cirugias: CirugiaProgramada[] }) {
+export function ProgramarCirugiaView({ cirugias, onRegistrar }: { cirugias: CirugiaProgramada[]; onRegistrar: () => void }) {
   const [busqueda, setBusqueda] = useState('');
   const fechaMinima = useMemo(() => fechaLocalConDesplazamiento(-1), []);
   const [desde, setDesde] = useState(fechaMinima);
@@ -90,7 +90,7 @@ export function ProgramarCirugiaView({ cirugias }: { cirugias: CirugiaProgramada
 
   return <section className="programar-cirugia" aria-labelledby="programar-cirugia-titulo">
     <header className="programar-cirugia-cabecera"><div><p>QUIRÓFANO · PROGRAMACIÓN</p><h2 id="programar-cirugia-titulo">Programar cirugía</h2></div></header>
-    <div className="programar-cirugia-herramientas"><label className="programar-cirugia-buscar"><Icon name="search" size={16}/><input value={busqueda} onChange={evento => setBusqueda(evento.target.value)} placeholder="Buscar por paciente, CI, cirugía o médico"/></label><label className="programar-cirugia-fecha-filtro">Desde<input type="date" min={fechaMinima} value={desde} onChange={evento => cambiarDesde(evento.target.value)}/></label><label className="programar-cirugia-fecha-filtro">Hasta<input type="date" min={desde || fechaMinima} value={hasta} onChange={evento => setHasta(evento.target.value)}/></label><span>{visibles.length} {visibles.length === 1 ? 'cirugía agendada' : 'cirugías agendadas'}</span></div>
+    <div className="programar-cirugia-herramientas"><label className="programar-cirugia-buscar"><Icon name="search" size={16}/><input value={busqueda} onChange={evento => setBusqueda(evento.target.value)} placeholder="Buscar por paciente, CI, cirugía o médico"/></label><label className="programar-cirugia-fecha-filtro">Desde<input type="date" min={fechaMinima} value={desde} onChange={evento => cambiarDesde(evento.target.value)}/></label><label className="programar-cirugia-fecha-filtro">Hasta<input type="date" min={desde || fechaMinima} value={hasta} onChange={evento => setHasta(evento.target.value)}/></label><button type="button" className="programar-cirugia-registrar" onClick={onRegistrar}><Icon name="plus" size={16}/> Registrar cirugía</button></div>
     {visibles.length ? <div className="programar-cirugia-lista">{visibles.map(cirugia => {
       const programada = programadas.includes(cirugia.id);
       return <article key={cirugia.id}><div className="programar-cirugia-fecha"><strong>{cirugia.fecha.split('-').reverse().join('/')}</strong><span>{cirugia.hora}</span></div><div className="programar-cirugia-paciente"><strong>{cirugia.paciente}</strong><small>CI {cirugia.ci} · Cuenta {cirugia.cuenta}</small></div><div><b>{cirugia.tipo}</b><small>{cirugia.medico}</small></div><div><b>Quirófano</b><small>{cirugia.quirofano}</small></div><button type="button" className={programada ? 'programada' : ''} onClick={() => abrirProgramacion(cirugia)} disabled={programada}>{programada ? <><Icon name="check" size={16}/> Programada</> : <><Icon name="calendar" size={16}/> Programar</>}</button></article>;

@@ -4,6 +4,7 @@ import RevisionSistemas from './RevisionSistemas';
 import Icon from '../../radius/componentes/Icono';
 import { apiEmergencias, camposIdentidad, fechaEmergencia, nombrePaciente, tiposOrden, type CuentaEmergencia, type ItemEmergencia, type OrdenEmergencia } from './emergenciasApi';
 import { HojaLaboratorios } from '../consultorio/HojaLaboratorios';
+import { HistoriaHojeable, type PacienteHistoria } from '../consultorio/ConsultorioView';
 import './TriajeEmergenciasView.css';
 import './AtencionMedicaEmergenciasView.css';
 import { cubiculosEmergencias, nombreCubiculo } from './cubiculos';
@@ -176,6 +177,9 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const evolucionDialogo = useRef<HTMLDialogElement>(null);
   const [identidad, setIdentidad] = useState<{ revision: number; datos: Record<string, string> } | null>(null);
   const [ocupado, setOcupado] = useState(false), [error, setError] = useState(''), [mensaje, setMensaje] = useState('');
+  const [historiaClinicaAbierta, setHistoriaClinicaAbierta] = useState(false);
+  const [cobroAbierto, setCobroAbierto] = useState(false), [montoRecibido, setMontoRecibido] = useState(''), [montoPagado, setMontoPagado] = useState(0);
+  const [confirmarLiberacion, setConfirmarLiberacion] = useState(false);
   const bloqueo = useRef(false), editorOrden = useRef<HTMLDivElement>(null);
   useEffect(() => { alEditar(Boolean(orden || cierre || identidad)); }, [orden, cierre, identidad]);
   async function guardar(ruta: string, body: object, aviso: string) {
@@ -193,10 +197,15 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const ultimoSigno = [...cuenta.signos].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha))[0];
   const abrirRegistroSignos = () => { setValoresSignos({}); setObservacionSignos(''); setHoraSignos(horaActual()); setRegistroSignosAbierto(true); };
   const totalConsumido = cuenta.consumos.reduce((total, consumo) => total + consumo.precio * consumo.cantidad, 0);
+  const saldoPendiente = Math.max(0, totalConsumido - montoPagado);
   const estudios = (cuenta.ordenes || []).filter(ordenActual => ['laboratorio', 'imagenologia'].includes(ordenActual.tipo));
   const datosPaciente = cuenta.identidad || {};
   const liberarCubiculo = () => {
-    if (!window.confirm(`¿Preparar el cierre de la atención para liberar ${nombreCubiculo(cuenta.cubiculo)}?`)) return;
+    if (saldoPendiente > 0) { setCobroAbierto(true); return; }
+    setConfirmarLiberacion(true);
+  };
+  const confirmarSalidaCubiculo = () => {
+    setConfirmarLiberacion(false);
     setCierre({ condicionEgreso: 'vivo', causaEgreso: 'hospitalaria', observacionEgreso: '' });
     window.setTimeout(() => document.querySelector<HTMLElement>('.em-cierre-emergencia')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
   };
@@ -210,10 +219,12 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
           </div>
           <div className="em-ficha-datos"><span><b>Cuenta</b>{cuenta.id.slice(0, 8).toUpperCase()}</span><span><b>Ingreso</b>{fechaEmergencia(cuenta.inicio)}</span><span><b>Profesional</b>{datosPaciente.medicoAdmision || 'Sin registro'}</span><span><b>Diagnóstico</b>{cuenta.evaluaciones?.at(-1)?.campos.diagnostico || 'Sin registro'}</span></div>
         </div>
-        <div className="em-ficha-total"><small>Total consumido</small><strong>Bs {totalConsumido.toFixed(2)}</strong><small>{cuenta.consumos.some(consumo => consumo.porHora && !consumo.fin) ? 'Incluye servicios en curso' : 'Registrado en la cuenta'}</small>{!cuenta.fin && datosPacienteIncompletos(cuenta.identidad) && <button className="em-completar-paciente" type="button" onClick={() => setIdentidad({ revision: cuenta.revision, datos: { ...datosPaciente } })}><Icon name="edit" size={15} /> Completar datos del paciente</button>}{!cuenta.fin && <button className="em-liberar-cubiculo" type="button" onClick={liberarCubiculo}><Icon name="close" size={15} /> Liberar cubículo</button>}</div>
+        <div className="em-ficha-total"><small>Total consumido</small><strong>Bs {totalConsumido.toFixed(2)}</strong><small>{cuenta.consumos.some(consumo => consumo.porHora && !consumo.fin) ? 'Incluye servicios en curso' : 'Registrado en la cuenta'}</small><button className="em-ver-historia" type="button" onClick={() => setHistoriaClinicaAbierta(true)}><Icon name="fileText" size={15} /> Historia clínica</button>{!cuenta.fin && datosPacienteIncompletos(cuenta.identidad) && <button className="em-completar-paciente" type="button" onClick={() => setIdentidad({ revision: cuenta.revision, datos: { ...datosPaciente } })}><Icon name="edit" size={15} /> Completar datos del paciente</button>}{!cuenta.fin && <button className="em-liberar-cubiculo" type="button" onClick={liberarCubiculo}><Icon name="close" size={15} /> Liberar cubículo</button>}</div>
         {!cuenta.fin && <nav className="em-accesos-orden"><button onClick={() => abrirOrden('medicamento')}>Receta / indicación</button><button onClick={() => abrirOrden('laboratorio')}><Icon name="lab" size={15} /> Laboratorio</button><button onClick={() => abrirOrden('imagenologia')}><Icon name="image" size={15} /> Imagenología</button><button onClick={() => abrirOrden('internacion')}>Internación</button></nav>}
       </header>
       {error && <div className="em-error" role="alert">{error}</div>}{mensaje && <div className="em-aviso" role="status">{mensaje}</div>}
+      {cobroAbierto && <div className="em-modal-orden" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setCobroAbierto(false); }}><section className="em-panel em-cobro-cuenta" role="dialog" aria-modal="true"><header className="em-panel-titulo"><div><h3>Cobro pendiente de la cuenta</h3><small>El cubículo se libera al completar el saldo.</small></div><button type="button" onClick={() => setCobroAbierto(false)}><Icon name="close" size={18}/></button></header><div className="em-cobro-detalle"><strong>Detalle de cargos</strong>{cuenta.consumos.map(consumo => <p key={consumo.registroId}><span>{consumo.nombre} × {consumo.cantidad}</span><b>Bs {(consumo.precio * consumo.cantidad).toFixed(2)}</b></p>)}<p><span>Total</span><b>Bs {totalConsumido.toFixed(2)}</b></p><p><span>Pagado</span><b>Bs {montoPagado.toFixed(2)}</b></p><p className="em-cobro-saldo"><span>Saldo pendiente</span><b>Bs {saldoPendiente.toFixed(2)}</b></p></div><form onSubmit={evento => { evento.preventDefault(); const recibido = Number(montoRecibido); if (recibido > 0) { setMontoPagado(actual => actual + recibido); setMontoRecibido(''); if (recibido >= saldoPendiente) setCobroAbierto(false); } }}><label>Monto recibido<input type="number" min="0" step="0.01" required value={montoRecibido} onChange={evento => setMontoRecibido(evento.target.value)} placeholder="0.00" /></label><div className="em-acciones"><button type="button" onClick={() => setCobroAbierto(false)}>Cancelar</button><button className="em-primario">Registrar cobro</button></div></form></section></div>}
+      {confirmarLiberacion && <div className="em-modal-orden" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConfirmarLiberacion(false); }}><section className="em-panel em-confirmar-liberacion" role="dialog" aria-modal="true" aria-labelledby="em-confirmar-liberacion-titulo"><header><span><Icon name="check" size={22}/></span><div><h3 id="em-confirmar-liberacion-titulo">Cuenta sin deuda</h3><p>El paciente ya no tiene ninguna deuda. ¿Estás seguro que quieres liberar el cubículo de atención {nombreCubiculo(cuenta.cubiculo)}?</p></div></header><footer><button type="button" onClick={() => setConfirmarLiberacion(false)}>No, mantener cubículo</button><button type="button" className="em-primario" onClick={confirmarSalidaCubiculo}>Sí, liberar cubículo</button></footer></section></div>}
       {identidad && <div className="em-modal-orden" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIdentidad(null); }}><section className="em-panel em-orden-estudio" role="dialog" aria-modal="true" aria-labelledby="em-datos-paciente-titulo"><header className="em-panel-titulo"><div><h3 id="em-datos-paciente-titulo">Completar datos del paciente</h3><small>Revisa lo registrado y completa o corrige la información conocida.</small></div><button type="button" aria-label="Cerrar" onClick={() => setIdentidad(null)}><Icon name="close" size={18} /></button></header><form onSubmit={async evento => { evento.preventDefault(); if (await guardar(`/${cuenta.id}/identidad`, { ...identidad.datos, revision: identidad.revision }, 'Datos del paciente actualizados.')) setIdentidad(null); }}><div className="em-form-grid">{camposIdentidad.map(([campo, etiqueta]) => <label key={campo}>{etiqueta}<input type={campo === 'nacimiento' ? 'date' : 'text'} maxLength={200} value={identidad.datos[campo] || ''} onChange={evento => setIdentidad(actual => actual ? { ...actual, datos: { ...actual.datos, [campo]: evento.target.value } } : actual)} /></label>)}</div><div className="em-acciones"><button type="button" onClick={() => setIdentidad(null)}>Cancelar</button><button className="em-primario" disabled={ocupado}>Guardar datos</button></div></form></section></div>}
       <AnamnesisEmergencia key={`anamnesis-${cuenta.id}`} cuentaId={cuenta.id} cerrada={Boolean(cuenta.fin)} inicial={cuenta.evaluaciones?.at(-1)?.campos.enfermedadActual} />
       <RevisionSistemas key={`revision-${cuenta.id}`} cuentaId={cuenta.id} cerrada={Boolean(cuenta.fin)} />
@@ -266,5 +277,6 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
       </section>
       <section className="em-panel"><h3>Actividad de enfermería</h3><small>{cuenta.consumos.length} consumo(s) registrado(s)</small>{cuenta.consumos.filter(c => c.porHora && !c.fin).map(c => <p className="em-servicio-activo" key={c.registroId}>● {c.nombre}<small>En uso desde {fechaEmergencia(c.inicio)}</small></p>)}</section>
     </aside>
+    {historiaClinicaAbierta && <HistoriaHojeable paciente={{ nombre: nombrePaciente(cuenta), ci: datosPaciente.documento || '', edad: Number.parseInt(edadPaciente(datosPaciente.nacimiento), 10) || 0, fechaNacimiento: datosPaciente.nacimiento || 'Sin registro', numeroHistoria: datosPaciente.historiaClinica || 'Sin historia registrada', datoRelevante: cuenta.evaluaciones?.at(-1)?.campos.diagnostico || 'Sin antecedentes relevantes registrados', estado: cuenta.fin ? 'Al día' : 'Pendiente' } satisfies PacienteHistoria} onCerrar={() => setHistoriaClinicaAbierta(false)} />}
   </div>;
 }

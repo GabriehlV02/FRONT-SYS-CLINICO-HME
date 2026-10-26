@@ -30,6 +30,7 @@ export function CronogramaQuirofanoView({ cirugias, fechaInicial }: {
   const inicio = fechaDesdeTexto(fechaInicial || fechaLocal());
   const [mesVisible, setMesVisible] = useState(() => new Date(inicio.getFullYear(), inicio.getMonth(), 1));
   const [sala, setSala] = useState<FiltroSala>('todos');
+  const [diaSeleccionado, setDiaSeleccionado] = useState<string | null>(null);
 
   const cirugiasFiltradas = useMemo(() => cirugias.filter(cirugia => {
     if (sala === 'todos') return true;
@@ -75,6 +76,7 @@ export function CronogramaQuirofanoView({ cirugias, fechaInicial }: {
     const fecha = fechaDesdeTexto(cirugia.fecha);
     return fecha.getFullYear() === mesVisible.getFullYear() && fecha.getMonth() === mesVisible.getMonth();
   }).length;
+  const seleccionadas = diaSeleccionado ? cirugiasPorFecha.get(diaSeleccionado) ?? [] : [];
 
   return <section className="cronograma-q" aria-labelledby="cronograma-q-titulo">
     <header className="cronograma-q-cabecera">
@@ -93,6 +95,7 @@ export function CronogramaQuirofanoView({ cirugias, fechaInicial }: {
       </div>
     </div>
     <div className="cronograma-q-mes"><div><h3>{tituloMes}</h3><span>{cirugiasDelMes} {cirugiasDelMes === 1 ? 'cirugía programada' : 'cirugías programadas'}</span></div></div>
+    <div className="cronograma-q-contenido">
     <div className="cronograma-q-calendario">
       <div className="cronograma-q-semana">{['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(dia => <div key={dia}>{dia}</div>)}</div>
       <div className="cronograma-q-dias">
@@ -100,14 +103,13 @@ export function CronogramaQuirofanoView({ cirugias, fechaInicial }: {
           if (!dia) return <div className="cronograma-q-dia cronograma-q-dia-vacio" key={`vacio-${indice}`} />;
           const clave = claveFecha(dia);
           const eventos = cirugiasPorFecha.get(clave) ?? [];
-          return <div className={`cronograma-q-dia${clave === hoy ? ' es-hoy' : ''}`} key={clave}>
-            <div className="cronograma-q-numero"><time dateTime={clave}>{dia.getDate()}</time>{eventos.length > 0 && <span>{eventos.length}</span>}</div>
-            <div className="cronograma-q-eventos">{eventos.map(cirugia => <article className={cirugia.quirofano.toLowerCase().includes('2') ? 'sala-2' : 'sala-1'} key={cirugia.id} title={`${cirugia.paciente} · ${cirugia.tipo}`}>
-              <div><strong>{cirugia.hora}</strong><span>{nombreSala(cirugia.quirofano)}</span></div><b>{cirugia.tipo}</b><small>{cirugia.paciente}</small>
-            </article>)}</div>
-          </div>;
+          return <button type="button" className={`cronograma-q-dia${clave === hoy ? ' es-hoy' : ''}${clave === diaSeleccionado ? ' seleccionado' : ''}`} key={clave} onClick={() => setDiaSeleccionado(clave)} aria-label={`${dia.getDate()} de ${tituloMes}: ${eventos.length} ${eventos.length === 1 ? 'cirugía' : 'cirugías'}`}>
+            <span className="cronograma-q-numero"><time dateTime={clave}>{dia.getDate()}</time>{eventos.length > 0 && <span>{eventos.length}</span>}</span>
+          </button>;
         })}
       </div>
+    </div>
+    {diaSeleccionado && <aside className="cronograma-q-detalle" aria-live="polite"><header><div><span>Cirugías del día</span><h3>{fechaDesdeTexto(diaSeleccionado).toLocaleDateString('es-BO', { weekday: 'long', day: 'numeric', month: 'long' })}</h3></div><button type="button" onClick={() => setDiaSeleccionado(null)} aria-label="Cerrar detalle">×</button></header>{seleccionadas.length ? <ol>{seleccionadas.map(cirugia => <li key={cirugia.id}><time>{cirugia.hora}</time><div><strong>{nombreSala(cirugia.quirofano)}</strong><span>{cirugia.tipo}</span><small>{cirugia.paciente}</small></div></li>)}</ol> : <p>No hay cirugías programadas para este día.</p>}</aside>}
     </div>
     {cirugiasDelMes === 0 && <div className="cronograma-q-sin-eventos"><Icon name="calendar" size={20}/><span>No hay cirugías programadas en este mes para el filtro seleccionado.</span></div>}
   </section>;

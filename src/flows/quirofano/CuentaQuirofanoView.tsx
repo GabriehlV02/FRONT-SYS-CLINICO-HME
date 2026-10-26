@@ -101,7 +101,7 @@ export function CuentaQuirofanoView() {
       <button type="button" className={vista === 'historial' ? 'activo' : ''} onClick={() => { setCirugias(leerCronograma()); setVista('historial'); }}><span><Icon name="fileText" size={16}/></span><strong>Historial de quirófano</strong></button>
       <button type="button" className={vista === 'cirugias-admin' ? 'activo' : ''} onClick={() => setVista('cirugias-admin')}><span><Icon name="fileText" size={16}/></span><strong>Cirugías admin</strong></button>
     </nav>
-    {vista === 'programar' && <ProgramarCirugiaView cirugias={cirugias}/>}
+    {vista === 'programar' && <ProgramarCirugiaView cirugias={cirugias} onRegistrar={() => { nuevaCuenta(); setVista('cuenta'); }}/>}
     {vista === 'historial' && <HistorialQuirofanoView cirugias={cirugias}/>}
     {vista === 'cirugias-admin' && <CirugiasAdminView/>}
     {vista === 'cronograma' && <>{cuenta && <div className="cuenta-q-programada" role="status"><Icon name="check" size={17}/> Cuenta {cuenta} aperturada y cirugía añadida al cronograma.</div>}<CronogramaQuirofanoView key={fechaCronograma} cirugias={cirugias} fechaInicial={fechaCronograma}/></>}

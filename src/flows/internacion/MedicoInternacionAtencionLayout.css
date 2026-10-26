@@ -1,0 +1,10 @@
+/* Barra de ordenes: buscador y acciones en una sola linea en escritorio. */
+.internacion-ordenes-panel{grid-template-columns:minmax(280px,1fr) auto;align-items:center}
+.internacion-ordenes-cabecera{display:contents}
+.internacion-ordenes-cabecera>div{display:none}
+.internacion-ordenes-buscador{grid-column:1}
+.internacion-ordenes-acciones{grid-column:2;flex-wrap:nowrap}
+.internacion-ordenes-acciones>button{white-space:nowrap}
+.internacion-ordenes-contenido,.internacion-nueva-orden{grid-column:1/-1}
+@media(max-width:900px){.internacion-ordenes-panel{grid-template-columns:1fr}.internacion-ordenes-buscador,.internacion-ordenes-acciones,.internacion-ordenes-contenido,.internacion-nueva-orden{grid-column:1}.internacion-ordenes-acciones{flex-wrap:wrap}}
+@media(max-width:620px){.internacion-ordenes-acciones>button{width:100%;justify-content:center}}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import './TerapiaIntensivaView.css';
 import './TerapiaIntensivaAltura.css';
@@ -21,9 +21,33 @@ function VistaInspeccionUci({ cama, onVolver }: { cama: CamaUci; onVolver: () =>
   </section>;
 }
 
+function VistaInspeccionUciMejorada({ cama, onVolver }: { cama: CamaUci; onVolver: () => void }) {
+  const [visorAmpliado, setVisorAmpliado] = useState<'monitor' | 'camara' | null>(null);
+
+  useEffect(() => {
+    const cerrarConEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setVisorAmpliado(null); };
+    window.addEventListener('keydown', cerrarConEscape);
+    return () => window.removeEventListener('keydown', cerrarConEscape);
+  }, []);
+
+  const MonitorContenido = () => cama.estado === 'sin-asignar'
+    ? <p>Sin paciente conectado al monitor.</p>
+    : <><div className="uci-inspeccion-signos"><div><small>Frecuencia cardiaca</small><strong>{cama.frecuencia}<em>lpm</em></strong></div><div><small>Saturación de oxígeno</small><strong>{cama.saturacion}<em>%</em></strong></div><div><small>Presión arterial</small><strong>{cama.presion}<em>mmHg</em></strong></div><div><small>Frecuencia respiratoria</small><strong>{cama.respiracion}<em>rpm</em></strong></div></div><div className="uci-inspeccion-trazo"><svg viewBox="0 0 700 140" preserveAspectRatio="none"><path d="M0 85h72l18-24 20 48 24-91 24 110 22-53 26 10h65l20-24 20 48 24-91 24 110 22-53 26 10h65l20-24 20 48 24-91 24 110 22-53 26 10h70" /></svg></div></>;
+  const CamaraContenido = () => <div className="uci-inspeccion-video"><div className="uci-camara-cama" aria-hidden="true"><i /><b /><em /></div><span><Icon name="eye" size={20} /> Vista protegida de la cama</span><time>Acceso auditado · conexión segura</time></div>;
+
+  return <section className="uci-inspeccion" aria-label={`Inspección de ${cama.cama}`}>
+    <header className="uci-inspeccion-cabecera"><button type="button" onClick={onVolver}><Icon name="chevronLeft" size={17} /> Volver a camas UCI</button><div><p>INSPECCIÓN DE CAMA</p><h2>{cama.cama} · {cama.paciente}</h2><small>{cama.historia} · {cama.diagnostico}</small></div><b>{cama.estado === 'alerta' ? 'Requiere revisión' : cama.estado === 'estable' ? 'Paciente estable' : 'Cama disponible'}</b></header>
+    <div className="uci-inspeccion-tablero">
+      <section className="uci-inspeccion-monitor"><header><span><i /> MONITOREO EN TIEMPO REAL</span><div className="uci-visor-acciones"><small>Actualizado ahora</small><button type="button" className="uci-ampliar-visor" onClick={() => setVisorAmpliado('monitor')}><Icon name="eye" size={14} /> Ampliar</button></div></header><MonitorContenido /></section>
+      <section className="uci-inspeccion-camara"><header><span><Icon name="eye" size={16} /> Cámara de seguridad · {cama.cama}</span><div className="uci-visor-acciones"><small><i /> En línea</small><button type="button" className="uci-ampliar-visor" onClick={() => setVisorAmpliado('camara')}><Icon name="eye" size={14} /> Ampliar</button></div></header><CamaraContenido /></section>
+    </div>
+    {visorAmpliado && <div className="uci-visor-modal-fondo" role="presentation" onMouseDown={() => setVisorAmpliado(null)}><section className={`uci-visor-modal ${visorAmpliado}`} role="dialog" aria-modal="true" aria-label={visorAmpliado === 'monitor' ? 'Monitor de signos vitales ampliado' : 'Cámara de seguridad ampliada'} onMouseDown={(event) => event.stopPropagation()}><header><div><span>{visorAmpliado === 'monitor' ? 'MONITOREO CLÍNICO' : 'CÁMARA DE SEGURIDAD'}</span><h3>{visorAmpliado === 'monitor' ? 'Signos vitales en vista ampliada' : `Vista ampliada · ${cama.cama}`}</h3></div><button type="button" aria-label="Cerrar visor ampliado" onClick={() => setVisorAmpliado(null)}>×</button></header><div className="uci-visor-modal-contenido">{visorAmpliado === 'monitor' ? <MonitorContenido /> : <CamaraContenido />}</div></section></div>}
+  </section>;
+}
+
 export function TerapiaIntensivaView() {
   const [camaInspeccionada, setCamaInspeccionada] = useState<CamaUci | null>(null);
-  if (camaInspeccionada) return <VistaInspeccionUci cama={camaInspeccionada} onVolver={() => setCamaInspeccionada(null)} />;
+  if (camaInspeccionada) return <VistaInspeccionUciMejorada cama={camaInspeccionada} onVolver={() => setCamaInspeccionada(null)} />;
   return <section className="uci-monitorizacion" aria-label="Monitorización de camas UCI">
     <header className="uci-cabecera"><div><p>TERAPIA INTENSIVA</p><h2>Monitorización de camas</h2><small>Signos vitales y cámaras de seguridad por cama.</small></div><span><i /> Conexión de monitoreo activa</span></header>
     <div className="uci-camas">

@@ -1,8 +1,15 @@
 .enfermeria-quirofano-vista {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1780px;
   margin: 0 auto;
   color: #17395e;
+}
+
+/* En pantallas amplias, la agenda aprovecha el ancho clínico disponible sin quedar pegada a los bordes. */
+@media (min-width: 1500px) {
+  .enfermeria-quirofano-vista { max-width: none; }
+  .enfermeria-q-panel { padding: 24px 28px; }
+  .instrumentista-cirugia { grid-template-columns: 82px minmax(260px, 1.1fr) minmax(260px, 1fr) 165px; min-height: 88px; padding-inline: 20px; }
 }
 
 .enfermeria-q-cabecera {
@@ -61,6 +68,13 @@
   font-size: 17px;
 }
 
+.almacen-quirofano-contenido { display: grid; gap: 18px; }
+.enfermeria-q-subsubvistas.recepcion-subvistas { width: fit-content; max-width: 100%; margin: 0; }
+.almacen-quirofano-resumen { padding: 18px; border: 1px solid #d4e7f1; border-radius: 10px; background: linear-gradient(110deg, #f8fdff, #edf8fc); }
+.almacen-quirofano-resumen p { margin: 0; color: #0877bc; font-size: 10px; font-weight: 850; letter-spacing: .1em; }
+.almacen-quirofano-resumen h3 { margin: 7px 0 6px; }
+.almacen-quirofano-resumen small { color: #63809d; font-size: 12px; }
+
 .instrumentista-tablero { display: grid; gap: 20px; }
 .instrumentista-resumen { display: flex; align-items: flex-start; justify-content: space-between; gap: 22px; }
 .instrumentista-resumen h3 { margin: 5px 0; font-size: 20px; }
@@ -95,13 +109,14 @@
 .instrumentista-agenda-cabecera h3 { margin: 5px 0; font-size: 19px; }
 .instrumentista-agenda-cabecera > span { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; color: #0877bc; background: #e8f7fd; font-size: 11px; font-weight: 800; white-space: nowrap; }
 .instrumentista-cirugias { display: grid; gap: 10px; }
-.instrumentista-cirugia { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 16px; align-items: center; width: 100%; min-height: 82px; padding: 14px 16px; border: 1px solid #dce8f2; border-radius: 10px; color: #17395e; background: #fff; text-align: left; transition: border-color .18s, background .18s, transform .18s; }
+.instrumentista-cirugia { display: grid; grid-template-columns: 72px minmax(220px, 1.1fr) minmax(220px, 1fr) auto; gap: 16px; align-items: center; width: 100%; min-height: 82px; padding: 14px 16px; border: 1px solid #dce8f2; border-radius: 10px; color: #17395e; background: #fff; text-align: left; transition: border-color .18s, background .18s, transform .18s; }
 .instrumentista-cirugia:hover { border-color: #83ccea; background: #f7fcff; transform: translateY(-1px); }
 .instrumentista-cirugia time { display: grid; place-items: center; min-height: 48px; border-radius: 9px; color: #0877bc; background: #e8f7fd; font-size: 16px; font-weight: 800; }
 .instrumentista-cirugia div { display: grid; gap: 4px; min-width: 0; }
-.instrumentista-cirugia strong { color: #17395e; font-size: 14px; }
-.instrumentista-cirugia small { color: #66819c; font-size: 12px; }
-.instrumentista-cirugia div > span { color: #4b6f8d; font-size: 11px; }
+.instrumentista-cirugia div > small { color: #1680b8; font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.instrumentista-cirugia strong { overflow: hidden; color: #17395e; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.instrumentista-cirugia div > span { overflow: hidden; color: #4b6f8d; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.instrumentista-paciente { padding-left: 16px; border-left: 1px solid #dce8f2; }
 .instrumentista-cirugia > b { display: inline-flex; align-items: center; gap: 8px; color: #47718e; font-size: 11px; white-space: nowrap; }
 .instrumentista-contexto { display: flex; align-items: flex-start; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid #dce8f2; }
 .instrumentista-contexto button { display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 0 9px; border: 0; border-radius: 7px; color: #0877bc; background: #eaf7fd; font-size: 11px; font-weight: 800; white-space: nowrap; }
@@ -122,6 +137,8 @@
   .instrumentista-tabla { overflow-x: auto; }
   .instrumentista-fila { min-width: 650px; }
   .instrumentista-agenda-cabecera, .instrumentista-contexto { align-items: stretch; flex-direction: column; }
-  .instrumentista-cirugia { grid-template-columns: 58px minmax(0, 1fr); }
+  .enfermeria-q-subsubvistas.recepcion-subvistas { width: 100%; }
+  .instrumentista-cirugia { grid-template-columns: 58px minmax(0, 1fr); gap: 10px 14px; }
+  .instrumentista-paciente { padding-left: 0; border-left: 0; }
   .instrumentista-cirugia > b { grid-column: 2; }
 }

@@ -10,3 +10,25 @@
 .uci-cama-diagnostico strong{margin-top:4px;color:#315f7e;font-size:13px;line-height:1.3}
 @media(max-width:900px){.uci-cama-info{gap:12px}.uci-cama-diagnostico{min-width:150px;padding-left:12px}}
 @media(max-width:760px){.uci-cama-info{flex-wrap:wrap}.uci-cama-diagnostico{flex-basis:100%;max-width:none;padding:9px 0 0;border-top:1px solid #d6e7ef;border-left:0}}
+
+/* Resumen clínico de cama: jerarquía de lectura rápida para el personal UCI. */
+.uci-cama-contexto{position:relative;gap:22px;padding:14px 15px 15px;border:1px solid #d3e7f1;border-bottom:1px solid #c9e0ec;border-radius:10px 10px 0 0;background:linear-gradient(108deg,#fbfeff 0%,#f3faff 100%)}
+.uci-cama-contexto:before{content:'';position:absolute;top:14px;bottom:14px;left:0;width:3px;border-radius:0 4px 4px 0;background:#0799d2}
+.uci-cama-info{align-items:stretch;gap:0;flex:1}
+.uci-cama-ubicacion{min-width:112px;padding:10px 14px;border-color:#9fd9ee;border-radius:9px;background:linear-gradient(145deg,#effbff,#ddf3fc);box-shadow:inset 0 1px #fff}
+.uci-cama-contexto .uci-cama-ubicacion span,.uci-cama-contexto .uci-cama-paciente span,.uci-cama-contexto .uci-cama-diagnostico span{color:#0873a9;font-size:9px;line-height:1.2;letter-spacing:.1em}
+.uci-cama-ubicacion strong{margin-top:5px;color:#075e91;font-size:20px;letter-spacing:-.03em}
+.uci-cama-paciente{min-width:210px;padding:4px 20px}
+.uci-cama-contexto .uci-cama-paciente h3{margin:5px 0 2px;color:#123d62;font-size:17px;line-height:1.2;letter-spacing:-.015em}
+.uci-cama-paciente small{font-size:11px;font-weight:700;color:#5d7b91}
+.uci-cama-diagnostico{min-width:235px;max-width:420px;padding:5px 0 5px 20px;border-left-color:#c7e0eb}
+.uci-cama-diagnostico strong{margin-top:5px;color:#234f70;font-size:14px;line-height:1.3;font-weight:800}
+.uci-cama-acciones{min-width:154px;justify-content:flex-end}
+.uci-cama-contexto b{align-self:center;padding:6px 9px;border:1px solid #9ee1c5;border-radius:999px;color:#08714e;background:#ddf8ea;font-size:10px;line-height:1;font-weight:900;box-shadow:0 2px 6px rgba(12,112,77,.08)}
+.uci-cama-acciones button{justify-content:center;min-height:38px;padding:0 13px;border-color:#74c4e8;border-radius:8px;color:#066b9e;background:#fff;font-size:12px;box-shadow:0 2px 7px rgba(7,117,174,.08);transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
+.uci-cama-acciones button:hover{box-shadow:0 6px 13px rgba(7,127,192,.2);transform:translateY(-1px)}
+.uci-cama-acciones button:focus-visible{outline:3px solid #80d8fa;outline-offset:2px}
+.uci-cama.alerta .uci-cama-contexto:before{background:#e2a019}.uci-cama.alerta .uci-cama-contexto b{border-color:#efd080;color:#77520a;background:#fff4cd}.uci-cama.sin-asignar .uci-cama-contexto:before{background:#90a8b7}.uci-cama.sin-asignar .uci-cama-contexto{background:#fafcfd}.uci-cama.sin-asignar .uci-cama-ubicacion{border-color:#d5e1e7;background:#f2f6f8}
+@media(max-width:900px){.uci-cama-contexto{gap:14px}.uci-cama-paciente{min-width:180px;padding:4px 14px}.uci-cama-diagnostico{min-width:175px;padding-left:14px}.uci-cama-acciones{min-width:auto}}
+@media(max-width:760px){.uci-cama-contexto{align-items:stretch;flex-direction:column;padding:13px}.uci-cama-info{display:grid;grid-template-columns:minmax(104px,.55fr) 1fr;gap:0}.uci-cama-ubicacion{min-width:0}.uci-cama-paciente{min-width:0;padding:6px 14px}.uci-cama-diagnostico{grid-column:1/-1;min-width:0;padding:13px 2px 1px;border-top:1px solid #d6e7ef;border-left:0}.uci-cama-acciones{flex-direction:row;justify-content:space-between;align-items:center}.uci-cama-contexto b{align-self:center}.uci-cama-acciones button{min-width:136px}}
+@media(max-width:420px){.uci-cama-info{grid-template-columns:1fr}.uci-cama-paciente{padding:13px 2px 2px}.uci-cama-ubicacion{max-width:none}.uci-cama-diagnostico{margin-top:8px}.uci-cama-acciones{gap:10px}.uci-cama-acciones button{min-width:0;flex:1}}

@@ -50,19 +50,10 @@ export default function VistaInicioSesion({ onLogin }: Props) {
 
   const ingresar = async (event: FormEvent) => {
     event.preventDefault(); setError(''); setLoading(true);
+    const controlador = new AbortController();
+    const limite = window.setTimeout(() => controlador.abort(), 8000);
     try {
-      if (import.meta.env.DEV && ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname) && form.usuario === 'admin' && form.password === 'admin') {
-        const sesion: Sesion = {
-          token: 'frontend-demo-local',
-          expiresAt: Date.now() + 8 * 60 * 60 * 1000,
-          usuario: { nombre: 'Administrador (demo local)', usuario: 'admin', rol: 'ADMINISTRADOR', tipoInicio: 'admin_sistema', permisos: [] },
-        };
-        localStorage.removeItem('pulso_session');
-        sessionStorage.setItem('pulso_session', JSON.stringify(sesion));
-        onLogin(sesion);
-        return;
-      }
-      const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, dispositivo: sistemaCliente() }) });
+      const response = await fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, dispositivo: sistemaCliente() }), signal: controlador.signal });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
         const mensaje = response.status === 401
@@ -82,7 +73,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       localStorage.removeItem('pulso_session'); sessionStorage.removeItem('pulso_session');
       (recordar ? localStorage : sessionStorage).setItem('pulso_session', JSON.stringify(sesion)); onLogin(sesion);
     } catch { setError(''); notificar('error', 'No se pudo iniciar sesión · Error de conexión', 'No pudimos conectar con el servidor. Verifica tu conexión e intenta otra vez.'); }
-    finally { setLoading(false); }
+    finally { window.clearTimeout(limite); setLoading(false); }
   };
 
   const solicitarCodigo = async () => {

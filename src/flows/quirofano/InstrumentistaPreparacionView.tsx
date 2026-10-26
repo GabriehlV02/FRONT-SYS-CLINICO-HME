@@ -12,6 +12,7 @@ export function InstrumentistaPreparacionView({ cirugia, onVolver }: { cirugia: 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [seleccionados, setSeleccionados] = useState<string[]>([]);
   const [mensaje, setMensaje] = useState('');
+  const [cirugiaIniciada, setCirugiaIniciada] = useState(false);
   const recargar = () => setEstado(leerEsterilizacion());
 
   useEffect(() => {
@@ -31,6 +32,17 @@ export function InstrumentistaPreparacionView({ cirugia, onVolver }: { cirugia: 
   const preparados = kitsPreparados.length + individuales.length;
 
   const abrirSolicitud = () => { setSeleccionados([]); setMensaje(''); setModalAbierto(true); };
+  const iniciarCirugia = () => {
+    if (!preparados) { setMensaje('Prepara al menos un kit o material antes de iniciar la cirugía.'); return; }
+    const fecha = new Date().toISOString();
+    const materiales = estado.materiales.map(material => material.cirugiaId === cirugia.id && material.estado === 'reservado' ? { ...material, estado: 'cirugia' as const, actualizadoEn: fecha } : material);
+    const movimientos = estado.movimientos.concat(estado.materiales.filter(material => material.cirugiaId === cirugia.id && material.estado === 'reservado').map(material => ({ id: crypto.randomUUID(), materialId: material.id, desde: 'reservado' as const, hacia: 'cirugia' as const, cirugiaId: cirugia.id, fecha })));
+    const siguiente = { ...estado, materiales, movimientos };
+    guardarEsterilizacion(siguiente);
+    setEstado(siguiente);
+    setCirugiaIniciada(true);
+    setMensaje('Cirugía iniciada. El material preparado fue marcado como en uso.');
+  };
   const confirmarSolicitud = () => {
     const kits = estado.kits.filter(kit => seleccionados.includes(kit.id));
     if (!kits.length) return;
@@ -48,6 +60,7 @@ export function InstrumentistaPreparacionView({ cirugia, onVolver }: { cirugia: 
 
   return <div className="instrumentista-preparacion">
     <header className="instrumentista-preparacion-contexto"><button type="button" onClick={onVolver}><Icon name="chevronLeft" size={16}/> Cirugías programadas</button><div><span>{cirugia.sala} · {cirugia.hora}</span><h3>{cirugia.procedimiento}</h3><small>{cirugia.paciente} · {cirugia.cirujano}</small></div></header>
+    <button type="button" className={`instrumentista-iniciar-cirugia${cirugiaIniciada ? ' en-curso' : ''}`} onClick={iniciarCirugia} disabled={cirugiaIniciada}>{cirugiaIniciada ? 'Cirugía en curso' : 'Iniciar cirugía'}</button>
     <div className="instrumentista-preparacion-layout">
       <aside className="instrumentista-material-preparado"><header><div><p>MATERIAL PARA CIRUGÍA</p><h4>En preparación</h4><small>{preparados ? `${preparados} registro${preparados === 1 ? '' : 's'} preparado${preparados === 1 ? '' : 's'}.` : 'Aún no hay material solicitado.'}</small></div><button type="button" onClick={abrirSolicitud}><Icon name="plus" size={16}/> Solicitar material</button></header>
         {preparados ? <div className="instrumentista-material-lista">{kitsPreparados.map(kit => <article key={kit.id}><span><Icon name="package" size={17}/></span><div><strong>{kit.nombre}</strong><small>{kit.materialIds.length} instrumentos · Kit reservado</small></div><b>Preparado</b></article>)}{individuales.map(material => <article key={material.id}><span><Icon name="asset" size={17}/></span><div><strong>{material.nombre}</strong><small>{material.codigo} · Asignado por Esterilización</small></div><b>{material.estado === 'cirugia' ? 'En uso' : 'Reservado'}</b></article>)}</div> : <div className="instrumentista-material-vacio"><Icon name="package" size={27}/><strong>Sin material preparado</strong><small>Solicita kits disponibles para iniciar la preparación.</small><button type="button" onClick={abrirSolicitud}>Solicitar material</button></div>}

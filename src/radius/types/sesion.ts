@@ -42,7 +42,7 @@ export const leerSesion = (): Sesion | null => {
   if (!guardada) return null;
   try {
     const parsed = JSON.parse(guardada) as Partial<Sesion>;
-    if (parsed.token === 'frontend-demo-local' && (!import.meta.env.DEV || !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname))) throw new Error('Demo solo local');
+    if (parsed.token === 'frontend-demo-local') throw new Error('Sesión demo no válida');
     if (typeof parsed.token !== 'string' || !parsed.token || typeof parsed.expiresAt !== 'number' || parsed.expiresAt <= Date.now() || !parsed.usuario || typeof parsed.usuario.nombre !== 'string' || !Array.isArray(parsed.usuario.permisos)) throw new Error('Sesión inválida');
     return parsed as Sesion;
   } catch {

@@ -131,3 +131,48 @@
   .sistema-app:not([data-theme="dark"]) .pacientes-vista{padding:12px}
   .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla{margin:0}
 }
+
+/* La tabla de imagenología tiene ocho columnas; acciones ocupa la última. */
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-fila{
+  min-width:1260px;
+  grid-template-columns:minmax(210px,1.25fr) 142px 135px 112px 112px minmax(105px,.65fr) minmax(150px,.8fr) 148px;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla{
+  display:grid!important;
+  grid-template-columns:1fr;
+  gap:6px;
+  width:140px;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-accion,
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  width:100%;
+  height:31px;
+  padding:0 9px;
+  font-size:10px;
+  font-weight:800;
+  white-space:nowrap;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion{
+  border-color:#1688c7;
+  color:#fff;
+  background:#1688c7;
+  font-weight:900;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:nth-child(2){
+  border-color:#0c9b91;
+  background:#0c9b91;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{
+  border-color:#086eb5;
+  color:#fff;
+  background:#086eb5;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:hover,
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child:hover{
+  color:#fff;
+  filter:brightness(.9);
+}

@@ -46,7 +46,61 @@ const calcularEdad = (fecha: string) => {
 const nombreCompleto = (p: Paciente) =>
   `${p.nombres} ${p.primerApellido} ${p.segundoApellido}`.trim();
 
-export default function VistaPacientes({ modalidad, soloConEstudio = false, modoClinico = false }: { modalidad?: "Radiografía" | "Tomografía" | "Ecocardiograma"; soloConEstudio?: boolean; modoClinico?: boolean }) {
+type EstudioInspeccion = { id: string; titulo: string; tipo: string; fecha: string; descripcion: string; origen: "local" | "orthanc" };
+type ClasificacionEstudio = { id: number; nombre: string };
+const clasificacionesIniciales = ['Ecografía', 'Radiografía', 'Tomografía', 'Electrocardiograma'];
+
+function InspeccionPaciente({ paciente, estudios, onVolver }: { paciente: Paciente; estudios: EstudioDemo[]; onVolver: () => void }) {
+  const [orthanc, setOrthanc] = useState<EstudioInspeccion[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [tipo, setTipo] = useState("todos");
+  const [desde, setDesde] = useState("");
+  const [hasta, setHasta] = useState("");
+  const [cargando, setCargando] = useState(true);
+  const [clasificaciones, setClasificaciones] = useState<string[]>(clasificacionesIniciales);
+  useEffect(() => {
+    let activo = true;
+    void apiFetch('/api/v1/estudios/clasificaciones').then(async respuesta => {
+      if (!respuesta.ok) return [];
+      const cuerpo = await respuesta.json() as { data?: ClasificacionEstudio[] };
+      return cuerpo.data || [];
+    }).then(datos => {
+      if (activo && datos.length) setClasificaciones(datos.map(clasificacion => clasificacion.nombre));
+    }).catch(() => undefined);
+    return () => { activo = false; };
+  }, []);
+  useEffect(() => {
+    let activo = true;
+    void apiFetch('/api/orthanc/estudios').then(async respuesta => respuesta.ok ? respuesta.json() : []).then((datos: Array<{ id: string; pacienteId: string | null; patientIdDicom: string; descripcion: string; fechaEstudio: string; modalidades: string[] }>) => {
+      if (!activo) return;
+      setOrthanc(datos.filter(estudio => estudio.pacienteId === paciente.id || estudio.patientIdDicom.trim() === paciente.numeroDocumento.trim()).map(estudio => ({ id: estudio.id, titulo: estudio.descripcion || 'Estudio DICOM', tipo: estudio.modalidades.join(' · ') || 'Radiografía', fecha: /^\d{8}$/.test(estudio.fechaEstudio) ? `${estudio.fechaEstudio.slice(0, 4)}-${estudio.fechaEstudio.slice(4, 6)}-${estudio.fechaEstudio.slice(6, 8)}` : estudio.fechaEstudio, descripcion: 'Servidor Orthanc', origen: 'orthanc' })));
+    }).catch(() => undefined).finally(() => { if (activo) setCargando(false); });
+    return () => { activo = false; };
+  }, [paciente.id, paciente.numeroDocumento]);
+  const todos = useMemo<EstudioInspeccion[]>(() => {
+    const locales = estudios.filter(estudio => estudio.pacienteId === paciente.id).map(estudio => ({ id: estudio.id, titulo: estudio.titulo, tipo: estudio.categoria, fecha: estudio.creadaEn.slice(0, 10), descripcion: estudio.descripcion || estudio.nombreArchivo, origen: 'local' as const }));
+    return [...locales, ...orthanc].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+  }, [estudios, orthanc, paciente.id]);
+  const tipos = useMemo(() => [...new Set([...clasificaciones, ...todos.map(estudio => estudio.tipo).filter(Boolean)])], [clasificaciones, todos]);
+  const visibles = useMemo(() => {
+    const termino = busqueda.trim().toLocaleLowerCase('es');
+    return todos.filter(estudio => (!termino || `${estudio.titulo} ${estudio.tipo} ${estudio.descripcion}`.toLocaleLowerCase('es').includes(termino)) && (tipo === 'todos' || estudio.tipo === tipo) && (!desde || estudio.fecha >= desde) && (!hasta || estudio.fecha <= hasta));
+  }, [todos, busqueda, tipo, desde, hasta]);
+  const abrir = (estudio: EstudioInspeccion) => {
+    if (estudio.origen === 'orthanc') {
+      localStorage.setItem('radiuus_orthanc_estudio', estudio.id);
+      window.dispatchEvent(new CustomEvent('radiuus:navegar', { detail: 'visor' }));
+    } else seleccionarEstudio(estudio.id);
+  };
+  return <section className="inspeccion-imagenologia">
+    <button type="button" className="inspeccion-volver" onClick={onVolver}><Icon name="chevronLeft" size={17}/> Volver al listado de pacientes</button>
+    <header className="inspeccion-paciente"><span><Icon name="patient" size={24}/></span><div><small>PACIENTE</small><h2>{nombreCompleto(paciente)}</h2><p>{paciente.tipoDocumento} {paciente.numeroDocumento} · {todos.length} {todos.length === 1 ? 'estudio' : 'estudios'} de imagenología</p></div></header>
+    <section className="inspeccion-filtros" aria-label="Filtros de estudios"><label className="inspeccion-buscar"><Icon name="search" size={17}/><input value={busqueda} onChange={evento => setBusqueda(evento.target.value)} placeholder="Buscar estudio, modalidad o descripción"/></label><label><span>Tipo de estudio</span><select value={tipo} onChange={evento => setTipo(evento.target.value)}><option value="todos">Todos los tipos</option>{tipos.map(valor => <option key={valor}>{valor}</option>)}</select></label><label><span>Desde</span><input type="date" value={desde} onChange={evento => setDesde(evento.target.value)}/></label><label><span>Hasta</span><input type="date" min={desde} value={hasta} onChange={evento => setHasta(evento.target.value)}/></label>{(busqueda || tipo !== 'todos' || desde || hasta) && <button type="button" onClick={() => { setBusqueda(''); setTipo('todos'); setDesde(''); setHasta(''); }}>Limpiar filtros</button>}</section>
+    <section className="inspeccion-estudios"><header><div><span>HISTORIAL DE IMAGENOLOGÍA</span><h3>Estudios del paciente</h3></div><b>{visibles.length}</b></header>{cargando && !todos.length ? <div className="inspeccion-vacio"><span>Cargando estudios…</span></div> : visibles.length ? <div className="inspeccion-lista">{visibles.map(estudio => <article key={`${estudio.origen}-${estudio.id}`}><span><Icon name="image" size={19}/></span><div><strong>{estudio.titulo}</strong><small>{estudio.tipo} · {estudio.descripcion}</small></div><time>{estudio.fecha ? new Date(`${estudio.fecha}T00:00:00`).toLocaleDateString('es-BO') : 'Sin fecha'}</time><em>{estudio.origen === 'orthanc' ? 'Orthanc' : 'Local'}</em><button type="button" onClick={() => abrir(estudio)}><Icon name="eye" size={16}/> Ver estudio</button></article>)}</div> : <div className="inspeccion-vacio"><Icon name="image" size={28}/><strong>No hay estudios que coincidan</strong><small>{todos.length ? 'Cambia la búsqueda o los filtros aplicados.' : 'Este paciente todavía no tiene estudios de imagenología.'}</small></div>}</section>
+  </section>;
+}
+
+export default function VistaPacientes({ modalidad, soloConEstudio = false, modoClinico = false }: { modalidad?: "Radiografía" | "Tomografía" | "Ecografía" | "Ecocardiograma"; soloConEstudio?: boolean; modoClinico?: boolean }) {
   const [pacientes, setPacientes] = useState<Paciente[]>([]),
     [estudios, setEstudios] = useState<EstudioDemo[]>([]),
     [busqueda, setBusqueda] = useState(""),
@@ -85,7 +139,10 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     [estudios, modalidad],
   );
   const pacientesVisibles = useMemo(
-    () => soloConEstudio ? pacientes.filter((paciente) => estudiosModalidad.some((estudio) => estudio.pacienteId === paciente.id)) : pacientes,
+    () => {
+      const unicos = [...new Map(pacientes.map(paciente => [(paciente.numeroDocumento || paciente.id).trim().toLocaleUpperCase('es'), paciente])).values()];
+      return (soloConEstudio || Boolean(modalidad)) ? unicos.filter((paciente) => estudiosModalidad.some((estudio) => estudio.pacienteId === paciente.id)) : unicos;
+    },
     [pacientes, estudiosModalidad, soloConEstudio],
   );
   const filtrados = useMemo(
@@ -267,6 +324,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
       </div>
     </div>
   );
+  if (viendo && !modoClinico) return <InspeccionPaciente paciente={viendo} estudios={estudios} onVolver={() => setViendo(null)} />;
   return (
     <div className="usuarios-vista pacientes-vista" onPointerDownCapture={replegarSidebar}>
       <div className="usuarios-herramientas">
@@ -367,26 +425,11 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                   {!modoClinico && <button
                     className="usuario-accion"
                     onClick={() => setViendo(p)}
-                    title="Ver paciente"
+                    title={!modalidad ? "Inspeccionar paciente" : "Ver paciente"}
+                    aria-label={!modalidad ? `Inspeccionar estudios de ${nombreCompleto(p)}` : `Ver paciente ${nombreCompleto(p)}`}
                   >
-                    <Icon name="eye" size={18} />
+                    <Icon name="eye" size={16} /><span>Ver paciente</span>
                   </button>}
-                  <button
-                    className="usuario-accion"
-                    onClick={() => abrirEditar(p)}
-                    title="Editar paciente"
-                  >
-                    <Icon name="edit" size={17} />
-                  </button>
-                  <button
-                    className={`usuario-accion accion-radiografia ${estudio ? "con-informe" : ""}`}
-                    onClick={() => abrirRadiografia(p)}
-                    title={
-                      estudio ? `Visualizar ${modalidad?.toLowerCase() || "estudio"}` : `Subir ${modalidad?.toLowerCase() || "estudio"}`
-                    }
-                  >
-                    <Icon name={estudio ? "eye" : "plus"} size={17} />
-                  </button>
                 </div>
               </div>
             );
@@ -593,7 +636,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
               <div>
                 <small>Documento</small>
                 <strong>
-                  {viendo.tipoDocumento} · {viendo.numeroDocumento}
+                  {viendo.numeroDocumento ? `${viendo.tipoDocumento || "Documento"} · ${viendo.numeroDocumento}` : "No registrado"}
                 </strong>
               </div>
               <div>

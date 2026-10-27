@@ -14,15 +14,18 @@ export const pacientesIniciales:PacienteDemo[]=[
   {id:'demo-pac-008',nombres:'Roberto',primerApellido:'Paredes',segundoApellido:'Soto',tipoDocumento:'CI',numeroDocumento:'5371649',fechaNacimiento:'1958-12-14',sexo:'masculino',telefono:'71456038',direccion:'Sacaba',sucursal:'Central',creadoEn:'2026-10-01T08:35:00.000Z'},
   {id:'demo-pac-009',nombres:'Valentina',primerApellido:'Ramos',segundoApellido:'Molina',tipoDocumento:'CI',numeroDocumento:'8923751',fechaNacimiento:'1998-03-27',sexo:'femenino',telefono:'79018342',direccion:'Colcapirhua',sucursal:'Norte',creadoEn:'2026-10-01T08:40:00.000Z'},
   {id:'demo-pac-010',nombres:'Miguel Ángel',primerApellido:'Herrera',segundoApellido:'Pérez',tipoDocumento:'CI',numeroDocumento:'4692830',fechaNacimiento:'1980-08-31',sexo:'masculino',telefono:'73502916',direccion:'Zona Sud',sucursal:'Sur',creadoEn:'2026-10-01T08:45:00.000Z'},
+  {id:'demo-pac-yarela-copa',nombres:'Yarela Heydi',primerApellido:'Copa',segundoApellido:'Villca',tipoDocumento:'CI',numeroDocumento:'',fechaNacimiento:'',sexo:'no_especifica',telefono:'',direccion:'',sucursal:'Central',creadoEn:'2026-10-27T00:00:00.000Z'},
 ];
-export const estudiosIniciales:EstudioDemo[]=[];
+export const estudiosIniciales:EstudioDemo[]=[
+  {id:'demo-tc-craneo-yarela-copa',pacienteId:'demo-pac-yarela-copa',paciente:'Yarela Heydi Copa Villca',titulo:'TAC de cráneo con contraste',categoria:'Tomografía',descripcion:'Estudio demostrativo DICOM · TAC de cráneo con contraste',nombreArchivo:'YARELA HEYDI COPA VILLCA TAC CRANEO CON CONTRASTE.zip',mime:'application/zip',archivoUrl:'/estudios-demo/yarela-heidi-copa-villca-tac-craneo-con-contraste.zip',creadaEn:'2026-10-27T00:00:00.000Z'},
+];
 
 function leer<T>(clave:string,inicial:T):T{try{const valor=localStorage.getItem(clave);if(valor)return JSON.parse(valor) as T;localStorage.setItem(clave,JSON.stringify(inicial));}catch{}return inicial}
-export const obtenerPacientes=()=>{const pacientes=leer(PACIENTES,pacientesIniciales);try{if(!pacientes.length&&!localStorage.getItem(MUESTRA_PACIENTES)){localStorage.setItem(PACIENTES,JSON.stringify(pacientesIniciales));localStorage.setItem(MUESTRA_PACIENTES,'1');return pacientesIniciales}}catch{}return pacientes};
+export const obtenerPacientes=()=>{const pacientes=leer(PACIENTES,pacientesIniciales),actualizados=[...pacientesIniciales.filter(muestra=>!pacientes.some(paciente=>paciente.id===muestra.id)),...pacientes];try{if(actualizados.length!==pacientes.length)localStorage.setItem(PACIENTES,JSON.stringify(actualizados));if(!actualizados.length&&!localStorage.getItem(MUESTRA_PACIENTES)){localStorage.setItem(PACIENTES,JSON.stringify(pacientesIniciales));localStorage.setItem(MUESTRA_PACIENTES,'1');return pacientesIniciales}}catch{}return actualizados};
 export const guardarPacientes=(datos:PacienteDemo[])=>{localStorage.setItem(PACIENTES,JSON.stringify(datos));window.dispatchEvent(new Event('radiuus:datos-demo'))};
-export const obtenerEstudios=()=>leer(ESTUDIOS,estudiosIniciales);
+export const obtenerEstudios=()=>{const estudios=leer(ESTUDIOS,estudiosIniciales),actualizados=[...estudiosIniciales.filter(muestra=>!estudios.some(estudio=>estudio.id===muestra.id)),...estudios];try{if(actualizados.length!==estudios.length)localStorage.setItem(ESTUDIOS,JSON.stringify(actualizados));}catch{}return actualizados};
 export const guardarEstudios=(datos:EstudioDemo[])=>{localStorage.setItem(ESTUDIOS,JSON.stringify(datos));window.dispatchEvent(new Event('radiuus:datos-demo'))};
-export const seleccionarEstudio=(id:string)=>{localStorage.setItem(SELECCION,id);window.dispatchEvent(new CustomEvent('radiuus:navegar',{detail:'visor'}))};
+export const seleccionarEstudio=(id:string)=>{localStorage.setItem(SELECCION,id);const estudio=obtenerEstudios().find(item=>item.id===id);window.dispatchEvent(new CustomEvent('radiuus:navegar',{detail:estudio?.categoria==='Tomografía'?'visor-tomografias':'visor'}))};
 export const obtenerEstudioSeleccionado=()=>{const id=localStorage.getItem(SELECCION);return obtenerEstudios().find(e=>e.id===id)||null};
 
 const abrirDb=()=>new Promise<IDBDatabase>((resolve,reject)=>{const solicitud=indexedDB.open('pulso-local',1);solicitud.onupgradeneeded=()=>solicitud.result.createObjectStore('archivos');solicitud.onsuccess=()=>resolve(solicitud.result);solicitud.onerror=()=>reject(solicitud.error)});

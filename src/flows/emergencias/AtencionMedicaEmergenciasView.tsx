@@ -200,6 +200,11 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const saldoPendiente = Math.max(0, totalConsumido - montoPagado);
   const estudios = (cuenta.ordenes || []).filter(ordenActual => ['laboratorio', 'imagenologia'].includes(ordenActual.tipo));
   const datosPaciente = cuenta.identidad || {};
+  const estadoActual = estadoPaciente(cuenta);
+  const actualizarEstadoPaciente = async (estado: string) => {
+    const camposActuales = cuenta.evaluaciones?.at(-1)?.campos || {};
+    await guardar(`/${cuenta.id}/evaluacion`, { revision: cuenta.revision, campos: { ...camposActuales, estadoPaciente: estado } }, 'Estado del paciente actualizado.');
+  };
   const liberarCubiculo = () => {
     if (saldoPendiente > 0) { setCobroAbierto(true); return; }
     setConfirmarLiberacion(true);
@@ -212,7 +217,7 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   return <div className="em-medica-atencion">
     <main key={`paneles-atencion-v2-${cuenta.id}`} className="em-trabajo">
       <header className="em-panel em-medica-cabecera em-ficha-atencion">
-        <div className="em-ficha-principal"><p>ATENCIÓN MÉDICA · {nombreCubiculo(cuenta.cubiculo)}</p><h2>{nombrePaciente(cuenta)}</h2>
+        <div className="em-ficha-principal"><p>ATENCIÓN MÉDICA · {nombreCubiculo(cuenta.cubiculo)}</p><div className="em-ficha-nombre"><h2>{nombrePaciente(cuenta)}</h2>{!cuenta.fin && <label className={`em-selector-estado ${estadoActual.clase}`}><span>Estado</span><select value={estadoActual.clase === 'sin-clasificar' ? '' : estadoActual.etiqueta} disabled={ocupado} onChange={evento => void actualizarEstadoPaciente(evento.target.value)} aria-label="Estado del paciente"><option value="">Sin clasificar</option><option value="Leve">Leve</option><option value="Estable">Estable</option><option value="Grave">Grave</option><option value="Crítico">Crítico</option></select></label>}</div>
           <div className="em-ficha-resumen">
             <section className="em-ficha-persona"><header><b>Paciente</b><span>{datosPaciente.historiaClinica || 'Sin historia clínica'}</span></header><dl><div><dt>Documento</dt><dd>{datosPaciente.documento || 'Sin registro'}</dd></div><div><dt>Edad / sexo</dt><dd>{edadPaciente(datosPaciente.nacimiento)} · {datosPaciente.sexo || 'Sin registro'}</dd></div><div><dt>Teléfono</dt><dd>{datosPaciente.telefono || 'Sin registro'}</dd></div><div><dt>Dirección</dt><dd>{datosPaciente.direccion || 'Sin registro'}</dd></div></dl></section>
             <section className="em-ficha-persona em-ficha-familiar"><header><b>Familiar responsable</b><span>{datosPaciente.parentesco || 'Parentesco sin registrar'}</span></header><dl><div><dt>Nombre completo</dt><dd>{datosPaciente.familiar || 'Sin registro'}</dd></div><div><dt>Teléfono</dt><dd>{datosPaciente.telefonoFamiliar || 'Sin registro'}</dd></div><div><dt>Documento</dt><dd>{datosPaciente.documentoFamiliar || 'Sin registro'}</dd></div></dl></section>

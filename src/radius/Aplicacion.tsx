@@ -2,7 +2,7 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones from "./componentes/Notificaciones";
-import { obtenerInformes, obtenerPacientes } from "./datos/almacenDemo";
+import { obtenerEstudios, obtenerInformes, obtenerPacientes } from "./datos/almacenDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import { leerSesion, type Sesion } from "./types/sesion";
 import VistaInicioSesion from "./vistas/autenticacion/VistaInicioSesion";
@@ -56,8 +56,6 @@ const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaV
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
 const VistaEstudiosCobrados = lazy(() => import('./vistas/VistaEstudiosCobrados'));
 const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
-const VisorTomografias = lazy(() => import('./vistas/visor-tomografias/VisorTomografias'));
-const VisorEcocardiogramas = lazy(() => import('./vistas/visor-ecocardiogramas/VisorEcocardiogramas'));
 const VistaBaseDatosOrthanc = lazy(() => import('./vistas/base-datos/VistaBaseDatosOrthanc'));
 const VistaConfiguracion = lazy(() => import('./vistas/configuracion/VistaConfiguracion'));
 const VistaAuditorias = lazy(() => import('./vistas/auditorias/VistaAuditorias'));
@@ -81,10 +79,8 @@ const signosVitalesIniciales: SignoVitalConfig[] = [
 ].map(([id, nombre, unidad, abreviatura, tipo]) => ({ id, nombre, unidad, abreviatura, tipo: tipo as SignoVitalConfig['tipo'] }));
 
 type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
-type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecocardiogramas" | "informes" | "visor";
-type SubvistaRadiografias = "estudios" | "base-datos";
-type SubvistaTomografias = "estudios" | "visor";
-type SubvistaEcocardiogramas = "pacientes" | "visor";
+type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecografias" | "ecocardiogramas" | "informes" | "visor";
+type SubvistaModalidad = "pacientes" | "estudios";
 type RolEnfermeriaQuirofano = "instrumentista" | "circulante" | "almacen";
 type SubvistaAlmacenQuirofano = "quirofano-1" | "quirofano-2";
 type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
@@ -107,21 +103,13 @@ const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: 
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
   { id: "radiografias", nombre: "Radiografías", icono: "image" },
   { id: "tomografias", nombre: "Tomografías", icono: "package" },
+  { id: "ecografias", nombre: "Ecografías", icono: "audit" },
   { id: "ecocardiogramas", nombre: "Ecocardiogramas", icono: "audit" },
   { id: "informes", nombre: "Informes médicos", icono: "audit" },
-  { id: "visor", nombre: "Visor", icono: "eye" },
 ];
-const subvistasRadiografias: { id: SubvistaRadiografias; nombre: string; icono: IconName }[] = [
-  { id: "estudios", nombre: "Estudios", icono: "image" },
-  { id: "base-datos", nombre: "Base de datos", icono: "package" },
-];
-const subvistasTomografias: { id: SubvistaTomografias; nombre: string; icono: IconName }[] = [
-  { id: "estudios", nombre: "Estudios", icono: "package" },
-  { id: "visor", nombre: "Visor de tomografías", icono: "eye" },
-];
-const subvistasEcocardiogramas: { id: SubvistaEcocardiogramas; nombre: string; icono: IconName }[] = [
+const subvistasModalidad: { id: SubvistaModalidad; nombre: string; icono: IconName }[] = [
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
-  { id: "visor", nombre: "Visor de ecocardiogramas", icono: "eye" },
+  { id: "estudios", nombre: "Estudios", icono: "image" },
 ];
 const subvistasPacientes: { id: SubvistaPacientes; nombre: string; icono: IconName }[] = [
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
@@ -200,9 +188,8 @@ export default function Aplicacion() {
   const [modulo, setModulo] = useState("");
   const [emergenciaEnAtencion, setEmergenciaEnAtencion] = useState('');
   const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
-  const [subvistaRadiografias, setSubvistaRadiografias] = useState<SubvistaRadiografias>("estudios");
-  const [subvistaTomografias, setSubvistaTomografias] = useState<SubvistaTomografias>("estudios");
-  const [subvistaEcocardiogramas, setSubvistaEcocardiogramas] = useState<SubvistaEcocardiogramas>("pacientes");
+  const [visorModalidad, setVisorModalidad] = useState<"Tomografía" | null>(null);
+  const [subvistaModalidad, setSubvistaModalidad] = useState<SubvistaModalidad>("pacientes");
   const [rolEnfermeriaQuirofano, setRolEnfermeriaQuirofano] = useState<RolEnfermeriaQuirofano>("instrumentista");
   const [subvistaAlmacenQuirofano, setSubvistaAlmacenQuirofano] = useState<SubvistaAlmacenQuirofano>("quirofano-1");
   const [cirugiaInstrumentista, setCirugiaInstrumentista] = useState<string | null>(null);
@@ -239,7 +226,8 @@ export default function Aplicacion() {
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
   const [pacienteColaAtencion, setPacienteColaAtencion] = useState<CitaConfirmada | null>(null);
-  const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0 });
+  const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0, radiografias: 0, tomografias: 0, ecografias: 0, ecocardiogramas: 0 });
+  const conteoModalidadActual = ({ radiografias: conteosImagenologia.radiografias, tomografias: conteosImagenologia.tomografias, ecografias: conteosImagenologia.ecografias, ecocardiogramas: conteosImagenologia.ecocardiogramas } as Partial<Record<SubvistaImagenologia, number>>)[subvistaImagenologia] || 0;
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [verAvisos, setVerAvisos] = useState(false);
@@ -311,12 +299,19 @@ export default function Aplicacion() {
   }, [sesion]);
   useEffect(() => {
     if (!sesion || modulo !== "imagenologia") return;
-    const actualizarLocales = () => setConteosImagenologia((actual) => ({
-      ...actual,
-      pacientes: obtenerPacientes().length,
-      informes: Object.keys(obtenerInformes()).length,
-      estudios: obtenerSolicitudesImagenologia().length,
-    }));
+    const actualizarLocales = () => {
+      const estudios = obtenerEstudios();
+      const pacientesPorModalidad = (categoria: string) => new Set(estudios.filter(estudio => estudio.categoria === categoria).map(estudio => estudio.pacienteId)).size;
+      setConteosImagenologia({
+        pacientes: obtenerPacientes().length,
+        informes: Object.keys(obtenerInformes()).length,
+        estudios: obtenerSolicitudesImagenologia().length,
+        radiografias: pacientesPorModalidad('Radiografía'),
+        tomografias: pacientesPorModalidad('Tomografía'),
+        ecografias: pacientesPorModalidad('Ecografía'),
+        ecocardiogramas: pacientesPorModalidad('Ecocardiograma'),
+      });
+    };
     actualizarLocales();
     window.addEventListener("radiuus:datos-demo", actualizarLocales);
     return () => {
@@ -342,21 +337,34 @@ export default function Aplicacion() {
   useEffect(() => {
     const navegar = (evento: Event) => {
       const id = (evento as CustomEvent<string>).detail;
-      if (subvistasImagenologia.some(vista => vista.id === id)) {
+      if (id === "visor-tomografias") {
+        setModulo("imagenologia");
+        setSubvistaImagenologia("visor");
+        setVisorModalidad("Tomografía");
+        setBusqueda('');
+        setMenuAbierto(false);
+      } else if (id === "visor") {
+        setModulo("imagenologia");
+        setSubvistaImagenologia("visor");
+        setVisorModalidad(null);
+        setBusqueda('');
+        setMenuAbierto(false);
+      } else if (subvistasImagenologia.some(vista => vista.id === id)) {
         setModulo("imagenologia");
         setSubvistaImagenologia(id as SubvistaImagenologia);
+        setVisorModalidad(null);
         setBusqueda('');
         setMenuAbierto(false);
       } else if (id === "estudios") {
         setModulo("imagenologia");
         setSubvistaImagenologia("radiografias");
-        setSubvistaRadiografias("estudios");
+        setSubvistaModalidad("estudios");
         setBusqueda('');
         setMenuAbierto(false);
       } else if (id === "base-datos") {
         setModulo("imagenologia");
         setSubvistaImagenologia("radiografias");
-        setSubvistaRadiografias("base-datos");
+        setSubvistaModalidad("estudios");
         setBusqueda('');
         setMenuAbierto(false);
       } else if (["caja", "citas", "cuentas", "comprobantes", "reportes"].includes(id)) {
@@ -575,39 +583,20 @@ export default function Aplicacion() {
           {modulo === "imagenologia" && (
             <nav className="imagenologia-subvistas" aria-label="Subvistas de Imagenología">
               {subvistasImagenologia.map(vista => (
-                <button key={vista.id} className={subvistaImagenologia === vista.id ? "activo" : ""} onClick={() => { setSubvistaImagenologia(vista.id); if (vista.id === "radiografias") setSubvistaRadiografias("estudios"); if (vista.id === "tomografias") setSubvistaTomografias("estudios"); if (vista.id === "ecocardiogramas") setSubvistaEcocardiogramas("pacientes"); }}>
+                <button key={vista.id} className={subvistaImagenologia === vista.id ? "activo" : ""} onClick={() => { setSubvistaImagenologia(vista.id); if (["radiografias", "tomografias", "ecografias", "ecocardiogramas"].includes(vista.id)) setSubvistaModalidad("pacientes"); }}>
                   <span><Icon name={vista.icono} size={16} /></span>
                   {vista.nombre}
-                  <b>{vista.id === "pacientes" ? conteosImagenologia.pacientes : vista.id === "informes" ? conteosImagenologia.informes : conteosImagenologia.estudios}</b>
+                  <b>{vista.id === "pacientes" ? conteosImagenologia.pacientes : vista.id === "informes" ? conteosImagenologia.informes : vista.id === "radiografias" ? conteosImagenologia.radiografias : vista.id === "tomografias" ? conteosImagenologia.tomografias : vista.id === "ecografias" ? conteosImagenologia.ecografias : vista.id === "ecocardiogramas" ? conteosImagenologia.ecocardiogramas : conteosImagenologia.estudios}</b>
                 </button>
               ))}
             </nav>
           )}
-          {modulo === "imagenologia" && subvistaImagenologia === "radiografias" && (
-            <nav className="imagenologia-subvistas imagenologia-subsubvistas" aria-label="Subvistas de Radiografías">
-              {subvistasRadiografias.map(vista => (
-                <button key={vista.id} className={subvistaRadiografias === vista.id ? "activo" : ""} onClick={() => setSubvistaRadiografias(vista.id)}>
-                  <span><Icon name={vista.icono} size={16} /></span>
-                  {vista.nombre}
-                  <b>{vista.id === "estudios" ? conteosImagenologia.estudios : ""}</b>
-                </button>
-              ))}
-            </nav>
-          )}
-          {modulo === "imagenologia" && subvistaImagenologia === "tomografias" && (
-            <nav className="ct-subvistas" aria-label="Subvistas de Tomografías">
-              {subvistasTomografias.map(vista => (
-                <button key={vista.id} className={subvistaTomografias === vista.id ? "activo" : ""} onClick={() => setSubvistaTomografias(vista.id)}>
+          {modulo === "imagenologia" && ["radiografias", "tomografias", "ecografias", "ecocardiogramas"].includes(subvistaImagenologia) && (
+            <nav className="imagenologia-subvistas imagenologia-subsubvistas" aria-label={`Subvistas de ${subvistaActual.nombre}`}>
+              {subvistasModalidad.map(vista => (
+                <button key={vista.id} className={subvistaModalidad === vista.id ? "activo" : ""} onClick={() => setSubvistaModalidad(vista.id)}>
                   <span><Icon name={vista.icono} size={16} /></span>{vista.nombre}
-                </button>
-              ))}
-            </nav>
-          )}
-          {modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && (
-            <nav className="ct-subvistas" aria-label="Subvistas de Ecocardiogramas">
-              {subvistasEcocardiogramas.map(vista => (
-                <button key={vista.id} className={subvistaEcocardiogramas === vista.id ? "activo" : ""} onClick={() => setSubvistaEcocardiogramas(vista.id)}>
-                  <span><Icon name={vista.icono} size={16} /></span>{vista.nombre}
+                  <b>{conteoModalidadActual}</b>
                 </button>
               ))}
             </nav>
@@ -704,22 +693,24 @@ export default function Aplicacion() {
             <EsterilizacionView titulo="Almacén de Esterilización" subvistaInicial="entrega" subvistasVisibles={['entrega', 'seguimiento']} />
           ) : modulo === 'cuenta-quirofano' ? (
             <CuentaQuirofanoView />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "estudios" ? (
-            <VistaEstudiosCobrados />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaRadiografias === "base-datos" ? (
+          ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaModalidad === "estudios" ? (
             <VistaBaseDatosOrthanc />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "tomografias" && subvistaModalidad === "estudios" ? (
+            <VistaEstudiosCobrados tipoEstudio="Tomografía" />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" && subvistaModalidad === "estudios" ? (
+            <VistaEstudiosCobrados tipoEstudio="Ecografía" />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && subvistaModalidad === "estudios" ? (
+            <VistaEstudiosCobrados tipoEstudio="Ecocardiograma" />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (
             <VistaInformes />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "tomografias" && subvistaTomografias === "visor" ? (
-            <VisorTomografias />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && subvistaEcocardiogramas === "visor" ? (
-            <VisorEcocardiogramas />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" ? (
+            <VistaPacientes modalidad="Ecografía" />
           ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" ? (
             <VistaPacientes modalidad="Ecocardiograma" />
           ) : modulo === "imagenologia" && ["pacientes", "radiografias", "tomografias"].includes(subvistaImagenologia) ? (
             <VistaPacientes modalidad={subvistaImagenologia === "tomografias" ? "Tomografía" : subvistaImagenologia === "ecocardiogramas" ? "Ecocardiograma" : subvistaImagenologia === "radiografias" ? "Radiografía" : undefined} soloConEstudio={subvistaImagenologia === "radiografias"} />
           ) : modulo === "imagenologia" && subvistaImagenologia === "visor" ? (
-            <VistaRayosX />
+            <VistaRayosX modalidad={visorModalidad || undefined} />
           ) : modulo === "configuracion" ? (
             <VistaConfiguracion initialSection={subvistaConfiguracion} tema={tema} onCambiarTema={setTema} usuario={sesion.usuario} />
           ) : modulo === "auditorias" ? (

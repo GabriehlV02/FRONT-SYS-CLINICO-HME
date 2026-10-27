@@ -20,7 +20,7 @@ import {
 import "./VistaEstudiosCobrados.css";
 
 const VENTANA_EDICION_MS = 24 * 60 * 60 * 1000;
-const TIPOS_ESTUDIO = ["Rayos X", "Tomografía", "Ecocardiograma", "Otro estudio de imagen"];
+const TIPOS_ESTUDIO = ["Rayos X", "Tomografía", "Ecografía", "Ecocardiograma", "Otro estudio de imagen"];
 const PIEZAS = ["Tórax", "Brazo", "Antebrazo", "Mano", "Pierna", "Rodilla", "Pie", "Cráneo", "Abdomen", "Columna", "Pelvis", "Otra"];
 const fechaHora = (valor: string) => new Date(valor).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" });
 
@@ -38,7 +38,7 @@ function convertidoAEstudio(solicitud: SolicitudImagenologiaDemo): EstudioDemo {
   };
 }
 
-export default function VistaEstudiosCobrados() {
+export default function VistaEstudiosCobrados({ tipoEstudio }: { tipoEstudio?: string }) {
   const [solicitudes, setSolicitudes] = useState<SolicitudImagenologiaDemo[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [estadoFiltro, setEstadoFiltro] = useState("todos");
@@ -66,16 +66,17 @@ export default function VistaEstudiosCobrados() {
     };
   }, []);
 
-  const filtradas = useMemo(() => solicitudes
+  const solicitudesModalidad = useMemo(() => tipoEstudio ? solicitudes.filter((solicitud) => solicitud.estudio === tipoEstudio) : solicitudes, [solicitudes, tipoEstudio]);
+  const filtradas = useMemo(() => solicitudesModalidad
     .filter((solicitud) => estadoFiltro === "todos" || solicitud.estado === estadoFiltro)
     .filter((solicitud) => `${solicitud.paciente} ${solicitud.ci} ${solicitud.estudio} ${solicitud.pieza}`.toLocaleLowerCase("es").includes(busqueda.trim().toLocaleLowerCase("es")))
-    .sort((a, b) => b.cobradaEn.localeCompare(a.cobradaEn)), [solicitudes, estadoFiltro, busqueda]);
+    .sort((a, b) => b.cobradaEn.localeCompare(a.cobradaEn)), [solicitudesModalidad, estadoFiltro, busqueda]);
   const tamano = 10;
   const paginas = Math.max(1, Math.ceil(filtradas.length / tamano));
   const paginaActual = Math.min(pagina, paginas);
   const visibles = filtradas.slice((paginaActual - 1) * tamano, paginaActual * tamano);
-  const pendientes = solicitudes.filter((solicitud) => solicitud.estado === "pendiente").length;
-  const tomadas = solicitudes.length - pendientes;
+  const pendientes = solicitudesModalidad.filter((solicitud) => solicitud.estado === "pendiente").length;
+  const tomadas = solicitudesModalidad.length - pendientes;
   const bloqueada = (solicitud: SolicitudImagenologiaDemo) =>
     Boolean(solicitud.tomadaEn) && ahora - new Date(solicitud.tomadaEn!).getTime() >= VENTANA_EDICION_MS;
 
@@ -210,8 +211,8 @@ export default function VistaEstudiosCobrados() {
   return (
     <section className="estudios-cobrados">
       <header className="estudios-cobrados-cabecera">
-        <div><span>ORDENES PAGADAS</span><h2>Estudios de imagenología</h2><p>Gestiona la toma y los archivos de los estudios cobrados.</p></div>
-        <div className="estudios-cobrados-metricas"><span><strong>{solicitudes.length}</strong>Total</span><span><strong>{pendientes}</strong>Pendientes</span><span><strong>{tomadas}</strong>Tomadas</span></div>
+        <div><span>ÓRDENES PAGADAS</span><h2>{tipoEstudio || "Estudios de imagenología"}</h2><p>Gestiona la toma y los archivos de los estudios cobrados.</p></div>
+        <div className="estudios-cobrados-metricas"><span><strong>{solicitudesModalidad.length}</strong>Total</span><span><strong>{pendientes}</strong>Pendientes</span><span><strong>{tomadas}</strong>Tomadas</span></div>
       </header>
       <div className="estudios-cobrados-aviso"><Icon name="image" size={17} /><span>Prototipo local: los registros y archivos se guardan únicamente en este navegador.</span></div>
       {error && <p className="estudios-cobrados-error" role="alert">{error}</p>}
@@ -242,7 +243,7 @@ export default function VistaEstudiosCobrados() {
               </>}
             </div>
           </div>;
-        }) : <div className="estudios-cobrados-vacio"><Icon name="image" size={26} /><strong>{solicitudes.length ? "No hay órdenes que coincidan" : "Aún no hay estudios cobrados"}</strong><small>{solicitudes.length ? "Prueba otra búsqueda o cambia el filtro." : "Al cobrar un estudio de imagenología en Caja aparecerá aquí."}</small></div>}
+        }) : <div className="estudios-cobrados-vacio"><Icon name="image" size={26} /><strong>{solicitudesModalidad.length ? "No hay órdenes que coincidan" : `Aún no hay ${tipoEstudio?.toLocaleLowerCase("es") || "estudios"} cobrados`}</strong><small>{solicitudesModalidad.length ? "Prueba otra búsqueda o cambia el filtro." : "Al cobrar un estudio de imagenología en Caja aparecerá aquí."}</small></div>}
       </div>
       <footer className="estudios-cobrados-paginacion"><small>{filtradas.length ? `${(paginaActual - 1) * tamano + 1}–${Math.min(paginaActual * tamano, filtradas.length)} de ${filtradas.length}` : "0 resultados"}</small><div><button type="button" disabled={paginaActual <= 1} onClick={() => setPagina((actual) => Math.max(1, actual - 1))} aria-label="Página anterior"><Icon name="chevronLeft" size={16} /></button><span>Página {paginaActual} de {paginas}</span><button type="button" disabled={paginaActual >= paginas} onClick={() => setPagina((actual) => Math.min(paginas, actual + 1))} aria-label="Página siguiente"><Icon name="chevronRight" size={16} /></button></div></footer>
       <input ref={archivoRef} hidden type="file" accept="image/jpeg,image/png,image/webp,application/dicom,application/zip,application/x-rar-compressed,.dcm,.zip,.rar" onChange={(evento) => void alElegirArchivo(evento)} />

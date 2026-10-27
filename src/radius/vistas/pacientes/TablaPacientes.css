@@ -246,4 +246,13 @@
 .pacientes-vista .pacientes-tabla .dato-movil{display:none!important}
 .pacientes-vista .pacientes-tabla::-webkit-scrollbar{height:10px}
 .pacientes-vista .pacientes-tabla::-webkit-scrollbar-track{background:#edf8fd}
+
+/* Acciones de imagenología: botones legibles y apilados en una sola columna. */
+.pacientes-vista .pacientes-tabla .usuarios-fila{min-width:1260px;grid-template-columns:minmax(210px,1.25fr) 142px 135px 112px 112px minmax(105px,.65fr) minmax(150px,.8fr) 148px}
+.pacientes-vista .pacientes-tabla .acciones-tabla{display:grid!important;grid-template-columns:1fr;gap:6px;width:140px;padding:0;border:0;background:transparent}
+.pacientes-vista .pacientes-tabla .usuario-accion,.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;height:31px;padding:0 9px;border-color:#bfd7e7;color:#09639b;background:#f4f9fd;font-size:10px;font-weight:800;white-space:nowrap}
+.pacientes-vista .pacientes-tabla .usuario-accion span{display:inline}
+.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{border-color:#087fc0;color:#fff;background:#087fc0}
+.pacientes-vista .pacientes-tabla .usuario-accion:hover,.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child:hover{border-color:#096bb5;color:#fff;background:#096bb5;transform:none}
+@media(max-width:700px){.pacientes-vista .pacientes-tabla .acciones-tabla{width:140px}.pacientes-vista .pacientes-tabla .usuario-accion,.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{grid-column:auto!important;grid-row:auto!important}}
 .pacientes-vista .pacientes-tabla::-webkit-scrollbar-thumb{border:2px solid #edf8fd;border-radius:99px;background:#75bfe0}

@@ -46,7 +46,7 @@ type EstudioOrthanc = {
   studyInstanceUid?: string;
 };
 
-export default function VistaRayosX() {
+export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }) {
   const [estudios, setEstudios] = useState<Estudio[]>([]),
     [estudiosOrthanc, setEstudiosOrthanc] = useState<EstudioOrthanc[]>([]),
     [actual, setActual] = useState<Estudio | null>(null),
@@ -516,9 +516,9 @@ export default function VistaRayosX() {
       <header className="rx-cabecera">
         <div>
           <p>IMAGENOLOGÍA / VISOR</p>
-          <h2>Visor de estudios</h2>
+          <h2>{modalidad ? `Visor de ${modalidad.toLowerCase()}s` : "Visor de estudios"}</h2>
           <small>
-            DICOM, DICOMDIR, carpetas, ZIP, RAR e imágenes radiográficas.
+            DICOM, DICOMDIR, carpetas, ZIP, RAR e imágenes {modalidad ? "tomográficas" : "radiográficas"}.
           </small>
         </div>
         <div>
@@ -748,7 +748,7 @@ export default function VistaRayosX() {
             ) : (
               <div className="rx-vacio">
                 <Icon name="image" size={37} />
-                <h3>Abre un estudio radiológico</h3>
+                <h3>Abre un estudio {modalidad ? "tomográfico" : "radiológico"}</h3>
                 <p>
                   Selecciona un DICOM, un archivo comprimido o una carpeta
                   completa.

@@ -18,7 +18,19 @@ export type CuentaEmergencia = {
   ordenes?: OrdenEmergencia[];
   cierre?: { condicionEgreso: 'vivo' | 'muerto'; causaEgreso: 'hospitalaria' | 'solicitada' | 'fuga' | 'transferencia' | 'deceso' | 'internacion'; observacionEgreso?: string; fecha: string; usuario: string } | null;
 };
-export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
+const lecturasEnCurso = new Map<string, Promise<unknown>>();
+const cacheLecturas = new Map<string, { expira: number; valor: unknown }>();
+const ttlLecturaMs = 2_000;
+
+function claveLectura(ruta: string) {
+  return `emergencias:${ruta || 'cuentas'}`;
+}
+
+export function invalidarCacheEmergencias() {
+  cacheLecturas.clear();
+}
+
+async function solicitarEmergencias<T>(ruta = '', body?: object): Promise<T> {
   if (import.meta.env.DEV && leerSesion()?.token === 'frontend-demo-local') {
     const clave = 'clinico-emergencias-demo-v1';
     const cuentas: CuentaEmergencia[] = JSON.parse(sessionStorage.getItem(clave) || '[]');
@@ -64,6 +76,30 @@ export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
   if (!respuesta.ok) throw new Error((datos as { message?: string } | null)?.message || 'El servicio de emergencias no está disponible.');
   if (datos === null) throw new Error('El servicio de emergencias respondió sin información.');
   return datos as T;
+}
+
+/** Comparte solicitudes iguales y conserva lecturas brevemente para evitar recargas duplicadas al navegar. */
+export async function apiEmergencias<T>(ruta = '', body?: object): Promise<T> {
+  if (body) {
+    const resultado = await solicitarEmergencias<T>(ruta, body);
+    invalidarCacheEmergencias();
+    return resultado;
+  }
+
+  const clave = claveLectura(ruta);
+  const cacheada = cacheLecturas.get(clave);
+  if (cacheada && cacheada.expira > Date.now()) return cacheada.valor as T;
+  const pendiente = lecturasEnCurso.get(clave);
+  if (pendiente) return pendiente as Promise<T>;
+
+  const solicitud = solicitarEmergencias<T>(ruta)
+    .then(valor => {
+      cacheLecturas.set(clave, { valor, expira: Date.now() + ttlLecturaMs });
+      return valor;
+    })
+    .finally(() => lecturasEnCurso.delete(clave));
+  lecturasEnCurso.set(clave, solicitud);
+  return solicitud;
 }
 export const nombrePaciente = (c: CuentaEmergencia) => [c.identidad?.nombres, c.identidad?.apellidos].filter(Boolean).join(' ') || 'Paciente sin identificar';
 export const fechaEmergencia = (v: string) => new Date(v).toLocaleString('es-BO');

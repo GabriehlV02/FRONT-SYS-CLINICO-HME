@@ -5,6 +5,7 @@ import Icon from '../../radius/componentes/Icono';
 import { apiEmergencias, camposIdentidad, fechaEmergencia, nombrePaciente, tiposOrden, type CuentaEmergencia, type ItemEmergencia, type OrdenEmergencia } from './emergenciasApi';
 import { HojaLaboratorios } from '../consultorio/HojaLaboratorios';
 import { HistoriaHojeable, type PacienteHistoria } from '../consultorio/ConsultorioView';
+import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
 import './TriajeEmergenciasView.css';
 import './AtencionMedicaEmergenciasView.css';
 import { cubiculosEmergencias, nombreCubiculo } from './cubiculos';
@@ -38,6 +39,8 @@ const estadoPaciente = (cuenta: CuentaEmergencia) => {
   if (valor.includes('leve')) return { etiqueta: 'Leve', clase: 'leve' };
   return { etiqueta: 'Sin clasificar', clase: 'sin-clasificar' };
 };
+
+const mismasCuentas = (actuales: CuentaEmergencia[], siguientes: CuentaEmergencia[]) => actuales.length === siguientes.length && actuales.every((cuenta, indice) => cuenta.id === siguientes[indice]?.id && cuenta.revision === siguientes[indice]?.revision && cuenta.fin === siguientes[indice]?.fin);
 
 function GraficaEvolucionSignos({ mediciones, signo }: { mediciones: CuentaEmergencia['signos']; signo: string }) {
   const configuracion = vitales.find(([clave]) => clave === signo) || vitales[0];
@@ -80,6 +83,7 @@ function GraficaEvolucionSignos({ mediciones, signo }: { mediciones: CuentaEmerg
 export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuentaInicialId?: string }) {
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]), [activa, setActiva] = useState(''), [busqueda, setBusqueda] = useState('');
   const [subvista, setSubvista] = useState<'atencion' | 'historial'>('atencion'), [cargando, setCargando] = useState(true), [error, setError] = useState('');
+  const [pagina, setPagina] = useState(1);
   const [catalogo, setCatalogo] = useState<ItemEmergencia[]>([]), [errorCatalogo, setErrorCatalogo] = useState('');
   const [iniciando, setIniciando] = useState(false), [cubiculoNuevo, setCubiculoNuevo] = useState('');
   const [horaIngresoNueva, setHoraIngresoNueva] = useState('');
@@ -87,11 +91,11 @@ export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuenta
   const [datosNuevos, setDatosNuevos] = useState({ nombres: '', apellidos: '', documento: '', nacimiento: '', telefono: '', familiar: '', parentesco: '', telefonoFamiliar: '', documentoFamiliar: '' });
   const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const guardando = useRef(false), secuencia = useRef(0), formularioSucio = useRef(false), solicitud = useRef(crypto.randomUUID());
-  async function cargar() {
-    if (guardando.current) return;
+  async function cargar(): Promise<boolean> {
+    if (guardando.current) return true;
     const lectura = ++secuencia.current;
-    try { const datos = await apiEmergencias<{ cuentas: CuentaEmergencia[] }>(); if (lectura === secuencia.current) { setCuentas(actuales => JSON.stringify(actuales) === JSON.stringify(datos.cuentas) ? actuales : datos.cuentas); setError(''); } }
-    catch (e) { if (lectura === secuencia.current) setError((e as Error).message); }
+    try { const datos = await apiEmergencias<{ cuentas: CuentaEmergencia[] }>(); if (lectura === secuencia.current) { setCuentas(actuales => mismasCuentas(actuales, datos.cuentas) ? actuales : datos.cuentas); setError(''); } return true; }
+    catch (e) { if (lectura === secuencia.current) setError((e as Error).message); return false; }
     finally { setCargando(false); }
   }
   async function cargarCatalogo() {
@@ -99,17 +103,27 @@ export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuenta
     catch (e) { setErrorCatalogo((e as Error).message); }
   }
   useEffect(() => {
-    void cargar(); void cargarCatalogo();
-    const t = window.setInterval(() => void cargar(), 5000);
+    let cancelado = false, temporizador = 0, erroresConsecutivos = 0;
+    const programar = (demora: number) => { window.clearTimeout(temporizador); temporizador = window.setTimeout(() => void actualizar(), demora); };
+    const actualizar = async () => {
+      const correcto = await cargar();
+      if (cancelado) return;
+      erroresConsecutivos = correcto ? 0 : Math.min(erroresConsecutivos + 1, 3);
+      programar(document.hidden ? 30_000 : correcto ? 5_000 : 5_000 * 2 ** erroresConsecutivos);
+    };
+    const alCambiarVisibilidad = () => { if (!document.hidden) void actualizar(); };
+    void actualizar(); void cargarCatalogo();
+    document.addEventListener('visibilitychange', alCambiarVisibilidad);
     const salir = (e: BeforeUnloadEvent) => { if (formularioSucio.current) { e.preventDefault(); e.returnValue = ''; } };
     window.addEventListener('beforeunload', salir);
-    return () => { clearInterval(t); secuencia.current++; window.removeEventListener('beforeunload', salir); };
+    return () => { cancelado = true; window.clearTimeout(temporizador); secuencia.current++; document.removeEventListener('visibilitychange', alCambiarVisibilidad); window.removeEventListener('beforeunload', salir); };
   }, []);
   useEffect(() => {
     if (cuentaInicialId && cuentas.some(cuenta => cuenta.id === cuentaInicialId)) setActiva(cuentaInicialId);
   }, [cuentaInicialId, cuentas]);
   const cuenta = cuentas.find(c => c.id === activa);
   const visibles = cuentas.filter(c => (subvista === 'historial' ? Boolean(c.fin) : !c.fin) && `${c.cubiculo} ${nombrePaciente(c)} ${c.identidad?.documento || ''}`.toLowerCase().includes(busqueda.toLowerCase()));
+  const totalPaginas = Math.max(1, Math.ceil(visibles.length / 25)), paginaActual = Math.min(pagina, totalPaginas), cuentasPagina = visibles.slice((paginaActual - 1) * 25, paginaActual * 25);
   const cubiculosDisponibles = cubiculosEmergencias.filter(cubiculo => !cuentas.some(cuenta => !cuenta.fin && cuenta.cubiculo === cubiculo.id));
   const volverAlListado = () => {
     if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Volver al listado y descartar el borrador?')) return;
@@ -133,7 +147,7 @@ export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuenta
     return <section className="emergencias-vista em-medica"
       onPointerDownCapture={() => window.dispatchEvent(new Event('clinico:replegar-sidebar'))}
       onFocusCapture={() => window.dispatchEvent(new Event('clinico:replegar-sidebar'))}>
-    <header className={`em-cabecera ${cuenta ? 'em-cabecera-con-paciente' : ''}`}>{cuenta && <button type="button" className="em-volver-listado" onClick={volverAlListado}><Icon name="chevronLeft" size={17}/> Regresar</button>}<div className="em-cabecera-titulo"><p>EMERGENCIAS · ATENCIÓN MÉDICA</p>{!cuenta && <nav className="em-subvistas" aria-label="Vistas de atención médica"><button type="button" className={subvista === 'atencion' ? 'activa' : ''} onClick={() => setSubvista('atencion')}>Atención emergencias</button><button type="button" className={subvista === 'historial' ? 'activa' : ''} onClick={() => setSubvista('historial')}>Historial de atención</button></nav>}</div>{!cuenta && <div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button>{subvista === 'atencion' && <button className="em-primario em-iniciar-atencion" type="button" onClick={() => { setHoraIngresoNueva(horaActual()); setMostrarAcompanante(false); setIniciando(true); }}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button>}</div>}</header>
+    <header className={`em-cabecera ${cuenta ? 'em-cabecera-con-paciente' : ''}`}>{cuenta && <button type="button" className="em-volver-listado" onClick={volverAlListado}><Icon name="chevronLeft" size={17}/> Regresar</button>}<div className="em-cabecera-titulo"><p>EMERGENCIAS · ATENCIÓN MÉDICA</p>{!cuenta && <HorizontalSubvistaNav className="em-subvistas" ariaLabel="Vistas de atención médica"><button type="button" className={subvista === 'atencion' ? 'activo' : ''} onClick={() => { setSubvista('atencion'); setPagina(1); }}><span><Icon name="patient" size={16}/></span><strong>Atención emergencias</strong></button><button type="button" className={subvista === 'historial' ? 'activo' : ''} onClick={() => { setSubvista('historial'); setPagina(1); }}><span><Icon name="fileText" size={16}/></span><strong>Historial de atención</strong></button></HorizontalSubvistaNav>}</div>{!cuenta && <div className="em-medica-cabecera-acciones"><button className="em-actualizar" type="button" onClick={() => void cargar()}><Icon name="refresh" size={18}/> Actualizar</button>{subvista === 'atencion' && <button className="em-primario em-iniciar-atencion" type="button" onClick={() => { setHoraIngresoNueva(horaActual()); setMostrarAcompanante(false); setIniciando(true); }}><Icon name="plus" size={20} strokeWidth={2.3}/> Iniciar atención</button>}</div>}</header>
     {iniciando && <div className="em-modal-inicio" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setIniciando(false); }}><form className="em-panel em-medica-nueva" role="dialog" aria-modal="true" aria-labelledby="em-medica-inicio-titulo" onSubmit={iniciarAtencion}>
       <header><div><span>INGRESO DIRECTO</span><h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3><p>Selecciona un cubículo y registra los datos disponibles para abrir la atención.</p></div><button type="button" aria-label="Cerrar" onClick={() => setIniciando(false)}><Icon name="close" size={18}/></button></header>
       <div className="em-inicio-datos"><div className="em-selector-cubiculo" onKeyDown={evento => { if (evento.key === 'Escape') setSelectorCubiculoAbierto(false); }}><span>Cubículo de atención *</span><button type="button" disabled={guardando.current || !cubiculosDisponibles.length} className={cubiculoNuevo ? 'seleccionado' : ''} aria-haspopup="listbox" aria-expanded={selectorCubiculoAbierto} onClick={() => setSelectorCubiculoAbierto(abierto => !abierto)}>{cubiculoNuevo ? nombreCubiculo(cubiculoNuevo) : cubiculosDisponibles.length ? 'Selecciona un cubículo' : 'No hay cubículos libres'}<Icon name="chevronDown" size={16} /></button>{selectorCubiculoAbierto && <div className="em-opciones-cubiculo" role="listbox" aria-label="Cubículo de atención">{cubiculosDisponibles.map(cubiculo => <button type="button" role="option" aria-selected={cubiculoNuevo === cubiculo.id} key={cubiculo.id} onClick={() => { setCubiculoNuevo(cubiculo.id); setSelectorCubiculoAbierto(false); setErrorCubiculo(''); solicitud.current = crypto.randomUUID(); }}>{cubiculoNuevo === cubiculo.id && <Icon name="check" size={15} />}{cubiculo.nombre}</button>)}</div>}</div><label className="em-hora-ingreso">Hora de ingreso *<input type="time" required value={horaIngresoNueva} onChange={evento => setHoraIngresoNueva(evento.target.value)} /></label></div>
@@ -145,14 +159,15 @@ export function AtencionMedicaEmergenciasView({ cuentaInicialId = '' }: { cuenta
       <footer><button type="button" onClick={() => { setIniciando(false); setMostrarAcompanante(false); }}>Cancelar</button><button className="em-primario" disabled={guardando.current}><Icon name="plus" size={16}/> Iniciar y atender</button></footer>
     </form></div>}
     <div className="em-medica-layout">
-      {!cuenta && <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => setBusqueda(e.target.value)} /></label><small className="em-subvista-ayuda">{subvista === 'historial' ? 'Atenciones finalizadas' : 'Atenciones activas en cubículos de emergencia'}</small>
+      {!cuenta && <aside className="em-panel em-cubiculos"><label className="em-buscar"><Icon name="search" size={16} /><input placeholder="Paciente, CI o cubículo" aria-label="Buscar paciente de emergencias" value={busqueda} onChange={e => { setBusqueda(e.target.value); setPagina(1); }} /></label><small className="em-subvista-ayuda">{subvista === 'historial' ? 'Atenciones finalizadas' : 'Atenciones activas en cubículos de emergencia'}</small>
         {!!visibles.length && <div className="em-lista-cabecera" role="row"><span>Cubículo</span><span>Paciente</span><span>N.º HCL</span><span>Edad</span><span>Sexo</span><span>Hora ingreso</span><span>Médico de admisión</span><span>Estado</span><span>Acción</span></div>}
-        {visibles.map(c => <button key={c.id} className="em-cubiculo" disabled={guardando.current} onClick={() => {
+        {cuentasPagina.map(c => <button key={c.id} className="em-cubiculo" disabled={guardando.current} onClick={() => {
           if (guardando.current) return;
           if (formularioSucio.current && !window.confirm('Hay datos sin guardar. ¿Atender a este paciente y descartar el borrador?')) return;
           formularioSucio.current = false; setActiva(c.id);
         }}><strong>{nombreCubiculo(c.cubiculo)}</strong><span className="em-paciente-lista">{nombrePaciente(c)}</span><span>{c.identidad?.historiaClinica || 'Sin registro'}</span><span>{edadPaciente(c.identidad?.nacimiento)}</span><span>{c.identidad?.sexo || 'No registrado'}</span><time>{horaIngreso(c.inicio)}</time><span>{c.identidad?.medicoAdmision || 'Médico de turno'}</span><span className={`em-estado-paciente ${estadoPaciente(c).clase}`}>{estadoPaciente(c).etiqueta}</span><span className="em-accion-lista">Atender</span></button>)}
         {!visibles.length && <p className="em-vacio">{cargando ? 'Cargando pacientes…' : 'No hay atenciones activas. Puedes iniciar una desde esta vista.'}</p>}
+        {visibles.length > 25 && <nav className="em-paginacion-lista" aria-label="Paginación de atenciones"><button type="button" disabled={paginaActual === 1} onClick={() => setPagina(actual => Math.max(1, actual - 1))}><Icon name="chevronLeft" size={16}/> Anterior</button><span>Página {paginaActual} de {totalPaginas} · {visibles.length} atenciones</span><button type="button" disabled={paginaActual === totalPaginas} onClick={() => setPagina(actual => Math.min(totalPaginas, actual + 1))}>Siguiente <Icon name="chevronRight" size={16}/></button></nav>}
       </aside>}
       {cuenta ? <AtencionPaciente key={cuenta.id} {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo }} alEditar={valor => { formularioSucio.current = valor; }} ejecutar={async (ruta, body) => {
         if (guardando.current) throw new Error('Espera a que termine la operación actual.');

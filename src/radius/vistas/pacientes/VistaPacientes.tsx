@@ -401,7 +401,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           </div>
         )}
       </div>
-      <Paginacion />
+      <Paginacion tam />
       </div>
       {pacienteSeleccionado && <aside className="historial-consumos" aria-label={`Historial de consumo de ${nombreCompleto(pacienteSeleccionado)}`}>
         <header><div><p>HISTORIAL DE CONSUMOS</p><h3>{nombreCompleto(pacienteSeleccionado)}</h3><small>{pacienteSeleccionado.tipoDocumento} {pacienteSeleccionado.numeroDocumento}</small></div><button type="button" onClick={() => setPacienteSeleccionado(null)} aria-label="Cerrar historial"><Icon name="close" size={16} /></button></header>

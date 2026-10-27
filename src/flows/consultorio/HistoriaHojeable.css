@@ -50,4 +50,17 @@
 .libro-cuerpo { min-height: 0; height: 100%; padding: 10px 18px; }
 .libro { width: 100%; min-height: 0; height: 100%; }
 .libro-modal > footer { padding-bottom: 10px; }
-@media (max-width: 720px) { .libro-fondo { padding: 6px; } .libro-modal { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: calc(100dvh - 12px); border-radius: 10px; } .libro-cuerpo { padding: 8px; } .libro { min-height: 0; height: 100%; } }
+
+/* Escala de papel: Carta (8.5 × 11 in) por página y visor desplazable. */
+.libro-cuerpo { grid-template-columns: 42px minmax(0, 1fr) 42px; align-items: center; justify-content: center; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.libro { width: min(17in, calc(100vw - 140px)); height: auto; min-height: 0; margin: 0 auto; aspect-ratio: 17 / 11; flex: none; }
+.libro-pagina { height: auto; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+.libro-navegar { position: sticky; z-index: 2; top: calc(50% - 21px); }
+
+@media (max-width: 720px) {
+  .libro-cuerpo { grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center; }
+  .libro { width: min(5.5in, calc(100vw - 104px)); height: auto; min-height: 0; aspect-ratio: 5.5 / 8.5; }
+  .libro-pagina { height: auto; min-height: 0; }
+  .libro-navegar { top: calc(50% - 17px); }
+}
+@media (max-width: 720px) { .libro-fondo { padding: 6px; } .libro-modal { width: calc(100vw - 12px); height: calc(100dvh - 12px); max-height: calc(100dvh - 12px); border-radius: 10px; } .libro-cuerpo { padding: 8px; } }

@@ -234,3 +234,16 @@
 @media(max-width:1050px){.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-fila{grid-template-columns:minmax(185px,1.35fr) 115px minmax(120px,.85fr) 94px minmax(96px,.65fr) 128px}.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-columnas span:nth-child(5),.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-fila>div:nth-child(5){display:none}}
 @media(max-width:800px){.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-fila{grid-template-columns:minmax(180px,1.3fr) 110px minmax(115px,.85fr) minmax(96px,.65fr) 128px}.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-columnas span:nth-child(4),.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-fila>div:nth-child(4){display:none}}
 @media(max-width:700px){.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-fila{grid-template-columns:1fr auto}}
+
+/* El listado conserva sus columnas: en pantallas angostas se desplaza como tabla. */
+.pacientes-vista .pacientes-tabla{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-color:#75bfe0 #edf8fd;scrollbar-width:thin}
+.pacientes-vista .pacientes-tabla .usuarios-fila{min-width:1100px;grid-template-columns:minmax(220px,1.45fr) 118px minmax(125px,.85fr) 96px 78px 108px minmax(96px,.65fr) 128px}
+.pacientes-vista .pacientes-tabla-sin-sucursal .usuarios-fila{min-width:930px;grid-template-columns:minmax(220px,1.45fr) 118px minmax(125px,.85fr) 96px 78px 108px 128px}
+.pacientes-vista .pacientes-tabla .usuarios-columnas{display:grid}
+.pacientes-vista .pacientes-tabla .usuarios-columnas span,.pacientes-vista .pacientes-tabla .usuarios-fila>div{display:block}
+.pacientes-vista .pacientes-tabla .usuario-identidad{display:flex!important}
+.pacientes-vista .pacientes-tabla .acciones-tabla{display:flex!important}
+.pacientes-vista .pacientes-tabla .dato-movil{display:none!important}
+.pacientes-vista .pacientes-tabla::-webkit-scrollbar{height:10px}
+.pacientes-vista .pacientes-tabla::-webkit-scrollbar-track{background:#edf8fd}
+.pacientes-vista .pacientes-tabla::-webkit-scrollbar-thumb{border:2px solid #edf8fd;border-radius:99px;background:#75bfe0}

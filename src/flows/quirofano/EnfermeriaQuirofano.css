@@ -105,6 +105,13 @@
 .estado-verificado { color: #21805a; background: #e7f7ef; }
 
 .instrumentista-agenda { display: grid; gap: 18px; }
+.instrumentista-cirugias .instrumentista-cirugia{grid-template-columns:72px minmax(200px,1fr) minmax(200px,1fr) minmax(240px,1.1fr) auto}.instrumentista-sala{padding-left:16px;border-left:1px solid #dce8f2}
+
+@media (min-width: 651px) {
+  .enfermeria-quirofano-vista .instrumentista-cirugias .instrumentista-cirugia { grid-template-columns: 72px minmax(200px, 1fr) minmax(200px, 1fr) minmax(240px, 1.1fr) auto; }
+  .enfermeria-quirofano-vista .instrumentista-cirugias .instrumentista-cirugia > b { grid-column: 5; grid-row: 1; justify-self: end; }
+}
+.instrumentista-agenda-filtros{display:flex;align-items:end;gap:12px;padding:14px 16px;border:1px solid #dce8f2;border-radius:10px;background:#f8fcff}.instrumentista-agenda-filtros label{display:grid;gap:5px;color:#4b6f8d;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}.instrumentista-agenda-filtros input{min-height:34px;padding:0 10px;border:1px solid #c8dce9;border-radius:7px;color:#17395e;background:#fff;font:inherit;text-transform:none}.instrumentista-agenda-filtros button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;margin-left:auto;padding:0 13px;border:0;border-radius:8px;color:#fff;background:#0877bc;font-size:12px;font-weight:800;white-space:nowrap;cursor:pointer;box-shadow:0 6px 14px rgb(8 119 188 / 20%)}.instrumentista-agenda-filtros button:hover{background:#066fa9}
 .instrumentista-agenda-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding-bottom: 17px; border-bottom: 1px solid #dce8f2; }
 .instrumentista-agenda-cabecera h3 { margin: 5px 0; font-size: 19px; }
 .instrumentista-agenda-cabecera > span { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; color: #0877bc; background: #e8f7fd; font-size: 11px; font-weight: 800; white-space: nowrap; }
@@ -142,9 +149,10 @@
   .instrumentista-tabla { overflow-x: auto; }
   .instrumentista-fila { min-width: 650px; }
   .instrumentista-agenda-cabecera, .instrumentista-contexto { align-items: stretch; flex-direction: column; }
+  .instrumentista-agenda-filtros{align-items:stretch;flex-direction:column}.instrumentista-agenda-filtros input,.instrumentista-agenda-filtros button{width:100%;box-sizing:border-box}.instrumentista-agenda-filtros button{margin-left:0}
   .enfermeria-q-subsubvistas.recepcion-subvistas { width: 100%; }
   .instrumentista-cirugia { grid-template-columns: 58px minmax(0, 1fr); gap: 10px 14px; }
-  .instrumentista-paciente { padding-left: 0; border-left: 0; }
+  .instrumentista-paciente, .instrumentista-sala { padding-left: 0; border-left: 0; }
   .instrumentista-cirugia > b { grid-column: 2; }
 }
 .instrumentista-agenda-vacia{display:grid;justify-items:center;gap:7px;padding:44px 18px;color:#6d879b;text-align:center}.instrumentista-agenda-vacia svg{color:#0b8cca}.instrumentista-agenda-vacia strong{color:#174b70;font-size:13px}.instrumentista-agenda-vacia small{font-size:11px}

@@ -8,13 +8,17 @@
 /* La cabecera y las filas comparten exactamente la misma retícula. */
 .agenda-cola > header,
 .agenda-cola > article {
-  grid-template-columns: 78px minmax(280px, 1.42fr) minmax(240px, 1.08fr) minmax(175px, .78fr) 112px;
-  column-gap: 18px;
-  padding-inline: 20px;
+  grid-template-columns: 64px minmax(180px, 1.25fr) minmax(175px, 1fr) minmax(135px, .72fr) 98px;
+  column-gap: 12px;
+  padding-inline: 16px;
 }
 
 .agenda-cola > header > span:nth-child(2) {
-  padding-left: 42px;
+  padding-left: 0;
+}
+
+.agenda-cola > article > div:first-of-type {
+  padding-left: 0;
 }
 
 .agenda-cola > header > span:nth-child(3) {
@@ -26,11 +30,12 @@
   justify-self: center;
 }
 
-.agenda-cola > article > .agenda-iniciales {
-  left: 98px;
+.agenda-cola > article > button {
+  min-width: 92px;
+  justify-content: center;
 }
 
-.agenda-cola > article > button {
-  min-width: 103px;
-  justify-content: center;
+/* Se reserva espacio para la acción y se compacta el panel de atendidos. */
+.agenda-ambulatoria-tablero {
+  grid-template-columns: minmax(0, 1fr) 310px;
 }

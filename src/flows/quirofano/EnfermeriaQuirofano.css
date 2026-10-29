@@ -116,6 +116,9 @@
 .instrumentista-agenda-cabecera h3 { margin: 5px 0; font-size: 19px; }
 .instrumentista-agenda-cabecera > span { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; color: #0877bc; background: #e8f7fd; font-size: 11px; font-weight: 800; white-space: nowrap; }
 .instrumentista-cirugias { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.instrumentista-cirugias-cabecera { display: grid; grid-template-columns: 72px minmax(200px,1fr) minmax(200px,1fr) minmax(240px,1.1fr) auto; gap: 16px; align-items: center; min-height: 46px; padding: 0 16px; border: 1px solid #cfe4ef; border-radius: 10px; color: #0878b8; background: linear-gradient(100deg, #f8fcff 0%, #edf8fd 100%); box-shadow: 0 4px 12px rgb(10 94 137 / 6%); font-size: 10px; font-weight: 900; letter-spacing: .08em; }
+.instrumentista-cirugias-cabecera span:not(:empty) { display: flex; align-items: center; min-height: 22px; }
+.instrumentista-cirugias-cabecera span:nth-child(4) { padding-left: 16px; border-left: 1px solid #cfe3ef; }
 .instrumentista-cirugias .instrumentista-cirugia { grid-template-columns: 72px minmax(220px, 1.1fr) minmax(220px, 1fr) auto; gap: 16px; min-height: 82px; }
 .instrumentista-cirugias .instrumentista-paciente { padding-left: 16px; border-left: 1px solid #dce8f2; }
 .instrumentista-cirugias .instrumentista-cirugia > b { grid-column: auto; justify-self: auto; }
@@ -152,6 +155,7 @@
   .instrumentista-agenda-filtros{align-items:stretch;flex-direction:column}.instrumentista-agenda-filtros input,.instrumentista-agenda-filtros button{width:100%;box-sizing:border-box}.instrumentista-agenda-filtros button{margin-left:0}
   .enfermeria-q-subsubvistas.recepcion-subvistas { width: 100%; }
   .instrumentista-cirugia { grid-template-columns: 58px minmax(0, 1fr); gap: 10px 14px; }
+  .instrumentista-cirugias-cabecera { display: none; }
   .instrumentista-paciente, .instrumentista-sala { padding-left: 0; border-left: 0; }
   .instrumentista-cirugia > b { grid-column: 2; }
 }

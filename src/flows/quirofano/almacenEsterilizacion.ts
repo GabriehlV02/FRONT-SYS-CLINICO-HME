@@ -3,6 +3,7 @@ export type MaterialEsteril = {
   id: string;
   codigo: string;
   nombre: string;
+  imagen?: string;
   tipo: string;
   marca: string;
   serie: string;
@@ -92,7 +93,15 @@ const recepcionesDemo: RecepcionMaterialSucio[] = [
   { id: 'demo-recepcion-001', materialId: 'demo-material-004', kitId: 'demo-kit-lavado', entregadoPor: 'Enfermería de quirófano', uso: 'Cirugía general', fecha: fechaDemo(0) },
   { id: 'demo-recepcion-002', materialId: 'demo-material-005', kitId: '', entregadoPor: 'Enfermería de quirófano', uso: 'Cirugía general', fecha: fechaDemo(0) },
 ];
-const EJEMPLO: EstadoEsterilizacion = { materiales: materialesDemo, kits: kitsDemo, movimientos: movimientosDemo, recepciones: recepcionesDemo };
+const idsKitPreparado = new Set(['demo-material-001', 'demo-material-002', 'demo-material-003']);
+const materialesPreparadosDemo = materialesDemo.map(material => idsKitPreparado.has(material.id)
+  ? { ...material, estado: 'reservado' as const, cirugiaId: 'cir-hernia', sector: 'Quirófano 01', actualizadoEn: fechaDemo(0) }
+  : material,
+);
+const movimientosPreparadosDemo: MovimientoEsteril[] = movimientosDemo.concat(
+  ['demo-material-001', 'demo-material-002', 'demo-material-003'].map((materialId, indice) => ({ id: `demo-mov-preparado-${indice}`, materialId, desde: 'limpio' as const, hacia: 'reservado' as const, cirugiaId: 'cir-hernia', fecha: fechaDemo(0) })),
+);
+const EJEMPLO: EstadoEsterilizacion = { materiales: materialesPreparadosDemo, kits: kitsDemo, movimientos: movimientosPreparadosDemo, recepciones: recepcionesDemo };
 
 export function leerEsterilizacion(): EstadoEsterilizacion {
   try {

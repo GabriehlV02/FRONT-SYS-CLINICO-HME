@@ -1,0 +1,25 @@
+/* El rango se lee y se opera de izquierda a derecha en una sola línea. */
+.programar-cirugia-herramientas .programar-cirugia-fecha-filtro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  white-space: nowrap;
+}
+
+.programar-cirugia-herramientas .programar-cirugia-fecha-filtro input {
+  width: 150px;
+  height: 38px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 560px) {
+  .programar-cirugia-herramientas .programar-cirugia-fecha-filtro {
+    width: 100%;
+  }
+
+  .programar-cirugia-herramientas .programar-cirugia-fecha-filtro input {
+    flex: 1;
+    width: auto;
+  }
+}

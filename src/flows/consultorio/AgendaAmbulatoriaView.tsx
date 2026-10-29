@@ -48,7 +48,7 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
       <section className="agenda-cola panel">
         <header><span>CONSULTA</span><span>PACIENTE</span><span>MÉDICO / ESPECIALIDAD</span><span>SIGNOS VITALES</span><span>ACCIÓN</span></header>
         {pendientes.length ? pendientes.map((cita) => <article key={cita.id}>
-          <time>{cita.hora}</time><span className="agenda-iniciales">{cita.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span>
+          <time>{cita.hora}</time>
           <div><strong>{cita.paciente}</strong><small>CI {cita.ci}</small></div>
           <div className="agenda-medico"><strong>{cita.doctor}</strong><small>{cita.especialidad || 'Consulta ambulatoria'}</small></div>
           <span className={`agenda-signos ${signosRegistrados(cita) ? 'registrados' : 'pendientes'}`}>{signosRegistrados(cita) ? 'Registrados' : 'Pendientes de registro'}</span>

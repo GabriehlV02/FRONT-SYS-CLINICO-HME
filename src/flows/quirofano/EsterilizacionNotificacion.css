@@ -1,0 +1,22 @@
+.est-notificacion {
+  position: fixed;
+  z-index: 1300;
+  top: 22px;
+  right: 22px;
+  width: min(420px, calc(100vw - 44px));
+  margin: 0 !important;
+  padding: 13px 16px;
+  border: 1px solid #9eddbc;
+  border-radius: 10px;
+  color: #176b49;
+  background: #edf9f2;
+  box-shadow: 0 12px 28px rgb(18 94 62 / 18%);
+  font-size: 13px;
+  font-weight: 800;
+  animation: est-notificacion-entrada .18s ease-out;
+}
+
+@keyframes est-notificacion-entrada {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -933,7 +933,6 @@ export function CajaRecepcionView({
         <section className="punto-catalogo">
           {cargandoCatalogo && <p role="status">Consultando productos y servicios del contable…</p>}
           {errorCatalogo && <p className="punto-catalogo-error" role="alert"><span>{errorCatalogo}</span><button type="button" onClick={() => setRecargaCatalogo(v => v + 1)}>Reintentar</button></p>}
-          {!cargandoCatalogo && !errorCatalogo && catalogo.length === 0 && <p role="status">No hay productos ni servicios activos en el catálogo contable.</p>}
           <div className="punto-busquedas">
             <label>
               <Icon name="search" size={17} />
@@ -943,7 +942,6 @@ export function CajaRecepcionView({
                 placeholder="Buscar producto por nombre, código o categoría…"
               />
             </label>
-            <button className="punto-actualizar-catalogo" type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}><Icon name="refresh" size={15}/> Actualizar</button>
             {!farmacia && !cocina && (
               <button
                 className="punto-accion-laboratorio"
@@ -992,6 +990,7 @@ export function CajaRecepcionView({
                 </button>
               ))}
             </div>
+            <button className="punto-actualizar-catalogo" type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}><Icon name="refresh" size={15}/> Actualizar</button>
             <div
               className="punto-modo-vista"
               role="group"

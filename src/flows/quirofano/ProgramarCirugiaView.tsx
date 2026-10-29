@@ -4,6 +4,7 @@ import { apiFetch } from '../../radius/api';
 import type { CirugiaProgramada } from './cronogramaQuirofano';
 import { guardarAsignacionQuirofano } from './asignacionesQuirofano';
 import './ProgramarCirugiaView.css';
+import './ProgramarCirugiaFiltros.css';
 import './ProgramarDetalleView.css';
 
 const fechaLocalConDesplazamiento = (dias: number) => {

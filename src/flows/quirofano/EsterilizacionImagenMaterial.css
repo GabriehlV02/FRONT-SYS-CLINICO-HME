@@ -1,0 +1,5 @@
+.est-campo-imagen > input[type="file"] { padding: 8px; background: #fff; }
+.est-campo-imagen > span { display: flex; align-items: center; gap: 10px; }
+.est-campo-imagen img { width: 76px; height: 76px; object-fit: cover; border: 1px solid var(--est-borde); border-radius: 8px; }
+.est-campo-imagen button { min-height: 32px; padding: 0 10px; border: 1px solid var(--est-borde); border-radius: 7px; color: var(--est-azul); background: var(--est-suave); font-size: 11px; font-weight: 800; }
+.est-modal form:has(.est-campo-imagen) > .est-ayuda { display: none; }

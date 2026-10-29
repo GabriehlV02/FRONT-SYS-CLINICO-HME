@@ -6,6 +6,7 @@ import './ConsultorioView.css';
 import './HistoriasClinicasView.css';
 import './HistoriaHojeable.css';
 import './AccionesHistoria.css';
+import './HistoriasClinicasRefinamiento.css';
 import './EfectoHojeo.css';
 import './TapaHistoria.css';
 import { obtenerEpisodios, suscribirEpisodios, type DocumentoEpisodio } from './registroHistoria';

@@ -137,7 +137,7 @@ const modulos: Modulo[] = [
   { id: 'cuenta-quirofano', nombre: 'Registro de cirugías', icono: 'cash', grupo: 'QUIRÓFANO' },
   { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'lab', grupo: 'ESTERILIZACIÓN' },
   { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'package', grupo: 'ESTERILIZACIÓN' },
-  { id: 'entrega-material-esteril', nombre: 'Almacén de Esterilización', icono: 'check', grupo: 'ESTERILIZACIÓN' },
+  { id: 'entrega-material-esteril', nombre: 'Administración de esterilización', icono: 'check', grupo: 'ESTERILIZACIÓN' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-almacen', nombre: 'Laboratorio almacén', icono: 'package', grupo: 'LABORATORIO' },
@@ -693,9 +693,9 @@ export default function Aplicacion() {
           ) : modulo === 'central-esterilizacion' ? (
             <EsterilizacionView titulo="Inventario de material" subvistasVisibles={['inventario', 'kits']} />
           ) : modulo === 'recepcion-material-sucio' ? (
-            <EsterilizacionView subvistaInicial="sala" subvistasVisibles={['sala', 'seguimiento']} />
+            <EsterilizacionView titulo="Central de esterilización" subvistaInicial="area-roja" subvistasVisibles={['area-roja', 'area-azul', 'area-verde']} />
           ) : modulo === 'entrega-material-esteril' ? (
-            <EsterilizacionView titulo="Almacén de Esterilización" subvistaInicial="entrega" subvistasVisibles={['entrega', 'seguimiento']} />
+            <EsterilizacionView titulo="Administración de esterilización" subvistaInicial="entrega" subvistasVisibles={['entrega', 'seguimiento', 'solicitudes', 'cronograma']} />
           ) : modulo === 'cuenta-quirofano' ? (
             <CuentaQuirofanoView />
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaModalidad === "estudios" ? (

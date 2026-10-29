@@ -35,6 +35,13 @@ const seccionesConsulta: { id: SeccionConsulta; nombre: string; icono: 'userChec
   { id: 'tratamientos', nombre: 'Tratamientos', icono: 'patient' },
 ];
 
+const resultadosDemo = (paciente: CitaConfirmada): SolicitudLaboratorio[] => [{
+  id: `demo-resultados-${paciente.ci}`, paciente: paciente.paciente, ci: paciente.ci, medico: paciente.doctor || 'Médico tratante', origen: 'ambulatorio', consultaId: 'demo-consulta', fecha: '2026-10-28T09:10:00.000Z', actualizadoEn: '2026-10-28T10:05:00.000Z', estado: 'completado', finalizadoEn: '2026-10-28T10:05:00.000Z', registradoPor: 'Laboratorio clínico', observacion: 'Resultados de ejemplo para visualización clínica.', estudios: [
+    { id: 'demo-hemograma', nombre: 'Hemograma completo', resultados: [{ id: 'hb', parametro: 'Hemoglobina', valor: '13.4', unidad: 'g/dL', referencia: '12.0 - 16.0' }, { id: 'leu', parametro: 'Leucocitos', valor: '7.2', unidad: '10³/µL', referencia: '4.5 - 11.0' }, { id: 'pla', parametro: 'Plaquetas', valor: '268', unidad: '10³/µL', referencia: '150 - 400' }] },
+    { id: 'demo-glucosa', nombre: 'Glucosa en sangre', resultados: [{ id: 'glu', parametro: 'Glucosa', valor: '92', unidad: 'mg/dL', referencia: '70 - 110' }] },
+  ],
+}];
+
 function OrdenesConsulta({ paciente, onAbrir, onAbrirRecetario }: { paciente: CitaConfirmada | null; onAbrir?: (tipo: TipoOrden) => void; onAbrirRecetario?: () => void }) {
   const [mensaje, setMensaje] = useState('');
   const abrir = (tipo: TipoOrden) => { if (!paciente) { setMensaje('Selecciona primero un paciente en atención.'); return; } setMensaje(''); onAbrir?.(tipo); };
@@ -57,7 +64,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   const [resultadosLaboratorio, setResultadosLaboratorio] = useState<SolicitudLaboratorio[]>([]);
   useEffect(() => {
     const cargar = () => {
-      try { setResultadosLaboratorio(leerSolicitudesLaboratorio().filter(s => s.ci === paciente?.ci && s.estado === 'completado')); }
+      try { const resultados = leerSolicitudesLaboratorio().filter(s => s.ci === paciente?.ci && s.estado === 'completado'); setResultadosLaboratorio(resultados.length || !paciente ? resultados : resultadosDemo(paciente)); }
       catch { setResultadosLaboratorio([]); }
     };
     cargar();

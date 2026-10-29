@@ -96,7 +96,6 @@
   flex: 0 1 250px !important;
   min-width: 0;
 }
-
 @media (min-width: 761px) {
   .sistema-app .marca-container .replegar-menu {
     top: 20px !important;

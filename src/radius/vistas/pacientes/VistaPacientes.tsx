@@ -373,9 +373,6 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
             return (
               <div className={`usuarios-fila ${pacienteSeleccionado?.id === p.id ? "paciente-activo" : ""}`} key={p.id} onClick={() => setPacienteSeleccionado(p)}>
                 <div className="usuario-identidad">
-                  <span>
-                    <Icon name="users" size={19} />
-                  </span>
                   <div>
                     <strong>{nombreCompleto(p)}</strong>
                   </div>

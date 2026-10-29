@@ -55,6 +55,7 @@ const CocinaInternacionView = lazy(() => import('../flows/cocina/CocinaInternaci
 const CocinaAdministracionView = lazy(() => import('../flows/cocina/CocinaAdministracionView').then(m => ({ default: m.CocinaAdministracionView })));
 const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
 const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
+const RoperiaView = lazy(() => import('../flows/quirofano/RoperiaView').then(m => ({ default: m.RoperiaView })));
 const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaView').then(m => ({ default: m.AnestesiologiaView })));
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
 const VistaEstudiosCobrados = lazy(() => import('./vistas/VistaEstudiosCobrados'));
@@ -138,6 +139,7 @@ const modulos: Modulo[] = [
   { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'lab', grupo: 'ESTERILIZACIÓN' },
   { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'package', grupo: 'ESTERILIZACIÓN' },
   { id: 'entrega-material-esteril', nombre: 'Administración de esterilización', icono: 'check', grupo: 'ESTERILIZACIÓN' },
+  { id: 'roperia', nombre: 'Ropería', icono: 'asset', grupo: 'ESTERILIZACIÓN' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
   { id: 'laboratorio-almacen', nombre: 'Laboratorio almacén', icono: 'package', grupo: 'LABORATORIO' },
@@ -246,7 +248,7 @@ export default function Aplicacion() {
     const perfil = sesion?.usuario.perfilAtencion;
     if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion', 'farmacia-internacion', 'enfermera-quirofano'].includes(item.id);
     if (perfil === 'medico') return ['pacientes', 'atencion-medica', 'atencion-urgencias', 'medico-internacion'].includes(item.id);
-    if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'central-esterilizacion', 'recepcion-material-sucio', 'entrega-material-esteril'].includes(item.id);
+    if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'central-esterilizacion', 'recepcion-material-sucio', 'entrega-material-esteril', 'roperia'].includes(item.id);
     return true;
   });
   useEffect(() => {
@@ -696,6 +698,8 @@ export default function Aplicacion() {
             <EsterilizacionView titulo="Central de esterilización" subvistaInicial="area-roja" subvistasVisibles={['area-roja', 'area-azul', 'area-verde']} />
           ) : modulo === 'entrega-material-esteril' ? (
             <EsterilizacionView titulo="Administración de esterilización" subvistaInicial="entrega" subvistasVisibles={['entrega', 'seguimiento', 'solicitudes', 'cronograma']} />
+          ) : modulo === 'roperia' ? (
+            <RoperiaView />
           ) : modulo === 'cuenta-quirofano' ? (
             <CuentaQuirofanoView />
           ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaModalidad === "estudios" ? (

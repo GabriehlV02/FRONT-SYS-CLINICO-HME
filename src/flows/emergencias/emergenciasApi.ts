@@ -13,11 +13,13 @@ export type CuentaEmergencia = {
   id: string; cubiculo: string; inicio: string; fin: string | null; revision: number;
   identidad: Record<string, string> | null;
   signos: { id: string; fecha: string; valores: Record<string, number>; observacion: string }[];
-  consumos: (ItemEmergencia & { registroId: string; cantidad: number; porHora: boolean; inicio: string; fin: string | null; ordenId?: string })[];
+  consumos: (ItemEmergencia & { itemId?: string; registroId: string; cantidad: number; porHora: boolean; inicio: string; fin: string | null; ordenId?: string })[];
   evaluaciones?: { id?: string; revision: number; fecha: string; usuario: string; campos: Record<string, string> }[];
   ordenes?: OrdenEmergencia[];
+  registrosEnfermeria?: RegistroEnfermeria[];
   cierre?: { condicionEgreso: 'vivo' | 'muerto'; causaEgreso: 'hospitalaria' | 'solicitada' | 'fuga' | 'transferencia' | 'deceso' | 'internacion'; observacionEgreso?: string; fecha: string; usuario: string } | null;
 };
+export type RegistroEnfermeria = { id: string; fecha: string; usuario: string; tipo: 'cuidado' | 'procedimiento' | 'insumo'; detalle: string; cantidad?: number | null; unidad?: string; observacion?: string };
 const lecturasEnCurso = new Map<string, Promise<unknown>>();
 const cacheLecturas = new Map<string, { expira: number; valor: unknown }>();
 const ttlLecturaMs = 2_000;
@@ -37,11 +39,11 @@ async function solicitarEmergencias<T>(ruta = '', body?: object): Promise<T> {
     const datos = (body || {}) as Record<string, any>;
     const fecha = new Date().toISOString();
     if (ruta === '/catalogo') return [] as T;
-    if (!ruta && !body) return { cuentas } as T;
+    if (!ruta && !body) return { cuentas, ahora: fecha } as T;
     let cuenta: CuentaEmergencia;
     if (!ruta) {
       if (cuentas.some(c => !c.fin && c.cubiculo === datos.cubiculo)) throw new Error('Ese cubículo ya está ocupado.');
-      cuenta = { id: crypto.randomUUID(), cubiculo: datos.cubiculo, inicio: fecha, fin: null, revision: 1, identidad: datos.identidad || null, signos: [], consumos: [], evaluaciones: [], ordenes: [] };
+      cuenta = { id: crypto.randomUUID(), cubiculo: datos.cubiculo, inicio: fecha, fin: null, revision: 1, identidad: datos.identidad || null, signos: [], consumos: [], evaluaciones: [], ordenes: [], registrosEnfermeria: [] };
       cuentas.push(cuenta);
     } else {
       const [id, accion] = ruta.split('/').filter(Boolean);
@@ -61,7 +63,18 @@ async function solicitarEmergencias<T>(ruta = '', body?: object): Promise<T> {
       else if (accion === 'orden') {
         const orden = { tipo: '', titulo: '', indicaciones: '', dosis: '', via: '', frecuencia: '', duracion: '', itemId: '', porHora: false, ...datos, id: crypto.randomUUID(), revision: 1, fecha, usuario: 'Admin demo', estado: 'pendiente', aplicaciones: [], historial: [] } as OrdenEmergencia;
         (cuenta.ordenes ||= []).push(orden);
-      } else if (accion === 'cierre') { cuenta.fin = fecha; cuenta.cierre = { ...datos, fecha, usuario: 'Admin demo' } as CuentaEmergencia['cierre']; }
+      } else if (accion === 'uso-enfermeria') {
+        const registro = { ...datos, id: crypto.randomUUID(), fecha, usuario: 'Enfermería' } as RegistroEnfermeria;
+        (cuenta.registrosEnfermeria ||= []).push(registro);
+      } else if (accion === 'consumos') {
+        const item = datos.item as ItemEmergencia | undefined;
+        if (!item?.id) throw new Error('Selecciona un servicio válido del catálogo.');
+        (cuenta.consumos ||= []).push({ ...item, itemId: String(datos.itemId || item.id), registroId: String(datos.registroId || crypto.randomUUID()), cantidad: Number(datos.cantidad || 1), porHora: Boolean(datos.porHora), inicio: fecha, fin: null, ...(datos.ordenId ? { ordenId: String(datos.ordenId) } : {}) });
+      } else if (accion === 'finalizar-consumo') {
+        const consumo = cuenta.consumos.find(c => c.registroId === datos.registroId && c.porHora && !c.fin);
+        if (!consumo) throw new Error('El contador ya está pausado o no existe.');
+        consumo.fin = fecha;
+      } else if (accion === 'cierre') { cuenta.fin = fecha; cuenta.consumos = cuenta.consumos.map(consumo => consumo.porHora && !consumo.fin ? { ...consumo, fin: fecha } : consumo); cuenta.cierre = { ...datos, fecha, usuario: 'Admin demo' } as CuentaEmergencia['cierre']; }
       else throw new Error('Esta operación todavía no está disponible en la demo local.');
       cuenta.revision++;
     }

@@ -1,4 +1,7 @@
+import { useProfesionales, etiquetaProfesional } from '../../../radius/profesionales';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { usePacientes } from '../../../radius/vistas/pacientes/usePacientes';
+import { BuscadorPacienteInternacion, nombrePaciente } from './BuscadorPacienteInternacion';
 import Icon from '../../../radius/componentes/Icono';
 import { apiFetch } from '../../../radius/api';
 import { AgendarConsultaView } from './AgendarConsultaView';
@@ -7,6 +10,8 @@ import './CitasRecepcionView.css';
 type EstadoCita = 'Confirmada' | 'Por confirmar' | 'Cancelada';
 type Cita = {
   id?: string;
+  pacienteId?: string;
+  profesionalId?:string;
   dia: number;
   fecha?: string;
   hora: string;
@@ -18,13 +23,7 @@ type Cita = {
   motivo: string;
   estado: EstadoCita;
 };
-const doctores = [
-  'Todos los doctores',
-  'Dra. Valeria Rojas',
-  'Dr. Mauricio Vargas',
-  'Dra. Elena Salazar',
-  'Dr. Diego Molina',
-];
+
 const consultorios = ['Consultorio 1', 'Consultorio 2', 'Consultorio 3', 'Consultorio 4'];
 const opcionesConsultorio = ['Todos los consultorios', ...consultorios];
 const nombresDia = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
@@ -64,95 +63,12 @@ const etiquetaSemana = (inicio: Date) => {
     return `${inicio.getDate()} - ${fin.getDate()} de ${meses[fin.getMonth()]}, ${fin.getFullYear()}`;
   return `${inicio.getDate()} de ${meses[inicio.getMonth()]} - ${fin.getDate()} de ${meses[fin.getMonth()]}, ${fin.getFullYear()}`;
 };
-const citas: Cita[] = [
-  {
-    dia: 0,
-    hora: '08:00',
-    paciente: 'Maria Fernandez Lopez',
-    ci: '4839201',
-    doctor: 'Dra. Valeria Rojas',
-    consultorio: 'Consultorio 1',
-    motivo: 'Consulta general',
-    estado: 'Confirmada',
-  },
-  {
-    dia: 0,
-    hora: '09:30',
-    paciente: 'Carlos Mendoza',
-    ci: '7281044',
-    doctor: 'Dr. Mauricio Vargas',
-    motivo: 'Control medico',
-    estado: 'Por confirmar',
-  },
-  {
-    dia: 1,
-    hora: '08:30',
-    paciente: 'Ana Rodriguez Vargas',
-    ci: '6102837',
-    doctor: 'Dra. Elena Salazar',
-    motivo: 'Laboratorio',
-    estado: 'Confirmada',
-  },
-  {
-    dia: 1,
-    hora: '11:00',
-    paciente: 'Jorge Quiroga',
-    ci: '5948216',
-    doctor: 'Dra. Valeria Rojas',
-    motivo: 'Radiografia',
-    estado: 'Por confirmar',
-  },
-  {
-    dia: 2,
-    hora: '10:00',
-    paciente: 'Lucia Perez',
-    ci: '8351702',
-    doctor: 'Dr. Mauricio Vargas',
-    motivo: 'Consulta general',
-    estado: 'Cancelada',
-  },
-  {
-    dia: 3,
-    hora: '07:30',
-    paciente: 'Roberto Salinas',
-    ci: '4629185',
-    doctor: 'Dra. Elena Salazar',
-    motivo: 'Procedimiento',
-    estado: 'Confirmada',
-  },
-  {
-    dia: 4,
-    hora: '12:30',
-    paciente: 'Sofia Castillo',
-    ci: '7013659',
-    doctor: 'Dra. Valeria Rojas',
-    motivo: 'Seguimiento',
-    estado: 'Por confirmar',
-  },
-  {
-    dia: 5,
-    hora: '09:00',
-    paciente: 'Diego Molina',
-    ci: '6892473',
-    doctor: 'Dr. Mauricio Vargas',
-    motivo: 'Consulta general',
-    estado: 'Confirmada',
-  },
-  {
-    dia: 0, hora: '08:00', paciente: 'Luis Alvarez Cruz', ci: '5482910',
-    doctor: 'Dr. Mauricio Vargas', consultorio: 'Consultorio 2', motivo: 'Medicina interna', estado: 'Confirmada',
-  },
-  {
-    dia: 0, hora: '08:00', paciente: 'Paola Rios Castro', ci: '6931742',
-    doctor: 'Dra. Elena Salazar', consultorio: 'Consultorio 3', motivo: 'Pediatria', estado: 'Confirmada',
-  },
-  {
-    dia: 0, hora: '08:00', paciente: 'Miguel Flores Rojas', ci: '8129654',
-    doctor: 'Dr. Diego Molina', consultorio: 'Consultorio 4', motivo: 'Traumatologia', estado: 'Por confirmar',
-  },
-];
+const citas: Cita[] = [];
 
 export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string } = {}) {
+  const {medicos,resolver,errorProfesionales}=useProfesionales();
+  const doctores=['Todos los doctores',...medicos.map(etiquetaProfesional)];
+  const { pacientes: fichasPacientes } = usePacientes();
   const [modoAgendar, setModoAgendar] = useState(false);
   const [horarioElegido, setHorarioElegido] = useState<{
     fecha: string;
@@ -189,7 +105,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     () =>
       citasProgramadas.filter(
         (cita) =>
-          (doctor === doctores[0] || cita.doctor === doctor) &&
+          (doctor === doctores[0] || cita.doctor === doctor || cita.doctor === resolver(doctor)?.nombre) &&
           (consultorio === opcionesConsultorio[0] || cita.consultorio === consultorio),
       ),
     [citasProgramadas, consultorio, doctor],
@@ -236,7 +152,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     const controller = new AbortController();
     void apiFetch('/api/citas', { signal: controller.signal })
       .then(async (response) => {
-        if (!response.ok) return;
+        if (!response.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
         const remotas = (await response.json()) as Array<{
           id: string;
           paciente: string;
@@ -246,11 +162,12 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
           fecha: string;
           hora: string;
           estado: 'por_confirmar' | 'confirmada' | 'cancelada';
+          consultorio:string;pacienteId:string;profesionalId?:string;
         }>;
         setCitasProgramadas((actuales) => [
           ...actuales.filter((item) => !item.id),
           ...remotas.map((item): Cita => ({
-            id: item.id,
+            id: item.id, profesionalId:item.profesionalId, pacienteId:item.pacienteId,consultorio:item.consultorio,
             dia: 0,
             fecha: item.fecha,
             hora: item.hora,
@@ -267,16 +184,14 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
           })),
         ]);
       })
-      .catch((error) => { if ((error as Error).name !== 'AbortError') console.error(error); });
+      .catch((error) => { if ((error as Error).name !== 'AbortError') setErrorAgenda((error as Error).message); });
     return () => controller.abort();
   }, []);
 
-  const persistirEstado = (cita: Cita, estado: 'confirmada' | 'cancelada') => {
-    if (cita.id)
-      void apiFetch(`/api/citas/${cita.id}/estado`, {
-        method: 'PATCH',
-        body: JSON.stringify({ estado }),
-      });
+  const persistirEstado = async (cita:Cita, estado:'confirmada'|'cancelada') => {
+    if(!cita.id)return false;
+    try {const respuesta=await apiFetch(`/api/citas/${cita.id}/estado`,{method:'PATCH',body:JSON.stringify({estado})});if(!respuesta.ok)throw new Error('No se pudo actualizar la cita.');return true;}
+    catch(causa){setErrorAgenda((causa as Error).message);return false;}
   };
 
   const seleccionarFecha = (fecha: Date) => {
@@ -292,7 +207,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     setMesVisible(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
   };
 
-  const agendarConsulta = (event: React.FormEvent) => {
+  const agendarConsulta = async (event: React.FormEvent) => {
     event.preventDefault();
     if (
       citasProgramadas.some(
@@ -306,10 +221,16 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
       setErrorAgenda('Ese consultorio ya tiene una consulta en ese horario.');
       return;
     }
-    setCitasProgramadas((actuales) => [
-      ...actuales,
-      { ...nuevaCita, doctor, motivo: 'Consulta' },
-    ]);
+    if(!resolver(doctor)){setErrorAgenda('Selecciona un médico activo del catálogo.');return;}
+    const ficha = fichasPacientes.find(p=>p.ci===nuevaCita.ci);
+    if(!ficha) {setErrorAgenda('Selecciona un paciente registrado.');return;}
+    try {
+      const fecha=fechaParaInput(sumarDias(inicioSemana(semana),nuevaCita.dia));
+      const respuesta=await apiFetch('/api/citas',{method:'POST',headers:{Accept:'application/json'},body:JSON.stringify({paciente_id:ficha.id,profesional_id:resolver(doctor)?.id,doctor:resolver(doctor)?.nombre || doctor,especialidad:'Consulta',consultorio:nuevaCita.consultorio,fecha,hora:nuevaCita.hora,estado:nuevaCita.estado==='Confirmada'?'confirmada':'por_confirmar'})});
+      const datos=await respuesta.json();
+      if(!respuesta.ok) throw new Error(Object.values(datos.errors || {}).flat()[0] as string || datos.message || 'No se pudo guardar la cita.');
+      setCitasProgramadas(actuales=>[...actuales,{...nuevaCita,id:datos.id,fecha,doctor:datos.doctor,motivo:datos.especialidad}]);
+    } catch(causa) {setErrorAgenda((causa as Error).message);return;}
     setNuevaCita({
       paciente: '',
       ci: '',
@@ -331,6 +252,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
         consultaPendiente={
           citaPorCobrar
             ? {
+                id: citaPorCobrar.id,
                 paciente: citaPorCobrar.paciente,
                 ci: citaPorCobrar.ci,
                 doctor: citaPorCobrar.doctor,
@@ -362,6 +284,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
               : [
                   ...actuales,
                   {
+                    id:datos.id,profesionalId:datos.profesionalId,fecha:datos.fecha,
                     dia: Math.min(Math.max(diaAgendado, 0), 5),
                     hora: datos.hora,
                     paciente: datos.paciente,
@@ -373,7 +296,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
                 ],
           );
           setDoctor(datos.doctor);
-          if (citaPorCobrar) persistirEstado(citaPorCobrar, 'confirmada');
+
           setHorarioElegido(null);
           setCitaPorCobrar(null);
           setModoAgendar(false);
@@ -382,7 +305,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
     );
 
   return (
-    <section className="citas-vista">
+    <section className="citas-vista">{errorProfesionales && <p role="alert">{errorProfesionales}</p>}{errorAgenda && !agendarAbierto && <p role="alert">{errorAgenda}</p>}
       <section className="panel citas-controles">
         <div className="citas-periodo">
           <button
@@ -770,8 +693,8 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
                   <button
                     className="cita-confirmar-cancelacion"
                     type="button"
-                    onClick={() => {
-                      persistirEstado(citaInspeccionada, 'cancelada');
+                    onClick={async () => {
+                      if(!await persistirEstado(citaInspeccionada, 'cancelada')) return;
                       setCitasProgramadas((actuales) =>
                         actuales.map((item) =>
                           item === citaInspeccionada
@@ -846,16 +769,7 @@ export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string }
               </button>
             </header>
             <div className="citas-modal-campos">
-              <label>
-                Nombre completo
-                <input
-                  required
-                  value={nuevaCita.paciente}
-                  onChange={(event) =>
-                    setNuevaCita({ ...nuevaCita, paciente: event.target.value })
-                  }
-                />
-              </label>
+              <BuscadorPacienteInternacion valor={nuevaCita.paciente} ci={nuevaCita.ci} onCambiar={valor=>setNuevaCita(actual=>({...actual,paciente:valor,ci:''}))} onSeleccionar={p=>setNuevaCita(actual=>({...actual,paciente:nombrePaciente(p),ci:p.numeroDocumento}))} />
               <label>
                 CI
                 <input

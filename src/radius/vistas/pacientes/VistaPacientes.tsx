@@ -2,12 +2,11 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../componentes/Icono";
 import { apiFetch } from "../../api";
 import ModalRegistroPaciente, { type PacienteRegistrado } from "./ModalRegistroPaciente";
+import { listarPacientes, pacienteParaVista } from './pacientesApi';
 import {
   guardarArchivoEstudio,
   guardarEstudios,
-  guardarPacientes,
   obtenerEstudios,
-  obtenerPacientes,
   seleccionarEstudio,
   type EstudioDemo,
   type PacienteDemo as Paciente,
@@ -101,6 +100,8 @@ function InspeccionPaciente({ paciente, estudios, onVolver }: { paciente: Pacien
 }
 
 export default function VistaPacientes({ modalidad, soloConEstudio = false, modoClinico = false }: { modalidad?: "Radiografía" | "Tomografía" | "Ecografía" | "Ecocardiograma"; soloConEstudio?: boolean; modoClinico?: boolean }) {
+  const [errorListado, setErrorListado] = useState('');
+  const [recarga, setRecarga] = useState(0);
   const [pacientes, setPacientes] = useState<Paciente[]>([]),
     [estudios, setEstudios] = useState<EstudioDemo[]>([]),
     [busqueda, setBusqueda] = useState(""),
@@ -124,16 +125,20 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     [errorRadiografia, setErrorRadiografia] = useState(""),
     [guardandoRadiografia, setGuardandoRadiografia] = useState(false);
   useEffect(() => {
-    const actualizar = () => {
-      setPacientes(obtenerPacientes());
-      setEstudios(obtenerEstudios());
-      setCargando(false);
-    };
+    const controller = new AbortController();
+    const actualizar = () => setEstudios(obtenerEstudios());
     actualizar();
-    void apiFetch('/api/pacientes').then(async (respuesta) => respuesta.ok ? respuesta.json() as Promise<Paciente[]> : null).then((datos) => { if (datos) setPacientes(datos); }).catch(() => undefined);
+    setCargando(true);
+    setErrorListado('');
+    void listarPacientes(controller.signal).then(datos => {
+      if (!controller.signal.aborted) setPacientes(datos);
+    }).catch(causa => {
+      if (!controller.signal.aborted) setErrorListado(causa instanceof Error ? causa.message : 'No se pudieron cargar los pacientes.');
+    }).finally(() => { if (!controller.signal.aborted) setCargando(false); });
     window.addEventListener("radiuus:datos-demo", actualizar);
-    return () => window.removeEventListener("radiuus:datos-demo", actualizar);
-  }, []);
+    return () => { controller.abort(); window.removeEventListener("radiuus:datos-demo", actualizar); };
+  }, [recarga]);
+  useEffect(()=>{const actualizar=()=>setRecarga(valor=>valor+1);window.addEventListener('pacientes:actualizados',actualizar);window.addEventListener('focus',actualizar);return()=>{window.removeEventListener('pacientes:actualizados',actualizar);window.removeEventListener('focus',actualizar);};},[]);
   const estudiosModalidad = useMemo(
     () => modalidad ? estudios.filter((estudio) => estudio.categoria === modalidad) : estudios,
     [estudios, modalidad],
@@ -172,21 +177,12 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     setError("");
   };
   const pacienteRegistrado = (registrado: PacienteRegistrado) => {
-    const nuevo: Paciente = {
-      id: registrado.id,
-      nombres: registrado.nombres,
-      primerApellido: registrado.apellido_paterno,
-      segundoApellido: registrado.apellido_materno,
-      tipoDocumento: "CI",
-      numeroDocumento: registrado.ci,
-      fechaNacimiento: registrado.fecha_nacimiento,
-      sexo: registrado.genero.toLowerCase().replaceAll(" ", "_"),
-      telefono: registrado.telefono || "",
-      direccion: [registrado.ciudad, registrado.zona_barrio, registrado.direccion_domicilio].filter(Boolean).join(", "),
-      sucursal: "Central",
-      creadoEn: new Date().toISOString(),
-    };
+    const nuevo = pacienteParaVista(registrado);
     setPacientes((actuales) => [nuevo, ...actuales.filter((p) => p.id !== nuevo.id)]);
+    setRecarga(actual => actual + 1);
+    setBusqueda('');
+    setSexo('todos');
+    setSucursal('todas');
     setPacienteSeleccionado(nuevo);
     setPagina(1);
   };
@@ -220,12 +216,13 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
         id: editando?.id || `pac-${crypto.randomUUID()}`,
         creadoEn: editando?.creadoEn || new Date().toISOString(),
       };
-      const respuesta = await apiFetch(editando ? `/api/pacientes/${editando.id}` : '/api/pacientes', { method: editando ? 'PUT' : 'POST', body: JSON.stringify(d) });
+      if (!editando) throw new Error('Utiliza Registrar paciente para crear una ficha completa.');
+      const respuesta = await apiFetch(`/api/v1/pacientes/${editando.id}`, { method: 'PUT', headers: {Accept:'application/json'}, body: JSON.stringify({nombres:d.nombres,apellido_paterno:d.primerApellido,apellido_materno:d.segundoApellido,ci:d.numeroDocumento,fecha_nacimiento:d.fechaNacimiento,genero:({femenino:'Femenino',masculino:'Masculino',otro:'Otro'} as Record<string,string>)[d.sexo] || d.sexo,telefono:d.telefono,direccion_domicilio:d.direccion}) });
       const datos = await respuesta.json();
       if (!respuesta.ok) throw new Error(datos.message || 'No se pudo guardar el paciente.');
-      const guardado: Paciente = { ...datos, sucursal: d.sucursal };
+      const guardado = pacienteParaVista(datos.data);
       const nuevos = editando ? pacientes.map((p) => (p.id === guardado.id ? guardado : p)) : [guardado, ...pacientes];
-      guardarPacientes(nuevos);
+      window.dispatchEvent(new Event('pacientes:actualizados'));
       setPacientes(nuevos);
       cerrar();
     } catch (e) {
@@ -327,6 +324,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
   if (viendo && !modoClinico) return <InspeccionPaciente paciente={viendo} estudios={estudios} onVolver={() => setViendo(null)} />;
   return (
     <div className="usuarios-vista pacientes-vista" onPointerDownCapture={replegarSidebar}>
+      {errorListado && <div role="alert">{errorListado} <button type="button" onClick={() => setRecarga(actual => actual + 1)}>Reintentar</button></div>}
       <div className="usuarios-herramientas">
         <label className="pacientes-buscador">
           <Icon name="search" size={18} />

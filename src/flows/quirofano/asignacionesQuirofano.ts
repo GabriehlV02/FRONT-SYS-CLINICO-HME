@@ -1,5 +1,7 @@
 export type AsignacionEnfermeriaQuirofano = {
   cirugiaId: string;
+  profesionalIds?:Record<string,string>;
+  usuarioIds?:Record<string,string>;
   paciente: string;
   procedimiento: string;
   instrumentista: string;

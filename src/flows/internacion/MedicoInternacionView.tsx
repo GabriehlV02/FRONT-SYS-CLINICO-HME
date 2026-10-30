@@ -1,3 +1,4 @@
+import { useInternacionesVinculadas } from './useInternacionesVinculadas';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { leerInternaciones, registrarAltaInternacion, suscribirInternaciones, type RegistroInternacion } from './registroInternaciones';
@@ -43,7 +44,7 @@ const correspondeAlMesActual = (valor?: string) => {
 };
 
 export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
-  const registros = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
+  const registros = useInternacionesVinculadas();
   const [busqueda, setBusqueda] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<RegistroInternacion | null>(null);
   const [atencionActiva, setAtencionActiva] = useState<RegistroInternacion | null>(null);
@@ -143,7 +144,7 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
         </form>
       </div>}
       {tipoNuevaOrden === 'laboratorio' && <HojaLaboratorios permitirEstudiosLocales paciente={pacienteActual.paciente} onCerrar={() => setTipoNuevaOrden(null)} onAceptar={items => {
-        crearSolicitudLaboratorio({ paciente: pacienteActual.paciente, ci: pacienteActual.ci, medico: pacienteActual.medico || '', consultaId: `internacion-${pacienteActual.id}` }, items, 'internacion', { solicitadoPor: pacienteActual.medico || 'Médico de internación' });
+        crearSolicitudLaboratorio({ profesionalId:pacienteActual.profesionalId, pacienteId:pacienteActual.pacienteId, paciente: pacienteActual.paciente, ci: pacienteActual.ci, medico: pacienteActual.medico || '', consultaId: `internacion-${pacienteActual.id}` }, items, 'internacion', { solicitadoPor: pacienteActual.medico || 'Médico de internación' });
         const detalle = items.map(item => item.nombre).join(' · ');
         setOrdenesMedicas(ordenes => [{ id: Date.now(), tipo: 'laboratorio', detalle, fecha: new Date().toLocaleDateString('es-BO') }, ...ordenes]);
         setTipoNuevaOrden(null);

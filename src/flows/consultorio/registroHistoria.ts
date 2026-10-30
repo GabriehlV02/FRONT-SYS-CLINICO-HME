@@ -42,10 +42,10 @@ const episodioAna: EpisodioClinico = {
 const cargar = (): EpisodioClinico[] => {
   try {
     const guardados = JSON.parse(localStorage.getItem(CLAVE) || '[]') as EpisodioClinico[];
-    const completos = guardados.some((episodio) => episodio.origenId === episodioAna.origenId) ? guardados : [...guardados, episodioAna];
+    const completos = guardados.filter(episodio=>episodio.origenId !== episodioAna.origenId);
     localStorage.setItem(CLAVE, JSON.stringify(completos));
     return completos;
-  } catch { return [episodioAna]; }
+  } catch { return []; }
 };
 let episodios = cargar();
 const oyentes = new Set<() => void>();

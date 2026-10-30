@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { usePacientes } from '../pacientes/usePacientes';
+import { pacienteParaVista } from '../pacientes/pacientesApi';
 import Icon from "../../componentes/Icono";
 import { notificar } from "../../componentes/Notificaciones";
 import {
@@ -6,7 +8,6 @@ import {
   guardarEstudios,
   obtenerArchivoEstudio,
   obtenerEstudios,
-  obtenerPacientes,
   seleccionarEstudio,
   type EstudioDemo as Estudio,
 } from "../../datos/almacenDemo";
@@ -29,8 +30,9 @@ export default function VistaBibliotecaImagenes() {
     [archivo, setArchivo] = useState<File | null>(null),
     [error, setError] = useState(""),
     [guardando, setGuardando] = useState(false);
-  const entrada = useRef<HTMLInputElement>(null),
-    pacientes = obtenerPacientes();
+  const entrada = useRef<HTMLInputElement>(null);
+  const { pacientes: fichas, errorPacientes } = usePacientes();
+  const pacientes = fichas.map(pacienteParaVista);
   useEffect(() => {
     const actualizar = () => setEstudios(obtenerEstudios());
     window.addEventListener("radiuus:datos-demo", actualizar);
@@ -60,6 +62,7 @@ export default function VistaBibliotecaImagenes() {
   };
   const guardar = async (e: FormEvent) => {
     e.preventDefault();
+    if (errorPacientes) return setError(errorPacientes);
     if (!archivo)
       return setError("Selecciona un ZIP, RAR, DICOM o una imagen.");
     const paciente = pacientes.find((p) => p.id === form.pacienteId);

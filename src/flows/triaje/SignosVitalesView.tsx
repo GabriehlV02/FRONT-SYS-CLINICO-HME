@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { apiFetch } from '../../radius/api';
+import type { CitaConfirmada } from '../consultorio/AgendaAmbulatoriaView';
 import Icon from '../../radius/componentes/Icono';
 import './SignosVitalesView.css';
 import './ColaTriaje.css';
@@ -7,6 +9,7 @@ import { guardarSignosVitales } from './registroSignosVitales';
 
 type PacienteEnEspera = {
   id: string;
+  pacienteId?: string;
   hora: string;
   paciente: string;
   ci: string;
@@ -16,18 +19,8 @@ type PacienteEnEspera = {
 };
 type PacienteAtendido = PacienteEnEspera & { valores: Record<string, string>; registrado: string };
 
-const colaInicial: PacienteEnEspera[] = [
-  { id: '1', hora: '08:00', paciente: 'María Fernández López', ci: '4839201', edad: 34, doctor: 'Dra. Valeria Rojas', especialidad: 'Medicina general' },
-  { id: '2', hora: '08:30', paciente: 'Carlos Mendoza', ci: '7281044', edad: 51, doctor: 'Dr. Mauricio Vargas', especialidad: 'Medicina interna' },
-  { id: '3', hora: '09:00', paciente: 'Ana Rodríguez Vargas', ci: '6102837', edad: 27, doctor: 'Dra. Elena Salazar', especialidad: 'Cardiología' },
-  { id: '4', hora: '09:30', paciente: 'Jorge Quiroga', ci: '5948216', edad: 46, doctor: 'Dra. Valeria Rojas', especialidad: 'Medicina general' },
-  { id: '5', hora: '10:00', paciente: 'Lucía Pérez', ci: '8351702', edad: 39, doctor: 'Dr. Mauricio Vargas', especialidad: 'Medicina interna' },
-];
-const atendidosIniciales: PacienteAtendido[] = [
-  { id: 'a-1', hora: '07:30', paciente: 'Sofía Castillo', ci: '7013659', edad: 42, doctor: 'Dra. Valeria Rojas', especialidad: 'Medicina general', registrado: '07:38', valores: { temperatura: '36.7', frecuenciaCardiaca: '74', frecuenciaRespiratoria: '18', presionSistolica: '118', presionDiastolica: '76', saturacionAmbiente: '98', peso: '64', estatura: '162', imc: '24.4' } },
-  { id: 'a-2', hora: '07:45', paciente: 'Diego Molina', ci: '6892473', edad: 58, doctor: 'Dr. Mauricio Vargas', especialidad: 'Medicina interna', registrado: '07:52', valores: { temperatura: '37.1', glicemia: '105', frecuenciaCardiaca: '82', frecuenciaRespiratoria: '19', presionSistolica: '132', presionDiastolica: '84', saturacionAmbiente: '96', peso: '79', estatura: '171', imc: '27.0' } },
-  { id: 'a-3', hora: '08:00', paciente: 'Elena Torrez', ci: '5418702', edad: 31, doctor: 'Dra. Elena Salazar', especialidad: 'Cardiología', registrado: '08:09', valores: { temperatura: '36.5', frecuenciaCardiaca: '68', frecuenciaRespiratoria: '16', presionSistolica: '110', presionDiastolica: '70', saturacionAmbiente: '99', peso: '58', estatura: '157', imc: '23.5' } },
-];
+const colaInicial: PacienteEnEspera[] = [];
+const atendidosIniciales: PacienteAtendido[] = [];
 
 const camposVitalesPredeterminados = [
   ['temperatura', 'Temperatura', '°C'], ['glicemia', 'Glicemia capilar', 'mg/dL'],
@@ -40,6 +33,8 @@ const camposVitalesPredeterminados = [
 
 export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?: SignoVitalConfig[] }) {
   const [cola, setCola] = useState(colaInicial);
+  const [errorPacientes, setErrorPacientes] = useState('');
+  useEffect(()=>{const controller=new AbortController();void apiFetch('/api/citas',{signal:controller.signal}).then(async r=>{if(!r.ok) throw new Error('No se pudo consultar la cola de pacientes.');const citas=await r.json() as (CitaConfirmada & {estado:string})[];setCola(citas.filter(c=>c.estado==='confirmada' && c.fecha===new Date().toLocaleDateString('en-CA')).map(c=>({...c,edad:Number(c.edad) || 0})));}).catch(causa=>{if(!controller.signal.aborted)setErrorPacientes((causa as Error).message);});return()=>controller.abort();},[]);
   const [busqueda, setBusqueda] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<PacienteEnEspera | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});
@@ -105,7 +100,7 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
       </button>
     </div>
     <div className={`signos-vitales-operacion ${panelAtendidosAbierto ? 'panel-atendidos-abierto' : ''}`}>
-      <section className="signos-vitales-lista" aria-label="Cola de pacientes para signos vitales">
+      <section className="signos-vitales-lista" aria-label="Cola de pacientes para signos vitales">{errorPacientes && <p role="alert">{errorPacientes}</p>}
         <header><span>Consulta</span><span>Paciente</span><span>Médico / especialidad</span><span>Acción</span></header>
         {visibles.map((paciente) => <article key={paciente.id}>
           <time>{paciente.hora}</time>

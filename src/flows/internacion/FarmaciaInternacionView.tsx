@@ -1,3 +1,4 @@
+import { useInternacionesVinculadas } from './useInternacionesVinculadas';
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
@@ -59,7 +60,7 @@ export function FarmaciaInternacionView({ enfermera }: { enfermera: string }) {
 }
 
 function VistaDescargos({ enfermera }: { enfermera: string }) {
-  const internaciones = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
+  const internaciones = useInternacionesVinculadas();
   const episodios = useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const estados = useSyncExternalStore(suscribirDescargos, leerDescargos, leerDescargos);
   const [busqueda, setBusqueda] = useState('');
@@ -139,7 +140,7 @@ function VistaDescargos({ enfermera }: { enfermera: string }) {
 }
 
 function VistaInternados() {
-  const internaciones = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
+  const internaciones = useInternacionesVinculadas();
   const [busqueda, setBusqueda] = useState('');
   const [seleccionada, setSeleccionada] = useState<RegistroInternacion | null>(null);
   const [editando, setEditando] = useState<RegistroInternacion | null>(null);

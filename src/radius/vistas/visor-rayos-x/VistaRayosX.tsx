@@ -6,6 +6,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type WheelEvent as ReactWheelEvent,
 } from "react";
+import { listarPacientes } from '../pacientes/pacientesApi';
 import Icon from "../../componentes/Icono";
 import { notificar } from "../../componentes/Notificaciones";
 import { apiFetch } from "../../api";
@@ -13,7 +14,6 @@ import {
   obtenerArchivoEstudio,
   obtenerEstudioSeleccionado,
   obtenerEstudios,
-  obtenerPacientes,
   type EstudioDemo,
 } from "../../datos/almacenDemo";
 import {
@@ -453,7 +453,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
         const dicom = estudiosOrthanc.find((item) => item.id === actual.id),
           guardado = obtenerEstudios().find((item) => item.id === actual.id),
           pacienteLocal = guardado
-            ? obtenerPacientes().find((item) => item.id === guardado.pacienteId)
+            ? (await listarPacientes()).find((item) => item.id === guardado.pacienteId)
             : undefined;
         const fechaDicom =
           dicom?.fechaEstudio && /^\d{8}$/.test(dicom.fechaEstudio)

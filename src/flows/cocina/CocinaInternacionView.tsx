@@ -1,3 +1,4 @@
+import { useInternacionesVinculadas } from '../internacion/useInternacionesVinculadas';
 import { useMemo, useState, type FormEvent } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
@@ -52,7 +53,10 @@ export function CocinaInternacionView() {
 }
 
 function PacientesInternados() {
-  return <div className="cocina-internacion-panel"><header><div><p>PACIENTES INTERNADOS</p><h3>Dietas y entregas del turno</h3></div><button><Icon name="plus" size={16} /> Registrar entrega</button></header><div className="cocina-internacion-filtros"><input placeholder="Buscar paciente, cama o historia clínica" /><select><option>Todos los tipos de dieta</option><option>Dieta normal</option><option>Dieta blanda</option><option>Dieta líquida</option><option>Dieta hiposódica</option></select><select><option>Turno actual</option><option>Desayuno</option><option>Almuerzo</option><option>Cena</option></select></div><table><thead><tr><th>Paciente</th><th>Habitación / cama</th><th>Dieta indicada</th><th>Turno</th><th>Entrega</th></tr></thead><tbody><tr><td colSpan={5}><div className="cocina-internacion-vacio"><Icon name="patient" size={27} /><strong>No hay pacientes internados para mostrar</strong><small>Los pacientes aparecerán al conectar las estancias de internación y sus indicaciones nutricionales.</small></div></td></tr></tbody></table></div>;
+  const internados=useInternacionesVinculadas().filter(r=>r.estado==='confirmada');
+  const [buscar,setBuscar]=useState('');
+  const visibles=internados.filter(p=>`${p.paciente} ${p.ci} ${p.sala} ${p.cama}`.toLocaleLowerCase('es').includes(buscar.toLocaleLowerCase('es')));
+  return <div className="cocina-internacion-panel"><header><div><p>PACIENTES INTERNADOS</p><h3>Pacientes para alimentación</h3></div></header><div className="cocina-internacion-filtros"><input aria-label="Buscar paciente internado" value={buscar} onChange={e=>setBuscar(e.target.value)} placeholder="Buscar paciente, CI o cama"/></div><table><thead><tr><th>Paciente</th><th>CI</th><th>Habitación / cama</th><th>Dieta indicada</th></tr></thead><tbody>{visibles.map(p=><tr key={p.id}><td>{p.paciente}</td><td>{p.ci}</td><td>{[p.sala,p.cama].filter(Boolean).join(' / ')}</td><td>Sin indicación nutricional registrada</td></tr>)}{!visibles.length && <tr><td colSpan={4}>No hay pacientes internados con estos criterios.</td></tr>}</tbody></table></div>;
 }
 
 function Reportes() {

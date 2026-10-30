@@ -2,6 +2,8 @@ export type EstadoInternacion = 'preinternacion' | 'confirmada' | 'alta';
 
 export type RegistroInternacion = {
   id: string;
+  pacienteId?: string;
+  profesionalId?: string;
   paciente: string;
   ci: string;
   medico: string;
@@ -38,12 +40,11 @@ function disponible() { return typeof window !== 'undefined'; }
 
 export function leerInternaciones(): RegistroInternacion[] {
   if (cache) return cache;
-  if (!disponible()) return (cache = [ejemploConfirmado]);
+  if (!disponible()) return (cache = []);
   try {
     const guardadas = JSON.parse(window.localStorage.getItem(clave) ?? '[]');
     if (!Array.isArray(guardadas)) return (cache = [ejemploConfirmado]);
-    const ejemploGuardado = guardadas.find(item => item?.id === ejemploConfirmado.id);
-    return (cache = [ejemploGuardado ?? ejemploConfirmado, ...guardadas.filter(item => item?.id !== ejemploConfirmado.id)]);
+    return (cache = guardadas.filter(item => item?.id !== ejemploConfirmado.id));
   } catch { return (cache = [ejemploConfirmado]); }
 }
 

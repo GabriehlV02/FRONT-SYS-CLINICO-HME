@@ -1,4 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
+import { usePacientes } from '../pacientes/usePacientes';
+import { obtenerEpisodios, suscribirEpisodios } from '../../../flows/consultorio/registroHistoria';
 import Icon from '../../componentes/Icono';
 import './VistaHistoriasClinicas.css';
 import './MedicosDesplegable.css';
@@ -9,6 +11,7 @@ import './HistoriaPacienteFiltros.css';
 type Vista = 'historias' | 'estudios';
 
 type Paciente = {
+  id: string;
   codigo: string;
   ci: string;
   nombre: string;
@@ -19,30 +22,21 @@ type Paciente = {
   laboratorios: number;
 };
 
-const pacientes: Paciente[] = [
-  { codigo: 'HC-000184', ci: '7345128', nombre: 'Andrea', apellido: 'Mendoza', modificado: '2026-09-18', medicos: ['Dra. C. Rojas', 'Dr. M. Salazar'], estudiosImagen: 4, laboratorios: 7 },
-  { codigo: 'HC-000062', ci: '5823147', nombre: 'Bruno', apellido: 'Aponte', modificado: '2026-09-16', medicos: ['Dr. J. Vargas'], estudiosImagen: 1, laboratorios: 3 },
-  { codigo: 'HC-000219', ci: '8912640', nombre: 'Camila', apellido: 'Flores', modificado: '2026-09-10', medicos: ['Dra. L. Paredes'], estudiosImagen: 2, laboratorios: 5 },
-  { codigo: 'HC-000107', ci: '6432189', nombre: 'Diego', apellido: 'Quispe', modificado: '2026-08-27', medicos: ['Dr. M. Salazar', 'Dra. V. Núñez'], estudiosImagen: 3, laboratorios: 2 },
-  { codigo: 'HC-000031', ci: '4751902', nombre: 'Elena', apellido: 'Torrez', modificado: '2026-07-21', medicos: ['Dra. C. Rojas'], estudiosImagen: 0, laboratorios: 1 },
-];
+
 
 const formatearFecha = (fecha: string) => new Intl.DateTimeFormat('es-BO', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${fecha}T12:00:00`));
 const tipoEstudioPorCodigo: Record<string, 'Imagenología' | 'Laboratorio'> = { 'HC-000184': 'Imagenología', 'HC-000062': 'Laboratorio', 'HC-000219': 'Imagenología', 'HC-000107': 'Laboratorio', 'HC-000031': 'Laboratorio' };
 
-const episodios = [
-  { fecha: '2026-09-18', tipo: 'Consulta', detalle: 'Consulta de medicina interna y actualización de tratamiento.', profesional: 'Dra. C. Rojas', estado: 'Cerrado', icono: 'userCheck' as const },
-  { fecha: '2026-08-29', tipo: 'Procedimiento', detalle: 'Curación ambulatoria y control de evolución.', profesional: 'Lic. P. Arce', estado: 'Cerrado', icono: 'check' as const },
-  { fecha: '2026-07-15', tipo: 'Emergencia', detalle: 'Atención por dolor agudo; alta con indicaciones.', profesional: 'Dr. M. Salazar', estado: 'Cerrado', icono: 'bell' as const },
-  { fecha: '2026-05-04', tipo: 'Internación', detalle: 'Observación clínica y seguimiento por 48 horas.', profesional: 'Dra. L. Paredes', estado: 'Cerrado', icono: 'building' as const },
-  { fecha: '2026-02-11', tipo: 'Cirugía', detalle: 'Procedimiento quirúrgico programado sin complicaciones.', profesional: 'Dr. J. Vargas', estado: 'Cerrado', icono: 'fileText' as const },
-];
+
 
 const especialidadPorTipo: Record<string, string> = {
   Consulta: 'Medicina interna', Procedimiento: 'Enfermería', Emergencia: 'Emergencias', 'Internación': 'Medicina interna', 'Cirugía': 'Cirugía general',
 };
 
 export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
+  const { pacientes: fichas, errorPacientes } = usePacientes();
+  const registros = useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
+  const pacientes: Paciente[] = fichas.map(p => ({id:p.id,codigo:'HC-'+p.ci,ci:p.ci,nombre:p.nombres,apellido:[p.apellido_paterno,p.apellido_materno].join(' '),modificado:(p.updated_at || p.created_at || '').slice(0,10),medicos:[...new Set(registros.filter(r=>r.paciente.ci===p.ci).map(r=>r.medico))],estudiosImagen:p.imagenes_count || 0,laboratorios:p.laboratorios_count || 0}));
   const [busqueda, setBusqueda] = useState('');
   const [periodo, setPeriodo] = useState('todos');
   const [orden, setOrden] = useState('az');
@@ -59,19 +53,20 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
   const [medicoRegistro, setMedicoRegistro] = useState('');
   const [especialidadRegistro, setEspecialidadRegistro] = useState('');
   const esEstudios = vista === 'estudios';
+  const episodios = registros.filter(r=>r.paciente.ci===pacienteRevisado?.ci).map(r=>({fecha:r.actualizadoEn.slice(0,10),tipo:r.tipo,detalle:r.motivo,profesional:r.medico,estado:'Registrado',icono:'fileText' as const}));
 
   const filas = useMemo(() => {
-    const limite = periodo === '7' ? new Date('2026-09-12') : periodo === '30' ? new Date('2026-08-20') : periodo === '90' ? new Date('2026-06-21') : null;
+    const limite = periodo === 'todos' ? null : new Date(Date.now() - Number(periodo) * 86400000);
     const consulta = busqueda.trim().toLocaleLowerCase('es');
     return pacientes
       .filter((paciente) => !limite || new Date(`${paciente.modificado}T12:00:00`) >= limite)
-      .filter((paciente) => !esEstudios || ((!tipoEstudio || tipoEstudioPorCodigo[paciente.codigo] === tipoEstudio) && (!medicoOrdeno || paciente.medicos[0] === medicoOrdeno) && (!desdeEstudios || paciente.modificado >= desdeEstudios) && (!hastaEstudios || paciente.modificado <= hastaEstudios)))
+      .filter((paciente) => !esEstudios || ((!tipoEstudio || (tipoEstudio === 'Laboratorio' ? paciente.laboratorios > 0 : paciente.estudiosImagen > 0)) && (!medicoOrdeno || paciente.medicos[0] === medicoOrdeno) && (!desdeEstudios || paciente.modificado >= desdeEstudios) && (!hastaEstudios || paciente.modificado <= hastaEstudios)))
       .filter((paciente) => !consulta || [paciente.codigo, paciente.ci, paciente.nombre, paciente.apellido, ...paciente.medicos].join(' ').toLocaleLowerCase('es').includes(consulta))
       .sort((a, b) => {
         const comparacion = `${a.apellido} ${a.nombre}`.localeCompare(`${b.apellido} ${b.nombre}`, 'es');
         return orden === 'za' ? -comparacion : comparacion;
       });
-  }, [busqueda, desdeEstudios, esEstudios, hastaEstudios, medicoOrdeno, orden, periodo, tipoEstudio]);
+  }, [fichas, registros, busqueda, desdeEstudios, esEstudios, hastaEstudios, medicoOrdeno, orden, periodo, tipoEstudio]);
   const episodiosFiltrados = useMemo(() => {
     const consulta = busquedaHistoria.trim().toLocaleLowerCase('es');
     return episodios.filter((episodio) =>
@@ -79,7 +74,7 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
       (!tipoRegistro || episodio.tipo === tipoRegistro) && (!desde || episodio.fecha >= desde) && (!hasta || episodio.fecha <= hasta) &&
       (!medicoRegistro || episodio.profesional === medicoRegistro) && (!especialidadRegistro || especialidadPorTipo[episodio.tipo] === especialidadRegistro),
     );
-  }, [busquedaHistoria, tipoRegistro, desde, hasta, medicoRegistro, especialidadRegistro]);
+  }, [registros, pacienteRevisado, busquedaHistoria, tipoRegistro, desde, hasta, medicoRegistro, especialidadRegistro]);
 
   if (pacienteRevisado) return (
     <section className="historia-paciente-vista" aria-label={`Historia clínica de ${pacienteRevisado.nombre} ${pacienteRevisado.apellido}`}>
@@ -125,7 +120,7 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
 
   return (
     <section className="historias-vista" aria-label={esEstudios ? 'Estudios del paciente' : 'Historias clínicas'}>
-      <section className="historias-panel">
+      <section className="historias-panel">{errorPacientes && <p role="alert">{errorPacientes}</p>}
         <div className="historias-filtros">
           <label className="historias-buscador">
             <Icon name="search" size={18} />

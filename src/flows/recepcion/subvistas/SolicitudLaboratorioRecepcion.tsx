@@ -1,3 +1,4 @@
+import { useProfesionales, etiquetaProfesional } from '../../../radius/profesionales';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '../../../radius/componentes/Icono';
@@ -7,12 +8,13 @@ import { crearSolicitudLaboratorio, type SolicitudLaboratorio } from '../../labo
 import '../../laboratorio/LaboratorioView.css';
 import './SolicitudLaboratorioRecepcion.css';
 
-export type PacienteSolicitudLaboratorio = { nombre: string; ci: string };
+export type PacienteSolicitudLaboratorio = { id?: string; nombre: string; ci: string };
 
 export function SolicitudLaboratorioRecepcion({ paciente, pacientes, onSeleccionar, onCerrar }: {
   paciente: PacienteSolicitudLaboratorio | null; pacientes: PacienteSolicitudLaboratorio[];
   onSeleccionar: (paciente: PacienteSolicitudLaboratorio) => void; onCerrar: () => void;
 }) {
+  const {medicos,resolver}=useProfesionales();
   const ventana = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialogo = ventana.current;
@@ -69,7 +71,7 @@ export function SolicitudLaboratorioRecepcion({ paciente, pacientes, onSeleccion
     if (!elegidos.length) { setError('Selecciona al menos un examen.'); return; }
     setGuardando(true);
     try {
-      const creada = crearSolicitudLaboratorio({ paciente: paciente.nombre, ci: paciente.ci, medico: medico.trim(), consultaId: `recepcion-${crypto.randomUUID()}` }, elegidos, 'ambulatorio', { procedencia: 'recepcion', indicaciones: indicaciones.trim(), prioridad, solicitadoPor: leerSesion()?.usuario.nombre || 'Recepción' });
+      const creada = crearSolicitudLaboratorio({ profesionalId:resolver(medico)?.id, pacienteId:paciente.id, paciente: paciente.nombre, ci: paciente.ci, medico: medico.trim(), consultaId: `recepcion-${crypto.randomUUID()}` }, elegidos, 'ambulatorio', { procedencia: 'recepcion', indicaciones: indicaciones.trim(), prioridad, solicitadoPor: leerSesion()?.usuario.nombre || 'Recepción' });
       setSolicitud(creada); setError(''); setAviso('Solicitud generada. El paciente ya aparece en Laboratorio → Ambulatorios, como pendiente.');
     } catch (e) { setError((e as Error).message); }
     finally { setGuardando(false); }
@@ -87,7 +89,7 @@ export function SolicitudLaboratorioRecepcion({ paciente, pacientes, onSeleccion
       <div className="recepcion-lab-tablero"><section className="recepcion-lab-examenes"><header><h3>Exámenes disponibles</h3><span>{activos.length} tipos activos</span></header><div className="recepcion-lab-filtros"><label><span className="lab-sr">Buscar examen</span><Icon name="search" size={16}/><input aria-label="Buscar examen de laboratorio" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar por nombre, código o muestra"/></label><select aria-label="Filtrar categoría de laboratorio" value={categoriaId} onChange={e => setCategoriaId(e.target.value)}><option value="">Todas las categorías</option>{catalogo.categorias.filter(c => c.activa).map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}</select></div>
         {grupos.length ? <div className="recepcion-lab-grupos">{grupos.map(c => <section key={c.id}><header><h4>{c.nombre}</h4><small>{c.tipos.length} exámenes</small></header>{c.tipos.map(t => <label key={t.id} className={seleccion.includes(t.id) ? 'seleccionado' : ''}><input type="checkbox" checked={seleccion.includes(t.id)} onChange={() => elegir(t.id)}/><span><strong>{t.nombre}</strong><small>{t.codigo} · {t.tipoMuestra || 'Muestra sin especificar'} · {t.parametros.length} {t.parametros.length === 1 ? 'parámetro' : 'parámetros'}</small>{t.descripcion && <small>{t.descripcion}</small>}</span></label>)}</section>)}</div> : <div className="recepcion-lab-vacio"><Icon name="lab" size={26}/><strong>No hay exámenes disponibles con estos filtros</strong><p>{activos.length ? 'Cambia la búsqueda o categoría.' : 'Crea y activa los tipos desde Laboratorio → Tipos de laboratorio.'}</p></div>}
       </section><aside className="recepcion-lab-resumen"><header><h3>Resumen de solicitud</h3><span>{elegidos.length}</span></header>{elegidos.length ? <div className="recepcion-lab-seleccionados">{elegidos.map(t => <article key={t.id}><div><strong>{t.nombre}</strong><small>{t.codigo} · {t.parametros.length} parámetros</small></div><button type="button" aria-label={`Quitar ${t.nombre} de la solicitud`} onClick={() => elegir(t.id)}>×</button></article>)}<button className="recepcion-lab-enlace" type="button" onClick={() => setSeleccion([])}>Deseleccionar todos</button></div> : <p className="recepcion-lab-sin-seleccion">Marca los exámenes que se incluirán en la solicitud.</p>}
-        <label>Médico solicitante<input value={medico} maxLength={120} onChange={e => setMedico(e.target.value)} placeholder="Nombre del médico (opcional)"/></label><label>Prioridad<select value={prioridad} onChange={e => setPrioridad(e.target.value as typeof prioridad)}><option value="normal">Normal</option><option value="urgente">Urgente</option></select></label><label>Diagnóstico / indicaciones<textarea value={indicaciones} maxLength={2000} onChange={e => setIndicaciones(e.target.value)} placeholder="Indicaciones para el laboratorio (opcional)"/></label><div className="recepcion-lab-conteo"><span>{elegidos.length} exámenes</span><strong>{parametros} parámetros</strong></div><button className="lab-boton principal recepcion-lab-generar" type="submit" disabled={!paciente?.ci || cambiarPaciente || !elegidos.length || guardando}>{guardando ? 'Generando…' : 'Generar solicitud de laboratorio'}</button><small className="recepcion-lab-pendiente">Se enviará a la bandeja de laboratorio con estado pendiente.</small>
+        <label>Médico solicitante<select value={medico} onChange={e=>setMedico(e.target.value)}><option value="">Sin médico asignado</option>{medicos.map(p=><option key={p.id}>{etiquetaProfesional(p)}</option>)}</select></label><label>Prioridad<select value={prioridad} onChange={e => setPrioridad(e.target.value as typeof prioridad)}><option value="normal">Normal</option><option value="urgente">Urgente</option></select></label><label>Diagnóstico / indicaciones<textarea value={indicaciones} maxLength={2000} onChange={e => setIndicaciones(e.target.value)} placeholder="Indicaciones para el laboratorio (opcional)"/></label><div className="recepcion-lab-conteo"><span>{elegidos.length} exámenes</span><strong>{parametros} parámetros</strong></div><button className="lab-boton principal recepcion-lab-generar" type="submit" disabled={!paciente?.ci || cambiarPaciente || !elegidos.length || guardando}>{guardando ? 'Generando…' : 'Generar solicitud de laboratorio'}</button><small className="recepcion-lab-pendiente">Se enviará a la bandeja de laboratorio con estado pendiente.</small>
       </aside></div>
     </form>}
   </section></dialog>, document.body);

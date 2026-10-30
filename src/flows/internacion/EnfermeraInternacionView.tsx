@@ -1,3 +1,4 @@
+import { useInternacionesVinculadas } from './useInternacionesVinculadas';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { AtencionEnfermeriaInternacion } from './AtencionEnfermeriaInternacion';
 import Icon from '../../radius/componentes/Icono';
@@ -8,7 +9,7 @@ import './EnfermeraInternacionTabla.css';
 type Subvista = 'internados' | 'altas';
 
 export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
-  const registros = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
+  const registros = useInternacionesVinculadas();
   const [seleccionada, setSeleccionada] = useState<RegistroInternacion | null>(null);
   const [atencionId, setAtencionId] = useState<string | null>(null);
   useEffect(() => { setAtencionId(null); setSeleccionada(null); }, [subvista]);

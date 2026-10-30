@@ -64,7 +64,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   const [resultadosLaboratorio, setResultadosLaboratorio] = useState<SolicitudLaboratorio[]>([]);
   useEffect(() => {
     const cargar = () => {
-      try { const resultados = leerSolicitudesLaboratorio().filter(s => s.ci === paciente?.ci && s.estado === 'completado'); setResultadosLaboratorio(resultados.length || !paciente ? resultados : resultadosDemo(paciente)); }
+      try { const resultados = leerSolicitudesLaboratorio().filter(s => s.ci === paciente?.ci && s.estado === 'completado'); setResultadosLaboratorio(resultados); }
       catch { setResultadosLaboratorio([]); }
     };
     cargar();
@@ -121,7 +121,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
       </div>
       {seccion === 'atencion' && <>
       <div className="consulta-guardar-historia"><button type="button" onClick={guardarEnHistoria} disabled={!datosClinicosPaciente.motivoConsulta.trim()}><Icon name="fileText" size={16} /> Guardar episodio clínico</button>{episodioGuardado && <span>Episodio {episodioGuardado} actualizado en la historia clínica.</span>}</div>
-      {tipoOrden === 'laboratorio' && <HojaLaboratorios permitirEstudiosLocales paciente={paciente.paciente} onCerrar={() => setTipoOrden(null)} onAceptar={items => { crearSolicitudLaboratorio({ paciente: paciente.paciente, ci: paciente.ci, medico: paciente.doctor, consultaId: paciente.id }, items); setLaboratoriosElegidos(items.map(i => i.nombre).join(' · ')); setTipoOrden(null); }} />}{laboratoriosElegidos && <p className="consulta-aviso" role="status">Solicitud enviada a Laboratorio · Ambulatorios: {laboratoriosElegidos}</p>}
+      {tipoOrden === 'laboratorio' && <HojaLaboratorios permitirEstudiosLocales paciente={paciente.paciente} onCerrar={() => setTipoOrden(null)} onAceptar={items => { crearSolicitudLaboratorio({ profesionalId:paciente.profesionalId, pacienteId:paciente.pacienteId, paciente: paciente.paciente, ci: paciente.ci, medico: paciente.doctor, consultaId: paciente.id }, items); setLaboratoriosElegidos(items.map(i => i.nombre).join(' · ')); setTipoOrden(null); }} />}{laboratoriosElegidos && <p className="consulta-aviso" role="status">Solicitud enviada a Laboratorio · Ambulatorios: {laboratoriosElegidos}</p>}
       {tipoOrden === 'imagenologia' && <section className="consulta-orden-panel panel" aria-label="Orden de imagenología"><header><div><p>ORDEN DE IMAGENOLOGÍA</p><h3>{paciente.paciente}</h3><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><button type="button" onClick={() => setTipoOrden(null)} aria-label="Cerrar orden">×</button></header><label>Estudios y regiones solicitados<textarea value={detalleOrden} onChange={(event) => setDetalleOrden(event.target.value)} placeholder="Escribe los estudios solicitados" /></label><footer><button type="button" onClick={() => setTipoOrden(null)}>Cancelar</button><button type="button" disabled={!detalleOrden.trim()} onClick={() => window.print()}>Imprimir orden</button></footer></section>}
       {tipoOrden === 'internacion' && <OrdenInternacionMedica paciente={paciente} medico={medico} onCerrar={() => setTipoOrden(null)} onEmitir={() => { setOrdenInternacionEmitida(paciente.paciente); setTipoOrden(null); }} />}
       {ordenInternacionEmitida && <p className="consulta-aviso consulta-aviso-internacion" role="status">Orden emitida para {ordenInternacionEmitida}. Enfermería y Recepción la verán como preinternación.</p>}

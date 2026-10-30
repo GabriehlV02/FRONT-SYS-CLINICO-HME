@@ -1,10 +1,15 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useRef, type FormEvent } from "react";
+import { createPortal } from 'react-dom';
 import { apiFetch } from "../../api";
 import Icon from "../../componentes/Icono";
 import "./ModalRegistroPaciente.css";
 
 export type PacienteRegistrado = {
   id: string;
+  created_at?: string;
+  updated_at?: string;
+  laboratorios_count?: number;
+  imagenes_count?: number;
   nombres: string;
   apellido_paterno: string;
   apellido_materno: string;
@@ -63,16 +68,26 @@ export default function ModalRegistroPaciente({
   const [form, setForm] = useState(inicial);
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
+  const ventana = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const foco = document.activeElement as HTMLElement | null;
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    ventana.current?.showModal();
+    return () => { document.body.style.overflow = overflow; if (foco?.isConnected) foco.focus(); };
+  }, []);
   const cambiar = <K extends keyof DatosPaciente>(campo: K, valor: DatosPaciente[K]) =>
     setForm((actual) => ({ ...actual, [campo]: valor }));
 
   const guardar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
+    if (guardando) return;
     setGuardando(true);
     setError("");
     try {
       const respuesta = await apiFetch("/api/v1/pacientes", {
         method: "POST",
+        headers: { Accept: 'application/json' },
         body: JSON.stringify(form),
       });
       const resultado = await respuesta.json() as { data?: PacienteRegistrado; message?: string; errors?: Record<string, string[]> };
@@ -81,6 +96,7 @@ export default function ModalRegistroPaciente({
         throw new Error(detalle || resultado.message || "No se pudo registrar al paciente.");
       }
       onRegistrado(resultado.data);
+      window.dispatchEvent(new Event('pacientes:actualizados'));
       onCerrar();
     } catch (causa) {
       setError(causa instanceof Error ? causa.message : "No se pudo registrar al paciente.");
@@ -96,9 +112,9 @@ export default function ModalRegistroPaciente({
     </label>
   );
 
-  return (
-    <div className="registro-paciente-fondo" onMouseDown={(evento) => { if (evento.target === evento.currentTarget && !guardando) onCerrar(); }}>
-      <form className="registro-paciente-modal" role="dialog" aria-modal="true" aria-labelledby="registro-paciente-titulo" onSubmit={guardar}>
+  return createPortal(
+    <dialog ref={ventana} className="registro-paciente-fondo" aria-labelledby="registro-paciente-titulo" onCancel={evento => { evento.preventDefault(); if (!guardando) onCerrar(); }} onMouseDown={(evento) => { if (evento.target === evento.currentTarget && !guardando) onCerrar(); }}>
+      <form className="registro-paciente-modal" onSubmit={guardar}>
         <header>
           <div className="registro-paciente-titulo-icono"><Icon name="users" size={19} /></div>
           <div><p>NUEVO PACIENTE</p><h2 id="registro-paciente-titulo">Registrar paciente</h2></div>
@@ -134,6 +150,6 @@ export default function ModalRegistroPaciente({
         </div>
         <footer><button type="button" disabled={guardando} onClick={onCerrar}>Cancelar</button><button type="submit" disabled={guardando}>{guardando ? "Guardando…" : "Guardar paciente"}</button></footer>
       </form>
-    </div>
+    </dialog>, document.body
   );
 }

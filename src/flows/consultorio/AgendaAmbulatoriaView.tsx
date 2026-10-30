@@ -1,3 +1,5 @@
+import { useProfesionales } from '../../radius/profesionales';
+import { leerSesion } from '../../radius/types/sesion';
 import { useEffect, useMemo, useState } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { apiFetch } from '../../radius/api';
@@ -5,18 +7,13 @@ import { obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registro
 import './AgendaAmbulatoriaView.css';
 import './AgendaAmbulatoriaViewAlineacion.css';
 
-export type CitaConfirmada = { id: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
+export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?:string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
 const fechaHoy = () => new Date().toLocaleDateString('en-CA');
-const citasEjemplo: CitaConfirmada[] = [
-  ['agenda-demo-1', '08:00', 'María Fernanda Rojas', '4839201', 'Medicina general'],
-  ['agenda-demo-2', '08:30', 'Carlos Mendoza López', '7281044', 'Control médico'],
-  ['agenda-demo-3', '09:15', 'Ana Rodríguez Vargas', '6102837', 'Consulta ambulatoria'],
-  ['agenda-demo-4', '10:00', 'Jorge Quiroga Salinas', '5948216', 'Seguimiento clínico'],
-  ['agenda-demo-5', '11:30', 'Sofía Castillo Flores', '7013659', 'Consulta general'],
-].map(([id, hora, paciente, ci, especialidad]) => ({ id, hora, paciente, ci, especialidad, fecha: fechaHoy(), doctor: 'Agenda ambulatoria', ...(id === 'agenda-demo-3' ? { nombre: 'Ana', apellidos: 'Rodríguez Vargas', edad: 28, fechaNacimiento: '22 de mayo de 1998', domicilio: 'Av. Busch N.º 1250, La Paz' } : {}) }));
-
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
-  const [citas, setCitas] = useState<CitaConfirmada[]>(citasEjemplo.slice(2));
+  const {profesionales}=useProfesionales();
+  const profesionalActual=profesionales.find(p=>p.usuario_id===String(leerSesion()?.usuario.id));
+  const [errorPacientes,setErrorPacientes]=useState('');
+  const [citas, setCitas] = useState<CitaConfirmada[]>([]);
   const [atendidas, setAtendidas] = useState<Set<string>>(() => new Set());
   const [busqueda, setBusqueda] = useState('');
   const [busquedaAtendidas, setBusquedaAtendidas] = useState('');
@@ -26,20 +23,20 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
     return () => { cancelarSuscripcion(); };
   }, []);
   useEffect(() => { void apiFetch('/api/citas').then(async (response) => {
-    if (!response.ok) return;
+    if (!response.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
     const datos = await response.json() as Array<CitaConfirmada & { estado: string }>;
-    setCitas([...citasEjemplo.slice(2), ...datos.filter((cita) => cita.estado.toLowerCase() === 'confirmada')]);
-  }).catch(() => undefined); }, []);
+    setCitas(datos.filter(cita => cita.estado === 'confirmada' && cita.fecha === fechaHoy()));
+  }).catch(causa => setErrorPacientes((causa as Error).message)); }, []);
 
-  const visibles = useMemo(() => citas.filter((cita) => !medico || medico === 'Administrador' || cita.doctor === medico || cita.doctor === 'Agenda ambulatoria')
-    .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)), [citas, medico]);
+  const visibles = useMemo(() => citas.filter((cita) => !medico || (profesionalActual && cita.profesionalId===profesionalActual.id) || /administrador/i.test(medico) || cita.doctor === medico || cita.doctor === 'Agenda ambulatoria')
+    .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)), [citas, medico, profesionalActual]);
   const coincide = (cita: CitaConfirmada, texto: string) => `${cita.paciente} ${cita.ci} ${cita.doctor} ${cita.especialidad}`.toLocaleLowerCase().includes(texto.trim().toLocaleLowerCase());
   const pendientes = visibles.filter((cita) => !atendidas.has(cita.id) && coincide(cita, busqueda));
   const atendidasHoy = visibles.filter((cita) => atendidas.has(cita.id) && coincide(cita, busquedaAtendidas));
   const atender = (cita: CitaConfirmada) => { setAtendidas((actuales) => new Set(actuales).add(cita.id)); onAtender?.(cita); };
   const signosRegistrados = (cita: CitaConfirmada) => Object.values(obtenerSignosVitales(cita.ci) ?? {}).some(Boolean);
 
-  return <section className="agenda-ambulatoria" aria-label="Agenda de pacientes ambulatorios confirmados">
+  return <section className="agenda-ambulatoria" aria-label="Agenda de pacientes ambulatorios confirmados">{errorPacientes && <p role="alert">{errorPacientes}</p>}
     <div className="agenda-herramientas">
       <label><Icon name="search" size={17} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por paciente, CI o médico" aria-label="Buscar consulta confirmada" /></label>
       <span><Icon name="calendar" size={17} /> {visibles.length} confirmadas</span>

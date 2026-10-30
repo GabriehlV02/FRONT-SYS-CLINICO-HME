@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useEstudiosPacientes } from './pacientes/useEstudiosPacientes';
 import Icon from '../componentes/Icono';
 import './AgendaImagenologiaView.css';
 
@@ -14,18 +15,13 @@ type EstudioAgendado = {
   estado: 'Confirmado' | 'En preparación';
 };
 
-const estudiosIniciales: EstudioAgendado[] = [
-  { id: 'img-1', hora: '08:00', paciente: 'María Fernanda Rojas', ci: '4839201', modalidad: 'Tomografía', estudio: 'TC de cráneo sin contraste', preparacion: 'Retirar objetos metálicos', estado: 'Confirmado' },
-  { id: 'img-2', hora: '08:40', paciente: 'Carlos Mendoza López', ci: '7281044', modalidad: 'Radiografía', estudio: 'Radiografía de tórax PA', preparacion: 'Sin preparación especial', estado: 'Confirmado' },
-  { id: 'img-3', hora: '09:15', paciente: 'Ana Rodríguez Vargas', ci: '6102837', modalidad: 'Ecografía', estudio: 'Ecografía abdominal', preparacion: 'Ayuno de 6 horas', estado: 'En preparación' },
-  { id: 'img-4', hora: '10:00', paciente: 'Jorge Quiroga Salinas', ci: '5948216', modalidad: 'Ecocardiograma', estudio: 'Ecocardiograma Doppler', preparacion: 'Ropa cómoda', estado: 'Confirmado' },
-  { id: 'img-5', hora: '10:45', paciente: 'Sofía Castillo Flores', ci: '7013659', modalidad: 'Electrocardiograma', estudio: 'ECG de 12 derivaciones', preparacion: 'Reposo previo de 10 min', estado: 'Confirmado' },
-  { id: 'img-6', hora: '11:30', paciente: 'Luis Alberto Pérez', ci: '6751042', modalidad: 'Holter', estudio: 'Holter cardíaco de 24 horas', preparacion: 'Piel limpia, sin cremas', estado: 'Confirmado' },
-];
+
 
 const modalidadClase = (modalidad: Modalidad) => modalidad.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replaceAll(' ', '-');
 
 export default function AgendaImagenologiaView() {
+  const {estudios,errorEstudios}=useEstudiosPacientes();
+  const estudiosIniciales:EstudioAgendado[]=estudios.map(e=>({id:e.id,hora:e.solicitado_en.slice(11,16),paciente:[e.nombres,e.apellido_paterno,e.apellido_materno].join(' '),ci:e.ci,modalidad:({TOMOGRAFIA:'Tomografía',ECOGRAFIA:'Ecografía',ECOCARDIOGRAMA:'Ecocardiograma',RADIOGRAFIA:'Radiografía'} as Record<string,Modalidad>)[e.tipo] || 'Radiografía',estudio:e.nombre,preparacion:e.indicaciones || 'Sin indicaciones registradas',estado:e.estado==='EN_PROCESO'?'En preparación':'Confirmado'}));
   const [busqueda, setBusqueda] = useState('');
   const [filtro, setFiltro] = useState<'Todos' | Modalidad>('Todos');
   const [completados, setCompletados] = useState<Set<string>>(() => new Set());
@@ -33,11 +29,11 @@ export default function AgendaImagenologiaView() {
   const pendientes = useMemo(() => estudiosIniciales.filter((estudio) => {
     const texto = `${estudio.paciente} ${estudio.ci} ${estudio.modalidad} ${estudio.estudio}`.toLocaleLowerCase();
     return !completados.has(estudio.id) && (filtro === 'Todos' || estudio.modalidad === filtro) && texto.includes(busqueda.trim().toLocaleLowerCase());
-  }), [busqueda, completados, filtro]);
+  }), [busqueda, completados, filtro, estudios]);
   const realizados = estudiosIniciales.filter((estudio) => completados.has(estudio.id));
   const modalidades = Array.from(new Set(estudiosIniciales.map((estudio) => estudio.modalidad)));
 
-  return <section className="agenda-imagenologia" aria-label="Agenda de estudios de imagenología">
+  return <section className="agenda-imagenologia" aria-label="Agenda de estudios de imagenología">{errorEstudios && <p role="alert">{errorEstudios}</p>}
     <header className="agenda-imagenologia-cabecera">
       <div>
         <span>AGENDA DIAGNÓSTICA</span>

@@ -1,9 +1,13 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useProfesionales, etiquetaProfesional } from '../../../radius/profesionales';
+import { useMemo, useState, useEffect } from 'react';
+import ModalRegistroPaciente, { type PacienteRegistrado } from '../../../radius/vistas/pacientes/ModalRegistroPaciente';
+import { usePacientes } from '../../../radius/vistas/pacientes/usePacientes';
+import { apiFetch } from '../../../radius/api';
 import Icon from '../../../radius/componentes/Icono';
 import './AgendarConsultaView.css';
 
 type Paciente = {
-  id: number;
+  id: string;
   nombres: string;
   apellidoPaterno: string;
   apellidoMaterno: string;
@@ -15,9 +19,12 @@ type Props = {
   doctorInicial?: string;
   fechaInicial?: string;
   horaInicial?: string;
-  consultaPendiente?: { paciente: string; ci: string; doctor: string; especialidad?: string };
+  consultaPendiente?: { id?: string; paciente: string; ci: string; doctor: string; especialidad?: string };
   onVolver: () => void;
   onAgendada: (datos: {
+    id: string;
+    pacienteId: string;
+    profesionalId?:string;
     paciente: string;
     ci: string;
     doctor: string;
@@ -25,24 +32,7 @@ type Props = {
     hora: string;
   }) => void;
 };
-const especialidades: Record<string, { precio: number; doctores: string[] }> = {
-  'Medicina general': {
-    precio: 80,
-    doctores: ['Dra. Valeria Rojas', 'Dr. Mauricio Vargas'],
-  },
-  'Medicina interna': {
-    precio: 120,
-    doctores: ['Dra. Valeria Rojas', 'Dra. Elena Salazar'],
-  },
-  Pediatria: {
-    precio: 100,
-    doctores: ['Dra. Elena Salazar', 'Dr. Mauricio Vargas'],
-  },
-  Cardiologia: { precio: 160, doctores: ['Dra. Valeria Rojas'] },
-};
-const doctores = [
-  ...new Set(Object.values(especialidades).flatMap((item) => item.doctores)),
-];
+
 const horas = Array.from(
   { length: 20 },
   (_, index) =>
@@ -52,15 +42,7 @@ const nombreCompleto = (paciente: Paciente) =>
   [paciente.nombres, paciente.apellidoPaterno, paciente.apellidoMaterno]
     .filter(Boolean)
     .join(' ');
-const leerPacientes = (): Paciente[] => {
-  try {
-    return JSON.parse(
-      localStorage.getItem('clinica-caja-pacientes') || '[]',
-    ) as Paciente[];
-  } catch {
-    return [];
-  }
-};
+const paraAgenda = (p: PacienteRegistrado): Paciente => ({id:p.id,nombres:p.nombres,apellidoPaterno:p.apellido_paterno,apellidoMaterno:p.apellido_materno,ci:p.ci,celular:p.telefono || ''});
 
 export function AgendarConsultaView({
   doctorInicial = '',
@@ -70,25 +52,19 @@ export function AgendarConsultaView({
   onVolver,
   onAgendada,
 }: Props) {
-  const [pacientes, setPacientes] = useState<Paciente[]>(leerPacientes);
+  const {profesionales,medicos,errorProfesionales,resolver}=useProfesionales();
+  const tarifas:Record<string,number>={'Medicina general':80,'Medicina interna':120,Pediatria:100,Cardiologia:160};
+  const especialidades:Record<string,{precio:number;doctores:string[]}>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,{precio:tarifas[e] || 0,doctores:medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)}]));
+  const doctores=medicos.map(etiquetaProfesional);
+  const { pacientes: fichas, errorPacientes } = usePacientes();
+  const pacientes = useMemo(() => fichas.map(paraAgenda), [fichas]);
   const [busqueda, setBusqueda] = useState('');
-  const [paciente, setPaciente] = useState<Paciente | null>(() => {
-    if (!consultaPendiente) return null;
-    const existente = leerPacientes().find((item) => item.ci === consultaPendiente.ci);
-    if (existente) return existente;
-    const partes = consultaPendiente.paciente.trim().split(/\s+/);
-    return { id: Date.now(), nombres: partes[0] ?? '', apellidoPaterno: partes[1] ?? '', apellidoMaterno: partes.slice(2).join(' '), ci: consultaPendiente.ci, celular: '' };
-  });
+  const [paciente, setPaciente] = useState<Paciente | null>(null);
+  useEffect(() => { if (consultaPendiente) setPaciente(pacientes.find(p=>p.ci===consultaPendiente.ci) || null); }, [pacientes, consultaPendiente?.ci]);
   const [registrando, setRegistrando] = useState(false);
-  const [nuevo, setNuevo] = useState({
-    nombres: '',
-    apellidoPaterno: '',
-    apellidoMaterno: '',
-    ci: '',
-    celular: '',
-  });
   const [especialidad, setEspecialidad] = useState(() => consultaPendiente?.especialidad && especialidades[consultaPendiente.especialidad] ? consultaPendiente.especialidad : Object.entries(especialidades).find(([, item]) => item.doctores.includes(consultaPendiente?.doctor ?? doctorInicial))?.[0] ?? '');
   const [doctor, setDoctor] = useState(consultaPendiente?.doctor ?? doctorInicial);
+  useEffect(()=>{const elegido=medicos.find(p=>p.nombre===(consultaPendiente?.doctor || doctorInicial) || etiquetaProfesional(p)===(consultaPendiente?.doctor || doctorInicial));if(elegido){setDoctor(etiquetaProfesional(elegido));setEspecialidad(actual=>actual || elegido.especialidades[0] || '');}},[profesionales,doctorInicial,consultaPendiente?.id]);
   const soloCobro = Boolean(consultaPendiente);
   const [fecha, setFecha] = useState(
     fechaInicial ?? new Date().toISOString().slice(0, 10),
@@ -113,64 +89,28 @@ export function AgendarConsultaView({
     .filter(([, item]) => !doctor || item.doctores.includes(doctor))
     .map(([nombre]) => nombre);
   const doctoresDisponibles = especialidad
-    ? especialidades[especialidad].doctores
+    ? (especialidades[especialidad]?.doctores || [])
     : doctores;
-  const precio = especialidad ? especialidades[especialidad].precio : 0;
+  const precio = especialidad ? (especialidades[especialidad]?.precio || 0) : 0;
   const pagoValido = metodo !== 'Efectivo' || Number(recibido) >= precio;
 
-  const registrar = (event: FormEvent) => {
-    event.preventDefault();
-    if (pacientes.some((item) => item.ci === nuevo.ci.trim())) {
-      setMensaje('Ya existe un paciente con ese CI.');
-      return;
-    }
-    const creado: Paciente = {
-      id: Date.now(),
-      ...nuevo,
-      nombres: nuevo.nombres.trim(),
-      apellidoPaterno: nuevo.apellidoPaterno.trim(),
-      apellidoMaterno: nuevo.apellidoMaterno.trim(),
-      ci: nuevo.ci.trim(),
-      celular: nuevo.celular.trim(),
-      complemento: '',
-      expedidoEn: 'CBBA',
-      correo: '',
-      fechaNacimiento: '',
-      genero: '',
-      ciConQr: false,
-      afroamericano: false,
-      pais: 'Bolivia',
-      departamento: 'Cochabamba',
-      ciudad: '',
-      zona: '',
-      direccion: '',
-      responsableNombre: '',
-      responsableTelefono: '',
-      responsableParentesco: '',
-      procedencia: '',
-      observaciones: '',
-      habilitado: true,
-    };
-    const actualizados = [...pacientes, creado];
-    setPacientes(actualizados);
-    localStorage.setItem(
-      'clinica-caja-pacientes',
-      JSON.stringify(actualizados),
-    );
-    setPaciente(creado);
-    setRegistrando(false);
-    setBusqueda('');
-    setMensaje('');
-  };
-  const confirmar = () => {
+  const confirmar = async () => {
     if (!paciente || !especialidad || !doctor || !fecha || !pagoValido) return;
+    if(!consultaPendiente && !resolver(doctor)){setMensaje('Selecciona un médico activo del catálogo.');return;}
+    if(precio<=0){setMensaje('La especialidad no tiene una tarifa de consulta configurada. Puedes registrar su cita por confirmar en el cronograma.');return;}
+    try {
+    const respuesta = await apiFetch(consultaPendiente?.id ? `/api/citas/${consultaPendiente.id}/estado` : '/api/citas', {method:consultaPendiente?.id ? 'PATCH':'POST',headers:{Accept:'application/json'},body:JSON.stringify(consultaPendiente?.id ? {estado:'confirmada'} : {paciente_id:paciente.id,profesional_id:resolver(doctor)?.id,doctor:resolver(doctor)?.nombre || doctor,especialidad,consultorio:'Consultorio 1',fecha,hora,estado:'confirmada'})});
+    const datos = await respuesta.json();
+    if(!respuesta.ok) throw new Error(Object.values(datos.errors || {}).flat()[0] as string || datos.message || 'No se pudo guardar la cita.');
     onAgendada({
+      id:datos.id,pacienteId:paciente.id,profesionalId:datos.profesionalId,
       paciente: nombreCompleto(paciente),
       ci: paciente.ci,
-      doctor,
+      doctor:datos.doctor,
       fecha,
       hora,
     });
+    } catch(causa) {setMensaje((causa as Error).message);}
   };
 
   return (
@@ -229,60 +169,7 @@ export function AgendarConsultaView({
               ))}
             </div>
           )}
-          {registrando && (
-            <form className="agendar-registro" onSubmit={registrar}>
-              <label>
-                Nombres
-                <input
-                  required
-                  value={nuevo.nombres}
-                  onChange={(e) =>
-                    setNuevo({ ...nuevo, nombres: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Apellido paterno
-                <input
-                  required
-                  value={nuevo.apellidoPaterno}
-                  onChange={(e) =>
-                    setNuevo({ ...nuevo, apellidoPaterno: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Apellido materno
-                <input
-                  value={nuevo.apellidoMaterno}
-                  onChange={(e) =>
-                    setNuevo({ ...nuevo, apellidoMaterno: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                CI
-                <input
-                  required
-                  value={nuevo.ci}
-                  onChange={(e) => setNuevo({ ...nuevo, ci: e.target.value })}
-                />
-              </label>
-              <label>
-                Celular
-                <input
-                  required
-                  value={nuevo.celular}
-                  onChange={(e) =>
-                    setNuevo({ ...nuevo, celular: e.target.value })
-                  }
-                />
-              </label>
-              <button className="primario" type="submit">
-                Guardar paciente
-              </button>
-            </form>
-          )}
+          {registrando && <ModalRegistroPaciente onCerrar={() => setRegistrando(false)} onRegistrado={p => {setPaciente(paraAgenda(p));setBusqueda('');}} />}
           {paciente && (
             <div className="agendar-paciente">
               <div>
@@ -297,7 +184,7 @@ export function AgendarConsultaView({
               </button>}
             </div>
           )}
-          {mensaje && <p className="agendar-error">{mensaje}</p>}
+          {(mensaje || errorPacientes) && <p className="agendar-error" role="alert">{mensaje || errorPacientes || errorProfesionales}</p>}
           <div className="agendar-seccion-titulo">
             <b>2</b>
             <div>

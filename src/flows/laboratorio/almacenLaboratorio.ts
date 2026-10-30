@@ -8,7 +8,7 @@ export type AdjuntoLaboratorio = { id: string; nombre: string; tipo: string; con
 export type ResultadoLaboratorio = { id: string; parametro: string; valor: string; unidad: string; referencia: string; notaReferencia?: string; rangoReferencia?: RangoReferencia; tipo?: 'numero' | 'texto'; parametroId?: string; formula?: FormulaLaboratorio; observacion?: string; registradoEn?: string; adjuntos?: AdjuntoLaboratorio[] };
 export type EstudioLaboratorio = { id: string; nombre: string; resultados: ResultadoLaboratorio[] };
 export type SolicitudLaboratorio = {
-  id: string; paciente: string; ci: string; medico: string; origen: OrigenLaboratorio;
+  id: string; pacienteId?: string; profesionalId?:string; paciente: string; ci: string; medico: string; origen: OrigenLaboratorio;
   consultaId: string; fecha: string; estado: EstadoLaboratorio; estudios: EstudioLaboratorio[];
   observacion: string; actualizadoEn: string; finalizadoEn?: string; registradoPor?: string;
   procedencia?: 'recepcion' | 'consultorio'; indicaciones?: string; prioridad?: 'normal' | 'urgente'; solicitadoPor?: string;
@@ -71,7 +71,7 @@ export function suscribirLaboratorio(actualizar: () => void) {
 }
 
 export function crearSolicitudLaboratorio(
-  paciente: Pick<SolicitudLaboratorio, 'paciente' | 'ci' | 'medico' | 'consultaId'>,
+  paciente: Pick<SolicitudLaboratorio, 'paciente' | 'ci' | 'medico' | 'consultaId' | 'pacienteId' | 'profesionalId'>,
   estudios: { id: string; nombre: string }[], origen: OrigenLaboratorio = 'ambulatorio',
   detalle: Pick<SolicitudLaboratorio, 'procedencia' | 'indicaciones' | 'prioridad' | 'solicitadoPor'> = {},
 ) {

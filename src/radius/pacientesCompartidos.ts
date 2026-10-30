@@ -14,13 +14,13 @@ export type DatosPacienteCompartido = {
   direccion?: string;
 };
 
-/** Registra o actualiza la ficha clínica común, usando el documento como clave única. */
+/** Recupera la identidad clínica sin crear fichas con datos incompletos. */
 export async function sincronizarPaciente(datos: DatosPacienteCompartido) {
-  const respuesta = await apiFetch('/api/pacientes/sincronizar', {
-    method: 'POST', body: JSON.stringify(datos),
-  });
-  const resultado = await respuesta.json() as { message?: string };
+  const ci = datos.documento || datos.numeroDocumento;
+  if (!ci?.trim()) throw new Error('Selecciona un paciente registrado o completa su registro en Pacientes.');
+  const respuesta = await apiFetch(`/api/v1/pacientes/buscar?ci=${encodeURIComponent(ci.trim())}`, { headers: { Accept: 'application/json' } });
+  const resultado = await respuesta.json() as { data?: { id: string }; message?: string };
   if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo sincronizar el paciente.');
-  window.dispatchEvent(new Event('pacientes:actualizados'));
+  if (!resultado.data) throw new Error('Completa la ficha del paciente en Registrar paciente para vincular esta atención.');
   return resultado;
 }

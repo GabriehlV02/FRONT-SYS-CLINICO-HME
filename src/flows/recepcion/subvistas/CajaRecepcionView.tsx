@@ -1,8 +1,13 @@
+import { useProfesionales, etiquetaProfesional } from '../../../radius/profesionales';
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import ModalRegistroPaciente from '../../../radius/vistas/pacientes/ModalRegistroPaciente';
+import { usePacientes } from '../../../radius/vistas/pacientes/usePacientes';
+import { nombrePacienteClinico } from '../../../radius/vistas/pacientes/pacientesApi';
 import Icon from "../../../radius/componentes/Icono";
 import { apiContableFetch, apiFetch } from "../../../radius/api";
 import { registrarSolicitudesImagenologia } from "../../../radius/datos/solicitudesImagenologiaDemo";
 import "./CajaImagenologiaDemo.css";
+import "./CatalogoTarjetas.css";
 import { InternacionModal } from "./InternacionModal";
 import { SolicitudLaboratorioRecepcion } from "./SolicitudLaboratorioRecepcion";
 type Tipo = "Producto" | "Insumo" | "Servicio";
@@ -26,6 +31,7 @@ type Linea = Item & {
 type Pago = { id: number; metodo: string; monto: string };
 type ClienteVenta = {
   id: string;
+  paciente_id?: string;
   nit_ci: string | null;
   nombre_razon_social: string;
   telefono: string | null;
@@ -57,19 +63,7 @@ const alertasInventario = (item: Item) => {
   return alertas;
 };
 const pagoNuevo = (id: number): Pago => ({ id, metodo: "Efectivo", monto: "" });
-const pacientesEjemplo = [
-  { nombre: "Luis Esteban Escobar Rocha", ci: "6845210" },
-  { nombre: "Luis Escobar", ci: "6845210" },
-  { nombre: "Luis Alberto Escobar Rojas", ci: "4982157" },
-  { nombre: "María Fernández López", ci: "7351842" },
-  { nombre: "Ana Rodríguez Vargas", ci: "6129478" },
-];
-const clientesEjemplo: ClienteVenta[] = [
-  { id: 'demo-luis-esteban-escobar-rocha', nombre_razon_social: 'Luis Esteban Escobar Rocha', nit_ci: '6845210', telefono: '72014568', correo: null },
-];
-const medicosPorEspecialidad: Record<string, string[]> = {
-  'Medicina general': ['Dra. Ana Morales', 'Dr. Carlos Rojas'], Pediatría: ['Dra. Sofía Quispe', 'Dr. Miguel Herrera'], Ginecología: ['Dra. Valeria Flores', 'Dra. María Paredes'], Cardiología: ['Dr. Andrés Mendoza'],
-};
+
 export function CajaRecepcionView({
   onAbrirCuenta,
   onAgendarCirugia,
@@ -86,9 +80,12 @@ export function CajaRecepcionView({
   cocina?: boolean;
   navegacion?: ReactNode;
 }) {
+  const {medicos,resolver}=useProfesionales();
+  const medicosPorEspecialidad:Record<string,string[]>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)]));
+  const { pacientes: fichasPacientes, errorPacientes } = usePacientes();
+  const pacientesRegistrados = fichasPacientes.map(p => ({id:p.id,nombre:nombrePacienteClinico(p),ci:p.ci}));
   const [busqueda, setBusqueda] = useState(""),
     [tipo, setTipo] = useState<"Todos" | Tipo>("Todos"),
-    [vista, setVista] = useState<"galeria" | "listado">("galeria"),
     [lineas, setLineas] = useState<Linea[]>([]),
     [paciente, setPaciente] = useState(""),
     [ciPaciente, setCiPaciente] = useState(""),
@@ -120,7 +117,7 @@ export function CajaRecepcionView({
   const [imagenParaAgregar, setImagenParaAgregar] = useState<Item | null>(null);
   const [consultaParaAgendar, setConsultaParaAgendar] = useState<Item | null>(null);
   const [especialidadConsulta, setEspecialidadConsulta] = useState('Medicina general');
-  const [medicoConsulta, setMedicoConsulta] = useState(medicosPorEspecialidad['Medicina general'][0]);
+  const [medicoConsulta, setMedicoConsulta] = useState('');
   const [fechaConsulta, setFechaConsulta] = useState('');
   const [horaConsulta, setHoraConsulta] = useState('');
   const [precioConsulta, setPrecioConsulta] = useState(80);
@@ -136,46 +133,12 @@ export function CajaRecepcionView({
   const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
   const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
   const [consumoSeleccionado, setConsumoSeleccionado] = useState<ConsumoHistorial | null>(null);
-  useEffect(() => {
-    if (modo !== "buscar") {
-      setBuscandoClientes(false);
-      return;
-    }
-    const termino = busquedaCliente.trim();
-    if (termino.length < 2) {
-      setClientesEncontrados([]);
-      setErrorCliente("");
-      setBuscandoClientes(false);
-      return;
-    }
-    const clientesDemoCoincidentes = clientesEjemplo.filter((cliente) => `${cliente.nombre_razon_social} ${cliente.nit_ci} ${cliente.telefono}`.toLocaleLowerCase('es').includes(termino.toLocaleLowerCase('es')));
-
-    const controller = new AbortController();
-    const temporizador = window.setTimeout(() => {
-      setBuscandoClientes(true);
-      setErrorCliente("");
-      void apiContableFetch(`/v1/clientes?buscar=${encodeURIComponent(termino)}`, { signal: controller.signal })
-        .then(async (respuesta) => {
-          const resultado = await respuesta.json() as { data?: ClienteVenta[]; message?: string };
-          if (!respuesta.ok) throw new Error(resultado.message || "No se pudieron buscar los clientes.");
-          const clientesRemotos = resultado.data || [];
-          setClientesEncontrados([...clientesDemoCoincidentes, ...clientesRemotos.filter(cliente => !clientesDemoCoincidentes.some(demo => demo.id === cliente.id))]);
-        })
-        .catch((error: unknown) => {
-          if (controller.signal.aborted) return;
-          setClientesEncontrados(clientesDemoCoincidentes);
-          setErrorCliente(clientesDemoCoincidentes.length ? "" : error instanceof Error ? error.message : "No se pudieron buscar los clientes.");
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) setBuscandoClientes(false);
-        });
-    }, 250);
-
-    return () => {
-      window.clearTimeout(temporizador);
-      controller.abort();
-    };
-  }, [busquedaCliente, modo]);
+  useEffect(()=>{
+    if(modo !== 'buscar') return;
+    const termino=busquedaCliente.trim().toLocaleLowerCase('es');
+    setClientesEncontrados(termino.length<2 ? [] : fichasPacientes.filter(p=>`${nombrePacienteClinico(p)} ${p.ci}`.toLocaleLowerCase('es').includes(termino)).slice(0,20).map(p=>({id:'paciente:'+p.id,paciente_id:p.id,nombre_razon_social:nombrePacienteClinico(p),nit_ci:p.ci,telefono:p.telefono || null,correo:null})));
+    setBuscandoClientes(false);setErrorCliente(errorPacientes);
+  },[modo,busquedaCliente,fichasPacientes,errorPacientes]);
   useEffect(() => {
     const actualizarPrecio = () => {
       try {
@@ -217,7 +180,7 @@ export function CajaRecepcionView({
   };
   const prepararAgregar = (item: Item) => {
     if (item.id === 'consulta') {
-      setConsultaParaAgendar(item); setEspecialidadConsulta('Medicina general'); setMedicoConsulta(medicosPorEspecialidad['Medicina general'][0]); setFechaConsulta(''); setHoraConsulta('');
+      setConsultaParaAgendar(item); setEspecialidadConsulta('Medicina general'); setMedicoConsulta(medicosPorEspecialidad['Medicina general']?.[0] || ''); setFechaConsulta(''); setHoraConsulta('');
       return;
     }
     if (item.categoria === "Imagenología") {
@@ -229,8 +192,11 @@ export function CajaRecepcionView({
     }
     agregar(item);
   };
-  const agendarConsulta = () => {
+  const agendarConsulta = async () => {
     if (!consultaParaAgendar || !fechaConsulta || !horaConsulta) return setMensaje('Selecciona especialidad, médico, fecha y hora para continuar.');
+    const ficha=fichasPacientes.find(p=>p.ci===ciPaciente),profesional=resolver(medicoConsulta);
+    if(!ficha || !profesional) return setMensaje('Selecciona un paciente registrado y un médico activo.');
+    try{const r=await apiFetch('/api/citas',{method:'POST',headers:{Accept:'application/json'},body:JSON.stringify({paciente_id:ficha.id,profesional_id:profesional.id,doctor:profesional.nombre,especialidad:especialidadConsulta,consultorio:'Consultorio 1',fecha:fechaConsulta,hora:horaConsulta,estado:'por_confirmar'})});const d=await r.json();if(!r.ok)throw new Error(Object.values(d.errors || {}).flat().join(' ') || d.message || 'No se pudo agendar la consulta.');}catch(e){setMensaje((e as Error).message);return;}
     const linea: Linea = { ...consultaParaAgendar, id: `${consultaParaAgendar.id}-${fechaConsulta}-${horaConsulta}-${medicoConsulta}`, nombre: `${consultaParaAgendar.nombre} · ${especialidadConsulta}`, cantidad: 1 };
     setLineas(actuales => [...actuales, linea]);
     setMensaje(`Consulta agendada con ${medicoConsulta} para el ${fechaConsulta} a las ${horaConsulta}.`);
@@ -337,7 +303,15 @@ export function CajaRecepcionView({
             detalle: "Descargos Ambulatorios 510",
           },
         ];
-  const seleccionarCliente = (cliente: ClienteVenta) => {
+  const seleccionarCliente = async (cliente: ClienteVenta) => {
+    if (cliente.paciente_id && cliente.id.startsWith('paciente:')) {
+      try {
+        const respuesta = await apiFetch(`/api/v1/pacientes/${cliente.paciente_id}/cliente-contable`, {method:'POST',headers:{Accept:'application/json'}});
+        const resultado = await respuesta.json();
+        if (!respuesta.ok || !resultado.data) throw new Error(resultado.message || 'No se pudo vincular el paciente para cobro.');
+        cliente = resultado.data;
+      } catch (causa) {setErrorCliente((causa as Error).message);return;}
+    }
     setClienteSeleccionado(cliente);
     setPaciente(cliente.nombre_razon_social);
     setCiPaciente(cliente.nit_ci || '');
@@ -454,7 +428,7 @@ export function CajaRecepcionView({
           <footer><button type="button" onClick={() => setConsumoSeleccionado(null)}>Cerrar</button></footer>
         </section>
       </div>}
-      {consultaParaAgendar && <div className="punto-imagen-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsultaParaAgendar(null); }}><form className="punto-imagen-modal punto-consulta-modal" role="dialog" aria-modal="true" aria-label="Agendar consulta ambulatoria" onSubmit={evento => { evento.preventDefault(); agendarConsulta(); }}><header><div><span>CONSULTA AMBULATORIA</span><h3>Agendar consulta</h3><small>Confirma la cita antes de añadir el servicio al carrito.</small></div><button type="button" aria-label="Cerrar" onClick={() => setConsultaParaAgendar(null)}>×</button></header><label>Especialidad<select value={especialidadConsulta} onChange={evento => { const especialidad = evento.target.value; setEspecialidadConsulta(especialidad); setMedicoConsulta(medicosPorEspecialidad[especialidad][0]); }}>{Object.keys(medicosPorEspecialidad).map(especialidad => <option key={especialidad}>{especialidad}</option>)}</select></label><label>Médico sugerido<select value={medicoConsulta} onChange={evento => setMedicoConsulta(evento.target.value)}>{medicosPorEspecialidad[especialidadConsulta].map(medico => <option key={medico}>{medico}</option>)}</select></label><div className="punto-consulta-fecha"><label>Fecha<input required type="date" min={new Date().toISOString().slice(0, 10)} value={fechaConsulta} onChange={evento => setFechaConsulta(evento.target.value)} /></label><label>Hora<select required value={horaConsulta} onChange={evento => setHoraConsulta(evento.target.value)}><option value="">Seleccionar</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>14:00</option><option>15:00</option><option>16:00</option></select></label></div><footer><button type="button" onClick={() => setConsultaParaAgendar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="check" size={16} /> Agendar y añadir al carrito</button></footer></form></div>}
+      {consultaParaAgendar && <div className="punto-imagen-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsultaParaAgendar(null); }}><form className="punto-imagen-modal punto-consulta-modal" role="dialog" aria-modal="true" aria-label="Agendar consulta ambulatoria" onSubmit={evento => { evento.preventDefault(); agendarConsulta(); }}><header><div><span>CONSULTA AMBULATORIA</span><h3>Agendar consulta</h3><small>Confirma la cita antes de añadir el servicio al carrito.</small></div><button type="button" aria-label="Cerrar" onClick={() => setConsultaParaAgendar(null)}>×</button></header><label>Especialidad<select value={especialidadConsulta} onChange={evento => { const especialidad = evento.target.value; setEspecialidadConsulta(especialidad); setMedicoConsulta(medicosPorEspecialidad[especialidad]?.[0] || ''); }}>{Object.keys(medicosPorEspecialidad).map(especialidad => <option key={especialidad}>{especialidad}</option>)}</select></label><label>Médico sugerido<select value={medicoConsulta} onChange={evento => setMedicoConsulta(evento.target.value)}>{(medicosPorEspecialidad[especialidadConsulta] || []).map(medico => <option key={medico}>{medico}</option>)}</select></label><div className="punto-consulta-fecha"><label>Fecha<input required type="date" min={new Date().toISOString().slice(0, 10)} value={fechaConsulta} onChange={evento => setFechaConsulta(evento.target.value)} /></label><label>Hora<select required value={horaConsulta} onChange={evento => setHoraConsulta(evento.target.value)}><option value="">Seleccionar</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>14:00</option><option>15:00</option><option>16:00</option></select></label></div><footer><button type="button" onClick={() => setConsultaParaAgendar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="check" size={16} /> Agendar y añadir al carrito</button></footer></form></div>}
       {imagenParaAgregar && (
         <div className="punto-imagen-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setImagenParaAgregar(null); }}>
           <form className="punto-imagen-modal" role="dialog" aria-modal="true" aria-label="Detalle del estudio de imagenología" onSubmit={(evento) => { evento.preventDefault(); agregarEstudioImagen(); }}>
@@ -482,9 +456,9 @@ export function CajaRecepcionView({
       {mostrandoLaboratorio && (
         <SolicitudLaboratorioRecepcion
           paciente={
-            paciente && ciPaciente ? { nombre: paciente, ci: ciPaciente } : null
+            paciente && ciPaciente ? { id:fichasPacientes.find(p=>p.ci===ciPaciente)?.id, nombre: paciente, ci: ciPaciente } : null
           }
-          pacientes={pacientesEjemplo}
+          pacientes={pacientesRegistrados}
           onSeleccionar={(p) => {
             setPaciente(p.nombre);
             setCiPaciente(p.ci);
@@ -501,229 +475,11 @@ export function CajaRecepcionView({
           onCerrar={() => setMostrandoInternacion(false)}
         />
       )}
-      {mostrandoNuevoPaciente && (
-        <div
-          className="punto-nuevo-paciente-fondo"
-          role="presentation"
-          onClick={() => setMostrandoNuevoPaciente(false)}
-        >
-          <form
-            className="punto-nuevo-paciente-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Nuevo paciente"
-            onClick={(event) => event.stopPropagation()}
-            onSubmit={async (event) => {
-              event.preventDefault();
-              const formulario = event.currentTarget;
-              const campo = (selector: string) => formulario.querySelector<HTMLInputElement>(selector)?.value || "";
-              const respuesta = await apiFetch('/api/v1/pacientes', { method: 'POST', body: JSON.stringify({
-                nombres: campo('input[placeholder="Nombres"]'), apellido_paterno: campo('input[placeholder="Apellido paterno"]'), apellido_materno: campo('input[placeholder="Apellido materno"]'), ci: campo('input[placeholder="CI"]'),
-                complemento_ci: campo('input[placeholder="Complemento"]'), expedido_en: formulario.querySelector<HTMLSelectElement>('select[name="expedidoEn"]')?.value || null, nit: campo('input[placeholder="NIT"]'), razon_social: campo('input[placeholder="Razón social"]'),
-                fecha_nacimiento: campo('input[type="date"]'), telefono: campo('input[placeholder="+591"]'), genero: formulario.querySelector<HTMLSelectElement>('select[name="genero"]')?.value, ci_con_qr: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-ci input[type="checkbox"]')?.checked || false,
-                pais: formulario.querySelector<HTMLSelectElement>('select[name="pais"]')?.value || 'Bolivia', departamento: formulario.querySelector<HTMLSelectElement>('select[name="departamento"]')?.value || 'Cochabamba', ciudad: campo('input[placeholder="Ciudad"]'), zona_barrio: campo('input[placeholder="Zona cardinal"]'), direccion_domicilio: campo('input[placeholder="Dirección"]'),
-                responsable_nombre_completo: campo('input[placeholder="Nombre completo"]'), responsable_ci: campo('input[placeholder="CI del familiar"]'), responsable_telefono: campo('input[placeholder="Teléfono"]'), responsable_parentesco: campo('input[placeholder="Ej. Padre, madre o tutor"]'), como_se_entero: formulario.querySelector<HTMLSelectElement>('select[name="comoSeEntero"]')?.value, observaciones: campo('textarea[placeholder="Observaciones"]'), habilitado: formulario.querySelector<HTMLInputElement>('.nuevo-paciente-habilitado input')?.checked ?? true,
-              }) });
-              const resultado = await respuesta.json() as { message?: string };
-              if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo registrar el paciente.');
-              if (registroPacienteParaCobro) {
-                const nombrePaciente = [campo('input[placeholder="Nombres"]'), campo('input[placeholder="Apellido paterno"]'), campo('input[placeholder="Apellido materno"]')].filter(Boolean).join(' ');
-                const respuestaCliente = await apiContableFetch('/v1/clientes', { method: 'POST', body: JSON.stringify({ nombre_razon_social: nombrePaciente, nit_ci: campo('input[placeholder="CI"]') || null, telefono: campo('input[placeholder="+591"]') || null, correo: null }) });
-                const clienteCreado = await respuestaCliente.json() as { data?: ClienteVenta; message?: string; errors?: Record<string, string[]> };
-                if (!respuestaCliente.ok || !clienteCreado.data) throw new Error(Object.values(clienteCreado.errors || {}).flat()[0] || clienteCreado.message || 'El paciente fue registrado, pero no se pudo habilitar para cobro.');
-                seleccionarCliente(clienteCreado.data);
-                setMensaje('Paciente registrado y seleccionado para el cobro.');
-              }
-              window.dispatchEvent(new Event('pacientes:actualizados'));
-              setRegistroPacienteParaCobro(false);
-              setMostrandoNuevoPaciente(false);
-            }}
-          >
-            <header>
-              <div>
-                <span>
-                  <Icon name="users" size={20} />
-                </span>
-                <div>
-                  <p>NUEVO PACIENTE</p>
-                  <h2>Registrar paciente</h2>
-                </div>
-              </div>
-              <button
-                type="button"
-                aria-label="Cerrar"
-                onClick={() => setMostrandoNuevoPaciente(false)}
-              >
-                <Icon name="close" size={18} />
-              </button>
-            </header>
-            <div className="punto-nuevo-paciente-contenido">
-              <section className="nuevo-paciente-busqueda">
-                <label>
-                  <Icon name="search" size={17} />
-                  <input placeholder="Buscar paciente registrado" />
-                </label>
-                <button type="button">
-                  <Icon name="fileText" size={16} /> Imprimir formulario
-                </button>
-              </section>
-              <fieldset className="nuevo-paciente-seccion">
-                <legend>Datos del paciente</legend>
-                <div className="nuevo-paciente-campos">
-                  <label>
-                    Nombres *<input required placeholder="Nombres" />
-                  </label>
-                  <label>
-                    Apellido paterno *
-                    <input required placeholder="Apellido paterno" />
-                  </label>
-                  <label>
-                    Apellido materno *
-                    <input required placeholder="Apellido materno" />
-                  </label>
-                  <label className="nuevo-paciente-ci">
-                    CI *
-                    <input required placeholder="CI" />
-                    <span>
-                      <input type="checkbox" /> CI con QR
-                    </span>
-                  </label>
-                  <label>
-                    Complemento
-                    <input placeholder="Complemento" />
-                  </label>
-                  <label>
-                    Expedido en
-                    <select name="expedidoEn" defaultValue="">
-                      <option value="">Ninguno</option>
-                      <option value="CBBA">CBBA - COCHABAMBA</option>
-                      <option value="LPZ">LPZ - LA PAZ</option>
-                      <option value="OR">OR - ORURO</option>
-                      <option value="POT">POT - POTOSÍ</option>
-                      <option value="TJA">TJA - TARIJA</option>
-                      <option value="CHU">CHU - CHUQUISACA</option>
-                      <option value="SCZ">SCZ - SANTA CRUZ</option>
-                      <option value="BEN">BEN - BENI</option>
-                      <option value="PND">PND - PANDO</option>
-                      <option value="EXTRANJERO">EXTRANJERO</option>
-                    </select>
-                  </label>
-                  <label>
-                    NIT
-                    <input placeholder="NIT" />
-                  </label>
-                  <label>
-                    Razón social
-                    <input placeholder="Razón social" />
-                  </label>
-                  <label>
-                    Fecha de nacimiento *<input required type="date" />
-                  </label>
-                  <label>
-                    Teléfono
-                    <input type="tel" placeholder="+591" />
-                  </label>
-                  <label>
-                    Género *
-                    <select name="genero" required defaultValue="">
-                      <option value="" disabled>
-                        Seleccionar
-                      </option>
-                      <option>Femenino</option>
-                      <option>Masculino</option>
-                      <option>Otro</option>
-                    </select>
-                  </label>
-                </div>
-              </fieldset>
-              <fieldset className="nuevo-paciente-seccion">
-                <legend>Domicilio</legend>
-                <div className="nuevo-paciente-campos nuevo-paciente-domicilio">
-                  <label>
-                    País
-                    <select name="pais" defaultValue="Bolivia">
-                      <option>Bolivia</option>
-                    </select>
-                  </label>
-                  <label>
-                    Departamento
-                    <select name="departamento" defaultValue="Cochabamba">
-                      <option>Cochabamba</option>
-                      <option>La Paz</option>
-                      <option>Santa Cruz</option>
-                    </select>
-                  </label>
-                  <label>
-                    Ciudad
-                    <input placeholder="Ciudad" />
-                  </label>
-                  <label>
-                    Zona / barrio
-                    <input placeholder="Zona cardinal" />
-                  </label>
-                  <label className="campo-ancho">
-                    Dirección domicilio
-                    <input placeholder="Dirección" />
-                  </label>
-                </div>
-              </fieldset>
-              <fieldset className="nuevo-paciente-seccion">
-                <legend>Persona responsable</legend>
-                <div className="nuevo-paciente-campos nuevo-paciente-responsable">
-                  <label>
-                    Nombre completo
-                    <input placeholder="Nombre completo" />
-                  </label>
-                  <label>
-                    CI / Carnet de identidad
-                    <input placeholder="CI del familiar" />
-                  </label>
-                  <label>
-                    Teléfono de contacto
-                    <input type="tel" placeholder="Teléfono" />
-                  </label>
-                  <label>
-                    Parentesco
-                    <input placeholder="Ej. Padre, madre o tutor" />
-                  </label>
-                </div>
-              </fieldset>
-              <fieldset className="nuevo-paciente-seccion">
-                <legend>Preguntas</legend>
-                <div className="nuevo-paciente-campos nuevo-paciente-preguntas">
-                  <label className="campo-ancho">
-                    ¿Cómo se enteró de nosotros? *
-                    <select name="comoSeEntero" required defaultValue="">
-                      <option value="" disabled>
-                        Seleccionar una opción
-                      </option>
-                      <option>Recomendación</option>
-                      <option>Redes sociales</option>
-                      <option>Otro</option>
-                    </select>
-                  </label>
-                  <label className="campo-ancho">
-                    Observaciones
-                    <textarea placeholder="Observaciones" />
-                  </label>
-                </div>
-                <label className="nuevo-paciente-habilitado">
-                  <input type="checkbox" defaultChecked /> Habilitado
-                </label>
-              </fieldset>
-            </div>
-            <footer>
-              <button
-                type="button"
-                onClick={() => setMostrandoNuevoPaciente(false)}
-              >
-                Cancelar
-              </button>
-              <button type="submit">Guardar paciente</button>
-            </footer>
-          </form>
-        </div>
-      )}
+      {mostrandoNuevoPaciente && <ModalRegistroPaciente onCerrar={() => setMostrandoNuevoPaciente(false)} onRegistrado={p => {
+        setPaciente(nombrePacienteClinico(p)); setCiPaciente(p.ci);
+        if(registroPacienteParaCobro) void seleccionarCliente({id:'paciente:'+p.id,paciente_id:p.id,nombre_razon_social:nombrePacienteClinico(p),nit_ci:p.ci,telefono:p.telefono || null,correo:null});
+        setMensaje('Paciente registrado en la ficha clínica compartida.');
+      }} />}
       {mostrandoCotizacion && (
         <div
           className="punto-cotizacion-fondo"
@@ -991,48 +747,17 @@ export function CajaRecepcionView({
               ))}
             </div>
             <button className="punto-actualizar-catalogo" type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}><Icon name="refresh" size={15}/> Actualizar</button>
-            <div
-              className="punto-modo-vista"
-              role="group"
-              aria-label="Cambiar vista de catálogo"
-            >
-              <button
-                type="button"
-                className={vista === "listado" ? "activo" : ""}
-                onClick={() => setVista("listado")}
-              >
-                <Icon name="menu" size={16} /> Listado
-              </button>
-              <button
-                type="button"
-                className={vista === "galeria" ? "activo" : ""}
-                onClick={() => setVista("galeria")}
-              >
-                <Icon name="image" size={16} /> Galería
-              </button>
-            </div>
+
           </div>
-          {mensaje && <p className="punto-aviso exito">{mensaje}</p>}
-          {vista === "galeria" ? (
-            <div className="punto-tarjetas">
+          {(mensaje || errorPacientes) && <p className="punto-aviso exito">{mensaje || errorPacientes}</p>}
+
+            <div className="punto-tarjetas catalogo-clinico-tarjetas">
               {resultados.map((i) => (
                 <article key={i.id}>
-                  <div className="punto-tarjeta-avatar">
-                    <span>
-                      {i.nombre
-                        .split(" ")
-                        .slice(0, 2)
-                        .map((p) => p[0])
-                        .join("")}
-                    </span>
-                  </div>
                   <div className="punto-tarjeta-info">
                     <small>{i.codigo}</small>
                     <strong>{i.nombre}</strong>
-                    <span>
-                      {i.tipo}
-                      {i.stock !== undefined ? ` · Stock ${i.stock}` : ""}
-                    </span>
+                    <div className="catalogo-clinico-detalles"><span>{i.tipo}</span>{i.stock !== undefined && <span className={'catalogo-clinico-stock' + (i.stock <= 0 ? ' agotado' : '')}>Stock <b>{i.stock}</b></span>}</div>
                     {farmacia && alertasInventario(i).length > 0 && <div className="punto-alertas-inventario" aria-label={`Alertas de ${i.nombre}`}>
                       {alertasInventario(i).map(alerta => <span key={alerta.tipo} className={alerta.nivel}><Icon name={alerta.tipo === "stock" ? "package" : "calendar"} size={13}/>{alerta.texto}</span>)}
                     </div>}
@@ -1040,40 +765,16 @@ export function CajaRecepcionView({
                   <footer>
                     <div>
                       <b>{dinero(i.precio)}</b>
-                      <small>{i.tipo}</small>
+                      <small>Precio de venta</small>
                     </div>
-                    <button type="button" onClick={() => prepararAgregar(i)}>
+                    <button type="button" aria-label={`Agregar ${i.nombre}`} onClick={() => prepararAgregar(i)}>
                       <Icon name="plus" size={16} /> Agregar
                     </button>
                   </footer>
                 </article>
               ))}
             </div>
-          ) : (
-            <div className="punto-listado">
-              {resultados.map((i) => (
-                <article key={i.id}>
-                  <div className="punto-listado-avatar">
-                    {i.nombre
-                      .split(" ")
-                      .slice(0, 2)
-                      .map((p) => p[0])
-                      .join("")}
-                  </div>
-                  <div className="punto-listado-info">
-                    <strong>{i.nombre}</strong>
-                    <span>
-                      {i.codigo} · {i.tipo}
-                    </span>
-                  </div>
-                  <b>{dinero(i.precio)}</b>
-                  <button type="button" onClick={() => prepararAgregar(i)}>
-                    <Icon name="plus" size={16} /> Agregar
-                  </button>
-                </article>
-              ))}
-            </div>
-          )}
+
         </section>
         <aside className="punto-carrito">
           <header>

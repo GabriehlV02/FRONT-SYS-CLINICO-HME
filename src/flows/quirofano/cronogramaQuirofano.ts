@@ -1,6 +1,8 @@
 export type CirugiaProgramada = {
   id: string;
   cuenta: string;
+  pacienteId?: string;
+  profesionalId?: string;
   paciente: string;
   ci: string;
   medico: string;

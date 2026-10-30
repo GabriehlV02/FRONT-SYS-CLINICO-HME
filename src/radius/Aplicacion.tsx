@@ -2,7 +2,8 @@ import React, { Suspense, lazy, useEffect, useState } from "react";
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones from "./componentes/Notificaciones";
-import { obtenerEstudios, obtenerInformes, obtenerPacientes } from "./datos/almacenDemo";
+import { usePacientes } from './vistas/pacientes/usePacientes';
+import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import { leerSesion, type Sesion } from "./types/sesion";
 import VistaInicioSesion from "./vistas/autenticacion/VistaInicioSesion";
@@ -304,13 +305,14 @@ export default function Aplicacion() {
   useEffect(() => {
     if (!sesion) setModulo("");
   }, [sesion]);
+  const { pacientes: fichasPacientes } = usePacientes(Boolean(sesion));
   useEffect(() => {
     if (!sesion || modulo !== "imagenologia") return;
     const actualizarLocales = () => {
       const estudios = obtenerEstudios();
       const pacientesPorModalidad = (categoria: string) => new Set(estudios.filter(estudio => estudio.categoria === categoria).map(estudio => estudio.pacienteId)).size;
       setConteosImagenologia({
-        pacientes: obtenerPacientes().length,
+        pacientes: fichasPacientes.length,
         informes: Object.keys(obtenerInformes()).length,
         estudios: obtenerSolicitudesImagenologia().length,
         radiografias: pacientesPorModalidad('Radiografía'),
@@ -324,7 +326,7 @@ export default function Aplicacion() {
     return () => {
       window.removeEventListener("radiuus:datos-demo", actualizarLocales);
     };
-  }, [sesion?.token, modulo]);
+  }, [sesion?.token, modulo, fichasPacientes]);
   useEffect(() => {
     if (!sesion) return;
     const restante = sesion.expiresAt - Date.now();

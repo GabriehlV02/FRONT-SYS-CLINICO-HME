@@ -1,0 +1,79 @@
+.sistema-app .punto-tarjetas.catalogo-clinico-tarjetas {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+.sistema-app .catalogo-clinico-tarjetas > article {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #cfdeeb;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgb(24 57 76 / 4%);
+}
+.sistema-app .catalogo-clinico-tarjetas .punto-tarjeta-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 12px;
+  padding: 18px;
+  min-width: 0;
+}
+.sistema-app .catalogo-clinico-tarjetas .punto-tarjeta-info > small {
+  font-size: 11px;
+  line-height: 1.4;
+  color: #607c96;
+  font-weight: 550;
+}
+.sistema-app .catalogo-clinico-tarjetas .punto-tarjeta-info > strong {
+  margin: 0;
+  color: #123d60;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.sistema-app .catalogo-clinico-detalles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+  font-size: 12px;
+  color: #54718a;
+}
+.sistema-app .catalogo-clinico-stock { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 5px; background: #edf7fc; color: #21648c; }
+.sistema-app .catalogo-clinico-stock.agotado { color: #956622; background: #fff6e6; }
+.sistema-app .catalogo-clinico-tarjetas > article > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 18px;
+  border-top: 1px solid #e0eaf2;
+  background: #f6fafd;
+}
+.sistema-app .catalogo-clinico-tarjetas footer > div { display: grid; gap: 4px; min-width: 0; }
+.sistema-app .catalogo-clinico-tarjetas footer b { font-size: 17px; font-weight: 700; line-height: 1.4; color: #123d60; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.sistema-app .catalogo-clinico-tarjetas footer small { color: #607c96; font-size: 11px; }
+.sistema-app .catalogo-clinico-tarjetas footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 9px 13px;
+  flex-shrink: 0;
+  border: 1px solid #087dbd;
+  border-radius: 7px;
+  background: #087dbd;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+}
+.sistema-app .catalogo-clinico-tarjetas footer button:hover { background: #06679e; border-color: #06679e; }
+.sistema-app .catalogo-clinico-tarjetas footer button:focus-visible { outline: 2px solid #087dbd; outline-offset: 3px; }

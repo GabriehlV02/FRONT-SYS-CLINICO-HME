@@ -1,7 +1,7 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
-import CentroNotificaciones from "./componentes/Notificaciones";
+import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
 import { usePacientes } from './vistas/pacientes/usePacientes';
 import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
@@ -43,6 +43,7 @@ const ConfiguracionLaboratorioView = lazy(() => import('../flows/laboratorio/Con
 const LaboratorioAlmacenView = lazy(() => import('../flows/laboratorio/LaboratorioAlmacenView').then(m => ({ default: m.LaboratorioAlmacenView })));
 const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
 const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTriajeView').then(m => ({ default: m.RegistroUsoTriajeView })));
+const UsoItemsAmbulatorioView = lazy(() => import('../flows/triaje/UsoItemsAmbulatorioView').then(m => ({ default: m.UsoItemsAmbulatorioView })));
 const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
 const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
 const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
@@ -60,6 +61,7 @@ const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaV
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
 const VistaEstudiosCobrados = lazy(() => import('./vistas/VistaEstudiosCobrados'));
 const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
+const VisorEcografias = lazy(() => import('./vistas/visor-ecografias/VisorEcografias'));
 const VistaBaseDatosOrthanc = lazy(() => import('./vistas/base-datos/VistaBaseDatosOrthanc'));
 const VistaConfiguracion = lazy(() => import('./vistas/configuracion/VistaConfiguracion'));
 const VistaAuditorias = lazy(() => import('./vistas/auditorias/VistaAuditorias'));
@@ -91,7 +93,7 @@ type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "report
 type SubvistaPacientes = "pacientes" | "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
 type SubvistaAtencionAgenda = "pacientes" | "cronograma";
-type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "registro-uso" | "configuracion";
+type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "registro-uso" | "uso-items" | "configuracion";
 type SubvistaMedicoInternacion = "internados" | "altas";
 type SubvistaEnfermeraInternacion = "internados" | "altas";
 type TemaSistema = "light" | "dark";
@@ -412,7 +414,14 @@ export default function Aplicacion() {
     : moduloActual;
   const opcionesBusqueda = [...modulos, ...subvistasImagenologia];
   const textoBusqueda = busqueda.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  const cerrarSesion = () => {
+  const cerrarSesion = async () => {
+    const salir = await confirmar({
+      titulo: "Cerrar sesión",
+      mensaje: "¿Estás seguro de que quieres cerrar sesión del sistema clínico?",
+      textoConfirmar: "Sí, cerrar sesión",
+      variante: "salida",
+    });
+    if (!salir) return;
     fetch("/api/logout", {
       method: "POST",
       headers: { Authorization: `Bearer ${sesion.token}` },
@@ -643,12 +652,14 @@ export default function Aplicacion() {
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Triaje ambulatorio">
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('signos-vitales')}><span><Icon name="patient" size={17} /></span><strong>Signos vitales</strong></button>
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'agenda' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'agenda' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('agenda')}><span><Icon name="calendar" size={17} /></span><strong>Agenda</strong></button>
-                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'registro-uso' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'registro-uso' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('registro-uso')}><span><Icon name="audit" size={17} /></span><strong>Registro de uso</strong></button>
+                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'registro-uso' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'registro-uso' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('registro-uso')}><span><Icon name="audit" size={17} /></span><strong>Registro de atención</strong></button>
+                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'uso-items' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'uso-items' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('uso-items')}><span><Icon name="package" size={17} /></span><strong>Uso de ítems</strong></button>
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'configuracion' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'configuracion' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('configuracion')}><span><Icon name="settings" size={17} /></span><strong>Configuración</strong></button>
               </HorizontalSubvistaNav>
               {subvistaTriajeAmbulatorio === 'signos-vitales' && <SignosVitalesView camposConfigurados={signosVitalesConfigurados} />}
               {subvistaTriajeAmbulatorio === 'agenda' && <CitasRecepcionView />}
               {subvistaTriajeAmbulatorio === 'registro-uso' && <RegistroUsoTriajeView />}
+              {subvistaTriajeAmbulatorio === 'uso-items' && <UsoItemsAmbulatorioView />}
               {subvistaTriajeAmbulatorio === 'configuracion' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={setSignosVitalesConfigurados} />}
             </section>
           ) : modulo === 'triaje-emergencias' ? (
@@ -725,8 +736,14 @@ export default function Aplicacion() {
             <VistaPacientes modalidad="Ecografía" />
           ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" ? (
             <VistaPacientes modalidad="Ecocardiograma" />
-          ) : modulo === "imagenologia" && ["radiografias", "tomografias", "ecografias", "ecocardiogramas"].includes(subvistaImagenologia) && subvistaModalidad === "visor" ? (
-            <VistaRayosX modalidad={visorModalidad || undefined} />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" && subvistaModalidad === "visor" ? (
+            <VisorEcografias key="visor-ecografias" />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "tomografias" && subvistaModalidad === "visor" ? (
+            <VistaRayosX key="visor-tomografias" modalidad="Tomografía" />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaModalidad === "visor" ? (
+            <VistaRayosX key="visor-radiografias" modalidad="Radiografía" />
+          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && subvistaModalidad === "visor" ? (
+            <VistaRayosX key="visor-ecocardiogramas" modalidad="Radiografía" />
           ) : modulo === "imagenologia" && ["pacientes", "radiografias", "tomografias"].includes(subvistaImagenologia) ? (
             <VistaPacientes modalidad={subvistaImagenologia === "tomografias" ? "Tomografía" : subvistaImagenologia === "ecocardiogramas" ? "Ecocardiograma" : subvistaImagenologia === "radiografias" ? "Radiografía" : undefined} soloConEstudio={subvistaImagenologia === "radiografias"} />
           ) : modulo === "imagenologia" && subvistaImagenologia === "visor" ? (

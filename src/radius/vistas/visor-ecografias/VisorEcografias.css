@@ -1,0 +1,16 @@
+.rx-vista.rx-ecografia .rx-cabecera {
+  border-top: 4px solid #13a5a1;
+  background: linear-gradient(115deg, #f4fffd, #ffffff 60%);
+}
+
+.rx-vista.rx-ecografia .rx-cabecera p {
+  color: #087d7c;
+}
+
+.rx-vista.rx-ecografia .rx-estacion {
+  background: #07171a;
+}
+
+.rx-vista.rx-ecografia .rx-lienzo {
+  background: #07171a;
+}

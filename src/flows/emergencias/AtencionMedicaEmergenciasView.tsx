@@ -185,6 +185,7 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
 }) {
   const [cierre, setCierre] = useState<{ condicionEgreso: 'vivo' | 'muerto'; causaEgreso: 'hospitalaria' | 'solicitada' | 'fuga' | 'transferencia' | 'deceso' | 'internacion'; observacionEgreso: string } | null>(null);
   const [orden, setOrden] = useState<BorradorOrden | null>(null), [buscarItem, setBuscarItem] = useState('');
+  const [busquedaPrescripcion, setBusquedaPrescripcion] = useState('');
   const [estudiosImagen, setEstudiosImagen] = useState<EstudioImagen[]>([]), [tipoImagen, setTipoImagen] = useState('Rayos X');
   const [valoresSignos, setValoresSignos] = useState<Record<string, string>>({}), [observacionSignos, setObservacionSignos] = useState('');
   const [signoEvolucion, setSignoEvolucion] = useState('temperatura');
@@ -204,9 +205,9 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
     catch (e) { setError((e as Error).message); return false; }
     finally { bloqueo.current = false; setOcupado(false); }
   }
-  function abrirOrden(tipo: string, existente?: OrdenEmergencia) {
+  function abrirOrden(tipo: string, existente?: OrdenEmergencia, item?: ItemEmergencia) {
     if (orden && !window.confirm('¿Descartar el borrador de la indicación actual?')) return;
-    setOrden(existente ? { ...existente } : nuevaOrden(tipo)); setBuscarItem(''); setEstudiosImagen([]); setTipoImagen('Rayos X');
+    setOrden(existente ? { ...existente } : { ...nuevaOrden(tipo), ...(item ? { itemId: item.id, titulo: item.nombre } : {}) }); setBuscarItem(''); setEstudiosImagen([]); setTipoImagen('Rayos X');
     window.setTimeout(() => editorOrden.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 0);
   }
   const ultimoSigno = [...cuenta.signos].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha))[0];
@@ -214,6 +215,8 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
   const totalConsumido = cuenta.consumos.reduce((total, consumo) => total + consumo.precio * consumo.cantidad, 0);
   const saldoPendiente = Math.max(0, totalConsumido - montoPagado);
   const estudios = (cuenta.ordenes || []).filter(ordenActual => ['laboratorio', 'imagenologia'].includes(ordenActual.tipo));
+  const consultaPrescripcion = busquedaPrescripcion.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const coincidenciasPrescripcion = catalogo.filter(item => `${item.nombre} ${item.codigo} ${item.categoria || ''} ${item.grupo || ''}`.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(consultaPrescripcion));
   const datosPaciente = cuenta.identidad || {};
   const estadoActual = estadoPaciente(cuenta);
   const actualizarEstadoPaciente = async (estado: string) => {
@@ -293,6 +296,16 @@ function AtencionPaciente({ cuenta, catalogo, errorCatalogo, cargarCatalogo, eje
       </section>
       <section className="em-panel em-resultados-estudios em-resumen-ordenes" aria-label="Órdenes y medicamentos">
         <header className="em-panel-titulo"><div><h3>Órdenes y medicamentos</h3><small>Indicaciones médicas del paciente</small></div><span>{(cuenta.ordenes || []).filter(o => !['laboratorio', 'imagenologia'].includes(o.tipo)).length}</span></header>
+        {!cuenta.fin && <div className="em-prescribir-buscador">
+          <label className="em-prescribir-entrada"><Icon name="search" size={17} /><input type="search" aria-label="Buscar medicamento, insumo o servicio" value={busquedaPrescripcion} onChange={evento => setBusquedaPrescripcion(evento.target.value)} placeholder="Buscar medicamento, insumo o servicio…" /></label>
+          {errorCatalogo && <div className="em-error" role="alert">{errorCatalogo}<button type="button" onClick={() => void cargarCatalogo()}>Reintentar catálogo</button></div>}
+          {consultaPrescripcion && <div className="em-prescribir-resultados" aria-label="Resultados del catálogo">
+            {coincidenciasPrescripcion.slice(0, 12).map(item => <button key={item.id} type="button" disabled={ocupado} onClick={() => abrirOrden(item.tipo === 'servicio' ? 'servicio' : 'medicamento', undefined, item)}><span><strong>{item.nombre}</strong><small>{[item.codigo, item.categoria || item.grupo, item.unidad].filter(Boolean).join(' · ')}</small></span><Icon name="plus" size={17} /></button>)}
+            {!coincidenciasPrescripcion.length && <p role="status">No se encontraron coincidencias. Puedes escribir una indicación.</p>}
+            {coincidenciasPrescripcion.length > 12 && <p role="status">Hay más resultados. Escribe un nombre más específico.</p>}
+          </div>}
+          <button className="em-prescribir-manual" type="button" disabled={ocupado} onClick={() => abrirOrden('cuidado')}><Icon name="plus" size={15} /> Nueva indicación médica</button>
+        </div>}
         {(cuenta.ordenes || []).some(o => !['laboratorio', 'imagenologia'].includes(o.tipo)) ? <ul>{(cuenta.ordenes || []).filter(o => !['laboratorio', 'imagenologia'].includes(o.tipo)).map(o => <li key={o.id}><div><strong>{o.titulo || tiposOrden.find(([tipo]) => tipo === o.tipo)?.[1] || 'Orden médica'}</strong><small>{o.indicaciones}</small>{[o.dosis, o.via, o.frecuencia, o.duracion].some(Boolean) && <small>{[o.dosis, o.via, o.frecuencia, o.duracion].filter(Boolean).join(' · ')}</small>}<em className={`em-estado-estudio ${o.estado}`}>{estadoEstudio(o)}</em></div></li>)}</ul> : <p className="em-vacio">Aún no hay órdenes ni medicamentos registrados para este paciente.</p>}
       </section>
       <section className="em-panel"><h3>Actividad de enfermería</h3><small>{cuenta.consumos.length} consumo(s) registrado(s)</small>{cuenta.consumos.filter(c => c.porHora && !c.fin).map(c => <p className="em-servicio-activo" key={c.registroId}>● {c.nombre}<small>En uso desde {fechaEmergencia(c.inicio)}</small></p>)}</section>

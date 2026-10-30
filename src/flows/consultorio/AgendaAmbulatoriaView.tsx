@@ -1,20 +1,21 @@
 import { useProfesionales } from '../../radius/profesionales';
 import { leerSesion } from '../../radius/types/sesion';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { apiFetch } from '../../radius/api';
 import { obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registroSignosVitales';
+import { obtenerAtencionAmbulatoria, obtenerEpisodios, registrarAtencionAmbulatoria, suscribirEpisodios } from './registroHistoria';
 import './AgendaAmbulatoriaView.css';
 import './AgendaAmbulatoriaViewAlineacion.css';
 
-export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?:string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
+export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; consultorio?: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
 const fechaHoy = () => new Date().toLocaleDateString('en-CA');
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
   const {profesionales}=useProfesionales();
   const profesionalActual=profesionales.find(p=>p.usuario_id===String(leerSesion()?.usuario.id));
   const [errorPacientes,setErrorPacientes]=useState('');
   const [citas, setCitas] = useState<CitaConfirmada[]>([]);
-  const [atendidas, setAtendidas] = useState<Set<string>>(() => new Set());
+  useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [busqueda, setBusqueda] = useState('');
   const [busquedaAtendidas, setBusquedaAtendidas] = useState('');
 
@@ -31,9 +32,9 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   const visibles = useMemo(() => citas.filter((cita) => !medico || (profesionalActual && cita.profesionalId===profesionalActual.id) || /administrador/i.test(medico) || cita.doctor === medico || cita.doctor === 'Agenda ambulatoria')
     .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)), [citas, medico, profesionalActual]);
   const coincide = (cita: CitaConfirmada, texto: string) => `${cita.paciente} ${cita.ci} ${cita.doctor} ${cita.especialidad}`.toLocaleLowerCase().includes(texto.trim().toLocaleLowerCase());
-  const pendientes = visibles.filter((cita) => !atendidas.has(cita.id) && coincide(cita, busqueda));
-  const atendidasHoy = visibles.filter((cita) => atendidas.has(cita.id) && coincide(cita, busquedaAtendidas));
-  const atender = (cita: CitaConfirmada) => { setAtendidas((actuales) => new Set(actuales).add(cita.id)); onAtender?.(cita); };
+  const pendientes = visibles.filter((cita) => !obtenerAtencionAmbulatoria(cita) && coincide(cita, busqueda));
+  const atendidasHoy = visibles.filter((cita) => obtenerAtencionAmbulatoria(cita) && coincide(cita, busquedaAtendidas));
+  const atender = (cita: CitaConfirmada) => { registrarAtencionAmbulatoria(cita, medico); onAtender?.(cita); };
   const signosRegistrados = (cita: CitaConfirmada) => Object.values(obtenerSignosVitales(cita.ci) ?? {}).some(Boolean);
 
   return <section className="agenda-ambulatoria" aria-label="Agenda de pacientes ambulatorios confirmados">{errorPacientes && <p role="alert">{errorPacientes}</p>}
@@ -55,7 +56,7 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
       <aside className="agenda-lateral agenda-atendidas">
         <header><div><p>ATENDIDOS HOY</p><strong>Consultas realizadas</strong></div><span>{atendidasHoy.length}</span></header>
         <label className="agenda-buscar-atendidas"><Icon name="search" size={15} /><input value={busquedaAtendidas} onChange={(event) => setBusquedaAtendidas(event.target.value)} placeholder="Buscar atendido..." /></label>
-        {atendidasHoy.length ? <div>{atendidasHoy.map((cita) => <article key={cita.id}><span className="agenda-iniciales">{cita.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span><div><strong>{cita.paciente}</strong><small>Consulta {cita.hora}</small><small>{cita.especialidad || 'Consulta ambulatoria'}</small></div><Icon name="check" size={16} /></article>)}</div> : <p>Aún no hay consultas atendidas.</p>}
+        {atendidasHoy.length ? <div>{atendidasHoy.map((cita) => <article key={`${cita.id}-${cita.fecha}-${cita.hora}`}><span className="agenda-iniciales">{cita.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span><div><strong>{cita.paciente}</strong><small>Consulta {cita.hora}</small><small>{cita.especialidad || 'Consulta ambulatoria'}</small></div>{obtenerAtencionAmbulatoria(cita)?.finalizadaEn ? <Icon name="check" size={16} /> : <button type="button" onClick={() => atender(cita)}>Continuar</button>}</article>)}</div> : <p>Aún no hay consultas atendidas.</p>}
       </aside>
     </div>
   </section>;

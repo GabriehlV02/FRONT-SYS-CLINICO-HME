@@ -38,7 +38,10 @@ async function solicitarEmergencias<T>(ruta = '', body?: object): Promise<T> {
     const cuentas: CuentaEmergencia[] = JSON.parse(sessionStorage.getItem(clave) || '[]');
     const datos = (body || {}) as Record<string, any>;
     const fecha = new Date().toISOString();
-    if (ruta === '/catalogo') return [] as T;
+    if (ruta === '/catalogo') return [
+      { id: 'demo-cubiculo-hora', codigo: 'DEMO-CUB', nombre: 'Uso de cubículo', tipo: 'servicio', unidad: 'hora', precio: 0, categoria: 'Demostración' },
+      { id: 'demo-oxigeno-hora', codigo: 'DEMO-O2', nombre: 'Oxígeno', tipo: 'servicio', unidad: 'hora', precio: 0, categoria: 'Demostración' },
+    ] as T;
     if (!ruta && !body) return { cuentas, ahora: fecha } as T;
     let cuenta: CuentaEmergencia;
     if (!ruta) {

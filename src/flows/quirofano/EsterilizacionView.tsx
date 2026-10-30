@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Icon from '../../radius/componentes/Icono';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
+import { RoperiaView } from './RoperiaView';
 import '../recepcion/RecepcionView.css';
 import '../cocina/CocinaVentasView.css';
 import { leerCronograma, type CirugiaProgramada } from './cronogramaQuirofano';
@@ -44,7 +45,7 @@ const leerCirugiasEsterilizacion = () => {
   return programadas.length ? programadas : CIRUGIAS_DEMO;
 };
 
-type SubvistaEsterilizacion = 'sala' | 'entrega' | 'seguimiento' | 'inventario' | 'kits' | 'solicitudes' | 'cronograma' | 'area-roja' | 'area-azul' | 'area-verde';
+type SubvistaEsterilizacion = 'sala' | 'entrega' | 'seguimiento' | 'inventario' | 'kits' | 'roperia' | 'solicitudes' | 'cronograma' | 'area-roja' | 'area-azul' | 'area-verde';
 type SubvistaEsterilizacionConfig = { id: SubvistaEsterilizacion; icono: 'lab' | 'check' | 'search' | 'package' | 'asset' | 'fileText' | 'calendar'; titulo: string; descripcion: string };
 const SUBVISTAS: SubvistaEsterilizacionConfig[] = [
   { id: 'sala', icono: 'lab', titulo: 'Recepción sucio', descripcion: 'Ingreso de material para reprocesar.' },
@@ -52,6 +53,7 @@ const SUBVISTAS: SubvistaEsterilizacionConfig[] = [
   { id: 'seguimiento', icono: 'search', titulo: 'Seguimiento de esterilización', descripcion: 'Ubicación y estado de cada pieza.' },
   { id: 'inventario', icono: 'package', titulo: 'Inventario', descripcion: 'Registro individual de material estéril.' },
   { id: 'kits', icono: 'package', titulo: 'Kits de instrumental', descripcion: 'Grupos, reservas y preparación quirúrgica.' },
+  { id: 'roperia', icono: 'asset', titulo: 'Ropería', descripcion: 'Control de ropa hospitalaria.' },
   { id: 'solicitudes', icono: 'fileText', titulo: 'Solicitudes', descripcion: 'Requerimientos de material para cirugía.' },
   { id: 'cronograma', icono: 'calendar', titulo: 'Cronograma de cirugías', descripcion: 'Agenda y preparación de procedimientos.' },
   { id: 'area-roja', icono: 'lab', titulo: 'Área roja', descripcion: 'Recepción, lavado y descontaminación.' },
@@ -264,6 +266,7 @@ export function EsterilizacionView({ titulo = 'Control de material estéril', su
       {kitsVisibles.length ? <div className="est-kits est-kits-tarjetas">{kitsVisibles.map(kit => <article key={kit.id} className={kitAbierto === kit.id ? 'est-kit-tarjeta activo' : 'est-kit-tarjeta'}><div className="est-kit-tarjeta-info"><Icon name="package" size={20}/><span><strong>{kit.nombre}</strong><small>{kit.materialIds.length} instrumentos · {(kit.especialidades || []).join(', ') || 'Sin especialidad'}</small></span><b className={`est-kit-estado ${estadoKit(kit, datos.materiales)}`}>{ETIQUETAS_KIT[estadoKit(kit, datos.materiales)]}</b></div><div className="est-kit-acciones"><button type="button" onClick={() => { setKitAbierto(kit.id); setCirugiaId(''); setError(''); setAviso(''); setCirugias(leerCirugiasEsterilizacion()); setInspeccionKitAbierta(true); }}>Inspeccionar</button><button type="button" onClick={() => abrirAgregar(kit.id)}>Añadir materiales</button></div></article>)}</div> : <div className="est-vacio"><Icon name="package" size={26}/><strong>No hay kits con estos filtros</strong><small>Crea un kit o ajusta la búsqueda.</small></div>}
 
     </section>}
+    {subvista === 'roperia' && <RoperiaView />}
 
     <dialog ref={inspeccionKitDialog} className="est-modal est-seguimiento-modal est-kit-inspeccion" aria-labelledby="inspeccion-kit-titulo" onClose={() => setInspeccionKitAbierta(false)} onClick={event => {
       if (event.target !== event.currentTarget) return;

@@ -193,6 +193,67 @@
   color: #fff;
   background: #425e78;
 }
+.confirmacion-modal.confirmacion-salida {
+  width: min(460px, 100%);
+  border: 1px solid #b9def0;
+  border-radius: 20px;
+  color: #174768;
+  box-shadow: 0 25px 80px #03416b40;
+}
+.confirmacion-salida header {
+  padding: 24px 24px 19px;
+  gap: 14px;
+  border-bottom-color: #deeff7;
+  background: linear-gradient(115deg, #effaff, #fff);
+}
+.confirmacion-salida header > span {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 1px solid #bce7f5;
+  border-radius: 14px;
+  color: #008ac8;
+  background: #e1f5fe;
+}
+.confirmacion-salida header small {
+  color: #008bc3;
+  font-size: 10px;
+  letter-spacing: .1em;
+}
+.confirmacion-salida h3 { margin-top: 6px; font-size: 21px; color: #16476a; }
+.confirmacion-salida header > button {
+  width: 34px;
+  height: 34px;
+  border-color: #c5e3f2;
+  color: #347292;
+  background: #fff;
+  cursor: pointer;
+}
+.confirmacion-salida .confirmacion-contenido { padding: 23px 24px; }
+.confirmacion-salida .confirmacion-contenido > p { color: #4d7088; font-size: 14px; line-height: 1.6; }
+.confirmacion-salida footer { padding: 0 24px 24px; gap: 10px; border: 0; background: #fff; }
+.confirmacion-salida footer button {
+  min-height: 44px;
+  height: auto;
+  flex: 1;
+  padding: 10px 14px;
+  border-color: #b9daed;
+  border-radius: 10px;
+  color: #076a9d;
+  background: #f6fbff;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.confirmacion-salida footer .confirmar {
+  justify-content: center;
+  border-color: #078bc2;
+  color: #fff;
+  background: linear-gradient(110deg, #087bb9, #0cadd1);
+  box-shadow: 0 7px 16px #008ac526;
+}
+.confirmacion-salida footer button:hover { filter: brightness(.97); }
+.confirmacion-salida button:focus-visible { outline: 3px solid #70d2ef; outline-offset: 3px; }
 .confirmacion-modal.peligrosa header > span {
   color: #9a3e3e;
   background: #fae7e7;

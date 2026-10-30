@@ -4,7 +4,7 @@ import { HojaLaboratorios } from './HojaLaboratorios';
 import type { CitaConfirmada } from './AgendaAmbulatoriaView';
 import './ConsultaMedicaView.css';
 import { obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registroSignosVitales';
-import { guardarEpisodio, obtenerEpisodios, type DocumentoEpisodio } from './registroHistoria';
+import { guardarEpisodio, obtenerAtencionAmbulatoria, obtenerEpisodios, origenConsultaAmbulatoria, suscribirEpisodios, type DocumentoEpisodio } from './registroHistoria';
 import { RecetarioMedico } from './RecetarioMedico';
 import { crearSolicitudLaboratorio, leerSolicitudesLaboratorio, suscribirLaboratorio, type SolicitudLaboratorio } from '../laboratorio/almacenLaboratorio';
 import { OrdenInternacionMedica } from './OrdenInternacionMedica';
@@ -51,6 +51,7 @@ function OrdenesConsulta({ paciente, onAbrir, onAbrirRecetario }: { paciente: Ci
 }
 
 export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirmada | null; medico: string }) {
+  useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [seccion, setSeccion] = useState<SeccionConsulta>('atencion');
   const [recetarioAbierto, setRecetarioAbierto] = useState(false);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -87,16 +88,19 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   if (!paciente) return <section className="consulta-inicio consulta-inicio-sin-lista"><section className="consulta-area panel"><header><div><p>CONSULTA MÉDICA</p><h2>Sin paciente en atención</h2><small>La información se cargará al pulsar “Atender” desde la Agenda.</small></div><OrdenesConsulta paciente={null} /></header><div className="consulta-area-vacia"><Icon name="userCheck" size={30} /><strong>Aún no hay una consulta iniciada</strong><small>Selecciona “Atender” en la Agenda para cargar los datos del paciente.</small></div></section></section>;
   const datos = Object.keys(vitales).length ? vitales : (vitalesTriaje ?? {});
   const camposConResultado = campos.filter(([id]) => datos[id] !== undefined && datos[id] !== '');
-  const datosClinicosPaciente = datosClinicos[paciente.ci] ?? { motivoConsulta: '', enfermedadActual: '', examenFisico: '' };
+  const episodioActual = obtenerAtencionAmbulatoria(paciente);
+  const origenConsulta = origenConsultaAmbulatoria(paciente);
+  const datosClinicosPaciente = datosClinicos[paciente.ci] ?? { motivoConsulta: episodioActual?.motivo || '', enfermedadActual: episodioActual?.enfermedadActual || '', examenFisico: episodioActual?.examenFisico || '' };
+  const atencionFinalizada = Boolean(atencionesCerradas[paciente.ci] || episodioActual?.finalizadaEn);
   const ordenesPaciente = ordenesMedicas[paciente.ci] ?? [];
   const ordenesFiltradas = catalogoOrdenesMedicas.filter(orden => orden.toLowerCase().includes(busquedaOrdenMedica.toLowerCase()) && !ordenesPaciente.includes(orden));
   const partesNombre = paciente.paciente.trim().split(/\s+/);
   const nombre = paciente.nombre ?? partesNombre[0] ?? 'No registrado';
   const apellidos = paciente.apellidos ?? (partesNombre.slice(1).join(' ') || 'No registrado');
   const guardarReceta = (receta: DocumentoEpisodio) => {
-    const existente = obtenerEpisodios().find(e => e.origenId === `consulta:${paciente.id}`);
+    const existente = obtenerEpisodios().find(e => e.origenId === origenConsulta);
     guardarEpisodio({
-      origenId: `consulta:${paciente.id}`, tipo: 'Consulta médica', paciente,
+      origenId: origenConsulta, tipo: 'Consulta médica', paciente,
       medico: paciente.doctor && paciente.doctor !== 'Agenda ambulatoria' ? paciente.doctor : medico,
       fecha: paciente.fecha,
       motivo: datosClinicosPaciente.motivoConsulta.trim() || existente?.motivo || '',
@@ -109,13 +113,14 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
       resultados: existente?.resultados ?? [], reconsultas: existente?.reconsultas ?? [],
     });
   };
-  const guardarEnHistoria = () => {
+  const guardarEnHistoria = (finalizar = false) => {
     const ordenes = [
       ...(laboratoriosElegidos ? [{ tipo: 'Laboratorio', detalle: laboratoriosElegidos, estado: 'Solicitado' }] : []),
       ...(tipoOrden && tipoOrden !== 'laboratorio' && detalleOrden.trim() ? [{ tipo: titulosOrden[tipoOrden], detalle: detalleOrden.trim(), estado: 'Solicitado' }] : []),
     ];
-    const episodio = guardarEpisodio({ origenId: `consulta:${paciente.id}`, tipo: 'Consulta médica', paciente, medico: paciente.doctor && paciente.doctor !== 'Agenda ambulatoria' ? paciente.doctor : medico, fecha: paciente.fecha, motivo: datosClinicosPaciente.motivoConsulta.trim(), enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(), examenFisico: datosClinicosPaciente.examenFisico.trim(), antecedentes: (antecedentes[paciente.ci] ?? '').trim(), notas: (notasMedicas[paciente.ci] ?? '').trim(), signosVitales: { ...datos }, recetas: [], ordenes, resultados: [], reconsultas: [] });
+    const episodio = guardarEpisodio({ origenId: origenConsulta, tipo: 'Consulta médica', paciente, medico: paciente.doctor && paciente.doctor !== 'Agenda ambulatoria' ? paciente.doctor : medico, fecha: paciente.fecha, motivo: datosClinicosPaciente.motivoConsulta.trim(), enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(), examenFisico: datosClinicosPaciente.examenFisico.trim(), antecedentes: (antecedentes[paciente.ci] ?? episodioActual?.antecedentes ?? '').trim(), notas: (notasMedicas[paciente.ci] ?? episodioActual?.notas ?? '').trim(), signosVitales: Object.keys(datos).length ? { ...datos } : episodioActual?.signosVitales ?? {}, recetas: [], ordenes, resultados: [], reconsultas: [], ...(finalizar ? { finalizadaEn: new Date().toISOString() } : {}) });
     setEpisodioGuardado(episodio.episodioId);
+    if (finalizar) setAtencionesCerradas((actual) => ({ ...actual, [paciente.ci]: true }));
   };
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
     <section className="consulta-activa-derecha">
@@ -125,10 +130,10 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
         <button type="button" className="consulta-volver-listado" onClick={() => window.dispatchEvent(new Event('consulta:volver-al-listado'))}><Icon name="chevronLeft" size={16} /><span>Volver al listado</span></button>
         {seccionesConsulta.map(item => <button key={item.id} type="button" className={seccion === item.id ? 'activo' : ''} aria-current={seccion === item.id ? 'page' : undefined} onClick={() => setSeccion(item.id)}><Icon name={item.icono} size={16} /><span>{item.nombre}</span></button>)}
       </nav>
-      {seccion === 'atencion' && <div className="consulta-guardar-historia consulta-guardar-en-barra"><button type="button" onClick={guardarEnHistoria} disabled={!datosClinicosPaciente.motivoConsulta.trim()}><Icon name="fileText" size={16} /> Guardar episodio cl&iacute;nico</button>{episodioGuardado && <span>Episodio {episodioGuardado} actualizado en la historia cl&iacute;nica.</span>}</div>}
+      {seccion === 'atencion' && <div className="consulta-guardar-historia consulta-guardar-en-barra"><button type="button" onClick={() => guardarEnHistoria()} disabled={!datosClinicosPaciente.motivoConsulta.trim()}><Icon name="fileText" size={16} /> Guardar episodio cl&iacute;nico</button>{episodioGuardado && <span>Episodio {episodioGuardado} actualizado en la historia cl&iacute;nica.</span>}</div>}
       </div>
       {seccion === 'atencion' && <>
-      <div className="consulta-guardar-historia"><button type="button" onClick={guardarEnHistoria} disabled={!datosClinicosPaciente.motivoConsulta.trim()}><Icon name="fileText" size={16} /> Guardar episodio clínico</button>{episodioGuardado && <span>Episodio {episodioGuardado} actualizado en la historia clínica.</span>}</div>
+      <div className="consulta-guardar-historia"><button type="button" onClick={() => guardarEnHistoria()} disabled={!datosClinicosPaciente.motivoConsulta.trim()}><Icon name="fileText" size={16} /> Guardar episodio clínico</button>{episodioGuardado && <span>Episodio {episodioGuardado} actualizado en la historia clínica.</span>}</div>
       {tipoOrden === 'laboratorio' && <HojaLaboratorios permitirEstudiosLocales paciente={paciente.paciente} onCerrar={() => setTipoOrden(null)} onAceptar={items => { crearSolicitudLaboratorio({ profesionalId:paciente.profesionalId, pacienteId:paciente.pacienteId, paciente: paciente.paciente, ci: paciente.ci, medico: paciente.doctor, consultaId: paciente.id }, items); setLaboratoriosElegidos(items.map(i => i.nombre).join(' · ')); setTipoOrden(null); }} />}{laboratoriosElegidos && <p className="consulta-aviso" role="status">Solicitud enviada a Laboratorio · Ambulatorios: {laboratoriosElegidos}</p>}
       {tipoOrden === 'imagenologia' && <section className="consulta-orden-panel panel" aria-label="Orden de imagenología"><header><div><p>ORDEN DE IMAGENOLOGÍA</p><h3>{paciente.paciente}</h3><small>CI {paciente.ci} · Cita {paciente.hora}</small></div><button type="button" onClick={() => setTipoOrden(null)} aria-label="Cerrar orden">×</button></header><label>Estudios y regiones solicitados<textarea value={detalleOrden} onChange={(event) => setDetalleOrden(event.target.value)} placeholder="Escribe los estudios solicitados" /></label><footer><button type="button" onClick={() => setTipoOrden(null)}>Cancelar</button><button type="button" disabled={!detalleOrden.trim()} onClick={() => window.print()}>Imprimir orden</button></footer></section>}
       {tipoOrden === 'internacion' && <OrdenInternacionMedica paciente={paciente} medico={medico} onCerrar={() => setTipoOrden(null)} onEmitir={() => { setOrdenInternacionEmitida(paciente.paciente); setTipoOrden(null); }} />}
@@ -140,7 +145,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
             <details className="consulta-seguimiento-panel" open><summary><span>Anamnesis · Relato cronológico</span><Icon name="chevronRight" size={18} /></summary><div><textarea aria-label="Anamnesis" value={antecedentes[paciente.ci] ?? ''} onChange={(event) => setAntecedentes((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Describe el relato cronológico, antecedentes relevantes y evolución del cuadro actual..." /></div></details>
             <RevisionConsulta pacienteId={paciente.ci} />
             <section className="consulta-seguimiento-panel consulta-diagnostico-final"><header><h3>Diagnóstico final</h3></header><textarea aria-label="Diagnóstico final" value={diagnosticosFinales[paciente.ci] ?? ''} onChange={(event) => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Registra el diagnóstico final..." />{!diagnosticosFinales[paciente.ci] && <p>Aún no se ha registrado el diagnóstico final.</p>}</section>
-            <section className="consulta-seguimiento-panel consulta-cierre-consulta"><header><div><h3>Cierre de atención</h3><small>Completa este paso al finalizar la consulta.</small></div>{!atencionesCerradas[paciente.ci] && <button type="button" onClick={() => setAtencionesCerradas((actual) => ({ ...actual, [paciente.ci]: true }))}>Finalizar atención</button>}</header><p>{atencionesCerradas[paciente.ci] ? 'Atención finalizada. El episodio clínico está listo para guardarse en la historia.' : 'Pendiente de cierre. Registra el diagnóstico final y las indicaciones necesarias.'}</p></section>
+            <section className="consulta-seguimiento-panel consulta-cierre-consulta"><header><div><h3>Cierre de atención</h3><small>Completa este paso al finalizar la consulta.</small></div>{!atencionFinalizada && <button type="button" disabled={!datosClinicosPaciente.motivoConsulta.trim()} onClick={() => guardarEnHistoria(true)}>Finalizar atención</button>}</header><p>{atencionFinalizada ? 'Atención finalizada y registrada en la historia clínica.' : 'Registra el motivo de consulta antes de finalizar la atención.'}</p></section>
           </section>
         </div>
         <div className="consulta-atencion-lateral">

@@ -144,3 +144,17 @@
 .em-confirmar-liberacion{width:min(470px,100%);padding:24px;border-top:4px solid #249b71}.em-confirmar-liberacion>header{display:flex;align-items:flex-start;gap:13px}.em-confirmar-liberacion>header>span{display:grid;place-items:center;flex:0 0 auto;width:42px;height:42px;border-radius:50%;color:#1b8b65;background:#e4f7ee}.em-confirmar-liberacion h3{margin:1px 0 7px;color:#174d72;font-size:18px}.em-confirmar-liberacion p{margin:0;color:#58748a;font-size:12px;line-height:1.55}.em-confirmar-liberacion footer{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}.em-confirmar-liberacion footer button{min-height:37px;padding:0 12px;border:1px solid #bdd8e8;border-radius:7px;color:#45657e;background:#fff;font:inherit;font-size:11px;font-weight:800}.em-confirmar-liberacion footer .em-primario{border-color:#c53b3b;background:#c53b3b;color:#fff}@media(max-width:520px){.em-confirmar-liberacion footer{flex-direction:column-reverse}.em-confirmar-liberacion footer button{width:100%}}
 
 .emergencias-vista .em-ficha-total .em-liberar-cubiculo:hover:not(:disabled),.emergencias-vista .em-ficha-total .em-liberar-cubiculo:focus-visible{opacity:1;color:#fff!important;background:#c53b3b!important;border-color:#c53b3b!important}
+
+.em-prescribir-buscador{display:grid;gap:10px;margin-bottom:16px;min-width:0}
+.em-prescribir-entrada{display:flex;align-items:center;gap:8px;min-width:0;padding:0 10px;border:1px solid #b8daed;border-radius:9px;color:#0787bf;background:#f8fcff}
+.em-prescribir-entrada input{width:100%;min-width:0;min-height:42px;border:0!important;outline:0;background:transparent!important;box-shadow:none!important;color:#174d72;font:inherit;font-size:12px}
+.em-prescribir-entrada:focus-within{border-color:#0787bf;box-shadow:0 0 0 3px #0787bf18}
+.em-prescribir-resultados{display:grid;max-height:300px;overflow-y:auto;border:1px solid #c9e3f1;border-radius:9px;background:#fff}
+.em-prescribir-resultados>button{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-width:0;padding:11px 10px;border:0;border-bottom:1px solid #e3eff6;text-align:left;color:#17577d;background:#fff;font:inherit;cursor:pointer}
+.em-prescribir-resultados>button:hover{background:#ecf8ff}
+.em-prescribir-resultados>button>span{display:grid;gap:4px;min-width:0}
+.em-prescribir-resultados strong{font-size:12px;overflow-wrap:anywhere}
+.em-prescribir-resultados small{font-size:10px;color:#68869b;overflow-wrap:anywhere}
+.em-prescribir-resultados>p{margin:0;padding:12px;color:#658398;font-size:12px;line-height:1.5}
+.em-prescribir-manual{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:8px 10px;border:1px solid #b8daed;border-radius:8px;color:#087db0;background:#edf8ff;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.em-prescribir-buscador button:focus-visible{outline:3px solid #70d2ef;outline-offset:2px}

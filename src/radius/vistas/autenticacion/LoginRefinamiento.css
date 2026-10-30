@@ -91,6 +91,22 @@ body:has(.login-page-clinico),
   max-block-size: calc(100dvh - (var(--login-gutter) * 2));
 }
 
+/* En pantallas amplias, el acceso aprovecha el lienzo completo sin pegarse a los bordes. */
+@media (min-width: 901px) {
+  .login-page.login-page-clinico {
+    --login-gutter: clamp(12px, 1.1vw, 22px);
+  }
+
+  .login-page-clinico .login-shell {
+    inline-size: 100% !important;
+    max-inline-size: none !important;
+    block-size: calc(100dvh - (var(--login-gutter) * 2)) !important;
+    max-block-size: calc(100dvh - (var(--login-gutter) * 2)) !important;
+    height: calc(100dvh - (var(--login-gutter) * 2)) !important;
+    margin-inline: 0 !important;
+  }
+}
+
 .login-page-clinico .login-presentacion,
 .login-page-clinico .login-acceso {
   min-block-size: 0 !important;
@@ -160,3 +176,10 @@ body:has(.login-page-clinico),
 .login-page-clinico .login-recuperacion-error{border:1px solid #efd2d6;color:#a13447;background:#fff5f6}
 .login-page-clinico .login-recuperacion-nota{margin:25px 0 0;color:#7892a6;font-size:11px;line-height:1.5}
 @media(max-width:560px){.login-page-clinico .login-opciones{flex-wrap:wrap}.login-page-clinico .login-ayuda-link{margin-left:auto;white-space:normal}.login-page-clinico .login-recuperacion-volver{margin-bottom:22px}.login-page-clinico .login-recuperacion-marcas{margin-bottom:20px}.login-page-clinico .login-recuperacion-marca{width:52px;height:52px;border-radius:15px}.login-page-clinico .login-recuperacion-google{width:42px;height:42px}.login-page-clinico .login-card-recuperacion h1{font-size:34px!important}.login-page-clinico .login-recuperacion-progreso span{padding:8px 6px;font-size:10px}.login-page-clinico .login-recuperacion-progreso b{width:19px;height:19px;flex-basis:19px}}
+
+/* Recuperación enfocada en la cuenta institucional, sin sugerir acceso con Google. */
+.login-page-clinico .login-card-recuperacion .login-kicker{display:none!important}
+.login-page-clinico .login-recuperacion-marcas{position:relative;display:block;width:52px;height:52px;margin:0 0 20px;border:1px solid #cde8f2;border-radius:15px;background:linear-gradient(145deg,#e7f8fd,#fff);box-shadow:0 9px 20px rgba(12,75,111,.08)}
+.login-page-clinico .login-recuperacion-marca{display:none!important}
+.login-page-clinico .login-recuperacion-marcas:before{position:absolute;top:15px;left:20px;width:10px;height:10px;border:2px solid #087fc0;border-bottom:0;border-radius:8px 8px 0 0;content:""}
+.login-page-clinico .login-recuperacion-marcas:after{position:absolute;top:25px;left:17px;width:20px;height:15px;border-radius:4px;background:#087fc0;box-shadow:inset 0 -3px rgba(3,75,125,.16);content:""}

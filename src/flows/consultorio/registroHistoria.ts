@@ -22,6 +22,8 @@ export type EpisodioClinico = {
   resultados: DocumentoEpisodio[];
   reconsultas: DocumentoEpisodio[];
   actualizadoEn: string;
+  atendidaEn?: string;
+  finalizadaEn?: string;
 };
 
 const CLAVE = 'hme-episodios-clinicos-v1';
@@ -37,7 +39,7 @@ const episodioAna: EpisodioClinico = {
   recetas: [{ tipo: 'Tratamiento sintomático', detalle: 'Paracetamol 500 mg por vía oral cada 8 horas si presenta dolor o fiebre, durante 3 días.', estado: 'Indicada' }],
   ordenes: [{ tipo: 'Laboratorio', detalle: 'Hemograma completo', estado: 'Completada' }],
   resultados: [{ tipo: 'Hemograma completo', detalle: 'Leucocitos 7.200/mm³ · Hemoglobina 13,4 g/dL · Hematocrito 40 % · Plaquetas 268.000/mm³. Valores dentro de parámetros esperados.', estado: 'Validado' }],
-  reconsultas: [], actualizadoEn: '2026-10-12T09:45:00-04:00',
+  reconsultas: [], actualizadoEn: '2026-10-12T09:45:00-04:00', finalizadaEn: '2026-10-12T09:45:00-04:00',
 };
 const cargar = (): EpisodioClinico[] => {
   try {
@@ -51,6 +53,16 @@ let episodios = cargar();
 const oyentes = new Set<() => void>();
 
 export const obtenerEpisodios = () => episodios;
+export const origenConsultaAmbulatoria = (cita: CitaConfirmada) => {
+  const anterior = episodios.find(episodio => episodio.origenId === `consulta:${cita.id}` && episodio.paciente.fecha === cita.fecha && episodio.paciente.hora === cita.hora);
+  return anterior?.origenId || `consulta:${cita.id}:${cita.fecha}:${cita.hora}`;
+};
+export const obtenerAtencionAmbulatoria = (cita: CitaConfirmada) => episodios.find(episodio => episodio.origenId === origenConsultaAmbulatoria(cita));
+export const registrarAtencionAmbulatoria = (cita: CitaConfirmada, medico: string) => {
+  const existente = obtenerAtencionAmbulatoria(cita);
+  if (existente) return existente;
+  return guardarEpisodio({ origenId: origenConsultaAmbulatoria(cita), tipo: 'Consulta médica', paciente: cita, medico: cita.doctor && cita.doctor !== 'Agenda ambulatoria' ? cita.doctor : medico, fecha: cita.fecha, motivo: '', enfermedadActual: '', examenFisico: '', antecedentes: '', notas: '', signosVitales: {}, recetas: [], ordenes: [], resultados: [], reconsultas: [], atendidaEn: new Date().toISOString() });
+};
 export const suscribirEpisodios = (oyente: () => void) => {
   oyentes.add(oyente);
   return () => { oyentes.delete(oyente); };
@@ -59,7 +71,7 @@ type BorradorEpisodio = Omit<EpisodioClinico, 'episodioId' | 'correlativo' | 'ac
 export const guardarEpisodio = (borrador: BorradorEpisodio) => {
   const existente = episodios.find((episodio) => episodio.origenId === borrador.origenId);
   const correlativo = existente?.correlativo ?? Math.max(0, ...episodios.filter((episodio) => episodio.paciente.ci === borrador.paciente.ci).map((episodio) => episodio.correlativo)) + 1;
-  const episodio: EpisodioClinico = { ...borrador, recetas: borrador.recetas.length ? borrador.recetas : (existente?.recetas ?? []), ordenes: borrador.ordenes.length ? borrador.ordenes : (existente?.ordenes ?? []), resultados: borrador.resultados.length ? borrador.resultados : (existente?.resultados ?? []), reconsultas: borrador.reconsultas.length ? borrador.reconsultas : (existente?.reconsultas ?? []), correlativo, episodioId: `${borrador.paciente.ci}-${correlativo}`, actualizadoEn: new Date().toISOString() };
+  const episodio: EpisodioClinico = { ...borrador, atendidaEn: borrador.atendidaEn ?? existente?.atendidaEn, finalizadaEn: borrador.finalizadaEn ?? existente?.finalizadaEn, recetas: borrador.recetas.length ? borrador.recetas : (existente?.recetas ?? []), ordenes: borrador.ordenes.length ? borrador.ordenes : (existente?.ordenes ?? []), resultados: borrador.resultados.length ? borrador.resultados : (existente?.resultados ?? []), reconsultas: borrador.reconsultas.length ? borrador.reconsultas : (existente?.reconsultas ?? []), correlativo, episodioId: `${borrador.paciente.ci || borrador.paciente.id}-${correlativo}`, actualizadoEn: new Date().toISOString() };
   const siguientes = existente ? episodios.map((actual) => actual.origenId === borrador.origenId ? episodio : actual) : [...episodios, episodio];
   localStorage.setItem(CLAVE, JSON.stringify(siguientes));
   episodios = siguientes;

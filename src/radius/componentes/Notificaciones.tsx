@@ -9,6 +9,7 @@ type Confirmacion = {
   mensaje: string;
   detalle?: string;
   textoConfirmar?: string;
+  variante?: "salida";
   peligrosa?: boolean;
   resolver: (valor: boolean) => void;
 };
@@ -87,7 +88,7 @@ export default function CentroNotificaciones() {
           onMouseDown={() => responder(false)}
         >
           <section
-            className={`confirmacion-modal ${dialogo.peligrosa ? "peligrosa" : ""}`}
+            className={`confirmacion-modal ${dialogo.peligrosa ? "peligrosa" : ""} ${dialogo.variante === "salida" ? "confirmacion-salida" : ""}`}
             role="alertdialog"
             aria-modal="true"
             aria-labelledby="confirmacion-titulo"
@@ -95,11 +96,11 @@ export default function CentroNotificaciones() {
           >
             <header>
               <span>
-                <Icon name={dialogo.peligrosa ? "trash" : "audit"} size={22} />
+                <Icon name={dialogo.variante === "salida" ? "logout" : dialogo.peligrosa ? "trash" : "audit"} size={22} />
               </span>
               <div>
                 <small>
-                  {dialogo.peligrosa ? "ACCIÓN IRREVERSIBLE" : "CONFIRMACIÓN"}
+                  {dialogo.variante === "salida" ? "SISTEMA CLÍNICO" : dialogo.peligrosa ? "ACCIÓN IRREVERSIBLE" : "CONFIRMACIÓN"}
                 </small>
                 <h3 id="confirmacion-titulo">{dialogo.titulo}</h3>
               </div>

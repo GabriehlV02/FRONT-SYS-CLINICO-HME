@@ -2,3 +2,25 @@
   margin-left: auto;
   white-space: nowrap;
 }
+
+.ct-visor {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+
+.sistema-app .area-trabajo.area-trabajo-visor {
+  padding-inline: 6px !important;
+}
+
+.ct-estacion {
+  height: clamp(500px, calc(100dvh - 230px), 1040px);
+  min-height: 500px;
+}
+
+@media (max-width: 700px) {
+  .ct-estacion {
+    height: calc(100dvh - 220px);
+    min-height: 480px;
+  }
+}

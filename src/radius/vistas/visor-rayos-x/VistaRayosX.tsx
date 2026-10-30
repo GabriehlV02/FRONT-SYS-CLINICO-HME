@@ -3,6 +3,8 @@ import {
   useEffect,
   useRef,
   useState,
+  type DragEvent as ReactDragEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type WheelEvent as ReactWheelEvent,
 } from "react";
@@ -46,7 +48,15 @@ type EstudioOrthanc = {
   studyInstanceUid?: string;
 };
 
-export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }) {
+type ModalidadVisor = "Radiografía" | "Tomografía" | "Ecografía";
+const correspondeModalidad = (categoria: string, modalidad: ModalidadVisor) => {
+  const valor = categoria.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (modalidad === 'Tomografía') return /tomograf|\btac\b|\bct\b/.test(valor);
+  if (modalidad === 'Ecografía') return /ecograf|ultrason|\bus\b/.test(valor);
+  return /radiograf|rayos|\brx\b|\bcr\b|\bdx\b|\bdr\b/.test(valor);
+};
+
+export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?: ModalidadVisor }) {
   const [estudios, setEstudios] = useState<Estudio[]>([]),
     [estudiosOrthanc, setEstudiosOrthanc] = useState<EstudioOrthanc[]>([]),
     [actual, setActual] = useState<Estudio | null>(null),
@@ -65,7 +75,9 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
     [errorCarga, setErrorCarga] = useState(""),
     [corte, setCorte] = useState({ actual: 1, total: 1 }),
     [pantallaCompleta, setPantallaCompleta] = useState(false),
-    [reproduciendo, setReproduciendo] = useState(false);
+    [reproduciendo, setReproduciendo] = useState(false),
+    [zoomDicom, setZoomDicom] = useState(1),
+    [arrastrandoArchivo, setArrastrandoArchivo] = useState(false);
   const archivo = useRef<HTMLInputElement>(null),
     carpeta = useRef<HTMLInputElement>(null),
     dicomControl = useRef<ControlDicom | null>(null),
@@ -82,8 +94,8 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
   const esDicom = dicomFiles.length > 0;
 
   useEffect(() => {
-    if (!reproduciendo || modalidad !== "Tomografía" || !esDicom || corte.total < 2) return;
-    const intervalo = window.setInterval(() => dicomControl.current?.siguienteCorte(), 120);
+    if (!reproduciendo || modalidad === "Radiografía" || !esDicom || corte.total < 2) return;
+    const intervalo = window.setInterval(() => dicomControl.current?.siguienteCorte(), modalidad === 'Ecografía' ? 90 : 120);
     return () => window.clearInterval(intervalo);
   }, [reproduciendo, modalidad, esDicom, corte.total]);
 
@@ -91,7 +103,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
     carpeta.current?.setAttribute("webkitdirectory", "");
     carpeta.current?.setAttribute("directory", "");
     setEstudios(
-      obtenerEstudios().map((e) => ({
+      obtenerEstudios().filter((e) => correspondeModalidad(e.categoria, modalidad)).map((e) => ({
         id: e.id,
         titulo: e.titulo,
         paciente: e.paciente,
@@ -101,7 +113,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
         creadaEn: e.creadaEn,
       })),
     );
-  }, []);
+  }, [modalidad]);
   useEffect(() => {
     const actualizarPantallaCompleta = () => setPantallaCompleta(document.fullscreenElement === estacion.current);
     document.addEventListener("fullscreenchange", actualizarPantallaCompleta);
@@ -130,6 +142,10 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
       setCorte({ actual: actualCorte, total }),
     [],
   );
+  const alCambiarZoomDicom = useCallback(
+    (valor: number) => setZoomDicom(valor),
+    [],
+  );
 
   const cargarResultado = (
     resultado: ResultadoImportacion,
@@ -142,7 +158,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
         id: datos?.id || `dicom-${Date.now()}`,
         titulo: datos?.titulo || nombre,
         paciente: datos?.paciente || "Estudio local",
-        categoria: datos?.categoria || "DICOM",
+        categoria: datos?.categoria || modalidad,
         mime: "application/dicom",
         url: "",
         creadaEn: datos?.creadaEn || new Date().toISOString(),
@@ -158,7 +174,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
         id: `local-${Date.now()}`,
         titulo: file.name,
         paciente: "Prueba local",
-        categoria: "Rayos X",
+        categoria: modalidad,
         mime: file.type,
         url: URL.createObjectURL(file),
         creadaEn: new Date().toISOString(),
@@ -168,7 +184,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
       );
     } else
       throw new Error(
-        "No se encontraron imágenes DICOM ni radiografías compatibles en la selección.",
+        `No se encontraron imágenes compatibles con ${modalidad.toLowerCase()} en la selección.`,
       );
     restablecerRaster();
   };
@@ -205,12 +221,61 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
       setCargando(false);
     }
   };
+  const manejarArrastre = (e: ReactDragEvent<HTMLDivElement>) => {
+    if (modalidad !== "Radiografía") return;
+    e.preventDefault();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setArrastrandoArchivo(true);
+    } else if (e.type === "dragleave") {
+      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+        setArrastrandoArchivo(false);
+      }
+    } else if (e.type === "drop") {
+      setArrastrandoArchivo(false);
+      void procesarSeleccion(e.dataTransfer.files);
+    }
+  };
+  const manejarAtajos = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    const destino = e.target;
+    if (
+      destino instanceof HTMLElement &&
+      (destino.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(destino.tagName))
+    ) return;
+    const tecla = e.key.toLowerCase();
+    if (e.key === "+" || e.key === "=") {
+      e.preventDefault();
+      cambiarZoom(1.2);
+    } else if (e.key === "-") {
+      e.preventDefault();
+      cambiarZoom(1 / 1.2);
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      if (!esDicom) return;
+      e.preventDefault();
+      dicomControl.current?.irACorte(
+        corte.actual - 1 + (e.key === "ArrowRight" ? 1 : -1),
+      );
+    } else if (tecla === "r") {
+      e.preventDefault();
+      rotar(90);
+    } else if (tecla === "i") {
+      e.preventDefault();
+      negativo();
+    } else if (tecla === "0") {
+      e.preventDefault();
+      restablecer();
+    } else if (tecla === "f" && actual) {
+      e.preventDefault();
+      void alternarPantallaCompleta();
+    }
+  };
   const abrirEstudioGuardado = useCallback(async (estudio: EstudioDemo) => {
+    if (!correspondeModalidad(estudio.categoria, modalidad)) return;
     void abrirPantallaCompleta();
     setEstudiosOrthanc([]);
     setCargando(true);
     setErrorCarga("");
-    setMensajeCarga(`Descargando y preparando ${estudio.nombreArchivo}. Esto puede tardar unos minutos para una tomografía completa…`);
+    setMensajeCarga(`Descargando y preparando ${estudio.nombreArchivo}. Esto puede tardar unos minutos…`);
     try {
       const file = await obtenerArchivoEstudio(estudio),
         resultado = await importarEstudio([file]);
@@ -227,12 +292,13 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
     } finally {
       setCargando(false);
     }
-  }, []);
+  }, [modalidad]);
   const abrirEstudioOrthanc = async (estudio: EstudioOrthanc) => {
+    if (!correspondeModalidad(estudio.modalidades.join(' '), modalidad)) return;
     void abrirPantallaCompleta();
     setCargando(true);
     setErrorCarga("");
-    setMensajeCarga(`Descargando ${estudio.descripcion || "estudio DICOM"}. Esto puede tardar unos minutos para una tomografía completa…`);
+    setMensajeCarga(`Descargando ${estudio.descripcion || "estudio DICOM"}. Esto puede tardar unos minutos…`);
     try {
       const respuesta = await apiFetch(
         `/api/orthanc/estudios/${encodeURIComponent(estudio.id)}/archivo`,
@@ -281,8 +347,8 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
   };
   useEffect(() => {
     const seleccionado = obtenerEstudioSeleccionado();
-    if (seleccionado) void abrirEstudioGuardado(seleccionado);
-  }, [abrirEstudioGuardado]);
+    if (seleccionado && correspondeModalidad(seleccionado.categoria, modalidad)) void abrirEstudioGuardado(seleccionado);
+  }, [abrirEstudioGuardado, modalidad]);
   useEffect(() => {
     const id = localStorage.getItem("radiuus_orthanc_estudio");
     if (!id) return;
@@ -297,6 +363,8 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
       const seleccionado = (lista as EstudioOrthanc[]).find((e) => e.id === id);
       if (!seleccionado)
         throw new Error("El estudio seleccionado ya no está disponible.");
+      if (!correspondeModalidad(seleccionado.modalidades.join(' '), modalidad))
+        throw new Error(`El estudio seleccionado no corresponde a ${modalidad.toLowerCase()}.`);
       const idPaciente = seleccionado.patientIdDicom.trim().toUpperCase(),
         nombre = seleccionado.patientName.trim().toUpperCase(),
         idGenerico =
@@ -305,11 +373,11 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
             idPaciente.replace(/[^A-Z0-9]/g, ""),
           ),
         historial = (lista as EstudioOrthanc[])
-          .filter((e) =>
+          .filter((e) => correspondeModalidad(e.modalidades.join(' '), modalidad) && (
             idGenerico
               ? e.patientName.trim().toUpperCase() === nombre
               : e.patientIdDicom.trim().toUpperCase() === idPaciente &&
-                e.patientName.trim().toUpperCase() === nombre,
+                e.patientName.trim().toUpperCase() === nombre),
           )
           .sort((a, b) => b.fechaEstudio.localeCompare(a.fechaEstudio));
       setEstudiosOrthanc(historial);
@@ -321,7 +389,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
         error instanceof Error ? error.message : "Intente nuevamente.",
       ),
     );
-  }, []);
+  }, [modalidad]);
 
   const abrirPantallaCompleta = async () => {
     try {
@@ -526,13 +594,13 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
     esDicom ? dicomControl.current?.centrar() : setPosicion({ x: 0, y: 0 });
 
   return (
-    <div className="rx-vista">
+    <div className={`rx-vista rx-${modalidad === "Tomografía" ? "tomografia" : modalidad === "Ecografía" ? "ecografia" : "radiografia"}`}>
       <header className="rx-cabecera">
         <div>
           <p>IMAGENOLOGÍA / VISOR</p>
-          <h2>{modalidad ? `Visor de ${modalidad.toLowerCase()}s` : "Visor de estudios"}</h2>
+          <h2>Visor de {modalidad.toLowerCase()}s</h2>
           <small>
-            DICOM, DICOMDIR, carpetas, ZIP, RAR e imágenes {modalidad ? "tomográficas" : "radiográficas"}.
+            DICOM, DICOMDIR, carpetas, ZIP, RAR e imágenes {modalidad === "Tomografía" ? "tomográficas" : modalidad === "Ecografía" ? "ecográficas" : "radiográficas"}.
           </small>
         </div>
         <div>
@@ -680,12 +748,12 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
               <button onClick={() => cambiarZoom(0.8)}>−</button>
               <span>
                 {esDicom
-                  ? `Corte ${corte.actual}/${corte.total}`
+                  ? `${Math.round(zoomDicom * 100)}%`
                   : `${Math.round(zoom * 100)}%`}
               </span>
-              <button onClick={() => cambiarZoom(1.25)}>+</button>
+              <button onClick={() => cambiarZoom(1.25)} title="Aumentar zoom">+</button>
             </div>
-            {modalidad === "Tomografía" && esDicom && corte.total > 1 && <button className={reproduciendo ? "activo" : ""} onClick={() => setReproduciendo(valor => !valor)} title="Reproducir o pausar los cortes tomográficos">{reproduciendo ? "Pausar" : "Reproducir"}</button>}
+            {modalidad !== "Radiografía" && esDicom && corte.total > 1 && <button className={reproduciendo ? "activo" : ""} onClick={() => setReproduciendo(valor => !valor)} title={modalidad === "Ecografía" ? "Reproducir o congelar la secuencia ecográfica" : "Reproducir o pausar los cortes tomográficos"}>{reproduciendo ? (modalidad === "Ecografía" ? "Congelar" : "Pausar") : (modalidad === "Ecografía" ? "Cine" : "Reproducir")}</button>}
             <button onClick={() => rotar(-90)}>↶</button>
             <button onClick={() => rotar(90)}>↷</button>
             <button className={invertido ? "activo" : ""} onClick={negativo}>
@@ -724,8 +792,15 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
             </button>
           </div>
           <div
-            className={`rx-lienzo ${arrastrando ? `arrastrando-${arrastrando}` : ""}`}
+            className={`rx-lienzo ${arrastrando ? `arrastrando-${arrastrando}` : ""} ${arrastrandoArchivo ? "recibiendo-archivo" : ""}`}
+            tabIndex={0}
+            aria-label="Área de visualización radiográfica. Atajos: más y menos para zoom, flechas para cortes DICOM, R para girar, I para negativo, F para pantalla completa y cero para restablecer."
+            onKeyDown={manejarAtajos}
             onWheel={zoomConRueda}
+            onDragEnter={manejarArrastre}
+            onDragOver={manejarArrastre}
+            onDragLeave={manejarArrastre}
+            onDrop={manejarArrastre}
             onContextMenu={(e) => e.preventDefault()}
             onAuxClick={(e) => e.preventDefault()}
             onPointerDown={iniciarGesto}
@@ -751,6 +826,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
               <VisorDicom
                 files={dicomFiles}
                 alCambiarCorte={alCambiarCorte}
+                alCambiarZoom={alCambiarZoomDicom}
                 controlRef={dicomControl}
                 onSolicitarPantallaCompleta={() =>
                   void alternarPantallaCompleta()
@@ -775,14 +851,29 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
                 </div>
               </>
             ) : (
-              <div className="rx-vacio">
-                <Icon name="image" size={37} />
-                <h3>Abre un estudio {modalidad ? "tomográfico" : "radiológico"}</h3>
-                <p>
-                  Selecciona un DICOM, un archivo comprimido o una carpeta
-                  completa.
-                </p>
-              </div>
+            <button
+              type="button"
+              className="rx-vacio"
+              onClick={() => archivo.current?.click()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <Icon name="image" size={37} />
+              <h3>Abre un estudio {modalidad === "Tomografía" ? "tomográfico" : modalidad === "Ecografía" ? "ecográfico" : "radiológico"}</h3>
+              <p>
+                Haz clic para elegir archivos o arrastra un DICOM, ZIP, RAR o
+                imágenes aquí.
+              </p>
+              <span className="rx-vacio-accion">
+                <Icon name="plus" size={15} /> Seleccionar estudio
+              </span>
+            </button>
+            )}
+            {arrastrandoArchivo && (
+            <div className="rx-drop-overlay" aria-live="polite">
+              <Icon name="package" size={32} />
+              <strong>Suelta el estudio para abrirlo</strong>
+              <span>DICOM, ZIP, RAR o imágenes</span>
+            </div>
             )}
             {actual && (
               <div className="rx-ayuda-gestos">
@@ -806,7 +897,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
           </div>
             <div className="rx-ajustes">
               <label>
-                <span>Brillo</span>
+                <span>{modalidad === "Ecografía" ? "Ganancia" : "Brillo"}</span>
                 <input
                   type="range"
                   min="20"
@@ -835,13 +926,25 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
                 />
                 <b>{contraste}%</b>
               </label>
+              {modalidad === "Radiografía" && esDicom && corte.total > 1 && (
+                <label className="rx-navegacion-corte">
+                  <span>Corte</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max={corte.total}
+                    value={Math.min(corte.actual, corte.total)}
+                    onChange={(e) =>
+                      dicomControl.current?.irACorte(Number(e.target.value) - 1)
+                    }
+                    aria-label="Seleccionar corte DICOM"
+                  />
+                  <b>{corte.actual} / {corte.total}</b>
+                </label>
+              )}
             </div>
         </main>
       </section>
-      <p className="rx-advertencia">
-        Visor experimental para pruebas. No utilizar como única herramienta de
-        diagnóstico clínico.
-      </p>
     </div>
   );
 }

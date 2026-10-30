@@ -15,6 +15,7 @@ export type ControlDicom = {
   invertirHorizontal: () => void;
   centrar: () => void;
   siguienteCorte: () => void;
+  ajustarVentana: (brillo: number, contraste: number) => void;
   restablecer: () => void;
   canvas: () => HTMLCanvasElement | null;
 };
@@ -214,6 +215,15 @@ export default function VisorDicom({
       invertirHorizontal: () => setReflejado((v) => !v),
       centrar: () => setPosicion({ x: 0, y: 0 }),
       siguienteCorte: () => setIndice((valor) => files.length ? (valor + 1) % files.length : 0),
+      ajustarVentana: (brillo, contraste) => {
+        const imagen = imagenRef.current;
+        if (!imagen) return;
+        ventana.current = {
+          centro: imagen.centroInicial + ((brillo - 100) * imagen.anchoInicial) / 200,
+          ancho: Math.max(1, (imagen.anchoInicial * 100) / Math.max(20, contraste)),
+        };
+        pintar();
+      },
       restablecer: () => {
         const imagen = imagenRef.current;
         if (imagen)

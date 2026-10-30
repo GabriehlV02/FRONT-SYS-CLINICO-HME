@@ -62,8 +62,10 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
     [arrastrando, setArrastrando] = useState<"mover" | "ventana" | null>(null);
   const [cargando, setCargando] = useState(false),
     [mensajeCarga, setMensajeCarga] = useState(""),
+    [errorCarga, setErrorCarga] = useState(""),
     [corte, setCorte] = useState({ actual: 1, total: 1 }),
-    [pantallaCompleta, setPantallaCompleta] = useState(false);
+    [pantallaCompleta, setPantallaCompleta] = useState(false),
+    [reproduciendo, setReproduciendo] = useState(false);
   const archivo = useRef<HTMLInputElement>(null),
     carpeta = useRef<HTMLInputElement>(null),
     dicomControl = useRef<ControlDicom | null>(null),
@@ -78,6 +80,12 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
   });
   const ultimoClickDerecho = useRef(0);
   const esDicom = dicomFiles.length > 0;
+
+  useEffect(() => {
+    if (!reproduciendo || modalidad !== "Tomografía" || !esDicom || corte.total < 2) return;
+    const intervalo = window.setInterval(() => dicomControl.current?.siguienteCorte(), 120);
+    return () => window.clearInterval(intervalo);
+  }, [reproduciendo, modalidad, esDicom, corte.total]);
 
   useEffect(() => {
     carpeta.current?.setAttribute("webkitdirectory", "");
@@ -112,6 +120,8 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
   const restablecer = () => {
     if (esDicom) {
       dicomControl.current?.restablecer();
+      setBrillo(100);
+      setContraste(100);
       setReflejado(false);
     } else restablecerRaster();
   };
@@ -167,6 +177,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
     void abrirPantallaCompleta();
     const seleccion = Array.from(lista);
     setCargando(true);
+    setErrorCarga("");
     setMensajeCarga(
       `Analizando ${seleccion.length === 1 ? seleccion[0].name : `${seleccion.length} archivos`}…`,
     );
@@ -182,13 +193,13 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
             ).webkitRelativePath?.split("/")[0] || "Estudio DICOM",
       );
     } catch (error) {
+      const detalle = error instanceof Error ? error.message : "Revise el archivo seleccionado.";
       setMensajeCarga("");
+      setErrorCarga(detalle);
       notificar(
         "error",
         "No se pudo abrir el estudio",
-        error instanceof Error
-          ? error.message
-          : "Revise el archivo seleccionado.",
+        detalle,
       );
     } finally {
       setCargando(false);
@@ -198,19 +209,20 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
     void abrirPantallaCompleta();
     setEstudiosOrthanc([]);
     setCargando(true);
-    setMensajeCarga(`Abriendo ${estudio.nombreArchivo}…`);
+    setErrorCarga("");
+    setMensajeCarga(`Descargando y preparando ${estudio.nombreArchivo}. Esto puede tardar unos minutos para una tomografía completa…`);
     try {
       const file = await obtenerArchivoEstudio(estudio),
         resultado = await importarEstudio([file]);
       cargarResultado(resultado, estudio.nombreArchivo, estudio);
     } catch (error) {
+      const detalle = error instanceof Error ? error.message : "Revise el archivo seleccionado.";
       setMensajeCarga("");
+      setErrorCarga(detalle);
       notificar(
         "error",
         "No se pudo abrir el estudio",
-        error instanceof Error
-          ? error.message
-          : "Revise el archivo seleccionado.",
+        detalle,
       );
     } finally {
       setCargando(false);
@@ -219,7 +231,8 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
   const abrirEstudioOrthanc = async (estudio: EstudioOrthanc) => {
     void abrirPantallaCompleta();
     setCargando(true);
-    setMensajeCarga(`Abriendo ${estudio.descripcion || "estudio DICOM"}…`);
+    setErrorCarga("");
+    setMensajeCarga(`Descargando ${estudio.descripcion || "estudio DICOM"}. Esto puede tardar unos minutos para una tomografía completa…`);
     try {
       const respuesta = await apiFetch(
         `/api/orthanc/estudios/${encodeURIComponent(estudio.id)}/archivo`,
@@ -230,8 +243,9 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
           datos.message || "No se pudo obtener el estudio desde Orthanc.",
         );
       }
-      const blob = await respuesta.blob(),
-        file = new File([blob], `orthanc-${estudio.id}.zip`, {
+      const blob = await respuesta.blob();
+      setMensajeCarga("Preparando las series DICOM para su visualización…");
+      const file = new File([blob], `orthanc-${estudio.id}.zip`, {
           type: "application/zip",
         }),
         resultado = await importarEstudio([file]),
@@ -253,13 +267,13 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
         creadaEn: fecha,
       });
     } catch (error) {
+      const detalle = error instanceof Error ? error.message : "No se pudo obtener el estudio del servidor.";
       setMensajeCarga("");
+      setErrorCarga(detalle);
       notificar(
         "error",
         "No se pudo abrir desde Orthanc",
-        error instanceof Error
-          ? error.message
-          : "No se pudo obtener el estudio del servidor.",
+        detalle,
       );
     } finally {
       setCargando(false);
@@ -660,7 +674,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
             </div>
           </aside>
         )}
-        <main className={`rx-area ${esDicom ? "sin-ajustes" : ""}`}>
+        <main className="rx-area">
           <div className="rx-toolbar">
             <div>
               <button onClick={() => cambiarZoom(0.8)}>−</button>
@@ -671,6 +685,7 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
               </span>
               <button onClick={() => cambiarZoom(1.25)}>+</button>
             </div>
+            {modalidad === "Tomografía" && esDicom && corte.total > 1 && <button className={reproduciendo ? "activo" : ""} onClick={() => setReproduciendo(valor => !valor)} title="Reproducir o pausar los cortes tomográficos">{reproduciendo ? "Pausar" : "Reproducir"}</button>}
             <button onClick={() => rotar(-90)}>↶</button>
             <button onClick={() => rotar(90)}>↷</button>
             <button className={invertido ? "activo" : ""} onClick={negativo}>
@@ -718,7 +733,21 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
             onPointerUp={terminarGesto}
             onPointerCancel={terminarGesto}
           >
-            {esDicom ? (
+            {cargando ? (
+              <div className="rx-cargando-estudio" role="status" aria-live="polite">
+                <span className="rx-spinner" />
+                <strong>Cargando estudio de la paciente</strong>
+                <p>{mensajeCarga || "Preparando las imágenes para el visor…"}</p>
+                <small>No cierre esta pantalla. El visor se abrirá automáticamente al terminar.</small>
+              </div>
+            ) : errorCarga ? (
+              <div className="rx-error-estudio" role="alert">
+                <Icon name="image" size={32} />
+                <strong>No se pudo cargar el estudio</strong>
+                <p>{errorCarga}</p>
+                <small>Puede volver al listado e intentar abrirlo nuevamente.</small>
+              </div>
+            ) : esDicom ? (
               <VisorDicom
                 files={dicomFiles}
                 alCambiarCorte={alCambiarCorte}
@@ -775,7 +804,6 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
               </div>
             )}
           </div>
-          {!esDicom && (
             <div className="rx-ajustes">
               <label>
                 <span>Brillo</span>
@@ -784,7 +812,11 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
                   min="20"
                   max="200"
                   value={brillo}
-                  onChange={(e) => setBrillo(Number(e.target.value))}
+                  onChange={(e) => {
+                    const valor = Number(e.target.value);
+                    setBrillo(valor);
+                    if (esDicom) dicomControl.current?.ajustarVentana(valor, contraste);
+                  }}
                 />
                 <b>{brillo}%</b>
               </label>
@@ -795,12 +827,15 @@ export default function VistaRayosX({ modalidad }: { modalidad?: "Tomografía" }
                   min="20"
                   max="250"
                   value={contraste}
-                  onChange={(e) => setContraste(Number(e.target.value))}
+                  onChange={(e) => {
+                    const valor = Number(e.target.value);
+                    setContraste(valor);
+                    if (esDicom) dicomControl.current?.ajustarVentana(brillo, valor);
+                  }}
                 />
                 <b>{contraste}%</b>
               </label>
             </div>
-          )}
         </main>
       </section>
       <p className="rx-advertencia">

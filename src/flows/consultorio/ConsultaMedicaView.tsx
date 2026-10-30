@@ -8,6 +8,7 @@ import { guardarEpisodio, obtenerEpisodios, type DocumentoEpisodio } from './reg
 import { RecetarioMedico } from './RecetarioMedico';
 import { crearSolicitudLaboratorio, leerSolicitudesLaboratorio, suscribirLaboratorio, type SolicitudLaboratorio } from '../laboratorio/almacenLaboratorio';
 import { OrdenInternacionMedica } from './OrdenInternacionMedica';
+import { RevisionConsulta } from './RevisionConsulta';
 import '../laboratorio/LaboratorioView.css';
 
 const registrosTriaje: Record<string, Record<string, string>> = {
@@ -34,6 +35,7 @@ const seccionesConsulta: { id: SeccionConsulta; nombre: string; icono: 'userChec
   { id: 'historia', nombre: 'Historia clínica', icono: 'fileText' },
   { id: 'tratamientos', nombre: 'Tratamientos', icono: 'patient' },
 ];
+const catalogoOrdenesMedicas = ['Hemograma completo', 'Glucemia', 'Perfil lipídico', 'Radiografía de tórax', 'Ecografía abdominal', 'Tomografía', 'Interconsulta cardiología', 'Interconsulta cirugía', 'Internación', 'Control de signos vitales'];
 
 const resultadosDemo = (paciente: CitaConfirmada): SolicitudLaboratorio[] => [{
   id: `demo-resultados-${paciente.ci}`, paciente: paciente.paciente, ci: paciente.ci, medico: paciente.doctor || 'Médico tratante', origen: 'ambulatorio', consultaId: 'demo-consulta', fecha: '2026-10-28T09:10:00.000Z', actualizadoEn: '2026-10-28T10:05:00.000Z', estado: 'completado', finalizadoEn: '2026-10-28T10:05:00.000Z', registradoPor: 'Laboratorio clínico', observacion: 'Resultados de ejemplo para visualización clínica.', estudios: [
@@ -55,6 +57,10 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   const [vitales, setVitales] = useState<Record<string, string>>({});
   const [notasMedicas, setNotasMedicas] = useState<Record<string, string>>({});
   const [antecedentes, setAntecedentes] = useState<Record<string, string>>({});
+  const [diagnosticosFinales, setDiagnosticosFinales] = useState<Record<string, string>>({});
+  const [atencionesCerradas, setAtencionesCerradas] = useState<Record<string, boolean>>({});
+  const [busquedaOrdenMedica, setBusquedaOrdenMedica] = useState('');
+  const [ordenesMedicas, setOrdenesMedicas] = useState<Record<string, string[]>>({});
   const [datosClinicos, setDatosClinicos] = useState<Record<string, DatosClinicos>>({});
   const [tipoOrden, setTipoOrden] = useState<TipoOrden | null>(null);
   const [detalleOrden, setDetalleOrden] = useState('');
@@ -82,6 +88,8 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   const datos = Object.keys(vitales).length ? vitales : (vitalesTriaje ?? {});
   const camposConResultado = campos.filter(([id]) => datos[id] !== undefined && datos[id] !== '');
   const datosClinicosPaciente = datosClinicos[paciente.ci] ?? { motivoConsulta: '', enfermedadActual: '', examenFisico: '' };
+  const ordenesPaciente = ordenesMedicas[paciente.ci] ?? [];
+  const ordenesFiltradas = catalogoOrdenesMedicas.filter(orden => orden.toLowerCase().includes(busquedaOrdenMedica.toLowerCase()) && !ordenesPaciente.includes(orden));
   const partesNombre = paciente.paciente.trim().split(/\s+/);
   const nombre = paciente.nombre ?? partesNombre[0] ?? 'No registrado';
   const apellidos = paciente.apellidos ?? (partesNombre.slice(1).join(' ') || 'No registrado');
@@ -111,7 +119,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   };
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
     <section className="consulta-activa-derecha">
-      <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci} · Cita {paciente.hora}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div><div><dt>Domicilio</dt><dd>{paciente.domicilio ?? 'No registrado'}</dd></div></dl></div><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} onAbrirRecetario={() => { setSeccion('tratamientos'); setRecetarioAbierto(true); }} /></header>
+      <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci} · Cita {paciente.hora}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div><div><dt>Domicilio</dt><dd>{paciente.domicilio ?? 'No registrado'}</dd></div></dl></div></header>
       <div className="consulta-secciones-bar">
       <nav className="consulta-secciones" aria-label="Secciones de la consulta">
         <button type="button" className="consulta-volver-listado" onClick={() => window.dispatchEvent(new Event('consulta:volver-al-listado'))}><Icon name="chevronLeft" size={16} /><span>Volver al listado</span></button>
@@ -128,15 +136,15 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
       <div className="consulta-atencion-superior">
         <div className="consulta-atencion-principal">
           <section className="consulta-signos panel"><header><div><p>SIGNOS VITALES</p><h3>{vitalesTriaje ? 'Registrados en triaje' : 'Sin registro de triaje'}</h3><small>{vitalesTriaje ? 'Resultados registrados por enfermería antes de la consulta.' : 'El médico puede registrarlos opcionalmente.'}</small></div><button className="secundario" type="button" onClick={() => { if (!mostrarFormulario) setVitales((actual) => ({ ...(vitalesTriaje ?? {}), ...actual })); setMostrarFormulario((actual) => !actual); }}><Icon name="edit" size={15} /> {mostrarFormulario ? 'Cancelar edición' : 'Editar opcionalmente'}</button></header>{camposConResultado.length ? <div className="consulta-signos-grid">{camposConResultado.map(([id, etiqueta]) => <article key={id}><small>{etiqueta}</small><strong>{datos[id]}{unidadesVitales[id] ? ` ${unidadesVitales[id]}` : ''}</strong></article>)}</div> : <p>Aquí aparecerán todos los resultados de los signos vitales registrados.</p>}{mostrarFormulario && <div className="consulta-signos-form">{campos.map(([id, etiqueta]) => <label key={id}>{etiqueta}<input value={vitales[id] || ''} onChange={(event) => setVitales((actual) => ({ ...actual, [id]: event.target.value }))} placeholder="Opcional" /></label>)}</div>}</section>
-          <section className="consulta-antecedentes panel"><header><div><p>ANTECEDENTES</p><h3>Antecedentes clínicos</h3></div></header><textarea aria-label="Antecedentes clínicos" value={antecedentes[paciente.ci] ?? ''} onChange={(event) => setAntecedentes((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Alergias, enfermedades previas, cirugías y antecedentes familiares..." /></section>
+          <section className="consulta-seguimiento-clinico" aria-label="Seguimiento clínico de la consulta">
+            <details className="consulta-seguimiento-panel" open><summary><span>Anamnesis · Relato cronológico</span><Icon name="chevronRight" size={18} /></summary><div><textarea aria-label="Anamnesis" value={antecedentes[paciente.ci] ?? ''} onChange={(event) => setAntecedentes((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Describe el relato cronológico, antecedentes relevantes y evolución del cuadro actual..." /></div></details>
+            <RevisionConsulta pacienteId={paciente.ci} />
+            <section className="consulta-seguimiento-panel consulta-diagnostico-final"><header><h3>Diagnóstico final</h3></header><textarea aria-label="Diagnóstico final" value={diagnosticosFinales[paciente.ci] ?? ''} onChange={(event) => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Registra el diagnóstico final..." />{!diagnosticosFinales[paciente.ci] && <p>Aún no se ha registrado el diagnóstico final.</p>}</section>
+            <section className="consulta-seguimiento-panel consulta-cierre-consulta"><header><div><h3>Cierre de atención</h3><small>Completa este paso al finalizar la consulta.</small></div>{!atencionesCerradas[paciente.ci] && <button type="button" onClick={() => setAtencionesCerradas((actual) => ({ ...actual, [paciente.ci]: true }))}>Finalizar atención</button>}</header><p>{atencionesCerradas[paciente.ci] ? 'Atención finalizada. El episodio clínico está listo para guardarse en la historia.' : 'Pendiente de cierre. Registra el diagnóstico final y las indicaciones necesarias.'}</p></section>
+          </section>
         </div>
         <div className="consulta-atencion-lateral">
-          <section className="consulta-datos-clinicos panel">
-            <header><h3>Datos clínicos</h3><button type="button" aria-label="Limpiar datos clínicos" title="Limpiar datos clínicos" onClick={() => setDatosClinicos((actual) => ({ ...actual, [paciente.ci]: { motivoConsulta: '', enfermedadActual: '', examenFisico: '' } }))}><Icon name="trash" size={14} /></button></header>
-            <label>Motivo de consulta<input value={datosClinicosPaciente.motivoConsulta} onChange={(event) => setDatosClinicos((actual) => ({ ...actual, [paciente.ci]: { ...datosClinicosPaciente, motivoConsulta: event.target.value } }))} /></label>
-            <label>Enfermedad actual<input value={datosClinicosPaciente.enfermedadActual} onChange={(event) => setDatosClinicos((actual) => ({ ...actual, [paciente.ci]: { ...datosClinicosPaciente, enfermedadActual: event.target.value } }))} /></label>
-            <label>Examen físico<input value={datosClinicosPaciente.examenFisico} onChange={(event) => setDatosClinicos((actual) => ({ ...actual, [paciente.ci]: { ...datosClinicosPaciente, examenFisico: event.target.value } }))} /></label>
-          </section>
+          <section className="consulta-ordenes-medicas panel"><header><div><p>ÓRDENES MÉDICAS</p><h3>Órdenes del paciente</h3></div><span>{ordenesPaciente.length}</span></header><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} onAbrirRecetario={() => { setSeccion('tratamientos'); setRecetarioAbierto(true); }} /><label className="consulta-buscador-orden"><Icon name="search" size={16}/><input value={busquedaOrdenMedica} onChange={event => setBusquedaOrdenMedica(event.target.value)} placeholder="Buscar orden médica" /></label>{busquedaOrdenMedica && <div className="consulta-resultados-orden">{ordenesFiltradas.length ? ordenesFiltradas.map(orden => <button type="button" key={orden} onClick={() => { setOrdenesMedicas(actual => ({ ...actual, [paciente.ci]: [...(actual[paciente.ci] ?? []), orden] })); setBusquedaOrdenMedica(''); }}><span>{orden}</span><Icon name="plus" size={15}/></button>) : <p>No hay órdenes disponibles.</p>}</div>}<section className="consulta-lista-ordenes"><header><strong>Listado de órdenes</strong><small>{ordenesPaciente.length} agregada{ordenesPaciente.length === 1 ? '' : 's'}</small></header>{ordenesPaciente.length ? ordenesPaciente.map(orden => <article key={orden}><span><Icon name="fileText" size={15}/></span><strong>{orden}</strong><button type="button" aria-label={`Quitar ${orden}`} onClick={() => setOrdenesMedicas(actual => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? []).filter(item => item !== orden) }))}>×</button></article>) : <p>Busca una orden médica para añadirla al listado.</p>}</section></section>
         <section className="consulta-nota panel">
           <p>NOTAS MÉDICAS</p>
             <h3>Notas médicas</h3>

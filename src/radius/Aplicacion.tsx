@@ -83,7 +83,7 @@ const signosVitalesIniciales: SignoVitalConfig[] = [
 
 type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
 type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecografias" | "ecocardiogramas" | "informes" | "visor";
-type SubvistaModalidad = "pacientes" | "estudios";
+type SubvistaModalidad = "pacientes" | "estudios" | "visor";
 type RolEnfermeriaQuirofano = "instrumentista" | "circulante" | "almacen";
 type SubvistaAlmacenQuirofano = "quirofano-1" | "quirofano-2";
 type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
@@ -113,6 +113,7 @@ const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: 
 const subvistasModalidad: { id: SubvistaModalidad; nombre: string; icono: IconName }[] = [
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
   { id: "estudios", nombre: "Estudios", icono: "image" },
+  { id: "visor", nombre: "Visor", icono: "eye" },
 ];
 const subvistasPacientes: { id: SubvistaPacientes; nombre: string; icono: IconName }[] = [
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
@@ -344,13 +345,23 @@ export default function Aplicacion() {
       const id = (evento as CustomEvent<string>).detail;
       if (id === "visor-tomografias") {
         setModulo("imagenologia");
-        setSubvistaImagenologia("visor");
+        setSubvistaImagenologia("tomografias");
+        setSubvistaModalidad("visor");
         setVisorModalidad("Tomografía");
+        setBusqueda('');
+        setMenuAbierto(false);
+      } else if (["visor-radiografias", "visor-ecografias", "visor-ecocardiogramas"].includes(id)) {
+        const subvista = id.replace("visor-", "") as "radiografias" | "ecografias" | "ecocardiogramas";
+        setModulo("imagenologia");
+        setSubvistaImagenologia(subvista);
+        setSubvistaModalidad("visor");
+        setVisorModalidad(null);
         setBusqueda('');
         setMenuAbierto(false);
       } else if (id === "visor") {
         setModulo("imagenologia");
-        setSubvistaImagenologia("visor");
+        setSubvistaImagenologia("radiografias");
+        setSubvistaModalidad("visor");
         setVisorModalidad(null);
         setBusqueda('');
         setMenuAbierto(false);
@@ -712,6 +723,8 @@ export default function Aplicacion() {
             <VistaPacientes modalidad="Ecografía" />
           ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" ? (
             <VistaPacientes modalidad="Ecocardiograma" />
+          ) : modulo === "imagenologia" && ["radiografias", "tomografias", "ecografias", "ecocardiogramas"].includes(subvistaImagenologia) && subvistaModalidad === "visor" ? (
+            <VistaRayosX modalidad={visorModalidad || undefined} />
           ) : modulo === "imagenologia" && ["pacientes", "radiografias", "tomografias"].includes(subvistaImagenologia) ? (
             <VistaPacientes modalidad={subvistaImagenologia === "tomografias" ? "Tomografía" : subvistaImagenologia === "ecocardiogramas" ? "Ecocardiograma" : subvistaImagenologia === "radiografias" ? "Radiografía" : undefined} soloConEstudio={subvistaImagenologia === "radiografias"} />
           ) : modulo === "imagenologia" && subvistaImagenologia === "visor" ? (

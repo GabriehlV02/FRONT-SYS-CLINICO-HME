@@ -1,8 +1,10 @@
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import Icon from '../../../radius/componentes/Icono';
 import { TriajeEmergenciasView } from '../../emergencias/TriajeEmergenciasView';
 import { leerInternaciones, suscribirInternaciones } from '../../internacion/registroInternaciones';
+import { apiEmergencias, nombrePaciente, type CuentaEmergencia } from '../../emergencias/emergenciasApi';
 import './PreinternacionesRecepcion.css';
+import './CuentasTodasView.css';
 
 type EstadoCuenta = 'Pendiente' | 'Parcial' | 'Al día';
 
@@ -106,9 +108,28 @@ const cuentasIniciales: CuentaPaciente[] = [
 const dinero = (valor: number) =>
   `Bs ${valor.toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-export function CuentasRecepcionView({ origenInicial = 'emergencias', pacienteInicial = '' }: { origenInicial?: 'emergencias' | 'internacion' | 'tratamientos'; pacienteInicial?: string }) {
-  const [origen, setOrigen] = useState(origenInicial);
-  return <><div className="em-cuentas-tabs"><button className={origen === 'emergencias' ? 'activo' : ''} onClick={() => setOrigen('emergencias')}>Emergencias</button><button className={origen === 'internacion' ? 'activo' : ''} onClick={() => setOrigen('internacion')}>Internación</button><button className={origen === 'tratamientos' ? 'activo' : ''} onClick={() => setOrigen('tratamientos')}>Procedimientos y tratamientos</button></div>{origen === 'emergencias' ? <TriajeEmergenciasView recepcion /> : origen === 'internacion' ? <CuentasInternacionView /> : <CuentasTratamientosView />}</>;
+type OrigenCuenta = 'todas' | 'emergencias' | 'internacion' | 'tratamientos';
+
+export function CuentasRecepcionView({ origenInicial = 'todas', pacienteInicial = '' }: { origenInicial?: OrigenCuenta; pacienteInicial?: string }) {
+  const [origen, setOrigen] = useState<OrigenCuenta>(origenInicial);
+  return <>{origen === 'todas' ? <CuentasTodasView onCambiarVista={setOrigen} /> : origen === 'emergencias' ? <TriajeEmergenciasView recepcion /> : origen === 'internacion' ? <CuentasInternacionView /> : <CuentasTratamientosView />}</>;
+}
+
+function CuentasTodasView({ onCambiarVista }: { onCambiarVista: (origen: OrigenCuenta) => void }) {
+  const internaciones = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
+  const [emergencias, setEmergencias] = useState<CuentaEmergencia[]>([]);
+  const [busqueda, setBusqueda] = useState('');
+  const [filtro, setFiltro] = useState<'Todas' | 'Emergencias' | 'Internaciones' | 'Deudas' | 'Cerradas'>('Todas');
+  useEffect(() => { void apiEmergencias<{ cuentas: CuentaEmergencia[] }>().then(datos => setEmergencias(datos.cuentas)).catch(() => setEmergencias([])); }, []);
+  const cuentas = useMemo(() => {
+    const deEmergencias = emergencias.map(cuenta => { const total = cuenta.consumos.reduce((suma, consumo) => suma + consumo.precio * consumo.cantidad, 0); return { id: `EM-${cuenta.id.slice(0, 8).toUpperCase()}`, paciente: nombrePaciente(cuenta), documento: cuenta.identidad?.documento || 'Sin documento', origen: 'Emergencias', fecha: cuenta.inicio, saldo: total, total, estado: cuenta.fin ? 'Cerrada' : total ? 'Pendiente' : 'Pendiente', destino: 'emergencias' as const }; });
+    const deInternacion = [...cuentasIniciales, ...internaciones.filter(item => item.estado === 'confirmada').map(item => ({ id: `CTA-${item.id}`, paciente: item.paciente, historia: 'Cuenta de internación', ubicacion: `Sala ${item.sala} · Cama ${item.cama}`, ingreso: item.fecha, responsable: 'Por registrar', total: 0, pagado: 0, estado: 'Pendiente' as EstadoCuenta, consumos: [] }))].map(cuenta => ({ id: cuenta.id, paciente: cuenta.paciente, documento: cuenta.historia, origen: 'Internación', fecha: cuenta.ingreso, saldo: cuenta.total - cuenta.pagado, total: cuenta.total, estado: cuenta.total === cuenta.pagado ? 'Cerrada' : cuenta.estado, destino: 'internacion' as const }));
+    return [...deEmergencias, ...deInternacion];
+  }, [emergencias, internaciones]);
+  const visibles = cuentas.filter(cuenta => { const texto = `${cuenta.id} ${cuenta.paciente} ${cuenta.documento} ${cuenta.origen}`.toLocaleLowerCase(); const coincide = !busqueda.trim() || texto.includes(busqueda.trim().toLocaleLowerCase()); const filtroActivo = filtro === 'Todas' || (filtro === 'Emergencias' && cuenta.origen === 'Emergencias') || (filtro === 'Internaciones' && cuenta.origen === 'Internación') || (filtro === 'Deudas' && cuenta.saldo > 0) || (filtro === 'Cerradas' && cuenta.estado === 'Cerrada'); return coincide && filtroActivo; });
+  const gruposPorServicio = filtro === 'Todas' ? Array.from(visibles.reduce((grupos, cuenta) => { const grupo = grupos.get(cuenta.origen) || []; grupo.push(cuenta); grupos.set(cuenta.origen, grupo); return grupos; }, new Map<string, typeof visibles>())) : [];
+  const filaCuenta = (cuenta: typeof visibles[number]) => <article key={`${cuenta.origen}-${cuenta.id}`}><strong>{cuenta.id}</strong><strong>{cuenta.paciente}</strong><span>{cuenta.documento}</span><span>{cuenta.origen}</span><span>{new Date(cuenta.fecha).toLocaleDateString('es-BO')}</span><b>{dinero(cuenta.saldo)}</b><em className={cuenta.estado.toLocaleLowerCase().replace(' ', '-')}>{cuenta.estado}</em><span>{dinero(cuenta.total)}</span><button type="button" onClick={() => onCambiarVista(cuenta.destino)}><Icon name="eye" size={15}/> Ver</button></article>;
+  return <section className="cuentas-todas" aria-label="Todas las cuentas"><div className="cuentas-todas-herramientas"><label><Icon name="search" size={17}/><input value={busqueda} onChange={evento => setBusqueda(evento.target.value)} placeholder="Buscar por paciente, CI o número de cuenta"/></label></div><div className="cuentas-todas-control"><nav>{(['Todas', 'Emergencias', 'Internaciones', 'Deudas', 'Cerradas'] as const).map(item => <button type="button" key={item} className={filtro === item ? 'activo' : ''} onClick={() => setFiltro(item)}>{item}</button>)}</nav><small>{visibles.length} de {cuentas.length} cuentas</small></div><div className="cuentas-todas-tabla"><div className="cuentas-todas-cabecera"><span>Cuenta</span><span>Paciente</span><span>CI / H.C.</span><span>Origen</span><span>Fecha</span><span>Saldo pendiente</span><span>Estado</span><span>Total</span><span>Acciones</span></div>{gruposPorServicio.length ? gruposPorServicio.map(([servicio, cuentasServicio]) => <section className="cuentas-todas-grupo" key={servicio}><header><strong>{servicio}</strong><span>{cuentasServicio.length} {cuentasServicio.length === 1 ? 'cuenta' : 'cuentas'}</span></header>{cuentasServicio.map(filaCuenta)}</section>) : visibles.map(filaCuenta)}{!visibles.length && <p>No se encontraron cuentas con esos criterios.</p>}</div></section>;
 }
 
 function CuentasTratamientosView() {
@@ -134,6 +155,8 @@ function CuentasInternacionView() {
   const parcial = cuentasConInternacion.filter(
     (cuenta) => cuenta.estado === 'Parcial',
   ).length;
+
+  if (Boolean(cuentaModal)) return <DetalleCuentaContable cuenta={cuentaModal!} onVolver={() => setCuentaModal(null)} />;
 
   return (
     <section
@@ -336,4 +359,9 @@ function CuentasInternacionView() {
       </div>
     </section>
   );
+}
+
+function DetalleCuentaContable({ cuenta, onVolver }: { cuenta: CuentaPaciente; onVolver: () => void }) {
+  const saldo = cuenta.total - cuenta.pagado;
+  return <section className="cuenta-contable-detalle" aria-label={`Detalle de la cuenta ${cuenta.id}`}><header><button type="button" onClick={onVolver}><Icon name="chevronLeft" size={16}/> Volver a cuentas</button><span>CUENTA · {cuenta.id}</span><h2>{cuenta.paciente}</h2><small>{cuenta.historia} · {cuenta.ubicacion} · Saldo pendiente: {dinero(saldo)}</small></header><div className="cuenta-contable-cuerpo"><section className="cuenta-contable-consumos"><header><div><span>CONSUMOS REGISTRADOS</span><h3>Detalle de la cuenta</h3></div><b>{cuenta.consumos.length} {cuenta.consumos.length === 1 ? 'ítem' : 'ítems'}</b></header><div className="cuenta-contable-tabla"><div><span>Concepto</span><span>Fecha</span><span>Cant.</span><span>Importe</span></div>{cuenta.consumos.length ? cuenta.consumos.map((consumo, indice) => <article key={`${consumo.concepto}-${indice}`}><strong>{consumo.concepto}</strong><span>{consumo.fecha}</span><span>1</span><b>{dinero(consumo.importe)}</b></article>) : <p>Esta cuenta todavía no tiene consumos registrados.</p>}<footer><strong>Total registrado</strong><b>{dinero(cuenta.total)}</b></footer></div></section><aside className="cuenta-contable-operacion"><nav><button className="activo" type="button"><Icon name="plus" size={15}/> Cargar</button><button type="button"><Icon name="audit" size={15}/> Cobrar</button></nav><small>Cuenta de {cuenta.ubicacion}. Los cargos se sincronizan con el servicio correspondiente.</small><label>Buscar producto, insumo o servicio<input placeholder="Nombre o categoría"/></label><section><header><strong>Consumos por cargar</strong><small>0 ítems</small></header><p>Selecciona elementos del buscador.</p></section><b>Total por cargar: {dinero(0)}</b><div><button disabled type="button">Cargar</button><button type="button" onClick={onVolver}>Cancelar</button></div><footer><h4>Historial de pagos</h4><p>{cuenta.pagado ? `Adelanto registrado: ${dinero(cuenta.pagado)}` : 'Sin pagos registrados en esta cuenta.'}</p></footer></aside></div></section>;
 }

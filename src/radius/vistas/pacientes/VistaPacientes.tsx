@@ -89,14 +89,15 @@ function InspeccionPaciente({ paciente, estudios, onVolver }: { paciente: Pacien
   const abrir = (estudio: EstudioInspeccion) => {
     if (estudio.origen === 'orthanc') {
       localStorage.setItem('radiuus_orthanc_estudio', estudio.id);
-      window.dispatchEvent(new CustomEvent('radiuus:navegar', { detail: 'visor' }));
+      const destino = estudio.tipo === 'Tomografía' ? 'visor-tomografias' : estudio.tipo === 'Ecografía' ? 'visor-ecografias' : estudio.tipo === 'Ecocardiograma' ? 'visor-ecocardiogramas' : 'visor-radiografias';
+      window.dispatchEvent(new CustomEvent('radiuus:navegar', { detail: destino }));
     } else seleccionarEstudio(estudio.id);
   };
   return <section className="inspeccion-imagenologia">
     <button type="button" className="inspeccion-volver" onClick={onVolver}><Icon name="chevronLeft" size={17}/> Volver al listado de pacientes</button>
     <header className="inspeccion-paciente"><span><Icon name="patient" size={24}/></span><div><small>PACIENTE</small><h2>{nombreCompleto(paciente)}</h2><p>{paciente.tipoDocumento} {paciente.numeroDocumento} · {todos.length} {todos.length === 1 ? 'estudio' : 'estudios'} de imagenología</p></div></header>
     <section className="inspeccion-filtros" aria-label="Filtros de estudios"><label className="inspeccion-buscar"><Icon name="search" size={17}/><input value={busqueda} onChange={evento => setBusqueda(evento.target.value)} placeholder="Buscar estudio, modalidad o descripción"/></label><label><span>Tipo de estudio</span><select value={tipo} onChange={evento => setTipo(evento.target.value)}><option value="todos">Todos los tipos</option>{tipos.map(valor => <option key={valor}>{valor}</option>)}</select></label><label><span>Desde</span><input type="date" value={desde} onChange={evento => setDesde(evento.target.value)}/></label><label><span>Hasta</span><input type="date" min={desde} value={hasta} onChange={evento => setHasta(evento.target.value)}/></label>{(busqueda || tipo !== 'todos' || desde || hasta) && <button type="button" onClick={() => { setBusqueda(''); setTipo('todos'); setDesde(''); setHasta(''); }}>Limpiar filtros</button>}</section>
-    <section className="inspeccion-estudios"><header><div><span>HISTORIAL DE IMAGENOLOGÍA</span><h3>Estudios del paciente</h3></div><b>{visibles.length}</b></header>{cargando && !todos.length ? <div className="inspeccion-vacio"><span>Cargando estudios…</span></div> : visibles.length ? <div className="inspeccion-lista">{visibles.map(estudio => <article key={`${estudio.origen}-${estudio.id}`}><span><Icon name="image" size={19}/></span><div><strong>{estudio.titulo}</strong><small>{estudio.tipo} · {estudio.descripcion}</small></div><time>{estudio.fecha ? new Date(`${estudio.fecha}T00:00:00`).toLocaleDateString('es-BO') : 'Sin fecha'}</time><em>{estudio.origen === 'orthanc' ? 'Orthanc' : 'Local'}</em><button type="button" onClick={() => abrir(estudio)}><Icon name="eye" size={16}/> Ver estudio</button></article>)}</div> : <div className="inspeccion-vacio"><Icon name="image" size={28}/><strong>No hay estudios que coincidan</strong><small>{todos.length ? 'Cambia la búsqueda o los filtros aplicados.' : 'Este paciente todavía no tiene estudios de imagenología.'}</small></div>}</section>
+    <section className="inspeccion-estudios"><header className="inspeccion-columnas"><span>Estudio</span><span>Fecha</span><span>Origen</span><span>Acciones</span></header>{cargando && !todos.length ? <div className="inspeccion-vacio"><span>Cargando estudios…</span></div> : visibles.length ? <div className="inspeccion-lista">{visibles.map(estudio => <article key={`${estudio.origen}-${estudio.id}`}><span><Icon name="image" size={19}/></span><div><strong>{estudio.titulo}</strong><small>{estudio.tipo} · {estudio.descripcion}</small></div><time>{estudio.fecha ? new Date(`${estudio.fecha}T00:00:00`).toLocaleDateString('es-BO') : 'Sin fecha'}</time><em>{estudio.origen === 'orthanc' ? 'Orthanc' : 'Local'}</em><button type="button" onClick={() => abrir(estudio)}><Icon name="eye" size={16}/> Ver estudio</button></article>)}</div> : <div className="inspeccion-vacio"><Icon name="image" size={28}/><strong>No hay estudios que coincidan</strong><small>{todos.length ? 'Cambia la búsqueda o los filtros aplicados.' : 'Este paciente todavía no tiene estudios de imagenología.'}</small></div>}</section>
   </section>;
 }
 
@@ -362,7 +363,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           <span>Edad</span>
           <span>Sexo</span>
           <span>Celular</span>
-          {!modoClinico && <span>{modalidad || "Pacientes"}</span>}
+          {!modoClinico && <><span>Tipo de estudio</span><span>Estado</span></>}
           <span>Acciones</span>
         </div>
         {cargando ? (
@@ -405,23 +406,27 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                   <strong className="dato-movil">Celular</strong>
                   <span>{p.telefono || "No registrado"}</span>
                 </div>
-                {!modoClinico && <div className="radiografia-estado">
-                  <strong className="dato-movil">{modalidad || "Estudio"}</strong>
+                {!modoClinico && <><div className="radiografia-tipo">
+                  <strong className="dato-movil">Tipo de estudio</strong>
+                  <span>{estudio?.titulo || modalidad || "Sin estudio"}</span>
+                </div><div className="radiografia-estado">
+                  <strong className="dato-movil">Estado</strong>
                   <span
                     className={estudio ? "estado-cargado" : "estado-pendiente"}
                   >
                     {estudio ? "Cargada" : "Pendiente"}
                   </span>
-                  {estudio && (
-                    <small title={estudio.nombreArchivo}>
-                      {estudio.titulo}
-                    </small>
-                  )}
-                </div>}
+                </div></>}
                 <div className="acciones-tabla">
                   {!modoClinico && <button
                     className="usuario-accion"
-                    onClick={() => setViendo(p)}
+                    onClick={() => {
+                      if (modalidad === 'Tomografía' && estudio) {
+                        seleccionarEstudio(estudio.id);
+                        return;
+                      }
+                      setViendo(p);
+                    }}
                     title={!modalidad ? "Inspeccionar paciente" : "Ver paciente"}
                     aria-label={!modalidad ? `Inspeccionar estudios de ${nombreCompleto(p)}` : `Ver paciente ${nombreCompleto(p)}`}
                   >

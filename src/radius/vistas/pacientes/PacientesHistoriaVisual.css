@@ -19,7 +19,8 @@
 .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-fila>div>small,.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .dato-movil{color:#69869b}
 .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .rol-etiqueta{color:#176759;background:#e5f4f1}
 .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-accion{width:36px;height:36px;border:1px solid #8bc8e7;border-radius:7px;color:#0473bd;background:#fff}
-.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{border-color:#0473bd;color:#fff;background:#0473bd}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{border-color:#0473bd;color:#fff!important;background:#0473bd;font-weight:800}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child span{color:#fff!important;font-weight:800}
 .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuario-accion:hover,.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child:hover{border-color:#035d99;color:#fff;background:#035d99}
 .sistema-app:not([data-theme="dark"]) .pacientes-vista>.usuarios-paginacion{margin-top:10px}
 @media(max-width:1050px){.sistema-app:not([data-theme="dark"]) .pacientes-vista .usuarios-herramientas{grid-template-columns:minmax(240px,1fr) 150px 170px}.sistema-app:not([data-theme="dark"]) .pacientes-vista .usuarios-herramientas .pacientes-registrar{grid-column:1/-1;width:100%}}
@@ -136,6 +137,10 @@
 .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .usuarios-fila{
   min-width:1260px;
   grid-template-columns:minmax(210px,1.25fr) 142px 135px 112px 112px minmax(105px,.65fr) minmax(150px,.8fr) 148px;
+}
+.sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla:has(.radiografia-tipo) .usuarios-fila{
+  min-width:1480px;
+  grid-template-columns:minmax(210px,1.25fr) 142px 135px 112px 112px minmax(105px,.65fr) minmax(180px,.9fr) 112px 148px;
 }
 .sistema-app:not([data-theme="dark"]) .pacientes-vista .pacientes-tabla .acciones-tabla{
   display:grid!important;

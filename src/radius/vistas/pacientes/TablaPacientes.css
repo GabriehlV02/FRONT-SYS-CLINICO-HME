@@ -256,3 +256,8 @@
 .pacientes-vista .pacientes-tabla .usuario-accion:hover,.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child:hover{border-color:#096bb5;color:#fff;background:#096bb5;transform:none}
 @media(max-width:700px){.pacientes-vista .pacientes-tabla .acciones-tabla{width:140px}.pacientes-vista .pacientes-tabla .usuario-accion,.pacientes-vista .pacientes-tabla .acciones-tabla .usuario-accion:last-child{grid-column:auto!important;grid-row:auto!important}}
 .pacientes-vista .pacientes-tabla::-webkit-scrollbar-thumb{border:2px solid #edf8fd;border-radius:99px;background:#75bfe0}
+
+/* Modalidades: el tipo de estudio y su estado se muestran en columnas independientes. */
+.pacientes-vista .pacientes-tabla:has(.radiografia-tipo) .usuarios-fila{min-width:1410px;grid-template-columns:minmax(210px,1.2fr) 142px 135px 112px 112px minmax(105px,.65fr) minmax(180px,.9fr) 112px 148px}
+.pacientes-vista .pacientes-tabla .radiografia-tipo{display:grid;align-content:center;gap:4px;min-width:0}.pacientes-vista .pacientes-tabla .radiografia-tipo>span{overflow:hidden;color:#315d7d;font-size:11px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+.pacientes-vista .pacientes-tabla .radiografia-estado{display:grid;align-content:center;gap:4px;min-width:0}

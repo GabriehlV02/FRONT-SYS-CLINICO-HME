@@ -55,8 +55,12 @@ async function clasificar(files: File[], origen: ResultadoImportacion['origen'])
 async function extraerZip(file: File) {
   const zip = await JSZip.loadAsync(file, { createFolders: false });
   const files: File[] = [];
+  // La tomografía de demostración contiene miles de cortes (más de 500 MB).
+  // Se abre una serie inicial suficiente para navegar el estudio sin bloquear el visor.
+  const limiteDemostracion = file.name.toLocaleLowerCase().includes('yarela-heidi-copa-villca-tac-craneo-con-contraste') ? 256 : Number.POSITIVE_INFINITY;
   for (const entrada of Object.values(zip.files)) {
     if (entrada.dir) continue;
+    if (files.length >= limiteDemostracion) break;
     const blob = await entrada.async('blob');
     files.push(new File([blob], entrada.name, { type: 'application/octet-stream' }));
   }

@@ -77,7 +77,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
   };
 
   const solicitarCodigo = async () => {
-    setRecuperando(true); setErrorRecuperacion(''); setMensajeRecuperacion('');
+    setRecuperando(true); setErrorRecuperacion('');
     try {
       const response = await fetch('/api/recuperar-contrasena', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identificador: recuperacion.identificador }) });
       const data = await response.json().catch(() => ({}));
@@ -88,7 +88,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
   };
 
   const restablecerContrasena = async () => {
-    setRecuperando(true); setErrorRecuperacion(''); setMensajeRecuperacion('');
+    setRecuperando(true); setErrorRecuperacion('');
     try {
       const response = await fetch('/api/restablecer-contrasena', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identificador: recuperacion.identificador, codigo: recuperacion.codigo, contrasena_nueva: recuperacion.contrasena, confirmar_contrasena: recuperacion.confirmar }) });
       const data = await response.json().catch(() => ({}));
@@ -96,6 +96,13 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       setMensajeRecuperacion(data.message || 'Contraseña actualizada.'); setRecuperacion((actual) => ({ ...actual, codigo: '', contrasena: '', confirmar: '' }));
     } catch (error) { setErrorRecuperacion(error instanceof Error ? error.message : 'No pudimos restablecer la contraseña.'); }
     finally { setRecuperando(false); }
+  };
+
+  const volverAlInicio = () => {
+    setRecuperacionVisible(false);
+    setErrorRecuperacion('');
+    setRecuperacion((actual) => ({ ...actual, codigo: '', contrasena: '', confirmar: '' }));
+    setForm((actual) => ({ ...actual, password: '' }));
   };
 
   return <main className="login-page login-page-clinico">
@@ -116,24 +123,38 @@ export default function VistaInicioSesion({ onLogin }: Props) {
         <div className="login-presentacion-onda" aria-hidden="true" />
       </section>
       <section className="login-acceso">
-        <form className="login-card" onSubmit={ingresar}>
+        {!recuperacionVisible ? <form className="login-card" onSubmit={ingresar}>
           <p className="login-kicker">PORTAL CLÍNICO</p>
           <h1>Iniciar sesión</h1>
           <p className="login-subtitulo">Accede al sistema clínico con tu cuenta</p>
           {error && <div className="login-error" role="alert"><Icon name="close" size={17} /><div><strong>No se pudo iniciar sesión</strong><span>{error}</span></div></div>}
           <div className="login-field"><label className="login-label" htmlFor="clinico-usuario">Usuario</label><div className="login-input"><Icon name="users" size={19} /><input id="clinico-usuario" autoFocus required autoComplete="username" value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} placeholder="Ingresa tu usuario" /></div></div>
           <div className="login-field"><label className="login-label" htmlFor="clinico-password">Contraseña</label><div className="login-input"><Icon name="asset" size={18} /><input id="clinico-password" required type={mostrarPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Ingresa tu contraseña" /><button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { const input = e.currentTarget.previousElementSibling as HTMLInputElement; const start = input.selectionStart, end = input.selectionEnd; setMostrarPassword((v) => !v); requestAnimationFrame(() => { input.focus({ preventScroll: true }); input.setSelectionRange(start, end); }); }} aria-pressed={mostrarPassword} aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}><Icon name={mostrarPassword ? 'eyeOff' : 'eye'} size={18} /></button></div></div>
-          <div className="login-opciones"><label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Recordar usuario en este equipo</label><button type="button" className="login-ayuda-link" onClick={() => { setRecuperacionVisible((visible) => !visible); setMensajeRecuperacion(''); setErrorRecuperacion(''); }} aria-expanded={recuperacionVisible}>¿Olvidaste tu contraseña?</button></div>
-          {recuperacionVisible && <section className="login-recuperacion" aria-label="Recuperar contraseña" onKeyDown={(evento) => { if (evento.key !== 'Enter') return; evento.preventDefault(); if (recuperando) return; if (mensajeRecuperacion && !mensajeRecuperacion.includes('actualizada')) void restablecerContrasena(); else void solicitarCodigo(); }}>
-            <div className="login-recuperacion-cabecera"><strong>Recupera tu acceso</strong><span>Te enviaremos un código al correo registrado.</span></div>
-            {!mensajeRecuperacion.includes('actualizada') && <div className="login-recuperacion-form"><input required value={recuperacion.identificador} onChange={(e) => setRecuperacion({ ...recuperacion, identificador: e.target.value })} placeholder="Usuario o correo electrónico" autoComplete="username" /><button type="button" onClick={solicitarCodigo} disabled={recuperando}>{recuperando ? 'Enviando…' : 'Enviar código'}</button></div>}
-            {mensajeRecuperacion && !mensajeRecuperacion.includes('actualizada') && <div className="login-recuperacion-restablecer"><input required inputMode="numeric" pattern="[0-9]{6}" value={recuperacion.codigo} onChange={(e) => setRecuperacion({ ...recuperacion, codigo: e.target.value })} placeholder="Código de 6 dígitos" /><input required minLength={8} type="password" value={recuperacion.contrasena} onChange={(e) => setRecuperacion({ ...recuperacion, contrasena: e.target.value })} placeholder="Nueva contraseña (mín. 8 caracteres)" autoComplete="new-password" /><input required minLength={8} type="password" value={recuperacion.confirmar} onChange={(e) => setRecuperacion({ ...recuperacion, confirmar: e.target.value })} placeholder="Confirma tu contraseña" autoComplete="new-password" /><button type="button" onClick={restablecerContrasena} disabled={recuperando}>{recuperando ? 'Guardando…' : 'Crear nueva contraseña'}</button></div>}
-            {mensajeRecuperacion && <p className="login-recuperacion-mensaje" role="status">{mensajeRecuperacion}</p>}
-            {errorRecuperacion && <p className="login-recuperacion-error" role="alert">{errorRecuperacion}</p>}
-          </section>}
+          <div className="login-opciones">
+            <label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Recordar usuario en este equipo</label>
+            <button type="button" className="login-ayuda-link" onClick={() => { setRecuperacionVisible(true); setRecuperacion((actual) => ({ ...actual, identificador: form.usuario.trim() || actual.identificador })); setForm((actual) => ({ ...actual, password: '' })); setMensajeRecuperacion(''); setErrorRecuperacion(''); }}><span>¿Olvidaste tu contraseña?</span><Icon name="arrowRight" size={15} /></button>
+          </div>
           <button className="login-submit" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar'} {!loading && <Icon name="arrowRight" size={18} />}</button>
           <p className="login-helper">Para proteger la información clínica, no compartas tus credenciales.</p>
-        </form>
+        </form> : <section className="login-card login-card-recuperacion" aria-labelledby="clinico-recuperacion-titulo">
+          <button className="login-recuperacion-volver" type="button" onClick={volverAlInicio}><Icon name="chevronLeft" size={16} /> Volver a iniciar sesión</button>
+          <div className="login-recuperacion-marcas" aria-hidden="true">
+            <span className="login-recuperacion-marca login-recuperacion-gmail"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M2 6.3v11.4c0 .7.5 1.2 1.2 1.2H5V8.7z"/><path fill="#34A853" d="M19 8.7v10.2h1.8c.7 0 1.2-.5 1.2-1.2V6.3z"/><path fill="#EA4335" d="M2 6.3 4.7 4.5 12 10l7.3-5.5L22 6.3 12 13.8z"/><path fill="#C5221F" d="M19.3 4.5 22 6.3V5.5c0-1.3-1.5-2-2.5-1.2z"/><path fill="#FBBC04" d="M2 6.3 4.7 4.5 4.5 4.3C3.5 3.6 2 4.2 2 5.5z"/></svg></span>
+            <span className="login-recuperacion-marca login-recuperacion-google"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.35 12.23c0-.72-.06-1.4-.18-2.06H12v3.89h5.24a4.48 4.48 0 0 1-1.94 2.93v2.43h3.13c1.83-1.68 2.92-4.16 2.92-7.19Z"/><path fill="#34A853" d="M12 21.5c2.62 0 4.82-.87 6.43-2.35l-3.13-2.43c-.87.58-1.98.93-3.3.93-2.54 0-4.69-1.72-5.46-4.03H3.31v2.52A9.72 9.72 0 0 0 12 21.5Z"/><path fill="#FBBC05" d="M6.54 13.62a5.9 5.9 0 0 1 0-3.24V7.86H3.31a9.75 9.75 0 0 0 0 8.28z"/><path fill="#EA4335" d="M12 6.35c1.43 0 2.72.49 3.74 1.48l2.8-2.8A9.36 9.36 0 0 0 12 2.5a9.72 9.72 0 0 0-8.69 5.36l3.23 2.52C7.31 8.07 9.46 6.35 12 6.35Z"/></svg></span>
+          </div>
+          <p className="login-kicker">RECUPERACIÓN DE ACCESO</p>
+          <h1 id="clinico-recuperacion-titulo">Recupera tu contraseña</h1>
+          <p className="login-subtitulo">Recibirás un código de 6 dígitos en el correo asociado a tu cuenta.</p>
+          <div className="login-recuperacion-progreso" aria-label="Pasos de recuperación"><span className={!mensajeRecuperacion ? 'activo' : ''}><b>1</b> Solicitar código</span><span className={mensajeRecuperacion ? 'activo' : ''}><b>2</b> Nueva contraseña</span></div>
+          <div className="login-recuperacion-vista" onKeyDown={(evento) => { if (evento.key !== 'Enter' || !(evento.target instanceof HTMLInputElement)) return; evento.preventDefault(); if (recuperando || mensajeRecuperacion.includes('actualizada')) return; if (mensajeRecuperacion) { if (recuperacion.codigo.length === 6 && recuperacion.contrasena.length >= 8 && recuperacion.contrasena === recuperacion.confirmar) void restablecerContrasena(); } else if (recuperacion.identificador.trim()) void solicitarCodigo(); }}>
+            {!mensajeRecuperacion && <div className="login-recuperacion-solicitud"><label htmlFor="clinico-recuperacion-identificador">Usuario o correo registrado</label><div className="login-recuperacion-entrada"><Icon name="users" size={19}/><input id="clinico-recuperacion-identificador" autoFocus required value={recuperacion.identificador} onChange={(e) => setRecuperacion({ ...recuperacion, identificador: e.target.value })} placeholder="Escribe tu usuario o correo" autoComplete="username" /></div><button className="login-recuperacion-principal" type="button" onClick={solicitarCodigo} disabled={recuperando || !recuperacion.identificador.trim()}>{recuperando ? 'Enviando código…' : 'Enviar código a mi correo'}<Icon name="arrowRight" size={17} /></button></div>}
+            {mensajeRecuperacion && <p className="login-recuperacion-mensaje" role="status">{mensajeRecuperacion}</p>}
+            {mensajeRecuperacion && !mensajeRecuperacion.includes('actualizada') && <div className="login-recuperacion-restablecer"><label htmlFor="clinico-recuperacion-codigo">Código recibido</label><input id="clinico-recuperacion-codigo" autoFocus required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={recuperacion.codigo} onChange={(e) => setRecuperacion({ ...recuperacion, codigo: e.target.value.replace(/\D/g, '') })} placeholder="000000" autoComplete="one-time-code" /><label htmlFor="clinico-recuperacion-contrasena">Nueva contraseña</label><input id="clinico-recuperacion-contrasena" required minLength={8} type="password" value={recuperacion.contrasena} onChange={(e) => setRecuperacion({ ...recuperacion, contrasena: e.target.value })} placeholder="Mínimo 8 caracteres" autoComplete="new-password" /><label htmlFor="clinico-recuperacion-confirmar">Confirma la nueva contraseña</label><input id="clinico-recuperacion-confirmar" required minLength={8} type="password" value={recuperacion.confirmar} onChange={(e) => setRecuperacion({ ...recuperacion, confirmar: e.target.value })} placeholder="Repite tu contraseña" autoComplete="new-password" />{recuperacion.confirmar && recuperacion.contrasena !== recuperacion.confirmar && <small className="login-recuperacion-validacion">Las contraseñas deben coincidir.</small>}<button className="login-recuperacion-principal" type="button" onClick={restablecerContrasena} disabled={recuperando || recuperacion.codigo.length !== 6 || recuperacion.contrasena.length < 8 || recuperacion.contrasena !== recuperacion.confirmar}>{recuperando ? 'Guardando…' : 'Cambiar contraseña'}<Icon name="arrowRight" size={17} /></button><button className="login-recuperacion-reenviar" type="button" onClick={solicitarCodigo} disabled={recuperando}>¿No recibiste el código? Solicitar otro</button></div>}
+            {errorRecuperacion && <p className="login-recuperacion-error" role="alert">{errorRecuperacion}</p>}
+            {mensajeRecuperacion.includes('actualizada') && <button className="login-recuperacion-principal" type="button" onClick={volverAlInicio}>Volver a iniciar sesión<Icon name="arrowRight" size={17}/></button>}
+          </div>
+          <p className="login-recuperacion-nota">El código caduca en 15 minutos. No lo compartas con otras personas.</p>
+        </section>}
       </section>
     </div>
   </main>;

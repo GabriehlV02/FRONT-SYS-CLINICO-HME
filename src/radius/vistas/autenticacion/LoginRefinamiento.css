@@ -114,3 +114,49 @@ body:has(.login-page-clinico),
   .login-page-clinico .login-submit { height: 50px !important; }
   .login-page-clinico .login-helper { margin-top: 12px !important; }
 }
+
+/* Segunda vista de recuperación dentro del acceso clínico. */
+.login-page-clinico .login-opciones{align-items:center!important;gap:12px!important;margin:14px 0 17px!important;font-size:12px!important}
+.login-page-clinico .login-opciones>label{min-width:0;color:#58758f;line-height:1.35}
+.login-page-clinico .login-opciones input{width:16px;height:16px;flex:0 0 16px}
+.login-page-clinico .login-ayuda-link{display:inline-flex;align-items:center;justify-content:flex-end;gap:5px;max-width:none;padding:5px 0;border:0;border-radius:7px;color:#0874ac!important;background:transparent;font-size:12px;font-weight:800;line-height:1.25;white-space:nowrap;text-decoration:none;transition:color .15s ease}
+.login-page-clinico .login-ayuda-link:hover{color:#07547e!important;text-decoration:none}
+.login-page-clinico .login-ayuda-link:focus:not(:focus-visible){outline:none;box-shadow:none}
+.login-page-clinico .login-ayuda-link:focus-visible{outline:2px solid #57bce3;outline-offset:3px}
+.login-page-clinico .login-card-recuperacion{width:min(100%,530px)!important}
+.login-page-clinico .login-recuperacion-volver{display:inline-flex;align-items:center;gap:7px;margin:0 0 29px;padding:5px 0;border:0;color:#416b87;background:transparent;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.login-page-clinico .login-recuperacion-volver:hover{color:#087fc0}
+.login-page-clinico .login-recuperacion-volver:focus-visible,.login-page-clinico .login-recuperacion-reenviar:focus-visible{outline:2px solid #57bce3;outline-offset:4px;border-radius:4px}
+.login-page-clinico .login-recuperacion-marcas{display:flex;align-items:center;gap:12px;margin-bottom:27px}
+.login-page-clinico .login-recuperacion-marca{display:grid;place-items:center;width:64px;height:64px;border:1px solid #d6e8f0;border-radius:18px;background:#fff;box-shadow:0 9px 20px rgba(12,75,111,.08)}
+.login-page-clinico .login-recuperacion-marca svg{width:34px;height:34px}
+.login-page-clinico .login-recuperacion-google{width:47px;height:47px;border-radius:14px;background:#f8fcfe}
+.login-page-clinico .login-recuperacion-google svg{width:29px;height:29px}
+.login-page-clinico .login-card-recuperacion .login-kicker{margin:0 0 9px!important}
+.login-page-clinico .login-card-recuperacion h1{max-width:490px;font-size:clamp(31px,2.7vw,42px)!important;line-height:1.08!important;letter-spacing:-.04em!important}
+.login-page-clinico .login-card-recuperacion .login-subtitulo{max-width:400px;margin:12px 0 27px!important;font-size:14px!important;line-height:1.55!important}
+.login-page-clinico .login-recuperacion-progreso{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:23px}
+.login-page-clinico .login-recuperacion-progreso span{display:flex;align-items:center;gap:8px;min-width:0;padding:10px;border:1px solid #e1eaf0;border-radius:10px;color:#8195a7;background:#f9fbfd;font-size:11px;font-weight:750;white-space:nowrap}
+.login-page-clinico .login-recuperacion-progreso span.activo{border-color:#b6ddeb;color:#116993;background:#ecf8fd}
+.login-page-clinico .login-recuperacion-progreso b{display:grid;place-items:center;width:22px;height:22px;flex:0 0 22px;border-radius:50%;color:#7893a5;background:#eaf0f4;font-size:11px}
+.login-page-clinico .login-recuperacion-progreso .activo b{color:#fff;background:#087fc0}
+.login-page-clinico .login-recuperacion-vista{display:grid;gap:15px}
+.login-page-clinico .login-recuperacion-solicitud,.login-page-clinico .login-recuperacion-restablecer{display:grid;grid-template-columns:minmax(0,1fr);gap:9px}
+.login-page-clinico .login-recuperacion-solicitud>label,.login-page-clinico .login-recuperacion-restablecer>label{color:#315d80;font-size:12px;font-weight:800}
+.login-page-clinico .login-recuperacion-entrada{display:flex;align-items:center;gap:11px;height:54px;padding:0 14px;border:1px solid #c7e0ec;border-radius:12px;color:#6f94aa;background:#fbfdff;transition:border-color .15s,box-shadow .15s}
+.login-page-clinico .login-recuperacion-entrada:focus-within{border-color:#129ed0;box-shadow:0 0 0 4px rgba(18,158,208,.12)}
+.login-page-clinico .login-recuperacion-entrada input{min-width:0;width:100%;height:100%;border:0;outline:0;color:#173f62;background:transparent;font:inherit;font-size:14px}
+.login-page-clinico .login-recuperacion-entrada input::placeholder,.login-page-clinico .login-recuperacion-restablecer input::placeholder{color:#93a9b8}
+.login-page-clinico .login-recuperacion-restablecer input{box-sizing:border-box;width:100%;height:50px;margin-bottom:7px;padding:0 14px;border:1px solid #c7e0ec;border-radius:12px;outline:0;color:#173f62;background:#fbfdff;font:inherit;font-size:14px}
+.login-page-clinico .login-recuperacion-restablecer input:focus{border-color:#129ed0;box-shadow:0 0 0 4px rgba(18,158,208,.12)}
+.login-page-clinico .login-recuperacion-restablecer input:first-of-type{letter-spacing:.08em}
+.login-page-clinico .login-recuperacion-validacion{margin-top:-6px;color:#a13447;font-size:11px}
+.login-page-clinico .login-recuperacion-principal{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:54px;margin-top:7px;padding:0 18px;border:0;border-radius:12px;color:#fff;background:linear-gradient(105deg,#07558e,#087fc0 62%,#23b7da);box-shadow:0 10px 22px rgba(5,103,170,.18);font:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.login-page-clinico .login-recuperacion-principal:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 13px 25px rgba(5,103,170,.24)}
+.login-page-clinico .login-recuperacion-principal:disabled{cursor:not-allowed;opacity:.58;box-shadow:none}
+.login-page-clinico .login-recuperacion-reenviar{justify-self:center;margin-top:4px;padding:6px;border:0;color:#0874ac;background:transparent;font:inherit;font-size:12px;font-weight:750;cursor:pointer}
+.login-page-clinico .login-recuperacion-mensaje,.login-page-clinico .login-recuperacion-error{margin:0;padding:11px 13px;border-radius:10px;font-size:12px;line-height:1.5}
+.login-page-clinico .login-recuperacion-mensaje{border:1px solid #cce9df;color:#27735b;background:#f0faf6}
+.login-page-clinico .login-recuperacion-error{border:1px solid #efd2d6;color:#a13447;background:#fff5f6}
+.login-page-clinico .login-recuperacion-nota{margin:25px 0 0;color:#7892a6;font-size:11px;line-height:1.5}
+@media(max-width:560px){.login-page-clinico .login-opciones{flex-wrap:wrap}.login-page-clinico .login-ayuda-link{margin-left:auto;white-space:normal}.login-page-clinico .login-recuperacion-volver{margin-bottom:22px}.login-page-clinico .login-recuperacion-marcas{margin-bottom:20px}.login-page-clinico .login-recuperacion-marca{width:52px;height:52px;border-radius:15px}.login-page-clinico .login-recuperacion-google{width:42px;height:42px}.login-page-clinico .login-card-recuperacion h1{font-size:34px!important}.login-page-clinico .login-recuperacion-progreso span{padding:8px 6px;font-size:10px}.login-page-clinico .login-recuperacion-progreso b{width:19px;height:19px;flex-basis:19px}}

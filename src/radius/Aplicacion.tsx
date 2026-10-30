@@ -605,7 +605,7 @@ export default function Aplicacion() {
             </article>)}</div>
           </aside>
         </div>}
-        <div className="area-trabajo" onPointerDownCapture={replegarSidebarAlInteractuar} onFocusCapture={replegarSidebarAlInteractuar}>
+        <div className={`area-trabajo ${modulo === "imagenologia" && subvistaModalidad === "visor" ? "area-trabajo-visor" : ""}`} onPointerDownCapture={replegarSidebarAlInteractuar} onFocusCapture={replegarSidebarAlInteractuar}>
           <Suspense fallback={<div className="modulo-vacio" role="status"><span><Icon name="patient" size={28} /></span><p>CARGANDO</p><h2>Preparando flujo…</h2><small>Activando únicamente los recursos de esta área.</small></div>}>
           {modulo === "imagenologia" && (
             <nav className="imagenologia-subvistas" aria-label="Subvistas de Imagenología">
@@ -732,9 +732,9 @@ export default function Aplicacion() {
             <VistaEstudiosCobrados tipoEstudio="Ecocardiograma" />
           ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (
             <VistaInformes />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" ? (
+          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" && subvistaModalidad === "pacientes" ? (
             <VistaPacientes modalidad="Ecografía" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" ? (
+          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && subvistaModalidad === "pacientes" ? (
             <VistaPacientes modalidad="Ecocardiograma" />
           ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" && subvistaModalidad === "visor" ? (
             <VisorEcografias key="visor-ecografias" />

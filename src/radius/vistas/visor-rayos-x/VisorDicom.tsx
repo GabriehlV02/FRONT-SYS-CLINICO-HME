@@ -15,6 +15,7 @@ export type ControlDicom = {
   invertirHorizontal: () => void;
   centrar: () => void;
   siguienteCorte: () => void;
+  irACorte: (indice: number) => void;
   ajustarVentana: (brillo: number, contraste: number) => void;
   restablecer: () => void;
   canvas: () => HTMLCanvasElement | null;
@@ -47,10 +48,10 @@ async function decodificar(file: File): Promise<ImagenDicom> {
     dataSet.string("x00020010")?.trim() || "1.2.840.10008.1.2";
   const pixelData = dataSet.elements.x7fe00010;
   if (!filas || !columnas || !pixelData)
-    throw new Error("El DICOM no contiene una imagen radiográfica válida.");
+    throw new Error("El DICOM no contiene una imagen válida.");
   if (muestras !== 1)
     throw new Error(
-      "Este DICOM contiene una imagen a color que todavía no está soportada por el visor radiográfico.",
+      "Este DICOM contiene una imagen a color que todavía no está soportada por este visor.",
     );
   if (
     ![
@@ -105,12 +106,14 @@ async function decodificar(file: File): Promise<ImagenDicom> {
 export default function VisorDicom({
   files,
   alCambiarCorte,
+  alCambiarZoom,
   controlRef,
   onSolicitarPantallaCompleta,
   modoRueda = "zoom",
 }: {
   files: File[];
   alCambiarCorte: (actual: number, total: number) => void;
+  alCambiarZoom?: (zoom: number) => void;
   controlRef: MutableRefObject<ControlDicom | null>;
   onSolicitarPantallaCompleta?: () => void;
   modoRueda?: "zoom" | "cortes";
@@ -138,6 +141,10 @@ export default function VisorDicom({
       ancho: 1,
     });
   const ultimoClickDerecho = useRef(0);
+
+  useEffect(() => {
+    alCambiarZoom?.(zoom);
+  }, [zoom, alCambiarZoom]);
 
   useEffect(() => {
     setIndice(Math.floor(files.length / 2));
@@ -215,6 +222,8 @@ export default function VisorDicom({
       invertirHorizontal: () => setReflejado((v) => !v),
       centrar: () => setPosicion({ x: 0, y: 0 }),
       siguienteCorte: () => setIndice((valor) => files.length ? (valor + 1) % files.length : 0),
+      irACorte: (indice) =>
+        setIndice(Math.max(0, Math.min(files.length - 1, indice))),
       ajustarVentana: (brillo, contraste) => {
         const imagen = imagenRef.current;
         if (!imagen) return;
@@ -339,7 +348,7 @@ export default function VisorDicom({
       {cargando && (
         <div className="rx-dicom-estado">
           <span className="rx-spinner" />
-          Decodificando radiografía…
+          Decodificando imagen…
         </div>
       )}
       {error && (

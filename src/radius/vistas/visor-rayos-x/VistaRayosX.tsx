@@ -3,6 +3,8 @@ import {
   useEffect,
   useRef,
   useState,
+  type DragEvent as ReactDragEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type WheelEvent as ReactWheelEvent,
 } from "react";
@@ -73,7 +75,9 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
     [errorCarga, setErrorCarga] = useState(""),
     [corte, setCorte] = useState({ actual: 1, total: 1 }),
     [pantallaCompleta, setPantallaCompleta] = useState(false),
-    [reproduciendo, setReproduciendo] = useState(false);
+    [reproduciendo, setReproduciendo] = useState(false),
+    [zoomDicom, setZoomDicom] = useState(1),
+    [arrastrandoArchivo, setArrastrandoArchivo] = useState(false);
   const archivo = useRef<HTMLInputElement>(null),
     carpeta = useRef<HTMLInputElement>(null),
     dicomControl = useRef<ControlDicom | null>(null),
@@ -136,6 +140,10 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
   const alCambiarCorte = useCallback(
     (actualCorte: number, total: number) =>
       setCorte({ actual: actualCorte, total }),
+    [],
+  );
+  const alCambiarZoomDicom = useCallback(
+    (valor: number) => setZoomDicom(valor),
     [],
   );
 
@@ -211,6 +219,54 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
       );
     } finally {
       setCargando(false);
+    }
+  };
+  const manejarArrastre = (e: ReactDragEvent<HTMLDivElement>) => {
+    if (modalidad !== "Radiografía") return;
+    e.preventDefault();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setArrastrandoArchivo(true);
+    } else if (e.type === "dragleave") {
+      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+        setArrastrandoArchivo(false);
+      }
+    } else if (e.type === "drop") {
+      setArrastrandoArchivo(false);
+      void procesarSeleccion(e.dataTransfer.files);
+    }
+  };
+  const manejarAtajos = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    const destino = e.target;
+    if (
+      destino instanceof HTMLElement &&
+      (destino.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(destino.tagName))
+    ) return;
+    const tecla = e.key.toLowerCase();
+    if (e.key === "+" || e.key === "=") {
+      e.preventDefault();
+      cambiarZoom(1.2);
+    } else if (e.key === "-") {
+      e.preventDefault();
+      cambiarZoom(1 / 1.2);
+    } else if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      if (!esDicom) return;
+      e.preventDefault();
+      dicomControl.current?.irACorte(
+        corte.actual - 1 + (e.key === "ArrowRight" ? 1 : -1),
+      );
+    } else if (tecla === "r") {
+      e.preventDefault();
+      rotar(90);
+    } else if (tecla === "i") {
+      e.preventDefault();
+      negativo();
+    } else if (tecla === "0") {
+      e.preventDefault();
+      restablecer();
+    } else if (tecla === "f" && actual) {
+      e.preventDefault();
+      void alternarPantallaCompleta();
     }
   };
   const abrirEstudioGuardado = useCallback(async (estudio: EstudioDemo) => {
@@ -692,10 +748,10 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
               <button onClick={() => cambiarZoom(0.8)}>−</button>
               <span>
                 {esDicom
-                  ? `Corte ${corte.actual}/${corte.total}`
+                  ? `${Math.round(zoomDicom * 100)}%`
                   : `${Math.round(zoom * 100)}%`}
               </span>
-              <button onClick={() => cambiarZoom(1.25)}>+</button>
+              <button onClick={() => cambiarZoom(1.25)} title="Aumentar zoom">+</button>
             </div>
             {modalidad !== "Radiografía" && esDicom && corte.total > 1 && <button className={reproduciendo ? "activo" : ""} onClick={() => setReproduciendo(valor => !valor)} title={modalidad === "Ecografía" ? "Reproducir o congelar la secuencia ecográfica" : "Reproducir o pausar los cortes tomográficos"}>{reproduciendo ? (modalidad === "Ecografía" ? "Congelar" : "Pausar") : (modalidad === "Ecografía" ? "Cine" : "Reproducir")}</button>}
             <button onClick={() => rotar(-90)}>↶</button>
@@ -736,8 +792,15 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
             </button>
           </div>
           <div
-            className={`rx-lienzo ${arrastrando ? `arrastrando-${arrastrando}` : ""}`}
+            className={`rx-lienzo ${arrastrando ? `arrastrando-${arrastrando}` : ""} ${arrastrandoArchivo ? "recibiendo-archivo" : ""}`}
+            tabIndex={0}
+            aria-label="Área de visualización radiográfica. Atajos: más y menos para zoom, flechas para cortes DICOM, R para girar, I para negativo, F para pantalla completa y cero para restablecer."
+            onKeyDown={manejarAtajos}
             onWheel={zoomConRueda}
+            onDragEnter={manejarArrastre}
+            onDragOver={manejarArrastre}
+            onDragLeave={manejarArrastre}
+            onDrop={manejarArrastre}
             onContextMenu={(e) => e.preventDefault()}
             onAuxClick={(e) => e.preventDefault()}
             onPointerDown={iniciarGesto}
@@ -763,6 +826,7 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
               <VisorDicom
                 files={dicomFiles}
                 alCambiarCorte={alCambiarCorte}
+                alCambiarZoom={alCambiarZoomDicom}
                 controlRef={dicomControl}
                 onSolicitarPantallaCompleta={() =>
                   void alternarPantallaCompleta()
@@ -787,14 +851,29 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
                 </div>
               </>
             ) : (
-              <div className="rx-vacio">
-                <Icon name="image" size={37} />
-                <h3>Abre un estudio {modalidad === "Tomografía" ? "tomográfico" : modalidad === "Ecografía" ? "ecográfico" : "radiológico"}</h3>
-                <p>
-                  Selecciona un DICOM, un archivo comprimido o una carpeta
-                  completa.
-                </p>
-              </div>
+            <button
+              type="button"
+              className="rx-vacio"
+              onClick={() => archivo.current?.click()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <Icon name="image" size={37} />
+              <h3>Abre un estudio {modalidad === "Tomografía" ? "tomográfico" : modalidad === "Ecografía" ? "ecográfico" : "radiológico"}</h3>
+              <p>
+                Haz clic para elegir archivos o arrastra un DICOM, ZIP, RAR o
+                imágenes aquí.
+              </p>
+              <span className="rx-vacio-accion">
+                <Icon name="plus" size={15} /> Seleccionar estudio
+              </span>
+            </button>
+            )}
+            {arrastrandoArchivo && (
+            <div className="rx-drop-overlay" aria-live="polite">
+              <Icon name="package" size={32} />
+              <strong>Suelta el estudio para abrirlo</strong>
+              <span>DICOM, ZIP, RAR o imágenes</span>
+            </div>
             )}
             {actual && (
               <div className="rx-ayuda-gestos">
@@ -847,13 +926,25 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
                 />
                 <b>{contraste}%</b>
               </label>
+              {modalidad === "Radiografía" && esDicom && corte.total > 1 && (
+                <label className="rx-navegacion-corte">
+                  <span>Corte</span>
+                  <input
+                    type="range"
+                    min="1"
+                    max={corte.total}
+                    value={Math.min(corte.actual, corte.total)}
+                    onChange={(e) =>
+                      dicomControl.current?.irACorte(Number(e.target.value) - 1)
+                    }
+                    aria-label="Seleccionar corte DICOM"
+                  />
+                  <b>{corte.actual} / {corte.total}</b>
+                </label>
+              )}
             </div>
         </main>
       </section>
-      <p className="rx-advertencia">
-        Visor experimental para pruebas. No utilizar como única herramienta de
-        diagnóstico clínico.
-      </p>
     </div>
   );
 }

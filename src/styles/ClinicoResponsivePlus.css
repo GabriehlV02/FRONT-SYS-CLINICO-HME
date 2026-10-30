@@ -7,6 +7,11 @@
   --clinico-space: clamp(12px, 2vw, 24px);
 }
 
+.sistema-app .area-trabajo.area-trabajo-visor {
+  padding-right: clamp(8px, 0.7vw, 14px) !important;
+  padding-left: clamp(8px, 0.7vw, 14px) !important;
+}
+
 .sistema-app :is(section, article, header, footer, div, form, fieldset) {
   min-width: 0;
 }

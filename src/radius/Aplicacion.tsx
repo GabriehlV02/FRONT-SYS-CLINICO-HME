@@ -152,6 +152,7 @@ const modulos: Modulo[] = [
   { id: "farmacia", nombre: "Farmacia", icono: 'pill', grupo: "FARMACIA" },
   { id: "farmacia-internacion", nombre: "Internación", icono: 'bed', grupo: "FARMACIA" },
   { id: "farmacia-movimientos", nombre: "Administración Farmacia", icono: 'audit', grupo: "FARMACIA" },
+  { id: "farmacia-ia", nombre: "IA de farmacia", icono: 'sparkles', grupo: "FARMACIA" },
   { id: "cocina", nombre: "Cocina", icono: "utensils", grupo: "COCINA" },
   { id: "cocina-internacion", nombre: "Cocina Internación", icono: 'bed', grupo: "COCINA" },
   { id: "cocina-administracion", nombre: "Control de Cocina", icono: "warehouse", grupo: "COCINA" },
@@ -410,9 +411,7 @@ export default function Aplicacion() {
   if (!sesion) return <><CentroNotificaciones /><VistaInicioSesion onLogin={setSesion} /></>;
   const moduloActual = modulos.find((item) => item.id === modulo);
   const subvistaActual = subvistasImagenologia.find((item) => item.id === subvistaImagenologia) ?? subvistasImagenologia[0];
-  const actual = moduloActual && modulo === "imagenologia"
-    ? { ...moduloActual, nombre: subvistaActual.nombre, icono: subvistaActual.icono }
-    : moduloActual;
+  const actual = moduloActual;
   const opcionesBusqueda = [...modulos, ...subvistasImagenologia];
   const textoBusqueda = busqueda.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const cerrarSesion = async () => {
@@ -757,6 +756,12 @@ export default function Aplicacion() {
             <VistaPacientes modalidad={subvistaImagenologia === "tomografias" ? "Tomografía" : subvistaImagenologia === "ecocardiogramas" ? "Ecocardiograma" : subvistaImagenologia === "radiografias" ? "Radiografía" : undefined} soloConEstudio={subvistaImagenologia === "radiografias"} />
           ) : modulo === "imagenologia" && subvistaImagenologia === "visor" ? (
             <VistaRayosX modalidad={visorModalidad || undefined} />
+          ) : modulo === "farmacia-ia" ? (
+            <section className="modulo-vacio" aria-labelledby="farmacia-ia-titulo">
+              <span><Icon name="sparkles" size={28} /></span>
+              <h2 id="farmacia-ia-titulo">IA de farmacia</h2>
+              <p>El asistente de farmacia aún no está configurado.</p>
+            </section>
           ) : modulo === "configuracion" ? (
             <VistaConfiguracion initialSection={subvistaConfiguracion} tema={tema} onCambiarTema={setTema} usuario={sesion.usuario} />
           ) : modulo === "auditorias" ? (

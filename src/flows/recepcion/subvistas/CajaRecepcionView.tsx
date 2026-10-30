@@ -373,6 +373,7 @@ export function CajaRecepcionView({
         body: JSON.stringify({
           cliente_id: clienteSeleccionado.id,
           descuento: rebaja,
+          ...(farmacia ? { observaciones: 'Origen: farmacia' } : {}),
           detalles: lineas.map((linea) => ({
             codigo_item: linea.codigo,
             nombre_item: linea.nombre,

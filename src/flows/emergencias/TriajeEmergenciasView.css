@@ -184,6 +184,22 @@
 .em-resumen-fila-extra>div{margin-top:3px!important;padding-top:7px!important;border-top:1px solid #e7eef3!important}
 .em-resumen-fila-extra strong{overflow-wrap:anywhere}
 @media(max-width:760px){.em-resumen>.em-resumen-datos{width:100%}}
+
+/* Resumen de atención: datos principales con separación uniforme. */
+.em-resumen>.em-resumen-datos{row-gap:2px;column-gap:24px}
+.em-resumen-datos .em-resumen-fila>div{min-width:0;padding:7px 0!important}
+.em-resumen-datos .em-resumen-fila span{color:#68849a;font-size:10px;line-height:1.3}
+.em-resumen-datos .em-resumen-fila strong{color:#173e5e;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+@media(max-width:850px){.em-resumen>.em-resumen-datos{column-gap:16px}}
+
+.em-fecha-hora-ingreso{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+.em-ingreso-buscador{min-width:0}
+.em-ingreso-buscador .internacion-buscador{max-width:none}
+.em-ingreso-buscador .internacion-buscador button{margin-top:8px}
+.em-paciente-seleccionado,.em-paciente-sin-identificar{margin:10px 0 0!important;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.45}
+.em-paciente-seleccionado{border:1px solid #b8e6da;color:#17674e;background:#effaf6}
+.em-paciente-sin-identificar{border:1px solid #d0e8f3;color:#426a85;background:#f3faff}
+@media(max-width:540px){.em-fecha-hora-ingreso{grid-template-columns:1fr}}
 .em-paciente-flujo{display:grid;gap:14px}.em-paciente-registros{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}.em-registro-clinico{min-width:0}.em-registro-clinico>.em-panel-titulo>span{display:grid;place-items:center;min-width:27px;height:27px;padding:0 7px;border-radius:999px;color:#0875ad;background:#edf8fd;font-size:12px;font-weight:800}.em-registro-lista{display:grid;max-height:380px;overflow:auto}.em-registro-lista article{padding:11px 2px;border-bottom:1px solid #e8eff4}.em-registro-lista article:first-child{padding-top:0}.em-registro-lista article:last-child{border-bottom:0}.em-registro-lista-cabecera{display:flex;align-items:center;justify-content:space-between;gap:10px}.em-registro-lista-cabecera strong{color:#173f62;font-size:13px}.em-registro-lista-cabecera span{flex:0 0 auto;padding:4px 8px;border-radius:999px;color:#3e6b88;background:#eff6fa;font-size:10px;font-weight:750}.em-registro-lista article>small{display:block;margin-top:4px;color:#748a9d;font-size:10px}.em-registro-lista article>p{margin:7px 0 0;color:#365c78;font-size:12px;line-height:1.45}.em-orden-detalle{margin-top:5px;color:#56758c;font-size:11px}.em-registro-vacio{display:grid;min-height:65px;place-items:center;margin:0;padding:12px;color:#7890a3;text-align:center;font-size:12px}.em-uso-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px 11px;margin-bottom:12px}.em-uso-form label{display:grid;gap:5px;color:#496b84;font-size:11px;font-weight:700}.em-uso-form input,.em-uso-form select,.em-uso-form textarea{box-sizing:border-box;width:100%;min-width:0;min-height:38px;padding:8px 10px;border:1px solid #cbdde8;border-radius:7px;color:#173f62;background:#fff;font:inherit;font-size:12px}.em-uso-form textarea{min-height:54px;resize:vertical}.em-uso-form .em-uso-detalle{grid-column:span 3}.em-uso-form .em-uso-observacion{grid-column:span 3}.em-uso-acciones{display:flex;align-items:end;justify-content:flex-end}.em-uso-acciones button{min-height:38px;padding:8px 12px;font-size:12px}.em-uso-lista{max-height:300px}
 @media(max-width:900px){.em-paciente-registros{grid-template-columns:minmax(0,1fr)}}@media(max-width:560px){.em-uso-form{grid-template-columns:repeat(2,minmax(0,1fr))}.em-uso-form .em-uso-detalle,.em-uso-form .em-uso-observacion{grid-column:span 2}.em-uso-acciones{grid-column:span 2}}
 

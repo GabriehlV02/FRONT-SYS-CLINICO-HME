@@ -46,7 +46,7 @@ async function solicitarEmergencias<T>(ruta = '', body?: object): Promise<T> {
     let cuenta: CuentaEmergencia;
     if (!ruta) {
       if (cuentas.some(c => !c.fin && c.cubiculo === datos.cubiculo)) throw new Error('Ese cubículo ya está ocupado.');
-      cuenta = { id: crypto.randomUUID(), cubiculo: datos.cubiculo, inicio: fecha, fin: null, revision: 1, identidad: datos.identidad || null, signos: [], consumos: [], evaluaciones: [], ordenes: [], registrosEnfermeria: [] };
+      cuenta = { id: crypto.randomUUID(), cubiculo: datos.cubiculo, inicio: datos.inicio || fecha, fin: null, revision: 1, identidad: datos.identidad || null, signos: [], consumos: [], evaluaciones: [], ordenes: [], registrosEnfermeria: [] };
       cuentas.push(cuenta);
     } else {
       const [id, accion] = ruta.split('/').filter(Boolean);

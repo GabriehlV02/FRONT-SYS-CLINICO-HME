@@ -124,18 +124,19 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       </section>
       <section className="login-acceso">
         {!recuperacionVisible ? <form className="login-card" onSubmit={ingresar}>
+          <div className="login-acceso-emblema" aria-hidden="true"><Icon name="userCheck" size={23} /></div>
           <p className="login-kicker">PORTAL CLÍNICO</p>
           <h1>Iniciar sesión</h1>
-          <p className="login-subtitulo">Accede al sistema clínico con tu cuenta</p>
+          <p className="login-subtitulo">Ingresa con tu cuenta institucional.</p>
           {error && <div className="login-error" role="alert"><Icon name="close" size={17} /><div><strong>No se pudo iniciar sesión</strong><span>{error}</span></div></div>}
-          <div className="login-field"><label className="login-label" htmlFor="clinico-usuario">Usuario</label><div className="login-input"><Icon name="users" size={19} /><input id="clinico-usuario" autoFocus required autoComplete="username" value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} placeholder="Ingresa tu usuario" /></div></div>
+          <div className="login-field"><label className="login-label" htmlFor="clinico-usuario">Correo, CI o usuario</label><div className="login-input"><Icon name="users" size={19} /><input id="clinico-usuario" autoFocus required autoComplete="username" value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} placeholder="Ingresa tu correo o CI" /></div></div>
           <div className="login-field"><label className="login-label" htmlFor="clinico-password">Contraseña</label><div className="login-input"><Icon name="asset" size={18} /><input id="clinico-password" required type={mostrarPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Ingresa tu contraseña" /><button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { const input = e.currentTarget.previousElementSibling as HTMLInputElement; const start = input.selectionStart, end = input.selectionEnd; setMostrarPassword((v) => !v); requestAnimationFrame(() => { input.focus({ preventScroll: true }); input.setSelectionRange(start, end); }); }} aria-pressed={mostrarPassword} aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}><Icon name={mostrarPassword ? 'eyeOff' : 'eye'} size={18} /></button></div></div>
           <div className="login-opciones">
             <label><input type="checkbox" checked={recordar} onChange={(e) => { const activo = e.target.checked; setRecordar(activo); if (!activo) localStorage.removeItem('pulso_usuario_recordado'); }} /> Recordar usuario en este equipo</label>
             <button type="button" className="login-ayuda-link" onClick={() => { setRecuperacionVisible(true); setRecuperacion((actual) => ({ ...actual, identificador: form.usuario.trim() || actual.identificador })); setForm((actual) => ({ ...actual, password: '' })); setMensajeRecuperacion(''); setErrorRecuperacion(''); }}><span>¿Olvidaste tu contraseña?</span><Icon name="arrowRight" size={15} /></button>
           </div>
           <button className="login-submit" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar'} {!loading && <Icon name="arrowRight" size={18} />}</button>
-          <p className="login-helper">Para proteger la información clínica, no compartas tus credenciales.</p>
+          <p className="login-helper"><Icon name="asset" size={15} /> Tus credenciales son personales. No las compartas.</p>
         </form> : <section className="login-card login-card-recuperacion" aria-labelledby="clinico-recuperacion-titulo">
           <button className="login-recuperacion-volver" type="button" onClick={volverAlInicio}><Icon name="chevronLeft" size={16} /> Volver a iniciar sesión</button>
           <div className="login-recuperacion-marcas" aria-hidden="true">

@@ -61,11 +61,13 @@ const inicial: DatosPaciente = {
 export default function ModalRegistroPaciente({
   onCerrar,
   onRegistrado,
+  ciInicial = '',
 }: {
   onCerrar: () => void;
   onRegistrado: (paciente: PacienteRegistrado) => void;
+  ciInicial?: string;
 }) {
-  const [form, setForm] = useState(inicial);
+  const [form, setForm] = useState(() => ({ ...inicial, ci: ciInicial }));
   const [error, setError] = useState("");
   const [guardando, setGuardando] = useState(false);
   const ventana = useRef<HTMLDialogElement>(null);
@@ -81,6 +83,7 @@ export default function ModalRegistroPaciente({
 
   const guardar = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
+    evento.stopPropagation();
     if (guardando) return;
     setGuardando(true);
     setError("");
@@ -113,7 +116,7 @@ export default function ModalRegistroPaciente({
   );
 
   return createPortal(
-    <dialog ref={ventana} className="registro-paciente-fondo" aria-labelledby="registro-paciente-titulo" onCancel={evento => { evento.preventDefault(); if (!guardando) onCerrar(); }} onMouseDown={(evento) => { if (evento.target === evento.currentTarget && !guardando) onCerrar(); }}>
+    <dialog ref={ventana} className="registro-paciente-fondo" aria-labelledby="registro-paciente-titulo" onKeyDown={evento => evento.stopPropagation()} onCancel={evento => { evento.preventDefault(); if (!guardando) onCerrar(); }} onMouseDown={(evento) => { if (evento.target === evento.currentTarget && !guardando) onCerrar(); }}>
       <form className="registro-paciente-modal" onSubmit={guardar}>
         <header>
           <div className="registro-paciente-titulo-icono"><Icon name="users" size={19} /></div>

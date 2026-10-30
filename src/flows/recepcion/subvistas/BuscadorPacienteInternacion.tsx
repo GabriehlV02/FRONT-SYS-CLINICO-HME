@@ -36,7 +36,7 @@ export function BuscadorPacienteInternacion({ valor, ci, ciInicial, onCambiar, o
   const coincidencias = consulta ? pacientes.filter(p => consulta.split(/\s+/).every(parte => normalizar(`${nombrePaciente(p)} ${p.numeroDocumento}`).includes(parte))).slice(0, 8) : [];
   const elegir = (p: PacienteDemo) => { onSeleccionar(p); setAbierto(false); setActivo(-1); };
   return <div className="internacion-buscador doble" onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) setAbierto(false); }}>
-    <label htmlFor={campoId}>Nombre y apellidos{requerido ? ' *' : ''}</label>
+    <label htmlFor={campoId}>Buscar paciente por nombre o CI{requerido ? ' *' : ''}</label>
     <input id={campoId} name="nombre" required={requerido} pattern=".*\S.*" role="combobox" aria-autocomplete="list" aria-expanded={abierto && Boolean(consulta)} aria-controls={listaId} aria-activedescendant={abierto && activo >= 0 && coincidencias[activo] ? `${listaId}-${activo}` : undefined} autoComplete="off" value={valor} placeholder="Escribe el nombre o CI para buscar un paciente" onFocus={() => setAbierto(true)} onChange={e => { onCambiar(e.target.value); setAbierto(true); setActivo(-1); }} onKeyDown={e => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); setAbierto(true); setActivo(i => coincidencias.length ? (i + (e.key === 'ArrowDown' ? 1 : -1) + coincidencias.length) % coincidencias.length : -1); }
       if (e.key === 'Enter' && abierto && activo >= 0 && coincidencias[activo]) { e.preventDefault(); elegir(coincidencias[activo]); }
@@ -44,7 +44,7 @@ export function BuscadorPacienteInternacion({ valor, ci, ciInicial, onCambiar, o
     }} />
     {abierto && consulta && <div className="internacion-buscador-resultados"><ul id={listaId} role="listbox" aria-label="Pacientes registrados">{coincidencias.map((p, i) => <li key={p.id} id={`${listaId}-${i}`} role="option" aria-selected={i === activo} onMouseDown={e => e.preventDefault()} onMouseMove={() => setActivo(i)} onClick={() => elegir(p)}><strong>{nombrePaciente(p)}</strong><span>CI {p.numeroDocumento} · {p.telefono || 'Sin teléfono'}</span></li>)}</ul>{!coincidencias.length && <p role="status">{cargando ? 'Buscando pacientes…' : 'Sin coincidencias. Utiliza Registrar paciente para crear su ficha.'}</p>}</div>}
     <small>{aviso || 'Busca por nombre, apellidos o CI y selecciona un paciente para cargar sus datos.'}</small>
-    <button type="button" onClick={() => setRegistrando(true)}>Registrar paciente</button>
-    {registrando && <ModalRegistroPaciente onCerrar={() => setRegistrando(false)} onRegistrado={p => elegir(pacienteParaVista(p))} />}
+    <button type="button" onClick={() => setRegistrando(true)}>Registrar nuevo paciente</button>
+    {registrando && <ModalRegistroPaciente ciInicial={/^\d+$/.test(valor.trim()) ? valor.trim() : ''} onCerrar={() => setRegistrando(false)} onRegistrado={p => elegir(pacienteParaVista(p))} />}
   </div>;
 }

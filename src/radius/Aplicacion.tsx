@@ -194,7 +194,6 @@ export default function Aplicacion() {
     return () => controller.abort();
   }, [sesion?.token]);
   const [modulo, setModulo] = useState("");
-  const [emergenciaEnAtencion, setEmergenciaEnAtencion] = useState('');
   const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
   const [visorModalidad, setVisorModalidad] = useState<"Tomografía" | null>(null);
   const [subvistaModalidad, setSubvistaModalidad] = useState<SubvistaModalidad>("pacientes");
@@ -673,9 +672,9 @@ export default function Aplicacion() {
               {subvistaTriajeAmbulatorio === 'configuracion' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={setSignosVitalesConfigurados} />}
             </section>
           ) : modulo === 'triaje-emergencias' ? (
-            <TriajeEmergenciasView onAtender={emergenciaId => { setEmergenciaEnAtencion(emergenciaId); setModulo('atencion-urgencias'); }} />
+            <TriajeEmergenciasView />
           ) : modulo === 'atencion-urgencias' ? (
-            <AtencionMedicaEmergenciasView cuentaInicialId={emergenciaEnAtencion} />
+            <AtencionMedicaEmergenciasView />
           ) : modulo === 'enfermera-terapia-intensiva' ? (
             <section className="triaje-ambulatorio-vista">
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de terapia intensiva">

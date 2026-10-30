@@ -1,9 +1,18 @@
 import type { ReactNode, SVGProps } from 'react';
 
-export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'utensils' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'refresh' | 'check' | 'arrowRight' | 'download' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'calendar' | 'edit' | 'trash' | 'cash' | 'print';
+export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'utensils' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'refresh' | 'check' | 'arrowRight' | 'download' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'calendar' | 'edit' | 'trash' | 'cash' | 'print' | 'stethoscope' | 'heartbeat' | 'bed' | 'syringe' | 'pill' | 'surgery' | 'clipboardMedical' | 'labOutpatient' | 'labInpatient';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; size?: number };
 
 const paths: Record<IconName, ReactNode> = {
+  labOutpatient: <><circle cx="7" cy="5" r="2"/><path d="m7 9-2 4 3 2-1 5m2-11 3 3h2m-6 3 3 5"/><path d="M17 4v4l-3 5a1.5 1.5 0 0 0 1.3 2.2h5.4A1.5 1.5 0 0 0 22 13l-3-5V4m-2.5 0h3m-4.2 8h5.4"/></>,
+  labInpatient: <><path d="M2 19V9m0 7h20m-18 0v3m16-3v3M4 12h6v4m0-4h9a3 3 0 0 1 3 3v1"/><circle cx="6" cy="10" r="1.5"/><path d="M15 3v3l-2 3.5a1 1 0 0 0 .9 1.5h5.2a1 1 0 0 0 .9-1.5L18 6V3m-3.5 0h4"/></>,
+  stethoscope: <><path d="M4 3v5a5 5 0 0 0 10 0V3M3 3h3m6 0h3M9 13v2a4 4 0 0 0 8 0v-1"/><circle cx="18" cy="12" r="2"/></>,
+  heartbeat: <><path d="M20.8 4.6a5 5 0 0 0-7.1 0L12 6.3l-1.7-1.7a5 5 0 0 0-7.1 7.1L12 20l8.8-8.3a5 5 0 0 0 0-7.1Z"/><path d="M3 12h4l2-3 2.5 6 2-3H21"/></>,
+  bed: <><path d="M3 18V6m18 12v-6a3 3 0 0 0-3-3H3m0 6h18M5 18v2m14-2v2"/><path d="M5 11V8h5v3"/></>,
+  syringe: <><path d="m14 4 6 6m-8-4 6 6-7 7-6-6 7-7Zm-8 9-2 7 7-2M16 2l6 6M8 15l2 2m1-5 2 2"/></>,
+  pill: <><path d="M8.5 20a5.7 5.7 0 0 1-4-9.7l5.8-5.8a5.7 5.7 0 0 1 8.1 8l-5.9 5.8A5.7 5.7 0 0 1 8.5 20Z"/><path d="m7.5 7.5 9 9"/></>,
+  surgery: <><path d="M4 20 16 8m-1-4 5 5m-4-5 4-2 2 4-2 3M4 20l-1 2 2-1"/><path d="m7 17 2 2"/></>,
+  clipboardMedical: <><rect x="5" y="4" width="14" height="18" rx="2"/><path d="M9 4V2h6v2m-3 5v7m-3.5-3.5h7"/></>,
   home: <><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></>,
   package: <><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.5 7.5 7.5 4 7.5-4M12 11.5V21"/></>,
   asset: <><rect x="3" y="6" width="18" height="14" rx="2"/><path d="M8 6V4h8v2M3 11h18M8 15h3m3 0h2"/><circle cx="6" cy="9" r=".5" fill="currentColor"/></>,

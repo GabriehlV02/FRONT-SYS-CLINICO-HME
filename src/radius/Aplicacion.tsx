@@ -16,6 +16,7 @@ import "./vistas/visor/SubvistasGlobal.css";
 import "./vistas/visor/TitulosUnicos.css";
 import "./vistas/visor/ResponsividadGlobal.css";
 import "./vistas/visor/PerfilAcceso.css";
+import "./vistas/visor/SidebarHover.css";
 
 import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
 import type { SignoVitalConfig } from '../flows/triaje/ConfiguracionSignosVitalesView';
@@ -123,34 +124,34 @@ const subvistasPacientes: { id: SubvistaPacientes; nombre: string; icono: IconNa
 ];
 
 const modulos: Modulo[] = [
-  { id: 'recepcion', nombre: 'Recepción', icono: 'patient', grupo: 'ATENCIÓN CLÍNICA' },
+  { id: 'recepcion', nombre: 'Recepción', icono: 'clipboardMedical', grupo: 'ATENCIÓN CLÍNICA' },
   { id: 'pacientes', nombre: 'Pacientes', icono: 'users', grupo: 'ATENCIÓN CLÍNICA' },
-  { id: 'atencion-medica', nombre: 'Consultorio médico', icono: 'userCheck', grupo: 'ATENCIÓN AMBULATORIA' },
-  { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'patient', grupo: 'ATENCIÓN AMBULATORIA' },
-  { id: 'triaje-emergencias', nombre: 'Triaje emergencias', icono: 'patient', grupo: 'EMERGENCIAS' },
-  { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userCheck', grupo: 'EMERGENCIAS' },
-  { id: 'enfermera-internacion', nombre: 'Enfermera internación', icono: 'patient', grupo: 'INTERNACIÓN' },
-  { id: 'medico-internacion', nombre: 'Médico internación', icono: 'userCheck', grupo: 'INTERNACIÓN' },
-  { id: 'enfermera-terapia-intensiva', nombre: 'Enfermera terapia intensiva', icono: 'patient', grupo: 'TERAPIA INTENSIVA' },
-  { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'userCheck', grupo: 'TERAPIA INTENSIVA' },
-  { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'patient', grupo: 'QUIRÓFANO' },
-  { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'userCheck', grupo: 'QUIRÓFANO' },
-  { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'userCheck', grupo: 'QUIRÓFANO' },
-  { id: 'cuenta-quirofano', nombre: 'Registro de cirugías', icono: 'cash', grupo: 'QUIRÓFANO' },
-  { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'lab', grupo: 'ESTERILIZACIÓN' },
-  { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'package', grupo: 'ESTERILIZACIÓN' },
-  { id: 'entrega-material-esteril', nombre: 'Administración de esterilización', icono: 'check', grupo: 'ESTERILIZACIÓN' },
-  { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'lab', grupo: 'LABORATORIO' },
-  { id: 'laboratorio-internados', nombre: 'Internados', icono: 'lab', grupo: 'LABORATORIO' },
+  { id: 'atencion-medica', nombre: 'Consultorio médico', icono: 'stethoscope', grupo: 'ATENCIÓN AMBULATORIA' },
+  { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'heartbeat', grupo: 'ATENCIÓN AMBULATORIA' },
+  { id: 'triaje-emergencias', nombre: 'Triaje emergencias', icono: 'heartbeat', grupo: 'EMERGENCIAS' },
+  { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'stethoscope', grupo: 'EMERGENCIAS' },
+  { id: 'enfermera-internacion', nombre: 'Enfermera internación', icono: 'clipboardMedical', grupo: 'INTERNACIÓN' },
+  { id: 'medico-internacion', nombre: 'Médico internación', icono: 'bed', grupo: 'INTERNACIÓN' },
+  { id: 'enfermera-terapia-intensiva', nombre: 'Enfermera terapia intensiva', icono: 'heartbeat', grupo: 'TERAPIA INTENSIVA' },
+  { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'stethoscope', grupo: 'TERAPIA INTENSIVA' },
+  { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'clipboardMedical', grupo: 'QUIRÓFANO' },
+  { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'surgery', grupo: 'QUIRÓFANO' },
+  { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'syringe', grupo: 'QUIRÓFANO' },
+  { id: 'cuenta-quirofano', nombre: 'Registro de cirugías', icono: 'calendar', grupo: 'QUIRÓFANO' },
+  { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'package', grupo: 'ESTERILIZACIÓN' },
+  { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'sparkles', grupo: 'ESTERILIZACIÓN' },
+  { id: 'entrega-material-esteril', nombre: 'Administración de esterilización', icono: 'warehouse', grupo: 'ESTERILIZACIÓN' },
+  { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'labOutpatient', grupo: 'LABORATORIO' },
+  { id: 'laboratorio-internados', nombre: 'Internados', icono: 'labInpatient', grupo: 'LABORATORIO' },
   { id: 'laboratorio-almacen', nombre: 'Laboratorio almacén', icono: 'package', grupo: 'LABORATORIO' },
   { id: 'laboratorio-configuracion', nombre: 'Tipos de laboratorio', icono: 'settings', grupo: 'LABORATORIO' },
   { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
   { id: "atencion-agenda", nombre: "Atención / Agenda", icono: "calendar", grupo: "IMAGENOLOGÍA" },
-  { id: "farmacia", nombre: "Farmacia", icono: "lab", grupo: "FARMACIA" },
-  { id: "farmacia-internacion", nombre: "Internación", icono: "patient", grupo: "FARMACIA" },
-  { id: "farmacia-movimientos", nombre: "Administración Farmacia", icono: "building", grupo: "FARMACIA" },
+  { id: "farmacia", nombre: "Farmacia", icono: 'pill', grupo: "FARMACIA" },
+  { id: "farmacia-internacion", nombre: "Internación", icono: 'bed', grupo: "FARMACIA" },
+  { id: "farmacia-movimientos", nombre: "Administración Farmacia", icono: 'audit', grupo: "FARMACIA" },
   { id: "cocina", nombre: "Cocina", icono: "utensils", grupo: "COCINA" },
-  { id: "cocina-internacion", nombre: "Cocina Internación", icono: "utensils", grupo: "COCINA" },
+  { id: "cocina-internacion", nombre: "Cocina Internación", icono: 'bed', grupo: "COCINA" },
   { id: "cocina-administracion", nombre: "Control de Cocina", icono: "warehouse", grupo: "COCINA" },
   {
     id: "configuracion",
@@ -281,6 +282,7 @@ export default function Aplicacion() {
   const [sidebarReplegado, setSidebarReplegado] = useState(
     () => localStorage.getItem("pulso_sidebar_replegado") === "1",
   );
+  const [sidebarCerradoPorSeleccion, setSidebarCerradoPorSeleccion] = useState(false);
   const [modoRevision, setModoRevision] = useState(() => localStorage.getItem('clinico_modo_revision') === '1');
   useEffect(() => {
     const cambiar = (evento: Event) => { const activo = Boolean((evento as CustomEvent<boolean>).detail); localStorage.setItem('clinico_modo_revision', activo ? '1' : '0'); setModoRevision(activo); };
@@ -441,7 +443,9 @@ export default function Aplicacion() {
       <CentroNotificaciones />
       {modoRevision && <aside className="modo-revision-bloqueo" role="alert"><Icon name="settings" size={22}/><div><strong>Sistema en modo revisión</strong><small>Las acciones están bloqueadas.</small></div><button type="button" onClick={() => window.dispatchEvent(new CustomEvent('clinico:modo-revision', { detail: false }))}>Reactivar sistema</button></aside>}
       <aside
-        className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""}`}
+        className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""}`}
+        onMouseLeave={() => setSidebarCerradoPorSeleccion(false)}
+        onKeyDown={(evento) => { if (evento.key === 'Tab') setSidebarCerradoPorSeleccion(false); }}
       >
         <div className="sistema-marca">
           <span className="marca-icono">
@@ -485,7 +489,7 @@ export default function Aplicacion() {
                     aria-current={modulo === item.id ? "page" : undefined}
                     key={item.id}
                     className={`nav-modulo nav-${item.id}${modulo === item.id ? " activo" : ""}`}
-                    onClick={() => {
+                    onClick={(evento) => {
                       setModulo(item.id);
                       if (item.id === "imagenologia") setSubvistaImagenologia("pacientes");
                       if (item.id === "atencion-agenda") setSubvistaAtencionAgenda("pacientes");
@@ -494,6 +498,12 @@ export default function Aplicacion() {
                       if (item.id === "configuracion") setSubvistaConfiguracion("usuario");
                       if (item.id === "triaje-ambulatorio") setSubvistaTriajeAmbulatorio("signos-vitales");
                       setMenuAbierto(false);
+                      if (window.matchMedia('(min-width: 761px)').matches) {
+                        localStorage.setItem("pulso_sidebar_replegado", "1");
+                        setSidebarReplegado(true);
+                        setSidebarCerradoPorSeleccion(true);
+                        if (evento.detail > 0) evento.currentTarget.blur();
+                      }
                     }}
                   >
                     <span className="nav-icono">

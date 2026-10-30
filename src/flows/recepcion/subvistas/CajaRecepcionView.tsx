@@ -67,6 +67,7 @@ const pagoNuevo = (id: number): Pago => ({ id, metodo: "Efectivo", monto: "" });
 export function CajaRecepcionView({
   onAbrirCuenta,
   onAgendarCirugia,
+  onConsultaExterna,
   farmacia = false,
   cocina = false,
   navegacion,
@@ -76,6 +77,7 @@ export function CajaRecepcionView({
     paciente: string,
   ) => void;
   onAgendarCirugia?: () => void;
+  onConsultaExterna?: () => void;
   farmacia?: boolean;
   cocina?: boolean;
   navegacion?: ReactNode;
@@ -709,6 +711,11 @@ export function CajaRecepcionView({
                 }}
               >
                 <Icon name="lab" size={16} /> Laboratorio
+              </button>
+            )}
+            {!farmacia && !cocina && onConsultaExterna && (
+              <button className="punto-accion-consulta-externa" type="button" onClick={onConsultaExterna}>
+                <Icon name="calendar" size={16} /> Consulta externa
               </button>
             )}
             {!farmacia && !cocina && (

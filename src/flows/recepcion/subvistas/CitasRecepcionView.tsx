@@ -65,11 +65,11 @@ const etiquetaSemana = (inicio: Date) => {
 };
 const citas: Cita[] = [];
 
-export function CitasRecepcionView({ medicoInicial }: { medicoInicial?: string } = {}) {
+export function CitasRecepcionView({ medicoInicial, agendarInicial = false }: { medicoInicial?: string; agendarInicial?: boolean } = {}) {
   const {medicos,resolver,errorProfesionales}=useProfesionales();
   const doctores=['Todos los doctores',...medicos.map(etiquetaProfesional)];
   const { pacientes: fichasPacientes } = usePacientes();
-  const [modoAgendar, setModoAgendar] = useState(false);
+  const [modoAgendar, setModoAgendar] = useState(agendarInicial);
   const [horarioElegido, setHorarioElegido] = useState<{
     fecha: string;
     hora: string;

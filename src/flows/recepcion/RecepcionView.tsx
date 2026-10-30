@@ -24,8 +24,9 @@ const subvistas: { id: SubvistaRecepcion; nombre: string; icono: IconName; descr
 export function RecepcionView({ initialAgenda = false, initialSubview, onAbrirModulo }: { initialAgenda?: boolean; initialSubview?: SubvistaRecepcion; onAbrirModulo?: (modulo: string) => void }) {
   const [subvista, setSubvista] = useState<SubvistaRecepcion>(initialSubview ?? (initialAgenda ? 'citas' : 'caja'));
   const [cuentaDestino, setCuentaDestino] = useState<{ origen: 'emergencias' | 'internacion'; paciente: string } | null>(null);
+  const [consultaExterna, setConsultaExterna] = useState(false);
   const navegacion = <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Recepcion">
-    {subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => setSubvista(item.id)}>
+    {subvistas.map(item => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => { setConsultaExterna(false); setSubvista(item.id); }}>
       <span><Icon name={item.icono} size={17}/></span>
       <strong>{item.nombre}</strong>
       <small>{item.descripcion}</small>
@@ -38,9 +39,10 @@ export function RecepcionView({ initialAgenda = false, initialSubview, onAbrirMo
     {subvista === 'caja' && <CajaRecepcionView
       navegacion={navegacion}
       onAgendarCirugia={() => onAbrirModulo?.('cuenta-quirofano')}
+      onConsultaExterna={() => { setConsultaExterna(true); setSubvista('citas'); }}
       onAbrirCuenta={(origen, paciente) => { setCuentaDestino({ origen, paciente }); setSubvista('cuentas'); }}
     />}
-    {subvista === 'citas' && <CitasRecepcionView/>}
+    {subvista === 'citas' && <CitasRecepcionView key={consultaExterna ? 'consulta-externa' : 'agenda'} agendarInicial={consultaExterna}/>}
     {subvista === 'cuentas' && <CuentasRecepcionView key={`${cuentaDestino?.origen || 'emergencias'}-${cuentaDestino?.paciente || ''}`} origenInicial={cuentaDestino?.origen} pacienteInicial={cuentaDestino?.paciente}/>}
     {subvista === 'comprobantes' && <ComprobantesRecepcionView/>}
     {subvista === 'reportes' && <ReportesRecepcionView/>}

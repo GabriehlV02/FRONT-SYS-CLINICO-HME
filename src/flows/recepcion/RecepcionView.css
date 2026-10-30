@@ -3056,3 +3056,23 @@
 
 /* Detalle de consumo desde el historial lateral. */
 .punto-historial-nuevo .punto-historial-lista article[role="button"]{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}.punto-historial-nuevo .punto-historial-lista article[role="button"]:hover,.punto-historial-nuevo .punto-historial-lista article[role="button"]:focus-visible{transform:translateY(-1px);box-shadow:0 7px 16px rgba(31,66,91,.13);outline:0}.punto-detalle-consumo-fondo{position:fixed;z-index:1200;inset:0;display:grid;place-items:center;padding:20px;background:rgba(11,42,64,.52);backdrop-filter:blur(3px)}.punto-detalle-consumo{width:min(480px,100%);overflow:hidden;border:1px solid #cfe1ed;border-top:4px solid #19aa67;border-radius:14px;background:#fff;box-shadow:0 24px 62px rgba(6,38,60,.32);color:#193e5b}.punto-detalle-consumo.estado-no-pagado{border-top-color:#d89b14}.punto-detalle-consumo.estado-pre-venta{border-top-color:#7360c8}.punto-detalle-consumo.estado-anulado{border-top-color:#df5959}.punto-detalle-consumo>header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:19px 20px 15px;border-bottom:1px solid #dce9f1;background:#fbfdff}.punto-detalle-consumo>header span,.punto-detalle-consumo>section>span{color:#087fb7;font-size:10px;font-weight:900;letter-spacing:.11em}.punto-detalle-consumo>header h3{margin:4px 0;color:#153f62;font-size:21px}.punto-detalle-consumo>header small{display:block;color:#69849a;font-size:11px}.punto-detalle-consumo>header button{display:grid;place-items:center;width:34px;height:34px;padding:0;border:1px solid #c9dfec;border-radius:8px;color:#35617e;background:#fff}.punto-detalle-consumo-estado{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 20px;padding:12px;border:1px solid #d7e7ef;border-radius:9px;background:#f6fbfe}.punto-detalle-consumo-estado span{padding:4px 7px;border-radius:5px;color:#168552;background:#e8f8ee;font-size:11px;font-weight:850}.punto-detalle-consumo.estado-no-pagado .punto-detalle-consumo-estado span{color:#aa7100;background:#fff4d9}.punto-detalle-consumo.estado-pre-venta .punto-detalle-consumo-estado span{color:#6858bb;background:#f0edff}.punto-detalle-consumo.estado-anulado .punto-detalle-consumo-estado span{color:#cb4040;background:#fff0f0}.punto-detalle-consumo-estado strong{font-size:18px;color:#123c5b}.punto-detalle-consumo dl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0;padding:0 20px 16px}.punto-detalle-consumo dl div{display:grid;gap:3px;padding:9px 10px;border:1px solid #dce9f0;border-radius:8px;background:#fff}.punto-detalle-consumo dt{color:#718a9d;font-size:9px;font-weight:800;text-transform:uppercase}.punto-detalle-consumo dd{margin:0;color:#274b66;font-size:11px;line-height:1.35}.punto-detalle-consumo>section{margin:0 20px 16px;padding:12px;border:1px solid #d7e7ef;border-radius:9px;background:#f8fcfe}.punto-detalle-consumo>section p{margin:6px 0 0;color:#45667d;font-size:12px;line-height:1.5}.punto-detalle-consumo footer{display:flex;justify-content:flex-end;padding:13px 20px;border-top:1px solid #dce9f1;background:#f9fcfe}.punto-detalle-consumo footer button{min-height:36px;padding:0 15px;border:1px solid #087fb7;border-radius:7px;color:#fff;background:#087fb7;font-size:11px;font-weight:800}@media(max-width:520px){.punto-detalle-consumo-fondo{align-items:end;padding:10px}.punto-detalle-consumo{border-radius:14px 14px 8px 8px}.punto-detalle-consumo dl{grid-template-columns:1fr}}
+
+/* Acceso directo a la admisión de consulta externa. */
+.sistema-app .punto-busquedas .punto-accion-consulta-externa {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid #087e90;
+  border-radius: 8px;
+  background: #087e90;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sistema-app .punto-busquedas .punto-accion-consulta-externa:hover { background: #066877; border-color: #066877; }
+.sistema-app .punto-busquedas .punto-accion-consulta-externa:focus-visible { outline: 2px solid #087e90; outline-offset: 3px; }

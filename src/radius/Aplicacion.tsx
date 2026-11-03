@@ -1,38 +1,4 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
-import { Icon as EmojiSvg } from '@iconify/react/dist/offline';
-import type { IconifyIcon } from '@iconify/react/dist/offline';
-import twBellhopBell from '@iconify-icons/twemoji/bellhop-bell';
-import twStethoscope from '@iconify-icons/twemoji/stethoscope';
-import twAmbulance from '@iconify-icons/twemoji/ambulance';
-import twWomanHealthWorker from '@iconify-icons/twemoji/woman-health-worker';
-import twBeatingHeart from '@iconify-icons/twemoji/beating-heart';
-import twMedicalMask from '@iconify-icons/twemoji/face-with-medical-mask';
-import twSyringe from '@iconify-icons/twemoji/syringe';
-import twPackage from '@iconify-icons/twemoji/package';
-import twTestTube from '@iconify-icons/twemoji/test-tube';
-import twMicroscope from '@iconify-icons/twemoji/microscope';
-import twXRay from '@iconify-icons/twemoji/x-ray';
-import twPill from '@iconify-icons/twemoji/pill';
-import twReceipt from '@iconify-icons/twemoji/receipt';
-import twForkKnife from '@iconify-icons/twemoji/fork-and-knife';
-import twCook from '@iconify-icons/twemoji/cook';
-import twAudit from '@iconify-icons/twemoji/bookmark-tabs';
-import twGloves from '@iconify-icons/twemoji/gloves';
-import notoPatient from '@iconify-icons/noto/bust-in-silhouette';
-import notoTriage from '@iconify-icons/noto/chart-increasing';
-import notoEmergency from '@iconify-icons/noto/hospital';
-import notoDoctor from '@iconify-icons/noto/man-health-worker';
-import notoHeart from '@iconify-icons/noto/anatomical-heart';
-import notoCalendar from '@iconify-icons/noto/calendar';
-import notoSoap from '@iconify-icons/noto/soap';
-import notoBubbles from '@iconify-icons/noto/bubbles';
-import notoDna from '@iconify-icons/noto/dna';
-import notoMedicalSymbol from '@iconify-icons/noto/medical-symbol';
-import notoAgenda from '@iconify-icons/noto/spiral-calendar';
-import notoBloodDrop from '@iconify-icons/noto/drop-of-blood';
-import notoRobot from '@iconify-icons/noto/robot';
-import notoBowl from '@iconify-icons/noto/bowl-with-spoon';
-import notoSettings from '@iconify-icons/noto/gear';
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
@@ -161,23 +127,23 @@ const subvistasPacientes: { id: SubvistaPacientes; nombre: string; icono: IconNa
 ];
 
 const modulos: Modulo[] = [
-  { id: 'recepcion', nombre: 'Recepción', icono: 'clipboardMedical', grupo: 'ATENCIÓN CLÍNICA' },
+  { id: 'recepcion', nombre: 'Recepción', icono: 'receptionDesk', grupo: 'ATENCIÓN CLÍNICA' },
   { id: 'pacientes', nombre: 'Pacientes', icono: 'users', grupo: 'ATENCIÓN CLÍNICA' },
   { id: 'atencion-medica', nombre: 'Consultorio médico', icono: 'stethoscope', grupo: 'ATENCIÓN AMBULATORIA' },
   { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'heartbeat', grupo: 'ATENCIÓN AMBULATORIA' },
-  { id: 'triaje-emergencias', nombre: 'Triaje emergencias', icono: 'heartbeat', grupo: 'EMERGENCIAS' },
-  { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'stethoscope', grupo: 'EMERGENCIAS' },
+  { id: 'triaje-emergencias', nombre: 'Triaje emergencias', icono: 'ambulance', grupo: 'EMERGENCIAS' },
+  { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userMedical', grupo: 'EMERGENCIAS' },
   { id: 'enfermera-internacion', nombre: 'Enfermera internación', icono: 'clipboardMedical', grupo: 'INTERNACIÓN' },
   { id: 'medico-internacion', nombre: 'Médico internación', icono: 'bed', grupo: 'INTERNACIÓN' },
-  { id: 'enfermera-terapia-intensiva', nombre: 'Enfermera terapia intensiva', icono: 'heartbeat', grupo: 'TERAPIA INTENSIVA' },
-  { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'stethoscope', grupo: 'TERAPIA INTENSIVA' },
+  { id: 'enfermera-terapia-intensiva', nombre: 'Enfermera terapia intensiva', icono: 'monitorVitals', grupo: 'TERAPIA INTENSIVA' },
+  { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'userMedical', grupo: 'TERAPIA INTENSIVA' },
   { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'clipboardMedical', grupo: 'QUIRÓFANO' },
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'surgery', grupo: 'QUIRÓFANO' },
   { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'syringe', grupo: 'QUIRÓFANO' },
   { id: 'cuenta-quirofano', nombre: 'Registro de cirugías', icono: 'calendar', grupo: 'QUIRÓFANO' },
   { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'package', grupo: 'ESTERILIZACIÓN' },
-  { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'sparkles', grupo: 'ESTERILIZACIÓN' },
-  { id: 'entrega-material-esteril', nombre: 'Administración de esterilización', icono: 'warehouse', grupo: 'ESTERILIZACIÓN' },
+  { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'dirtyTray', grupo: 'ESTERILIZACIÓN' },
+  { id: 'entrega-material-esteril', nombre: 'Administración de esterilización', icono: 'shieldCheck', grupo: 'ESTERILIZACIÓN' },
   { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'labOutpatient', grupo: 'LABORATORIO' },
   { id: 'laboratorio-internados', nombre: 'Internados', icono: 'labInpatient', grupo: 'LABORATORIO' },
   { id: 'laboratorio-almacen', nombre: 'Laboratorio almacén', icono: 'package', grupo: 'LABORATORIO' },
@@ -204,41 +170,6 @@ const modulos: Modulo[] = [
     grupo: "ADMINISTRACIÓN",
   },
 ];
-
-const emojiPorModulo: Record<string, IconifyIcon> = {
-  recepcion: twBellhopBell,
-  pacientes: notoPatient,
-  'atencion-medica': twStethoscope,
-  'triaje-ambulatorio': notoTriage,
-  'triaje-emergencias': twAmbulance,
-  'atencion-urgencias': notoEmergency,
-  'enfermera-internacion': twWomanHealthWorker,
-  'medico-internacion': notoDoctor,
-  'enfermera-terapia-intensiva': twBeatingHeart,
-  'medico-terapia-intensiva': notoHeart,
-  'enfermera-quirofano': twGloves,
-  'medico-quirofano': twMedicalMask,
-  'anestesiologia-quirofano': twSyringe,
-  'cuenta-quirofano': notoCalendar,
-  'central-esterilizacion': twPackage,
-  'recepcion-material-sucio': notoSoap,
-  'entrega-material-esteril': notoBubbles,
-  'laboratorio-ambulatorios': twTestTube,
-  'laboratorio-internados': notoDna,
-  'laboratorio-almacen': twMicroscope,
-  'laboratorio-configuracion': notoMedicalSymbol,
-  imagenologia: twXRay,
-  'atencion-agenda': notoAgenda,
-  farmacia: twPill,
-  'farmacia-internacion': notoBloodDrop,
-  'farmacia-movimientos': twReceipt,
-  'farmacia-ia': notoRobot,
-  cocina: twForkKnife,
-  'cocina-internacion': notoBowl,
-  'cocina-administracion': twCook,
-  configuracion: notoSettings,
-  auditorias: twAudit,
-};
 
 function TablaSubvistaPaciente({ vista }: { vista: 'historias' | 'estudios' }) {
   const esEstudios = vista === 'estudios';
@@ -584,8 +515,8 @@ export default function Aplicacion() {
                       }
                     }}
                   >
-                    <span className="nav-icono emoji-nav-icono">
-                      <EmojiSvg icon={emojiPorModulo[item.id]} className="sidebar-emoji" width={22} height={22} aria-hidden="true" />
+                    <span className="nav-icono line-nav-icono">
+                      <Icon name={item.icono} size={20} className="sidebar-line-icon" />
                     </span>
                     <span className="nav-texto">{item.nombre}</span>
                     <Icon

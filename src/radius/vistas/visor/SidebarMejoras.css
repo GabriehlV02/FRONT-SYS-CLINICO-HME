@@ -53,12 +53,11 @@
 .sidebar-replegado .subvista-nav .nav-texto{display:none}
 .sidebar-replegado .nav-icono{width:40px;height:40px;flex-basis:40px}
 .sidebar-replegado .boton-salir{width:58px;margin:0 11px 15px;padding:10px 0 0}
-.emoji-nav-icono{border-color:#d9eaf2;border-radius:10px;color:inherit;background:linear-gradient(145deg,#fff,#f2f9fd);box-shadow:inset 0 1px #fff,0 2px 5px rgba(24,79,111,.05);transition:transform .16s ease,border-color .16s ease,background .16s ease,box-shadow .16s ease}
-.sidebar-emoji{display:block;width:22px;height:22px;flex:0 0 22px;overflow:visible;filter:drop-shadow(0 1px 1px rgba(24,54,73,.08));transition:transform .16s ease}
-.nav-modulo:hover .emoji-nav-icono{transform:translateY(-1px);border-color:#aad5e7;background:linear-gradient(145deg,#fff,#eaf7fd);box-shadow:0 4px 9px rgba(13,119,169,.11)}
-.nav-modulo:hover .sidebar-emoji{transform:scale(1.08)}
-.nav-modulo.activo .emoji-nav-icono{border-color:rgba(255,255,255,.48);background:rgba(255,255,255,.2);box-shadow:inset 0 1px rgba(255,255,255,.35),0 3px 9px rgba(6,76,120,.12)}
-.nav-modulo.activo .sidebar-emoji{filter:drop-shadow(0 1px 1px rgba(5,53,86,.14))}
+.line-nav-icono{width:22px;height:22px;flex-basis:22px;border:0!important;border-radius:0;color:inherit;background:transparent;box-shadow:none;transition:color .16s ease,transform .16s ease}
+.sidebar-line-icon{display:block;width:20px;height:20px;flex:0 0 20px;overflow:visible;stroke:currentColor;stroke-width:1.8;transition:transform .16s ease}
+.nav-modulo:hover .line-nav-icono{transform:translateY(-1px);color:#087db8;background:transparent;box-shadow:none}
+.nav-modulo:hover .sidebar-line-icon{transform:scale(1.06)}
+.nav-modulo.activo .line-nav-icono{color:inherit;background:transparent;box-shadow:none}
 @media(max-width:760px){.sistema-sidebar,.sidebar-replegado .sistema-sidebar{width:min(290px,88vw)}.sistema-marca,.sidebar-replegado .sistema-marca{height:96px;padding:18px 20px}.sidebar-replegado .sistema-nav{padding:13px 12px 18px}.sidebar-replegado .sistema-nav section+section{border-top:1px solid #e7e7e7}.sidebar-replegado .sistema-nav .nav-modulo{height:52px;padding:0 11px;justify-content:flex-start}.sidebar-replegado .nav-indicador{display:block}.sidebar-replegado .boton-salir{width:calc(100% - 24px);margin:auto 12px 15px;padding:10px 11px 0}.nav-indicador{opacity:1}}
 .sistema-nav button:focus-visible,.sistema-nav .nav-modulo:focus-visible{outline:0;box-shadow:0 0 0 2px rgba(7,136,221,.16)}
 .sistema-nav button.activo,.sistema-nav .nav-modulo.activo{box-shadow:0 6px 16px rgba(17,104,175,.1)}

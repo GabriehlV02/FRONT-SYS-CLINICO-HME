@@ -1,6 +1,6 @@
 import type { ReactNode, SVGProps } from 'react';
 
-export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'utensils' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'refresh' | 'check' | 'arrowRight' | 'download' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'mic' | 'volume' | 'calendar' | 'edit' | 'trash' | 'cash' | 'print' | 'stethoscope' | 'heartbeat' | 'bed' | 'syringe' | 'pill' | 'surgery' | 'clipboardMedical' | 'labOutpatient' | 'labInpatient';
+export type IconName = 'home' | 'package' | 'asset' | 'audit' | 'building' | 'utensils' | 'fileText' | 'users' | 'patient' | 'userCheck' | 'userMedical' | 'ambulance' | 'receptionDesk' | 'monitorVitals' | 'dirtyTray' | 'shieldCheck' | 'lab' | 'logout' | 'search' | 'bell' | 'warehouse' | 'settings' | 'menu' | 'close' | 'chevronDown' | 'chevronRight' | 'chevronLeft' | 'plus' | 'refresh' | 'check' | 'arrowRight' | 'download' | 'sparkles' | 'eye' | 'eyeOff' | 'image' | 'camera' | 'mic' | 'volume' | 'calendar' | 'edit' | 'trash' | 'cash' | 'print' | 'stethoscope' | 'heartbeat' | 'bed' | 'syringe' | 'pill' | 'surgery' | 'clipboardMedical' | 'labOutpatient' | 'labInpatient';
 type Props = SVGProps<SVGSVGElement> & { name: IconName; size?: number };
 
 const paths: Record<IconName, ReactNode> = {
@@ -20,8 +20,14 @@ const paths: Record<IconName, ReactNode> = {
   building: <><path d="M4 21V5l8-3v19M12 8h8v13M8 7v1m0 4v1m0 4v1m8-6v1m0 4v1M2 21h20"/></>,
   utensils: <><path d="M6 3v8m-2-8v5a2 2 0 0 0 4 0V3m-2 8v10"/><path d="M15 3v18m0-18c2.8 2 4 5.1 4 9h-4"/></>,
   fileText: <><path d="M6 2h8l4 4v16H6z"/><path d="M14 2v5h5M9 12h6m-6 4h6"/></>,
-  users: <><circle cx="12" cy="12" r="10"/><circle cx="12" cy="8" r="3.25" fill="currentColor" stroke="none"/><path d="M3.85 20.15C4.65 14.85 7.75 12 12 12s7.35 2.85 8.15 8.15A10.05 10.05 0 0 1 12 22a10.05 10.05 0 0 1-8.15-1.85Z" fill="currentColor" stroke="none"/></>,
+  users: <><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20v-1a6.5 6.5 0 0 1 13 0v1h-13Zm14-5a5 5 0 0 1 5 5v0h-3.3"/></>,
   patient: <><circle cx="10" cy="7.5" r="3.25"/><path d="M3.5 20v-1.2a6.5 6.5 0 0 1 11.8-3.8"/><circle cx="17.5" cy="16.5" r="4"/><path d="M17.5 14.4v4.2m-2.1-2.1h4.2"/></>,
+  userMedical: <><circle cx="9" cy="7.5" r="3.25"/><path d="M2.5 20v-1.2a6.5 6.5 0 0 1 12.2-3.3"/><circle cx="18" cy="16.5" r="4"/><path d="M18 14.5v4m-2-2h4"/></>,
+  ambulance: <><path d="M2.5 7h12v11h-12zM14.5 11h4l3 3v4h-7z"/><circle cx="7" cy="18.5" r="1.8"/><circle cx="18" cy="18.5" r="1.8"/><path d="M7 10.5h4m-2-2v4"/></>,
+  receptionDesk: <><circle cx="12" cy="6" r="2.5"/><path d="M7 13a5 5 0 0 1 10 0v1M3 14h18v6H3zM8 17h8"/></>,
+  monitorVitals: <><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M6 11h3l2-3 2.5 6 2-3H19M8 22h8m-4-4v4"/></>,
+  dirtyTray: <><path d="M3 12h18l-2 8H5l-2-8Zm3-4h12M8 4l2 4m6-4-2 4"/><path d="m10 15 4 4m0-4-4 4"/></>,
+  shieldCheck: <><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m8.5 12 2.3 2.3 4.8-5"/></>,
   userCheck: <><circle cx="9" cy="7.5" r="3.25"/><path d="M2.5 20v-1.2A6.5 6.5 0 0 1 14 14.65"/><path d="m15.2 18 2 2 4.3-5"/></>,
   lab: <><path d="M9 3h6"/><path d="M10 3v5.2l-5.5 9.3A2.3 2.3 0 0 0 6.5 21h11a2.3 2.3 0 0 0 2-3.5L14 8.2V3"/><path d="M7.2 16h9.6"/><path d="M9.4 12.2h5.2"/><circle cx="10" cy="18" r=".5" fill="currentColor"/><circle cx="14" cy="18" r=".5" fill="currentColor"/></>,
   logout: <><path d="m10 17 5-5-5-5m5 5H3"/><path d="M15 3h5a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-5"/></>,

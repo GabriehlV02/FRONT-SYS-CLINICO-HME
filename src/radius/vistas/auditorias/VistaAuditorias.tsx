@@ -192,12 +192,7 @@ export default function VistaAuditorias({ sesion }: { sesion: Sesion }) {
 
   return (
     <section className="auditorias-vista">
-      <header className="auditorias-cabecera">
-        <div><p>AUDITORÍAS</p><h2>Control de actividad</h2><small>Consulta la actividad registrada en cada área del sistema clínico.</small></div>
-        {subvista === 'usuarios' && <button className="auditorias-actualizar" onClick={() => void cargarUsuarios()} disabled={cargando}><Icon name="refresh" size={16} /> {cargando ? 'Actualizando…' : 'Actualizar'}</button>}
-      </header>
-
-      <nav className="auditorias-subvistas" aria-label="Secciones de auditoría">
+<nav className="auditorias-subvistas" aria-label="Secciones de auditoría">
         {subvistas.map((item) => <button key={item.id} type="button" className={`auditorias-subvista${subvista === item.id ? ' activa' : ''}`} aria-current={subvista === item.id ? 'page' : undefined} onClick={() => setSubvista(item.id)}><Icon name={item.icono} size={18} /><span>{item.nombre}</span></button>)}
       </nav>
 

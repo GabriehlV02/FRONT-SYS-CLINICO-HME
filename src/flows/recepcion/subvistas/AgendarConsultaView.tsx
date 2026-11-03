@@ -38,11 +38,22 @@ const horas = Array.from(
   (_, index) =>
     `${String(7 + Math.floor(index / 2)).padStart(2, '0')}:${index % 2 ? '30' : '00'}`,
 );
+const fechaLocal = (fecha = new Date()) => {
+  const anio = fecha.getFullYear();
+  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+  const dia = String(fecha.getDate()).padStart(2, '0');
+  return `${anio}-${mes}-${dia}`;
+};
+const minutosDeHora = (hora: string) => {
+  const [horas, minutos] = hora.split(':').map(Number);
+  return horas * 60 + minutos;
+};
 const nombreCompleto = (paciente: Paciente) =>
   [paciente.nombres, paciente.apellidoPaterno, paciente.apellidoMaterno]
     .filter(Boolean)
     .join(' ');
 const paraAgenda = (p: PacienteRegistrado): Paciente => ({id:p.id,nombres:p.nombres,apellidoPaterno:p.apellido_paterno,apellidoMaterno:p.apellido_materno,ci:p.ci,celular:p.telefono || ''});
+const textoNormalizado = (valor: string) => valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
 
 export function AgendarConsultaView({
   doctorInicial = '',
@@ -53,8 +64,19 @@ export function AgendarConsultaView({
   onAgendada,
 }: Props) {
   const {profesionales,medicos,errorProfesionales,resolver}=useProfesionales();
-  const tarifas:Record<string,number>={'Medicina general':80,'Medicina interna':120,Pediatria:100,Cardiologia:160};
-  const especialidades:Record<string,{precio:number;doctores:string[]}>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,{precio:tarifas[e] || 0,doctores:medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)}]));
+  const [precioConsulta, setPrecioConsulta] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    void apiFetch('/api/catalogo', { signal: controller.signal }).then(async respuesta => {
+      const datos = await respuesta.json() as { data?: Array<{ nombre: string; tipo: string; precio: number }> };
+      if (!respuesta.ok) throw new Error('No se pudo consultar la tarifa de consulta.');
+      const consulta = datos.data?.find(item => item.tipo === 'servicio' && textoNormalizado(item.nombre) === 'consulta medica');
+      if (!consulta) throw new Error('No existe el servicio Consulta médica en el catálogo contable.');
+      if (!controller.signal.aborted) setPrecioConsulta(Number(consulta.precio) || 0);
+    }).catch(() => { if (!controller.signal.aborted) setPrecioConsulta(0); });
+    return () => controller.abort();
+  }, []);
+  const especialidades:Record<string,{precio:number;doctores:string[]}>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,{precio:precioConsulta,doctores:medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)}]));
   const doctores=medicos.map(etiquetaProfesional);
   const { pacientes: fichas, errorPacientes } = usePacientes();
   const pacientes = useMemo(() => fichas.map(paraAgenda), [fichas]);
@@ -67,7 +89,7 @@ export function AgendarConsultaView({
   useEffect(()=>{const elegido=medicos.find(p=>p.nombre===(consultaPendiente?.doctor || doctorInicial) || etiquetaProfesional(p)===(consultaPendiente?.doctor || doctorInicial));if(elegido){setDoctor(etiquetaProfesional(elegido));setEspecialidad(actual=>actual || elegido.especialidades[0] || '');}},[profesionales,doctorInicial,consultaPendiente?.id]);
   const soloCobro = Boolean(consultaPendiente);
   const [fecha, setFecha] = useState(
-    fechaInicial ?? new Date().toISOString().slice(0, 10),
+    fechaInicial ?? fechaLocal(),
   );
   const [hora, setHora] = useState(horaInicial);
   const [metodo, setMetodo] = useState('Efectivo');
@@ -93,9 +115,24 @@ export function AgendarConsultaView({
     : doctores;
   const precio = especialidad ? (especialidades[especialidad]?.precio || 0) : 0;
   const pagoValido = metodo !== 'Efectivo' || Number(recibido) >= precio;
+  const horasDisponibles = useMemo(() => {
+    if (fecha !== fechaLocal()) return horas;
+    const ahora = new Date();
+    // Las citas trabajan con bloques de 30 minutos: se toma el siguiente bloque,
+    // nunca el actual ni uno que ya haya comenzado.
+    const siguienteBloque = (ahora.getHours() * 60) + ahora.getMinutes() + (ahora.getSeconds() ? 1 : 0);
+    return horas.filter(item => minutosDeHora(item) >= Math.ceil(siguienteBloque / 30) * 30);
+  }, [fecha]);
+  useEffect(() => {
+    if (!soloCobro && !horasDisponibles.includes(hora)) setHora(horasDisponibles[0] || '');
+  }, [hora, horasDisponibles, soloCobro]);
 
   const confirmar = async () => {
     if (!paciente || !especialidad || !doctor || !fecha || !pagoValido) return;
+    if (!soloCobro && !horasDisponibles.includes(hora)) {
+      setMensaje('Selecciona un horario futuro disponible para la fecha elegida.');
+      return;
+    }
     if(!consultaPendiente && !resolver(doctor)){setMensaje('Selecciona un médico activo del catálogo.');return;}
     if(precio<=0){setMensaje('La especialidad no tiene una tarifa de consulta configurada. Puedes registrar su cita por confirmar en el cronograma.');return;}
     try {
@@ -242,15 +279,16 @@ export function AgendarConsultaView({
               <input
                 disabled={soloCobro}
                 type="date"
-                min={new Date().toISOString().slice(0, 10)}
+                min={fechaLocal()}
                 value={fecha}
                 onChange={(e) => setFecha(e.target.value)}
               />
             </label>
             <label>
               Hora
-              <select disabled={soloCobro} value={hora} onChange={(e) => setHora(e.target.value)}>
-                {horas.map((item) => (
+              <select disabled={soloCobro || horasDisponibles.length === 0} value={hora} onChange={(e) => setHora(e.target.value)}>
+                {!horasDisponibles.length && <option value="">No quedan horarios disponibles hoy</option>}
+                {horasDisponibles.map((item) => (
                   <option key={item}>{item}</option>
                 ))}
               </select>

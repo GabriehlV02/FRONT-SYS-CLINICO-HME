@@ -38,7 +38,13 @@ type ClienteVenta = {
   correo: string | null;
 };
 
+function SelectorContexto({ etiqueta, valor, opciones, onCambiar }: { etiqueta: string; valor: string; opciones: string[]; onCambiar: (valor: string) => void }) {
+  const [abierto, setAbierto] = useState(false);
+  return <div className="punto-selector-contexto"><span>{etiqueta}</span><button type="button" className={`punto-selector-disparador ${abierto ? 'abierto' : ''}`} aria-haspopup="listbox" aria-expanded={abierto} onClick={() => setAbierto(actual => !actual)}>{valor}<Icon name="chevronDown" size={15}/></button>{abierto && <div className="punto-selector-opciones" role="listbox" aria-label={`Seleccionar ${etiqueta}`}>{opciones.map(opcion => <button key={opcion} type="button" role="option" aria-selected={opcion === valor} className={opcion === valor ? 'seleccionada' : ''} onClick={() => { onCambiar(opcion); setAbierto(false); }}>{opcion}{opcion === valor && <Icon name="check" size={14}/>}</button>)}</div>}</div>;
+}
+
 const escaparRegex = (texto: string) => texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const normalizarTexto = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
 const resaltarCoincidencia = (texto: string, consulta: string): ReactNode => {
   const termino = consulta.trim();
   if (!termino) return texto;
@@ -133,6 +139,8 @@ export function CajaRecepcionView({
   const [fechaConsulta, setFechaConsulta] = useState('');
   const [horaConsulta, setHoraConsulta] = useState('');
   const [precioConsulta, setPrecioConsulta] = useState(80);
+  const [sucursalActiva, setSucursalActiva] = useState('Hospital María Esperanza');
+  const [cajaActiva, setCajaActiva] = useState('Caja 01 · Recepción');
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteVenta | null>(null);
   const [registroCliente, setRegistroCliente] = useState({ nombre: "", nitCi: "", telefono: "", correo: "" });
   const [busquedaCliente, setBusquedaCliente] = useState("");
@@ -191,7 +199,10 @@ export function CajaRecepcionView({
     setMensaje(`${i.nombre} agregado al carrito.`);
   };
   const prepararAgregar = (item: Item) => {
-    if (item.id === 'consulta') {
+    // Una consulta no es un ítem de venta genérico: requiere una cita asociada.
+    // El id procede del catálogo contable y no siempre se llama "consulta".
+    const esConsultaMedica = item.tipo === 'Servicio' && /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre));
+    if (esConsultaMedica) {
       setConsultaParaAgendar(item); setEspecialidadConsulta('Medicina general'); setMedicoConsulta(medicosPorEspecialidad['Medicina general']?.[0] || ''); setFechaConsulta(''); setHoraConsulta('');
       return;
     }
@@ -441,7 +452,7 @@ export function CajaRecepcionView({
           <footer><button type="button" onClick={() => setConsumoSeleccionado(null)}>Cerrar</button></footer>
         </section>
       </div>}
-      {consultaParaAgendar && <div className="punto-imagen-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsultaParaAgendar(null); }}><form className="punto-imagen-modal punto-consulta-modal" role="dialog" aria-modal="true" aria-label="Agendar consulta ambulatoria" onSubmit={evento => { evento.preventDefault(); agendarConsulta(); }}><header><div><span>CONSULTA AMBULATORIA</span><h3>Agendar consulta</h3><small>Confirma la cita antes de añadir el servicio al carrito.</small></div><button type="button" aria-label="Cerrar" onClick={() => setConsultaParaAgendar(null)}>×</button></header><label>Especialidad<select value={especialidadConsulta} onChange={evento => { const especialidad = evento.target.value; setEspecialidadConsulta(especialidad); setMedicoConsulta(medicosPorEspecialidad[especialidad]?.[0] || ''); }}>{Object.keys(medicosPorEspecialidad).map(especialidad => <option key={especialidad}>{especialidad}</option>)}</select></label><label>Médico sugerido<select value={medicoConsulta} onChange={evento => setMedicoConsulta(evento.target.value)}>{(medicosPorEspecialidad[especialidadConsulta] || []).map(medico => <option key={medico}>{medico}</option>)}</select></label><div className="punto-consulta-fecha"><label>Fecha<input required type="date" min={new Date().toISOString().slice(0, 10)} value={fechaConsulta} onChange={evento => setFechaConsulta(evento.target.value)} /></label><label>Hora<select required value={horaConsulta} onChange={evento => setHoraConsulta(evento.target.value)}><option value="">Seleccionar</option><option>08:00</option><option>09:00</option><option>10:00</option><option>11:00</option><option>14:00</option><option>15:00</option><option>16:00</option></select></label></div><footer><button type="button" onClick={() => setConsultaParaAgendar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="check" size={16} /> Agendar y añadir al carrito</button></footer></form></div>}
+      {consultaParaAgendar && <div className="punto-imagen-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsultaParaAgendar(null); }}><form className="punto-imagen-modal punto-consulta-modal" role="dialog" aria-modal="true" aria-label="Agendar consulta ambulatoria" onSubmit={evento => { evento.preventDefault(); agendarConsulta(); }}><header><div><span>CONSULTA AMBULATORIA</span><h3>Agendar consulta</h3><small>Primero registra los datos de la cita; después se añadirá el servicio al carrito para su cobro.</small></div><button type="button" aria-label="Cerrar" onClick={() => setConsultaParaAgendar(null)}>×</button></header><label>Paciente registrado<select required value={ciPaciente} onChange={evento => { const ficha = fichasPacientes.find(actual => actual.ci === evento.target.value); if (!ficha) return; setPaciente(nombrePacienteClinico(ficha)); setCiPaciente(ficha.ci); void seleccionarCliente({ id: `paciente:${ficha.id}`, paciente_id: ficha.id, nit_ci: ficha.ci, nombre_razon_social: nombrePacienteClinico(ficha), telefono: ficha.telefono || null, correo: null }); }}><option value="">Seleccionar paciente</option>{pacientesRegistrados.map(ficha => <option key={ficha.id} value={ficha.ci}>{ficha.nombre} · CI {ficha.ci}</option>)}</select></label><small className="punto-consulta-ayuda">Solo se muestran pacientes registrados en el sistema.</small><label>Especialidad<select value={especialidadConsulta} onChange={evento => { const especialidad = evento.target.value; setEspecialidadConsulta(especialidad); setMedicoConsulta(medicosPorEspecialidad[especialidad]?.[0] || ''); }}>{Object.keys(medicosPorEspecialidad).map(especialidad => <option key={especialidad}>{especialidad}</option>)}</select></label><label>Médico<select required value={medicoConsulta} onChange={evento => setMedicoConsulta(evento.target.value)}><option value="">Seleccionar médico</option>{(medicosPorEspecialidad[especialidadConsulta] || []).map(medico => <option key={medico}>{medico}</option>)}</select></label><div className="punto-consulta-fecha"><label>Fecha<input required type="date" min={new Date().toISOString().slice(0, 10)} value={fechaConsulta} onChange={evento => setFechaConsulta(evento.target.value)} /></label><label>Hora<input required type="time" step="1800" value={horaConsulta} onChange={evento => setHoraConsulta(evento.target.value)} /></label></div><footer><button type="button" onClick={() => setConsultaParaAgendar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="check" size={16} /> Confirmar cita y añadir al carrito</button></footer></form></div>}
       {imagenParaAgregar && (
         <div className="punto-imagen-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setImagenParaAgregar(null); }}>
           <form className="punto-imagen-modal" role="dialog" aria-modal="true" aria-label="Detalle del estudio de imagenología" onSubmit={(evento) => { evento.preventDefault(); agregarEstudioImagen(); }}>
@@ -583,22 +594,8 @@ export function CajaRecepcionView({
         {navegacion}
         <header className="punto-pos-cabecera punto-pos-contexto">
         <div className="punto-contexto">
-          <label>
-            Sucursal
-            <select defaultValue="Hospital María Esperanza">
-              <option>Hospital María Esperanza</option>
-              <option>Centro de Hemodiálisis</option>
-              <option>Policonsultorio</option>
-            </select>
-          </label>
-          <label>
-            Caja
-            <select defaultValue="Caja 01 · Recepción">
-              <option>Caja 01 · Recepción</option>
-              <option>Caja 02 · Farmacia</option>
-              {cocina && <option>Caja 03 · Cocina</option>}
-            </select>
-          </label>
+          <SelectorContexto etiqueta="Sucursal" valor={sucursalActiva} opciones={['Hospital María Esperanza', 'Centro de Hemodiálisis', 'Policonsultorio']} onCambiar={setSucursalActiva}/>
+          <SelectorContexto etiqueta="Caja" valor={cajaActiva} opciones={['Caja 01 · Recepción', 'Caja 02 · Farmacia', ...(cocina ? ['Caja 03 · Cocina'] : [])]} onCambiar={setCajaActiva}/>
         </div>
         </header>
       </div>

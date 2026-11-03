@@ -9,7 +9,12 @@ import './AgendaAmbulatoriaView.css';
 import './AgendaAmbulatoriaViewAlineacion.css';
 
 export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; consultorio?: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
-const fechaHoy = () => new Date().toLocaleDateString('en-CA');
+// La agenda almacena la fecha como YYYY-MM-DD. No se usa toLocaleDateString
+// porque el resultado varía según el navegador y puede devolver M/D/YYYY.
+const fechaHoy = () => {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+};
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
   const {profesionales}=useProfesionales();
   const profesionalActual=profesionales.find(p=>p.usuario_id===String(leerSesion()?.usuario.id));

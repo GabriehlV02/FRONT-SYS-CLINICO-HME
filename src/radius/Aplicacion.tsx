@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect, useState } from "react";
+import React, { Suspense, lazy, useEffect, useState, useSyncExternalStore } from "react";
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
@@ -26,6 +26,7 @@ import { CirculanteAsistenciaView } from '../flows/quirofano/CirculanteAsistenci
 import { AlmacenQuirofanoView } from '../flows/quirofano/AlmacenQuirofanoView';
 import { MedicoQuirofanoView } from '../flows/quirofano/MedicoQuirofanoView';
 import { buscarAsignacionQuirofano, normalizarNombre } from '../flows/quirofano/asignacionesQuirofano';
+import { leerInternaciones, suscribirInternaciones } from '../flows/internacion/registroInternaciones';
 import '../flows/quirofano/EnfermeriaQuirofano.css';
 import './vistas/visor-tomografias/SubvistasTomografias.css';
 
@@ -53,6 +54,7 @@ const EnfermeraInternacionView = lazy(() => import('../flows/internacion/Enferme
 const MedicoInternacionView = lazy(() => import('../flows/internacion/MedicoInternacionView').then(m => ({ default: m.MedicoInternacionView })));
 const TerapiaIntensivaView = lazy(() => import('../flows/internacion/TerapiaIntensivaView').then(m => ({ default: m.TerapiaIntensivaView })));
 const RegistroEnfermeriaTerapiaView = lazy(() => import('../flows/internacion/RegistroEnfermeriaTerapiaView').then(m => ({ default: m.RegistroEnfermeriaTerapiaView })));
+const AmbulanciaView = lazy(() => import('../flows/ambulancia/AmbulanciaView').then(m => ({ default: m.AmbulanciaView })));
 const FarmaciaInternacionView = lazy(() => import('../flows/internacion/FarmaciaInternacionView').then(m => ({ default: m.FarmaciaInternacionView })));
 const CocinaVentasView = lazy(() => import('../flows/cocina/CocinaVentasView').then(m => ({ default: m.CocinaVentasView })));
 const CocinaInternacionView = lazy(() => import('../flows/cocina/CocinaInternacionView').then(m => ({ default: m.CocinaInternacionView })));
@@ -137,6 +139,7 @@ const modulos: Modulo[] = [
   { id: 'medico-internacion', nombre: 'Médico internación', icono: 'bed', grupo: 'INTERNACIÓN' },
   { id: 'enfermera-terapia-intensiva', nombre: 'Enfermera terapia intensiva', icono: 'monitorVitals', grupo: 'TERAPIA INTENSIVA' },
   { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'userMedical', grupo: 'TERAPIA INTENSIVA' },
+  { id: 'ambulancia', nombre: 'Ambulancia', icono: 'ambulance', grupo: 'AMBULANCIA' },
   { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'clipboardMedical', grupo: 'QUIRÓFANO' },
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'surgery', grupo: 'QUIRÓFANO' },
   { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'syringe', grupo: 'QUIRÓFANO' },
@@ -237,6 +240,9 @@ export default function Aplicacion() {
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
   const [pacienteColaAtencion, setPacienteColaAtencion] = useState<CitaConfirmada | null>(null);
+  const [citasColaAtencion, setCitasColaAtencion] = useState<CitaConfirmada[]>([]);
+  const [cargandoColaAtencion, setCargandoColaAtencion] = useState(false);
+  const [errorColaAtencion, setErrorColaAtencion] = useState('');
   const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0, radiografias: 0, tomografias: 0, ecografias: 0, ecocardiogramas: 0 });
   const conteoModalidadActual = ({ radiografias: conteosImagenologia.radiografias, tomografias: conteosImagenologia.tomografias, ecografias: conteosImagenologia.ecografias, ecocardiogramas: conteosImagenologia.ecocardiogramas } as Partial<Record<SubvistaImagenologia, number>>)[subvistaImagenologia] || 0;
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -248,6 +254,28 @@ export default function Aplicacion() {
     || /m[eé]dico/i.test(sesion?.usuario.rol ?? '')
     || /administrador|admin/i.test(sesion?.usuario.rol ?? '')
     || sesion?.usuario.permisos.some((permiso) => /medico|consulta/.test(permiso));
+  const internacionesActivas = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
+  const internacionesColaAtencion = internacionesActivas.filter((internacion) => internacion.estado === 'confirmada'
+    && (esAdministrador || normalizarNombre(internacion.medico) === nombreSesion));
+  useEffect(() => {
+    if (!colaAtencionAbierta) return;
+    const controller = new AbortController();
+    setCargandoColaAtencion(true);
+    setErrorColaAtencion('');
+    void apiFetch('/api/citas', { signal: controller.signal }).then(async (respuesta) => {
+      if (!respuesta.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
+      const citas = await respuesta.json() as Array<CitaConfirmada & { estado: string }>;
+      if (!controller.signal.aborted) {
+        const hoy = new Date().toLocaleDateString('en-CA');
+        setCitasColaAtencion(citas.filter(cita => cita.estado === 'confirmada' && cita.fecha === hoy));
+      }
+    }).catch((causa: Error) => {
+      if (!controller.signal.aborted) setErrorColaAtencion(causa.message);
+    }).finally(() => {
+      if (!controller.signal.aborted) setCargandoColaAtencion(false);
+    });
+    return () => controller.abort();
+  }, [colaAtencionAbierta]);
   const modulosVisibles = modulos.filter((item) => {
     const perfil = sesion?.usuario.perfilAtencion;
     if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion', 'farmacia-internacion', 'enfermera-quirofano'].includes(item.id);
@@ -606,13 +634,20 @@ export default function Aplicacion() {
           <button className="cola-atencion-fondo" type="button" aria-label="Cerrar cola de atención" onClick={() => setColaAtencionAbierta(false)} />
           <aside className="cola-atencion-panel">
             <header><div><p>CONSULTORIO MÉDICO</p><h2>Cola de atención</h2><small>Pacientes confirmados pendientes de atención.</small></div><button type="button" aria-label="Cerrar" onClick={() => setColaAtencionAbierta(false)}>×</button></header>
-            <div className="cola-atencion-lista">{[
-              { id: 'cola-ana', hora: '09:15', paciente: 'Ana Rodríguez Vargas', ci: '6102837', especialidad: 'Consulta ambulatoria' },
-              { id: 'cola-jorge', hora: '10:00', paciente: 'Jorge Quiroga Salinas', ci: '5948216', especialidad: 'Seguimiento clínico' },
-              { id: 'cola-sofia', hora: '11:30', paciente: 'Sofía Castillo Flores', ci: '7013659', especialidad: 'Consulta general' },
-            ].map((cita, indice) => <article key={cita.id}>
-              <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Por atender</b><strong>{cita.paciente}</strong><small>{cita.especialidad}</small></div><time>{cita.hora}</time><button type="button" onClick={() => { setPacienteColaAtencion({ ...cita, doctor: sesion?.usuario.nombre || 'Consultorio médico', fecha: new Date().toLocaleDateString('en-CA') }); setColaAtencionAbierta(false); setModulo('atencion-medica'); setColaAtencionVersion((actual) => actual + 1); }}>Atender paciente</button>
-            </article>)}</div>
+            <div className="cola-atencion-lista">
+              {cargandoColaAtencion && <p className="cola-atencion-estado">Cargando agenda…</p>}
+              {!cargandoColaAtencion && errorColaAtencion && <p className="cola-atencion-estado" role="alert">{errorColaAtencion}</p>}
+              {!cargandoColaAtencion && !errorColaAtencion && !citasColaAtencion.length && <p className="cola-atencion-estado">No tienes pacientes confirmados para atender hoy.</p>}
+              {!cargandoColaAtencion && !errorColaAtencion && citasColaAtencion.map((cita, indice) => <article key={cita.id}>
+                <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Por atender</b><strong>{cita.paciente}</strong><small>{cita.especialidad || 'Consulta ambulatoria'}</small></div><time>{cita.hora}</time><button type="button" onClick={() => { setPacienteColaAtencion(cita); setColaAtencionAbierta(false); setModulo('atencion-medica'); setColaAtencionVersion((actual) => actual + 1); }}>Atender paciente</button>
+              </article>)}
+              <section className="cola-atencion-internados" aria-label="Pacientes internados">
+                <header><p>PACIENTES INTERNADOS</p><small>Pacientes actualmente a tu cargo.</small></header>
+                {internacionesColaAtencion.length ? internacionesColaAtencion.map((internacion, indice) => <article key={internacion.id}>
+                  <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Internado</b><strong>{internacion.paciente}</strong><small>Sala {internacion.sala || '—'} · Cama {internacion.cama || '—'}</small></div><time>{internacion.horaIngreso || '—'}</time><button type="button" onClick={() => { setColaAtencionAbierta(false); setModulo('medico-internacion'); }}>Ver internación</button>
+                </article>) : <p className="cola-atencion-estado">No hay pacientes internados asignados actualmente.</p>}
+              </section>
+            </div>
           </aside>
         </div>}
         <div className={`area-trabajo ${modulo === "imagenologia" && subvistaModalidad === "visor" ? "area-trabajo-visor" : ""}`} onPointerDownCapture={replegarSidebarAlInteractuar} onFocusCapture={replegarSidebarAlInteractuar}>
@@ -685,6 +720,8 @@ export default function Aplicacion() {
               </HorizontalSubvistaNav>
               {subvistaTerapia === 'registro-enfermeria' ? <RegistroEnfermeriaTerapiaView /> : subvistaTerapia === 'monitorizacion' ? <TerapiaIntensivaView /> : <section className="em-panel" aria-labelledby="terapia-subvista-titulo"><header className="em-panel-titulo"><h2 id="terapia-subvista-titulo">Registros</h2></header><p className="em-vacio">Aún no hay registros de enfermería.</p></section>}
             </section>
+          ) : modulo === 'ambulancia' ? (
+            <AmbulanciaView />
           ) : modulo === 'enfermera-internacion' ? (
             <section className="triaje-ambulatorio-vista">
               <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de internación">

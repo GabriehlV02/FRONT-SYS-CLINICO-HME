@@ -1,0 +1,18 @@
+@media (min-width: 1100px) {
+  .ambulancia-vista { max-width: none; min-height: calc(100dvh - 158px); display: flex; flex-direction: column; }
+  .ambulancia-cabecera { margin-bottom: 26px; }
+  .ambulancia-nav { margin-bottom: 20px; }
+  .ambulancia-grid { grid-template-columns: minmax(680px, 1.22fr) minmax(430px, .78fr); flex: 1; min-height: 0; }
+  .ambulancia-grid > .ambulancia-panel { min-height: calc(100dvh - 310px); }
+  .ambulancia-grid > .ambulancia-panel:first-child { display: flex; flex-direction: column; }
+  .ambulancia-grid > .ambulancia-panel:first-child .ambulancia-form { flex: 1; align-content: start; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 20px; }
+  .ambulancia-grid > .ambulancia-panel:first-child .ambulancia-form footer { align-self: end; margin-top: auto; }
+  .ambulancia-salidas { display: flex; flex-direction: column; }
+  .ambulancia-lista-salida { margin-top: auto; padding: 18px; border: 1px solid #d8eaf4; border-radius: 10px; background: linear-gradient(135deg, #f3fbff, #fff); }
+}
+
+.ambulancia-lista-salida > span { color: #0a7eb7; font-size: 10px; font-weight: 900; letter-spacing: .1em; }
+.ambulancia-lista-salida p { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; color: #54738a; font-size: 11px; line-height: 1.35; }
+.ambulancia-lista-salida i { width: 8px; height: 8px; flex: none; border-radius: 50%; background: #48b887; box-shadow: 0 0 0 3px #48b88722; }
+.ambulancia-lista-salida i.pendiente { background: #e99b35; box-shadow: 0 0 0 3px #e99b3522; }
+.ambulancia-lista-salida strong { color: #254c68; }

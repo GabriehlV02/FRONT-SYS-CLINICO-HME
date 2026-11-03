@@ -29,7 +29,9 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
     setCitas(datos.filter(cita => cita.estado === 'confirmada' && cita.fecha === fechaHoy()));
   }).catch(causa => setErrorPacientes((causa as Error).message)); }, []);
 
-  const visibles = useMemo(() => citas.filter((cita) => !medico || (profesionalActual && cita.profesionalId===profesionalActual.id) || /administrador/i.test(medico) || cita.doctor === medico || cita.doctor === 'Agenda ambulatoria')
+  // El backend limita la agenda del médico autenticado; este filtro evita una
+  // exposición momentánea mientras se carga el perfil profesional.
+  const visibles = useMemo(() => citas.filter((cita) => /administrador/i.test(medico) || (profesionalActual ? cita.profesionalId === profesionalActual.id : cita.doctor === medico))
     .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)), [citas, medico, profesionalActual]);
   const coincide = (cita: CitaConfirmada, texto: string) => `${cita.paciente} ${cita.ci} ${cita.doctor} ${cita.especialidad}`.toLocaleLowerCase().includes(texto.trim().toLocaleLowerCase());
   const pendientes = visibles.filter((cita) => !obtenerAtencionAmbulatoria(cita) && coincide(cita, busqueda));
@@ -39,7 +41,7 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
 
   return <section className="agenda-ambulatoria" aria-label="Agenda de pacientes ambulatorios confirmados">{errorPacientes && <p role="alert">{errorPacientes}</p>}
     <div className="agenda-herramientas">
-      <label><Icon name="search" size={17} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por paciente, CI o médico" aria-label="Buscar consulta confirmada" /></label>
+      <label><Icon name="search" size={17} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por paciente o CI" aria-label="Buscar consulta confirmada" /></label>
       <span><Icon name="calendar" size={17} /> {visibles.length} confirmadas</span>
     </div>
     <div className="agenda-ambulatoria-tablero">

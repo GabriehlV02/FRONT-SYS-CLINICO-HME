@@ -1814,6 +1814,7 @@
 .cliente-coincidencias b { font-size: 12px; }
 .cliente-coincidencias small { color: #688096; font-size: 10px; }
 .cliente-coincidencias p { margin: 0; padding: 10px; color: #688096; font-size: 11px; text-align: center; }
+.cliente-busqueda .cliente-coincidencias{max-height:230px;margin-top:-2px;border:0;border-top:1px solid #dbe9f2;border-bottom:1px solid #dbe9f2;border-radius:0;background:transparent;box-shadow:none}.cliente-busqueda .cliente-coincidencias button{min-height:45px;padding:9px 7px;border-bottom:1px solid #e5eef4;color:#294a63;background:transparent;transition:background .15s ease,color .15s ease}.cliente-busqueda .cliente-coincidencias button:hover,.cliente-busqueda .cliente-coincidencias button:focus-visible{background:#eaf7ff;color:#056faa;outline:0}.cliente-busqueda .cliente-coincidencias button svg{flex:none;color:#5d98b8}.cliente-busqueda .cliente-coincidencias span{gap:3px}.cliente-nombre-coincidencia{color:#294a63;font-size:12px;font-weight:500;line-height:1.35}.cliente-texto-coincidente{color:#073f68;font-weight:850}.cliente-busqueda .cliente-coincidencias small{font-size:10px}.cliente-busqueda .cliente-coincidencias p{padding:12px 4px;background:transparent}
 .cliente-formulario > small,.cliente-ayuda { margin: 0; color: #587089; font-size: 10px; line-height: 1.4; }
 .cliente-error { margin: 0; color: #b42318; font-size: 11px; line-height: 1.4; }
 .cliente-formulario button:disabled { cursor: wait; opacity: .65; }

@@ -1,0 +1,48 @@
+.emergencias-vista .em-ficha-total .em-ver-historia {
+  border-color: #7655c5;
+  color: #fff;
+  background: #7655c5;
+}
+
+.emergencias-vista .em-ficha-total .em-ver-historia:hover,
+.emergencias-vista .em-ficha-total .em-ver-historia:focus-visible {
+  border-color: #5e40ab;
+  color: #fff;
+  background: #5e40ab;
+}
+
+.emergencias-vista .em-ficha-total .em-liberar-cubiculo {
+  border-color: #c53b3b;
+  color: #fff;
+  background: #c53b3b;
+}
+
+.emergencias-vista .em-ficha-total .em-liberar-cubiculo:hover:not(:disabled),
+.emergencias-vista .em-ficha-total .em-liberar-cubiculo:focus-visible {
+  border-color: #a52d2d !important;
+  color: #fff !important;
+  background: #a52d2d !important;
+}
+
+.em-accesos-orden.em-accesos-orden-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+}
+
+.em-accesos-orden.em-accesos-orden-panel button {
+  justify-content: center;
+  min-height: 38px;
+  padding: 8px;
+  font-size: 11px;
+}
+
+.em-prescribir-entrada { display: grid !important; gap: 6px; padding: 0 !important; border: 0 !important; background: transparent !important; }
+.em-prescribir-entrada > span { color: #365f7b; font-size: 11px; font-weight: 800; }
+.em-prescribir-entrada > div { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 0 12px; border: 1px solid #b8daed; border-radius: 9px; color: #087fb7; background: #f8fcff; }
+.em-prescribir-entrada > div:focus-within { border-color: #087fb7; box-shadow: 0 0 0 3px #0787bf18; background: #fff; }
+.em-prescribir-entrada > div input { min-height: 42px !important; font-size: 12px; }
+.em-prescribir-entrada > small { color: #748fa2; font-size: 10px; line-height: 1.35; }

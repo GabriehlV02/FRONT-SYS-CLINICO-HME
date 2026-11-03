@@ -1,0 +1,5 @@
+/* La ficha resumida es redundante: los datos permanecen disponibles desde Editar datos. */
+.em-identidad-panel:has(.em-identidad-registrada),
+.em-identidad-panel:has(.em-identidad-vacia) {
+  display: none;
+}

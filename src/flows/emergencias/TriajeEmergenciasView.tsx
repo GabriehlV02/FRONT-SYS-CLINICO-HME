@@ -4,6 +4,7 @@ import { PacienteIngresoEmergencia, fechaHoraIngresoActual, inicioEnIso } from '
 import Icon from '../../radius/componentes/Icono';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
 import './TriajeEmergenciasView.css';
+import './TriajeEmergenciasCompacto.css';
 import { cubiculosEmergencias, nombreCubiculo } from './cubiculos';
 import { OrdenesEmergencias } from './OrdenesEmergencias';
 import { apiEmergencias, camposEvaluacion, nombrePaciente, type CuentaEmergencia, type RegistroEnfermeria } from './emergenciasApi';

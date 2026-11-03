@@ -1,3 +1,5 @@
+import './BrandCompact.css';
+
 export function Brand({
   sidebar = false,
   subtitle,

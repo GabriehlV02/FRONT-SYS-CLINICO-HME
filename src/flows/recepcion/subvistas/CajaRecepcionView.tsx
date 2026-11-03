@@ -37,6 +37,16 @@ type ClienteVenta = {
   telefono: string | null;
   correo: string | null;
 };
+
+const escaparRegex = (texto: string) => texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const resaltarCoincidencia = (texto: string, consulta: string): ReactNode => {
+  const termino = consulta.trim();
+  if (!termino) return texto;
+  const partes = texto.split(new RegExp(`(${escaparRegex(termino)})`, 'ig'));
+  return partes.map((parte, indice) => parte.toLocaleLowerCase('es') === termino.toLocaleLowerCase('es')
+    ? <strong className="cliente-texto-coincidente" key={indice}>{parte}</strong>
+    : <span key={indice}>{parte}</span>);
+};
 type ConsumoHistorial = { n: string; fecha: string; total: string; estado: 'Pagado' | 'No pagado' | 'Anulado' | 'Pre venta'; detalle: string };
 type ItemConsumo = { concepto: string; cantidad: number; unitario: string; total: string };
 type DetalleConsumo = { items: ItemConsumo[]; pagado: string; pagos: string[]; cajero: string; caja: string; sucursal: string };
@@ -849,8 +859,8 @@ export function CajaRecepcionView({
                           onClick={() => seleccionarCliente(cliente)}
                         >
                           <span>
-                            <b>{cliente.nombre_razon_social}</b>
-                            <small>{cliente.nit_ci ? `CI/NIT: ${cliente.nit_ci}` : "Sin CI/NIT registrado"}</small>
+                            <span className="cliente-nombre-coincidencia">{resaltarCoincidencia(cliente.nombre_razon_social, busquedaCliente)}</span>
+                            <small>{cliente.nit_ci ? <>{'CI/NIT: '}{resaltarCoincidencia(cliente.nit_ci, busquedaCliente)}</> : "Sin CI/NIT registrado"}</small>
                           </span>
                           <Icon name="chevronRight" size={15} />
                         </button>

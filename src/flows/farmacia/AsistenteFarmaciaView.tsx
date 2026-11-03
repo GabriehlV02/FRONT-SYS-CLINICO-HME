@@ -7,9 +7,11 @@ type SubvistaFarmaciaIa = 'chat' | 'inventario' | 'admin';
 type MensajeChat = { id: number; rol: 'assistant' | 'user'; texto: string; hora: string; inventarioDescargaId?: number };
 type ConfiguracionIa = { endpoint: string; modelo: string; instrucciones: string; consultarCatalogo: boolean; consultarInventario: boolean };
 type SucursalFarmacia = { id: number; nombre: string; items: number; almacenes: number; estantes: number; mostradores: number; espacios: number };
-type EstructuraFarmacia = { id?: number; tipo: 'ESTANTE' | 'MOSTRADOR' | 'ESPACIO'; nombre: string; repisas: string[] };
-type AlmacenFarmacia = { id: number; nombre: string; items: number; estructuras: EstructuraFarmacia[] };
-type DetalleSucursalFarmacia = { sucursalId: number; items: number; almacenes: AlmacenFarmacia[] };
+type TipoEstructuraFarmacia = 'ESTANTE' | 'FRIGOBAR' | 'MOSTRADOR' | 'OTRO' | 'ESPACIO';
+type EstructuraFarmacia = { id?: number; tipo: TipoEstructuraFarmacia; nombre: string; repisas: string[]; repisaIds?: number[] };
+type ProductoUbicacionFarmacia = { id: number; codigo: string; nombre: string; marca: string | null; presentacion: string | null; generico: string; repisaId: number | null; ubicacion: string | null; cantidad: number };
+type AlmacenFarmacia = { id: number; nombre: string; items: number; estructuras: EstructuraFarmacia[]; productos?: ProductoUbicacionFarmacia[] };
+type DetalleSucursalFarmacia = { sucursalId: number; nombre?: string; items: number; almacenes: AlmacenFarmacia[] };
 type AlmacenInventarioFisico = { id: number; sucursalId: number; sucursal: string; nombre: string };
 type InventarioFisico = { id: number; sucursal: string; almacen: string; estado: 'ESPERANDO_ALMACEN' | 'EN_CURSO' | 'FINALIZADO' | 'CANCELADO'; inicio: string; finalizado: string | null; cantidadEsperada: number; cantidadContada: number; faltantes: number; sobrantes: number; itemsTotal: number; itemsContados: number };
 type DetalleInventarioFisico = InventarioFisico & { items: { id: number; itemId: number; codigo: string; nombre: string; generico: string; marca: string; presentacion: string; esperada: number; contada: number | null }[] };
@@ -33,6 +35,83 @@ function leerConfiguracion(): ConfiguracionIa {
     return { ...configuracionInicial, ...preferencias };
   }
   catch { return configuracionInicial; }
+}
+
+const etiquetaTipoEstructura: Record<TipoEstructuraFarmacia, string> = {
+  ESTANTE: 'Estante', FRIGOBAR: 'Frigobar', MOSTRADOR: 'Mostrador', OTRO: 'Otro', ESPACIO: 'Otro',
+};
+
+type VistaDetalleSucursalProps = {
+  detalle: DetalleSucursalFarmacia;
+  almacenSeleccionado: number | null;
+  guardando: boolean;
+  mensaje: string;
+  error: string;
+  volver: () => void;
+  seleccionarAlmacen: (id: number) => void;
+  cambiarEstructura: (indice: number, cambios: Partial<EstructuraFarmacia>) => void;
+  agregarEstructura: (estructura: EstructuraFarmacia) => void;
+  quitarEstructura: (indice: number) => void;
+  asignarItem: (itemId: number, repisaId: number) => void;
+  guardar: () => void;
+};
+
+function VistaDetalleSucursal({ detalle, almacenSeleccionado, guardando, mensaje, error, volver, seleccionarAlmacen, cambiarEstructura, agregarEstructura, quitarEstructura, asignarItem, guardar }: VistaDetalleSucursalProps) {
+  const [tipoNuevo, setTipoNuevo] = useState<TipoEstructuraFarmacia>('ESTANTE');
+  const [nombreNuevo, setNombreNuevo] = useState('');
+  const [cantidadRepisas, setCantidadRepisas] = useState('');
+  const [formularioNuevo, setFormularioNuevo] = useState(false);
+  const [itemAsignacion, setItemAsignacion] = useState('');
+  const [repisaAsignacion, setRepisaAsignacion] = useState('');
+  const estructuras = detalle.almacenes.flatMap(almacen => almacen.estructuras);
+  const repisasTotales = estructuras.reduce((total, estructura) => total + estructura.repisas.length, 0);
+  const tarjetas = [
+    { titulo: 'Almacenes', valor: detalle.almacenes.length },
+    { titulo: 'Estantes', valor: estructuras.filter(estructura => estructura.tipo === 'ESTANTE').length },
+    { titulo: 'Repisas de estantes', valor: estructuras.filter(estructura => estructura.tipo === 'ESTANTE').reduce((total, estructura) => total + estructura.repisas.length, 0) },
+    { titulo: 'Mostradores', valor: estructuras.filter(estructura => estructura.tipo === 'MOSTRADOR').length },
+    { titulo: 'Repisas de mostrador', valor: estructuras.filter(estructura => estructura.tipo === 'MOSTRADOR').reduce((total, estructura) => total + estructura.repisas.length, 0) },
+    { titulo: 'Frigobares', valor: estructuras.filter(estructura => estructura.tipo === 'FRIGOBAR').length },
+    { titulo: 'Repisas totales', valor: repisasTotales },
+  ];
+  const abrirFormulario = (tipo: TipoEstructuraFarmacia) => {
+    const nombreBase = etiquetaTipoEstructura[tipo];
+    const actuales = detalle.almacenes.find(almacen => almacen.id === almacenSeleccionado)?.estructuras ?? [];
+    let consecutivo = 1;
+    while (actuales.some(estructura => estructura.nombre.toLowerCase() === `${nombreBase} ${consecutivo}`.toLowerCase())) consecutivo++;
+    setTipoNuevo(tipo);
+    setNombreNuevo(`${nombreBase} ${consecutivo}`);
+    setCantidadRepisas('');
+    setFormularioNuevo(true);
+  };
+  const crearEstructura = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const cantidad = Number(cantidadRepisas);
+    if (!nombreNuevo.trim() || !Number.isInteger(cantidad) || cantidad < 0 || cantidad > 100) return;
+    agregarEstructura({ tipo: tipoNuevo, nombre: nombreNuevo.trim(), repisas: Array.from({ length: cantidad }, (_, indice) => `Repisa ${indice + 1}`) });
+    setFormularioNuevo(false);
+    setNombreNuevo('');
+    setCantidadRepisas('');
+  };
+  const almacen = detalle.almacenes.find(item => item.id === almacenSeleccionado);
+  const productos = almacen?.productos ?? [];
+  const repisasDisponibles = (almacen?.estructuras ?? []).flatMap(estructura => estructura.repisas.map((repisa, indice) => ({ id: estructura.repisaIds?.[indice], etiqueta: `${estructura.nombre} · ${repisa}` }))).filter((repisa): repisa is { id: number; etiqueta: string } => typeof repisa.id === 'number');
+
+  return <section className="farmacia-ia-sucursal-detalle" aria-label={`Detalle de ${detalle.nombre || 'sucursal'}`}>
+    <button type="button" className="farmacia-ia-volver-sucursales" onClick={volver}><Icon name="arrowRight" size={15} /> Volver a sucursales</button>
+    <header className="farmacia-ia-sucursal-detalle-cabecera"><div><small>DETALLE Y DISTRIBUCIÓN</small><h2>{detalle.nombre || 'Sucursal de farmacia'}</h2><p>{detalle.items} ítems con existencias registradas</p></div><span><Icon name="home" size={22} /></span></header>
+    <div className="farmacia-ia-sucursal-resumen">{tarjetas.map(tarjeta => <article key={tarjeta.titulo}><small>{tarjeta.titulo}</small><strong>{tarjeta.valor.toLocaleString('es-BO')}</strong></article>)}</div>
+    {error && <p className="farmacia-ia-admin-error" role="alert">{error}</p>}
+    {detalle.almacenes.length === 0 ? <div className="farmacia-ia-sucursal-sin-almacen">Esta sucursal todavía no tiene almacenes activos. Registra un almacén en el inventario contable para configurar estantes y repisas.</div> : <>
+      <label className="farmacia-ia-almacen-selector">Almacén<select value={almacenSeleccionado ?? ''} onChange={event => { seleccionarAlmacen(Number(event.target.value)); setItemAsignacion(''); setRepisaAsignacion(''); }}>{detalle.almacenes.map(item => <option key={item.id} value={item.id}>{item.nombre} · {item.items} ítems en stock</option>)}</select></label>
+      <div className="farmacia-ia-nueva-estructura-acciones"><strong>Agregar a {almacen?.nombre}</strong><button type="button" onClick={() => abrirFormulario(tipoNuevo)}><Icon name="plus" size={15} /> Nueva estructura</button></div>
+      <section className="farmacia-ia-asignacion" aria-label="Asignar productos a repisas"><div><small>ORGANIZACIÓN DE PRODUCTOS</small><h3>Asignar productos a repisas</h3><p>Selecciona un producto con existencias y la repisa donde está guardado. Guarda primero cualquier cambio de estructura.</p></div><label>Producto<select value={itemAsignacion} onChange={event => setItemAsignacion(event.target.value)}><option value="">Seleccionar producto…</option>{productos.map(producto => <option key={producto.id} value={producto.id}>{producto.codigo} · {producto.nombre}{producto.marca ? ` (${producto.marca})` : ''} · {producto.cantidad} en stock</option>)}</select></label><label>Estante y repisa<select value={repisaAsignacion} onChange={event => setRepisaAsignacion(event.target.value)}><option value="">Seleccionar ubicación…</option>{repisasDisponibles.map(repisa => <option key={repisa.id} value={repisa.id}>{repisa.etiqueta}</option>)}</select></label><button type="button" disabled={!itemAsignacion || !repisaAsignacion || guardando} onClick={() => asignarItem(Number(itemAsignacion), Number(repisaAsignacion))}><Icon name="check" size={15} /> Asignar ubicación</button>{itemAsignacion && productos.find(producto => producto.id === Number(itemAsignacion))?.ubicacion && <small className="farmacia-ia-asignacion-actual">Ubicación actual: {productos.find(producto => producto.id === Number(itemAsignacion))?.ubicacion}</small>}</section>
+      <div className="farmacia-ia-productos-ubicados"><strong>Productos ubicados</strong>{productos.filter(producto => producto.repisaId !== null).length ? productos.filter(producto => producto.repisaId !== null).map(producto => <span key={producto.id}>{producto.codigo} · {producto.nombre}<small>{producto.ubicacion}</small></span>) : <p>Aún no hay productos asignados a una repisa.</p>}</div>
+      <div className="farmacia-ia-estructuras-lista">{(almacen?.estructuras ?? []).map((estructura, indice) => <article className="farmacia-ia-estructura" key={estructura.id ?? `nueva-${indice}`}><header><span>{etiquetaTipoEstructura[estructura.tipo]}</span><input aria-label="Nombre de estructura" value={estructura.nombre} onChange={event => cambiarEstructura(indice, { nombre: event.target.value })} /><button type="button" aria-label={`Quitar ${estructura.nombre}`} onClick={() => quitarEstructura(indice)}>×</button></header><div className="farmacia-ia-estructura-repisas"><strong>{estructura.repisas.length} repisas <small>· ordenadas de arriba hacia abajo</small></strong>{estructura.repisas.map((repisa, indiceRepisa) => <label key={`${estructura.id ?? estructura.nombre}-${indiceRepisa}`}><span>Repisa {indiceRepisa + 1}<small>{indiceRepisa === 0 ? 'Superior' : indiceRepisa === estructura.repisas.length - 1 ? 'Inferior' : `Nivel ${indiceRepisa + 1}`}</small></span><input aria-label={`Nombre de repisa ${indiceRepisa + 1}`} value={repisa} onChange={event => cambiarEstructura(indice, { repisas: estructura.repisas.map((nombre, posicion) => posicion === indiceRepisa ? event.target.value : nombre) })} /></label>)}<button type="button" className="farmacia-ia-agregar-repisa" onClick={() => cambiarEstructura(indice, { repisas: [...estructura.repisas, `Repisa ${estructura.repisas.length + 1}`] })}>+ Añadir repisa abajo</button></div></article>)}{!almacen?.estructuras.length && <p className="farmacia-ia-tabla-vacia">Este almacén aún no tiene estantes ni estructuras configuradas.</p>}</div>
+      <footer className="farmacia-ia-sucursal-detalle-pie"><span role="status">{mensaje || 'Guarda los cambios de nombre y repisas al terminar.'}</span><button type="button" onClick={guardar} disabled={guardando}>{guardando ? 'Guardando…' : 'Guardar distribución'}</button></footer>
+    </>}
+    {formularioNuevo && <div className="farmacia-ia-modal-overlay" onMouseDown={event => { if (event.target === event.currentTarget) setFormularioNuevo(false); }}><section className="farmacia-ia-modal-estructura" role="dialog" aria-modal="true" aria-labelledby="farmacia-ia-modal-titulo"><header><div><small>NUEVA ESTRUCTURA</small><h2 id="farmacia-ia-modal-titulo">Crear espacio de almacenamiento</h2><p>Define el tipo, el nombre y cómo se organizarán sus repisas.</p></div><button type="button" aria-label="Cerrar" onClick={() => setFormularioNuevo(false)}>×</button></header><form className="farmacia-ia-modal-estructura-form" onSubmit={crearEstructura}><label>Tipo de estructura<select value={tipoNuevo} onChange={event => abrirFormulario(event.target.value as TipoEstructuraFarmacia)}><option value="ESTANTE">Estante</option><option value="FRIGOBAR">Frigobar</option><option value="MOSTRADOR">Mostrador</option><option value="OTRO">Otro espacio</option></select></label><label>Nombre<input required maxLength={120} value={nombreNuevo} onChange={event => setNombreNuevo(event.target.value)} /></label><label>Número de repisas<input required type="number" min="0" max="100" step="1" value={cantidadRepisas} onChange={event => setCantidadRepisas(event.target.value)} placeholder="Ej.: 4" /></label><p>Se ordenarán de arriba hacia abajo: la repisa 1 será la superior y la última, la inferior. Usa 0 si el espacio no tiene repisas.</p><footer><button type="button" className="farmacia-ia-cancelar" onClick={() => setFormularioNuevo(false)}>Cancelar</button><button type="submit"><Icon name="check" size={14} /> Crear estructura</button></footer></form></section></div>}
+  </section>;
 }
 
 export function AsistenteFarmaciaView() {
@@ -80,16 +159,23 @@ export function AsistenteFarmaciaView() {
     void apiFetch('/api/farmacia/tomi/estado', { signal: abort.signal }).then(respuesta => respuesta.ok ? respuesta.json() : null).then(datos => { if (datos) setEstadoApi(datos); }).catch(() => undefined);
     return () => abort.abort();
   }, []);
-  useEffect(() => {
-    if (subvista !== 'admin') return;
-    const abort = new AbortController();
+  const cargarSucursales = async (signal?: AbortSignal) => {
     setCargandoSucursales(true); setErrorSucursales('');
-    void apiFetch('/api/farmacia/tomi/sucursales', { signal: abort.signal }).then(async respuesta => {
+    try {
+      const respuesta = await apiFetch('/api/farmacia/tomi/sucursales', signal ? { signal } : undefined);
       const datos = await respuesta.json().catch(() => ({}));
       if (!respuesta.ok) throw new Error(datos.message || 'No se pudo consultar la lista de sucursales.');
       setSucursales(datos.data || []);
-    }).catch(error => { if (!abort.signal.aborted) setErrorSucursales(error instanceof Error ? error.message : 'No se pudo consultar la lista de sucursales.'); })
-      .finally(() => { if (!abort.signal.aborted) setCargandoSucursales(false); });
+    } catch (error) {
+      if (!signal?.aborted) setErrorSucursales(error instanceof Error ? error.message : 'No se pudo consultar la lista de sucursales.');
+    } finally {
+      if (!signal?.aborted) setCargandoSucursales(false);
+    }
+  };
+  useEffect(() => {
+    if (subvista !== 'admin') return;
+    const abort = new AbortController();
+    void cargarSucursales(abort.signal);
     return () => abort.abort();
   }, [subvista]);
   const cargarInventarios = async () => {
@@ -195,8 +281,11 @@ export function AsistenteFarmaciaView() {
   const cambiarEstructura = (indice: number, cambios: Partial<EstructuraFarmacia>) => {
     setDetalleSucursal(actual => actual ? { ...actual, almacenes: actual.almacenes.map(almacen => almacen.id !== almacenSeleccionado ? almacen : { ...almacen, estructuras: almacen.estructuras.map((estructura, posicion) => posicion === indice ? { ...estructura, ...cambios } : estructura) }) } : actual);
   };
-  const agregarEstructura = (tipo: EstructuraFarmacia['tipo']) => {
-    setDetalleSucursal(actual => actual ? { ...actual, almacenes: actual.almacenes.map(almacen => almacen.id !== almacenSeleccionado ? almacen : { ...almacen, estructuras: [...almacen.estructuras, { tipo, nombre: '', repisas: tipo === 'ESTANTE' ? [''] : [] }] }) } : actual);
+  const agregarEstructura = (estructura: EstructuraFarmacia) => {
+    setDetalleSucursal(actual => actual ? { ...actual, almacenes: actual.almacenes.map(almacen => almacen.id !== almacenSeleccionado ? almacen : { ...almacen, estructuras: [...almacen.estructuras, estructura] }) } : actual);
+  };
+  const quitarEstructura = (indice: number) => {
+    setDetalleSucursal(actual => actual ? { ...actual, almacenes: actual.almacenes.map(almacen => almacen.id !== almacenSeleccionado ? almacen : { ...almacen, estructuras: almacen.estructuras.filter((_, posicion) => posicion !== indice) }) } : actual);
   };
   const guardarDistribucion = async () => {
     if (!detalleSucursal || almacenSeleccionado === null) return;
@@ -208,11 +297,22 @@ export function AsistenteFarmaciaView() {
       const datos = await respuesta.json().catch(() => ({}));
       if (!respuesta.ok) throw new Error(datos.message || 'No se pudo guardar la distribución.');
       setDetalleSucursal(datos.data); setMensajeDistribucion('Distribución de sucursal guardada.');
-      const lista = await apiFetch('/api/farmacia/tomi/sucursales');
-      const resultadoLista = await lista.json().catch(() => ({}));
-      if (lista.ok) setSucursales(resultadoLista.data || []);
+      await cargarSucursales();
     } catch (error) { setErrorSucursales(error instanceof Error ? error.message : 'No se pudo guardar la distribución.'); }
     finally { setGuardandoDistribucion(false); }
+  };
+  const asignarItemRepisa = async (itemId: number, repisaId: number) => {
+    if (!detalleSucursal || almacenSeleccionado === null) return;
+    setErrorSucursales(''); setMensajeDistribucion('');
+    try {
+      const respuesta = await apiFetch(`/api/farmacia/tomi/sucursales/${detalleSucursal.sucursalId}/ubicaciones`, { method: 'POST', body: JSON.stringify({ almacen_id: almacenSeleccionado, item_id: itemId, repisa_id: repisaId }) });
+      const datos = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(datos.message || 'No se pudo guardar la ubicación.');
+      const actual = await apiFetch(`/api/farmacia/tomi/sucursales/${detalleSucursal.sucursalId}`);
+      const detalleActualizado = await actual.json().catch(() => ({}));
+      if (!actual.ok) throw new Error(detalleActualizado.message || 'Se guardó, pero no pude actualizar la lista.');
+      setDetalleSucursal(detalleActualizado.data); setMensajeDistribucion('Ubicación del producto guardada.');
+    } catch (error) { setErrorSucursales(error instanceof Error ? error.message : 'No se pudo guardar la ubicación.'); }
   };
   const crearInventario = async () => {
     if (almacenNuevoInventario === null) return;
@@ -304,33 +404,19 @@ export function AsistenteFarmaciaView() {
       {errorInventarios && <p className="farmacia-ia-admin-error" role="alert">{errorInventarios}</p>}
       <section className="farmacia-ia-inventario-filtros" aria-label="Filtros de inventarios"><label>Buscar<input type="search" value={busquedaInventarios} onChange={event => setBusquedaInventarios(event.target.value)} placeholder="Sucursal, almacén o estado" /></label><label>Desde<input type="date" max={hastaInventarios || undefined} value={desdeInventarios} onChange={event => setDesdeInventarios(event.target.value)} /></label><label>Hasta<input type="date" min={desdeInventarios || undefined} value={hastaInventarios} onChange={event => setHastaInventarios(event.target.value)} /></label></section>
       <div className="farmacia-ia-inventarios-tabla"><div className="farmacia-ia-inventarios-resultado" aria-live="polite">{cargandoInventarios ? 'Actualizando resultados…' : `${inventarios.length} ${inventarios.length === 1 ? 'inventario encontrado' : 'inventarios encontrados'}`}</div><table><thead><tr><th>Sucursal / almacén</th><th>Fecha de inicio</th><th>Fecha de finalización</th><th>Esperada</th><th>Contada</th><th>Faltantes</th><th>Sobrantes</th><th>Estado</th><th>Acción</th></tr></thead><tbody>{inventarios.map(inventario => <tr key={inventario.id}><td><strong>{inventario.sucursal}</strong><small>{inventario.almacen}</small></td><td>{formatoFecha(inventario.inicio)}</td><td>{formatoFecha(inventario.finalizado)}</td><td>{formatoCantidad(inventario.cantidadEsperada)}</td><td>{formatoCantidad(inventario.cantidadContada)}<small>{inventario.itemsContados}/{inventario.itemsTotal} ítems contados</small></td><td className={inventario.faltantes ? 'farmacia-ia-valor-faltante' : ''}>{formatoCantidad(inventario.faltantes)}</td><td className={inventario.sobrantes ? 'farmacia-ia-valor-sobrante' : ''}>{formatoCantidad(inventario.sobrantes)}</td><td><span className={`farmacia-ia-estado-inventario ${inventario.estado === 'EN_CURSO' ? 'en-curso' : inventario.estado === 'ESPERANDO_ALMACEN' ? 'pendiente' : 'finalizado'}`}>{inventario.estado === 'EN_CURSO' ? 'En curso' : inventario.estado === 'ESPERANDO_ALMACEN' ? 'Eligiendo almacén' : inventario.estado === 'CANCELADO' ? 'Cancelado' : 'Finalizado'}</span></td><td><div className="farmacia-ia-acciones-inventario"><button type="button" className="farmacia-ia-inspeccionar" onClick={() => void inspeccionarInventario(inventario)}>Inspeccionar</button><button type="button" className="farmacia-ia-descargar" disabled={inventario.estado === 'ESPERANDO_ALMACEN' || inventario.estado === 'CANCELADO' || descargandoExcel === inventario.id} onClick={() => void descargarExcel(inventario.id)}>{descargandoExcel === inventario.id ? 'Preparando…' : 'Excel'}</button></div></td></tr>)}</tbody></table>{!cargandoInventarios && !inventarios.length && <p className="farmacia-ia-tabla-vacia">{busquedaInventarios || desdeInventarios || hastaInventarios ? 'No hay inventarios que coincidan con la búsqueda y el rango de fechas.' : 'Aún no hay inventarios. Inicia uno con el botón “Nuevo inventario”.'}</p>}</div>
-      {nuevoInventarioAbierto && <div className="farmacia-ia-modal-fondo" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setNuevoInventarioAbierto(false); }}><section className="farmacia-ia-modal farmacia-ia-inventario-modal" role="dialog" aria-modal="true" aria-labelledby="farmacia-ia-nuevo-titulo"><header><div><small>NUEVO REGISTRO</small><h2 id="farmacia-ia-nuevo-titulo">Iniciar inventario</h2><p>Se guardará una captura del stock esperado actual para comparar el conteo físico.</p></div><button type="button" aria-label="Cerrar" onClick={() => setNuevoInventarioAbierto(false)}>×</button></header><div className="farmacia-ia-modal-contenido"><label className="farmacia-ia-almacen-selector">Sucursal y almacén<select value={almacenNuevoInventario ?? ''} onChange={event => setAlmacenNuevoInventario(Number(event.target.value))}>{almacenesInventario.map(almacen => <option key={almacen.id} value={almacen.id}>{almacen.sucursal} · {almacen.nombre}</option>)}</select></label>{!almacenesInventario.length && <p>No hay almacenes disponibles para iniciar un inventario.</p>}</div><footer><span /> <button type="button" className="farmacia-ia-cancelar" onClick={() => setNuevoInventarioAbierto(false)}>Cancelar</button><button type="button" disabled={creandoInventario || almacenNuevoInventario === null} onClick={() => void crearInventario()}><Icon name="plus" size={15} /> {creandoInventario ? 'Iniciando…' : 'Iniciar inventario'}</button></footer></section></div>}
+      {nuevoInventarioAbierto && <div className="farmacia-ia-modal-fondo" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setNuevoInventarioAbierto(false); }}><section className="farmacia-ia-modal farmacia-ia-inventario-modal" role="dialog" aria-modal="true" aria-labelledby="farmacia-ia-nuevo-titulo"><header><div><small>NUEVO REGISTRO</small><h2 id="farmacia-ia-nuevo-titulo">Iniciar inventario</h2><p>Se guardara una captura del stock esperado actual para comparar el conteo fisico.</p></div><button type="button" aria-label="Cerrar" onClick={() => setNuevoInventarioAbierto(false)}>×</button></header><div className="farmacia-ia-modal-contenido"><label className="farmacia-ia-almacen-selector">Sucursal y almacen<select value={almacenNuevoInventario ?? ""} onChange={event => setAlmacenNuevoInventario(Number(event.target.value))}>{almacenesInventario.map(almacen => <option key={almacen.id} value={almacen.id}>{almacen.sucursal} · {almacen.nombre}</option>)}</select></label>{!almacenesInventario.length && <p>No hay almacenes disponibles para iniciar un inventario.</p>}</div><footer><span /> <button type="button" className="farmacia-ia-cancelar" onClick={() => setNuevoInventarioAbierto(false)}>Cancelar</button><button type="button" disabled={creandoInventario || almacenNuevoInventario === null} onClick={() => void crearInventario()}><Icon name="plus" size={15} /> {creandoInventario ? "Iniciando..." : "Iniciar inventario"}</button></footer></section></div>}
       {detalleInventario && <div className="farmacia-ia-modal-fondo" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setDetalleInventario(null); }}><section className="farmacia-ia-modal farmacia-ia-detalle-inventario-modal" role="dialog" aria-modal="true" aria-labelledby="farmacia-ia-detalle-titulo"><header><div><small>{detalleInventario.estado === 'EN_CURSO' ? 'CONTEO EN CURSO' : detalleInventario.estado === 'ESPERANDO_ALMACEN' ? 'ESPERANDO SUCURSAL' : 'REGISTRO FINALIZADO'}</small><h2 id="farmacia-ia-detalle-titulo">{detalleInventario.sucursal} · {detalleInventario.almacen}</h2><p>Inicio {formatoFecha(detalleInventario.inicio)} · {detalleInventario.itemsContados} de {detalleInventario.itemsTotal} ítems contados</p></div><button type="button" aria-label="Cerrar" onClick={() => setDetalleInventario(null)}>×</button></header><div className="farmacia-ia-inventario-metricas"><span>Esperada <strong>{formatoCantidad(detalleInventario.cantidadEsperada)}</strong></span><span>Contada <strong>{formatoCantidad(detalleInventario.cantidadContada)}</strong></span><span>Faltantes <strong>{formatoCantidad(detalleInventario.faltantes)}</strong></span><span>Sobrantes <strong>{formatoCantidad(detalleInventario.sobrantes)}</strong></span></div><div className="farmacia-ia-inventario-items"><table><thead><tr><th>Código</th><th>Producto</th><th>Marca</th><th>Presentación</th><th>Esperada</th><th>Conteo físico</th><th>Diferencia</th></tr></thead><tbody>{detalleInventario.items.map(item => <tr key={item.id}><td>{item.codigo}</td><td><strong>{item.generico}</strong><small>{item.nombre}</small></td><td>{item.marca}</td><td>{item.presentacion}</td><td>{formatoCantidad(item.esperada)}</td><td>{detalleInventario.estado === 'EN_CURSO' ? <input type="number" min="0" step="0.001" aria-label={`Conteo de ${item.codigo}`} defaultValue={item.contada ?? ''} disabled={guardandoConteo === item.id} onBlur={event => { if (event.currentTarget.value !== '' && Number(event.currentTarget.value) !== item.contada) void guardarConteo(item.id, Number(event.currentTarget.value)); }} /> : formatoCantidad(item.contada ?? 0)}</td><td>{item.contada === null ? 'Pendiente' : formatoCantidad(item.contada - item.esperada)}</td></tr>)}</tbody></table>{!detalleInventario.items.length && <p className="farmacia-ia-tabla-vacia">Este almacén no tenía stock esperado al iniciar el inventario.</p>}</div><footer><span role="status">{errorInventarios || (detalleInventario.estado === 'EN_CURSO' ? 'El conteo se guarda al salir de cada campo.' : `Finalizado ${formatoFecha(detalleInventario.finalizado)}`)}</span><button type="button" className="farmacia-ia-cancelar" disabled={detalleInventario.estado === 'ESPERANDO_ALMACEN' || detalleInventario.estado === 'CANCELADO' || descargandoExcel === detalleInventario.id} onClick={() => void descargarExcel(detalleInventario.id)}>{descargandoExcel === detalleInventario.id ? 'Preparando Excel…' : 'Descargar Excel'}</button>{detalleInventario.estado === 'EN_CURSO' && <button type="button" disabled={finalizandoInventario || detalleInventario.itemsContados !== detalleInventario.itemsTotal} onClick={() => void finalizarInventario()}><Icon name="check" size={15} /> {finalizandoInventario ? 'Finalizando…' : 'Finalizar inventario'}</button>}</footer></section></div>}
     </section> : <section className="farmacia-ia-admin farmacia-ia-sucursales" role="tabpanel" aria-label="Sucursales de farmacia">
-      <header className="farmacia-ia-admin-intro farmacia-ia-sucursales-encabezado"><span><Icon name="home" size={20} /></span><div><small>INVENTARIO · ORGANIZACIÓN</small><h2>Sucursales de farmacia</h2><p>Consulta existencias y organiza almacenes, estantes, mostradores y repisas.</p></div></header>
+      {!detalleSucursal && <>
+      <header className="farmacia-ia-admin-intro farmacia-ia-sucursales-encabezado"><span><Icon name="home" size={20} /></span><div><small>INVENTARIO · ORGANIZACIÓN</small><h2>Sucursales de farmacia</h2><p>Existencias y estantes registrados por sucursal.</p></div><button type="button" className="farmacia-ia-actualizar-sucursales" onClick={() => void cargarSucursales()} disabled={cargandoSucursales}><Icon name="refresh" size={15} />{cargandoSucursales ? "Actualizando…" : "Actualizar lista"}</button></header>
       {errorSucursales && <p className="farmacia-ia-admin-error" role="alert">{errorSucursales}</p>}
-      {!cargandoSucursales && sucursales.length > 0 && <div className="farmacia-ia-resumen">{[
-        { titulo: 'Sucursales', valor: sucursales.length, color: 'azul' },
-        { titulo: 'Ítems con stock', valor: sucursales.reduce((total, sucursal) => total + sucursal.items, 0), color: 'verde' },
-        { titulo: 'Almacenes', valor: sucursales.reduce((total, sucursal) => total + sucursal.almacenes, 0), color: 'morado' },
-        { titulo: 'Estantes y mostradores', valor: sucursales.reduce((total, sucursal) => total + sucursal.estantes + sucursal.mostradores, 0), color: 'naranja' },
-      ].map(metrica => <article className={`farmacia-ia-resumen-tarjeta ${metrica.color}`} key={metrica.titulo}><small>{metrica.titulo}</small><strong>{metrica.valor.toLocaleString('es-BO')}</strong></article>)}</div>}
-      {cargandoSucursales ? <p className="farmacia-ia-admin-vacio" role="status">Cargando sucursales…</p> : sucursales.length === 0 ? <div className="farmacia-ia-admin-vacio farmacia-ia-sin-sucursales"><span><Icon name="home" size={23} /></span><h3>Aún no hay sucursales para mostrar</h3><p>Cuando registres sucursales y almacenes en el inventario contable aparecerán aquí para organizar sus estantes y repisas.</p></div> : <div className="farmacia-ia-sucursal-lista">{sucursales.map(sucursal => <article className="farmacia-ia-sucursal" key={sucursal.id}>
-        <div className="farmacia-ia-sucursal-identidad"><span><Icon name="home" size={19} /></span><div><h3>{sucursal.nombre}</h3><small>{sucursal.almacenes} {sucursal.almacenes === 1 ? 'almacén' : 'almacenes'}</small></div></div>
-        <div className="farmacia-ia-sucursal-metricas"><span><strong>{sucursal.items}</strong> ítems</span><span><strong>{sucursal.estantes}</strong> estantes</span><span><strong>{sucursal.mostradores}</strong> mostradores</span><span><strong>{sucursal.espacios}</strong> espacios</span></div>
-        <button type="button" onClick={() => void verSucursal(sucursal)}>Ver sucursal <Icon name="arrowRight" size={15} /></button>
+      {cargandoSucursales ? <p className="farmacia-ia-admin-vacio" role="status">Cargando sucursales…</p> : sucursales.length === 0 ? <div className="farmacia-ia-admin-vacio farmacia-ia-sin-sucursales"><span><Icon name="home" size={23} /></span><h3>No hay sucursales registradas</h3><p>Esta lista lee la base contable conectada. Registra allí una sucursal para que aparezca aquí.</p></div> : <div className="farmacia-ia-sucursal-lista">{sucursales.map(sucursal => <article className="farmacia-ia-sucursal" key={sucursal.id}>
+        <div className="farmacia-ia-sucursal-identidad"><h3>{sucursal.nombre}</h3></div>
+        <div className="farmacia-ia-sucursal-metricas"><span><strong>{sucursal.estantes}</strong> estantes</span><span><strong>{sucursal.items}</strong> ítems en stock</span></div>
+        <button type="button" onClick={() => void verSucursal(sucursal)}>VER <Icon name="arrowRight" size={15} /></button>
       </article>)}</div>}
-      {detalleSucursal && <div className="farmacia-ia-modal-fondo" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setDetalleSucursal(null); }}><section className="farmacia-ia-modal" role="dialog" aria-modal="true" aria-labelledby="farmacia-ia-modal-titulo">
-        <header><div><small>DETALLE DE SUCURSAL</small><h2 id="farmacia-ia-modal-titulo">{sucursales.find(item => item.id === detalleSucursal.sucursalId)?.nombre || 'Sucursal'}</h2><p>{detalleSucursal.items} ítems con stock en {detalleSucursal.almacenes.length} almacenes visibles</p></div><button type="button" aria-label="Cerrar" onClick={() => setDetalleSucursal(null)}>×</button></header>
-        <div className="farmacia-ia-modal-contenido"><label className="farmacia-ia-almacen-selector">Almacén<select value={almacenSeleccionado ?? ''} onChange={event => setAlmacenSeleccionado(Number(event.target.value))}>{detalleSucursal.almacenes.map(almacen => <option key={almacen.id} value={almacen.id}>{almacen.nombre} · {almacen.items} ítems</option>)}</select></label>
-          {detalleSucursal.almacenes.find(item => item.id === almacenSeleccionado)?.estructuras.map((estructura, indice) => <article className="farmacia-ia-estructura" key={estructura.id ?? `nueva-${indice}`}>
-            <div className="farmacia-ia-estructura-cabecera"><select aria-label="Tipo de espacio" value={estructura.tipo} onChange={event => cambiarEstructura(indice, { tipo: event.target.value as EstructuraFarmacia['tipo'], repisas: event.target.value === 'ESTANTE' ? estructura.repisas.length ? estructura.repisas : [''] : [] })}><option value="ESTANTE">Estante</option><option value="MOSTRADOR">Mostrador</option><option value="ESPACIO">Espacio</option></select><input aria-label="Nombre de la estructura" placeholder="Ej.: Estante 1" value={estructura.nombre} onChange={event => cambiarEstructura(indice, { nombre: event.target.value })} /><button type="button" aria-label="Quitar estructura" onClick={() => setDetalleSucursal(actual => actual ? { ...actual, almacenes: actual.almacenes.map(almacen => almacen.id !== almacenSeleccionado ? almacen : { ...almacen, estructuras: almacen.estructuras.filter((_, posicion) => posicion !== indice) }) } : actual)}>×</button></div>
-            {estructura.tipo === 'ESTANTE' && <div className="farmacia-ia-repisas"><strong>Repisas de este estante · {estructura.repisas.filter(repisa => repisa.trim()).length}</strong>{estructura.repisas.map((repisa, repisaIndice) => <div key={repisaIndice}><input aria-label={`Nombre de repisa ${repisaIndice + 1}`} placeholder={`Repisa ${repisaIndice + 1}`} value={repisa} onChange={event => cambiarEstructura(indice, { repisas: estructura.repisas.map((nombre, posicion) => posicion === repisaIndice ? event.target.value : nombre) })} /><button type="button" aria-label="Quitar repisa" onClick={() => cambiarEstructura(indice, { repisas: estructura.repisas.filter((_, posicion) => posicion !== repisaIndice) })}>×</button></div>)}<button type="button" className="farmacia-ia-agregar-repisa" onClick={() => cambiarEstructura(indice, { repisas: [...estructura.repisas, ''] })}>+ Añadir repisa</button></div>}
-          </article>)}
-          <div className="farmacia-ia-agregar-estructura"><button type="button" onClick={() => agregarEstructura('ESTANTE')}>+ Estante</button><button type="button" onClick={() => agregarEstructura('MOSTRADOR')}>+ Mostrador</button><button type="button" onClick={() => agregarEstructura('ESPACIO')}>+ Espacio</button></div>
-        </div>
-        <footer><span role="status">{mensajeDistribucion || errorSucursales}</span><button type="button" className="farmacia-ia-cancelar" onClick={() => setDetalleSucursal(null)}>Cerrar</button><button type="button" disabled={guardandoDistribucion} onClick={() => void guardarDistribucion()}><Icon name="check" size={15} /> {guardandoDistribucion ? 'Guardando…' : 'Guardar distribución'}</button></footer>
-      </section></div>}
+      </>}
+      {detalleSucursal && <VistaDetalleSucursal detalle={detalleSucursal} almacenSeleccionado={almacenSeleccionado} guardando={guardandoDistribucion} mensaje={mensajeDistribucion} error={errorSucursales} volver={() => { setDetalleSucursal(null); setMensajeDistribucion(""); setErrorSucursales(""); }} seleccionarAlmacen={setAlmacenSeleccionado} cambiarEstructura={cambiarEstructura} agregarEstructura={agregarEstructura} quitarEstructura={quitarEstructura} asignarItem={(itemId, repisaId) => void asignarItemRepisa(itemId, repisaId)} guardar={() => void guardarDistribucion()} />}
     </section>}
   </section>;
 }

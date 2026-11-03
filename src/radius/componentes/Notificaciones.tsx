@@ -83,7 +83,7 @@ export default function CentroNotificaciones() {
       </div>
       {dialogo && (
         <div
-          className="confirmacion-fondo"
+          className={`confirmacion-fondo ${dialogo.variante === "salida" ? "confirmacion-fondo-salida" : ""}`}
           role="presentation"
           onMouseDown={() => responder(false)}
         >
@@ -120,7 +120,9 @@ export default function CentroNotificaciones() {
             <footer>
               <button onClick={() => responder(false)}>Cancelar</button>
               <button className="confirmar" onClick={() => responder(true)}>
-                {dialogo.peligrosa && <Icon name="trash" size={15} />}{" "}
+                {(dialogo.variante === "salida" || dialogo.peligrosa) && (
+                  <Icon name={dialogo.variante === "salida" ? "logout" : "trash"} size={15} />
+                )}{" "}
                 {dialogo.textoConfirmar || "Confirmar"}
               </button>
             </footer>

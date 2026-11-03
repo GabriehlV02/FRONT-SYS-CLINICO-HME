@@ -1,4 +1,38 @@
 import React, { Suspense, lazy, useEffect, useState } from "react";
+import { Icon as EmojiSvg } from '@iconify/react/dist/offline';
+import type { IconifyIcon } from '@iconify/react/dist/offline';
+import twBellhopBell from '@iconify-icons/twemoji/bellhop-bell';
+import twStethoscope from '@iconify-icons/twemoji/stethoscope';
+import twAmbulance from '@iconify-icons/twemoji/ambulance';
+import twWomanHealthWorker from '@iconify-icons/twemoji/woman-health-worker';
+import twBeatingHeart from '@iconify-icons/twemoji/beating-heart';
+import twMedicalMask from '@iconify-icons/twemoji/face-with-medical-mask';
+import twSyringe from '@iconify-icons/twemoji/syringe';
+import twPackage from '@iconify-icons/twemoji/package';
+import twTestTube from '@iconify-icons/twemoji/test-tube';
+import twMicroscope from '@iconify-icons/twemoji/microscope';
+import twXRay from '@iconify-icons/twemoji/x-ray';
+import twPill from '@iconify-icons/twemoji/pill';
+import twReceipt from '@iconify-icons/twemoji/receipt';
+import twForkKnife from '@iconify-icons/twemoji/fork-and-knife';
+import twCook from '@iconify-icons/twemoji/cook';
+import twAudit from '@iconify-icons/twemoji/bookmark-tabs';
+import twGloves from '@iconify-icons/twemoji/gloves';
+import notoPatient from '@iconify-icons/noto/bust-in-silhouette';
+import notoTriage from '@iconify-icons/noto/chart-increasing';
+import notoEmergency from '@iconify-icons/noto/hospital';
+import notoDoctor from '@iconify-icons/noto/man-health-worker';
+import notoHeart from '@iconify-icons/noto/anatomical-heart';
+import notoCalendar from '@iconify-icons/noto/calendar';
+import notoSoap from '@iconify-icons/noto/soap';
+import notoBubbles from '@iconify-icons/noto/bubbles';
+import notoDna from '@iconify-icons/noto/dna';
+import notoMedicalSymbol from '@iconify-icons/noto/medical-symbol';
+import notoAgenda from '@iconify-icons/noto/spiral-calendar';
+import notoBloodDrop from '@iconify-icons/noto/drop-of-blood';
+import notoRobot from '@iconify-icons/noto/robot';
+import notoBowl from '@iconify-icons/noto/bowl-with-spoon';
+import notoSettings from '@iconify-icons/noto/gear';
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
@@ -170,6 +204,41 @@ const modulos: Modulo[] = [
     grupo: "ADMINISTRACIÓN",
   },
 ];
+
+const emojiPorModulo: Record<string, IconifyIcon> = {
+  recepcion: twBellhopBell,
+  pacientes: notoPatient,
+  'atencion-medica': twStethoscope,
+  'triaje-ambulatorio': notoTriage,
+  'triaje-emergencias': twAmbulance,
+  'atencion-urgencias': notoEmergency,
+  'enfermera-internacion': twWomanHealthWorker,
+  'medico-internacion': notoDoctor,
+  'enfermera-terapia-intensiva': twBeatingHeart,
+  'medico-terapia-intensiva': notoHeart,
+  'enfermera-quirofano': twGloves,
+  'medico-quirofano': twMedicalMask,
+  'anestesiologia-quirofano': twSyringe,
+  'cuenta-quirofano': notoCalendar,
+  'central-esterilizacion': twPackage,
+  'recepcion-material-sucio': notoSoap,
+  'entrega-material-esteril': notoBubbles,
+  'laboratorio-ambulatorios': twTestTube,
+  'laboratorio-internados': notoDna,
+  'laboratorio-almacen': twMicroscope,
+  'laboratorio-configuracion': notoMedicalSymbol,
+  imagenologia: twXRay,
+  'atencion-agenda': notoAgenda,
+  farmacia: twPill,
+  'farmacia-internacion': notoBloodDrop,
+  'farmacia-movimientos': twReceipt,
+  'farmacia-ia': notoRobot,
+  cocina: twForkKnife,
+  'cocina-internacion': notoBowl,
+  'cocina-administracion': twCook,
+  configuracion: notoSettings,
+  auditorias: twAudit,
+};
 
 function TablaSubvistaPaciente({ vista }: { vista: 'historias' | 'estudios' }) {
   const esEstudios = vista === 'estudios';
@@ -420,6 +489,7 @@ export default function Aplicacion() {
       titulo: "Cerrar sesión",
       mensaje: "¿Estás seguro de que quieres cerrar sesión del sistema clínico?",
       textoConfirmar: "Sí, cerrar sesión",
+      detalle: "Necesitaras iniciar sesion nuevamente para volver a ingresar.",
       variante: "salida",
     });
     if (!salir) return;
@@ -514,8 +584,8 @@ export default function Aplicacion() {
                       }
                     }}
                   >
-                    <span className="nav-icono">
-                      <Icon name={item.icono} size={20} />
+                    <span className="nav-icono emoji-nav-icono">
+                      <EmojiSvg icon={emojiPorModulo[item.id]} className="sidebar-emoji" width={22} height={22} aria-hidden="true" />
                     </span>
                     <span className="nav-texto">{item.nombre}</span>
                     <Icon

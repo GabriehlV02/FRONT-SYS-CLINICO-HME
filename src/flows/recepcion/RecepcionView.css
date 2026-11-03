@@ -1290,6 +1290,7 @@
   border: 1px solid #c8d9ea;
   border-radius: 9px;
   color: #26445e;
+  background: #fbfdff;
 }
 .punto-busquedas {
   display: flex;
@@ -1355,7 +1356,8 @@
   padding-inline: 10px;
 }
 .punto-busquedas input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   border: 0;
   outline: 0;
   color: #1b304a;
@@ -1966,12 +1968,15 @@
   box-shadow: 0 10px 24px rgba(18, 73, 108, .08);
 }
 .punto-pos-farmacia .punto-busquedas {
-  grid-template-columns: minmax(260px, 1fr) 150px;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   padding-bottom: 4px;
 }
 .punto-pos-farmacia .punto-busquedas label {
+  flex: 1 1 260px;
+  min-width: 0;
   height: 43px;
   padding-inline: 14px;
   border-radius: 11px;
@@ -1983,6 +1988,25 @@
   box-shadow: 0 0 0 3px rgba(22, 139, 208, .13);
 }
 .punto-pos-farmacia .punto-busquedas label svg { color: #147cba; }
+.sistema-app[data-theme="dark"] .punto-busquedas label {
+  border-color: var(--border);
+  color: var(--subtle);
+  background: var(--field);
+}
+.sistema-app[data-theme="dark"] .punto-busquedas input {
+  color: var(--text);
+}
+.sistema-app[data-theme="dark"] .punto-busquedas input::placeholder {
+  color: var(--subtle);
+  opacity: 1;
+}
+.sistema-app[data-theme="dark"] .punto-busquedas label svg {
+  color: #8bdcff;
+}
+.sistema-app[data-theme="dark"] .punto-pos-farmacia .punto-busquedas label:focus-within {
+  border-color: var(--primary);
+  box-shadow: var(--focus);
+}
 .punto-pos-farmacia .punto-accion-nuevo-paciente {
   height: 43px;
   border-radius: 11px;
@@ -2004,7 +2028,8 @@
   .punto-pos-superior > .subvistas-carrusel {
     width: 100%;
   }
-  .punto-pos-farmacia .punto-busquedas { grid-template-columns: 1fr; }
+  .punto-pos-farmacia .punto-busquedas { flex-direction: column; align-items: stretch; }
+  .punto-pos-farmacia .punto-busquedas label { flex: 0 1 auto; width: 100%; }
   .punto-pos-farmacia .punto-accion-nuevo-paciente { width: 100%; }
 }
 @media (max-width: 1040px) {

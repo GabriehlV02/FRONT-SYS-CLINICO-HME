@@ -4,13 +4,13 @@
 .sistema-marca { height:104px !important; padding:18px 20px !important; border-bottom:0 !important; }
 .sidebar-scroll { display:flex; flex:1; min-height:0; flex-direction:column; }
 .sistema-nav { padding:18px 12px 10px; }
-.sistema-nav section { padding-bottom:12px; }
-.sistema-nav section + section { margin-top:0; padding-top:0; border-top:0; }
-.sistema-nav section p { display:block; margin:8px -3px 5px; padding-top:8px; border-top:1px dotted #d7dbe3; color:#0084bd; font-size:10px; font-weight:850; letter-spacing:1.35px; }
+.sistema-nav section { padding-bottom:10px; }
+.sistema-nav section + section { margin-top:0 !important; padding-top:0 !important; border-top:0 !important; }
+.sistema-nav section p { display:block; margin:8px 0 6px; padding-top:8px; border-top:1px dotted #d7dbe3; color:#0084bd; font-size:10px; font-weight:850; letter-spacing:1.35px; }
 .sistema-nav section:first-child p { padding-top:0; border-top:0; }
-.sistema-nav .nav-modulo { height:48px; margin:5px 0; padding:0 16px; gap:13px; border:0; border-radius:13px; color:#142b4c; background:transparent; font-family:inherit; }
-.sistema-nav .nav-modulo:hover { color:#076bb7; border:0; background:#eef8ff; box-shadow:none; }
-.sistema-nav .nav-modulo.activo { color:#075da8; border:0; background:#e8f5ff; box-shadow:none; }
+.sistema-nav .nav-modulo { height:46px; margin:3px 0; padding:0 14px; gap:12px; border:1px solid transparent; border-radius:11px; color:#142b4c; background:transparent; font-family:inherit; transition:background .16s ease,color .16s ease,transform .16s ease; }
+.sistema-nav .nav-modulo:hover { color:#076bb7; border-color:#e3f0fb; background:#f2f9ff; box-shadow:none; transform:translateX(2px); }
+.sistema-nav .nav-modulo.activo { color:#075da8; border-color:#d8eafb; background:#eaf5ff; box-shadow:inset 3px 0 #168bd0; }
 .sistema-nav .nav-modulo.activo:before { display:block; left:0; top:0; bottom:0; width:5px; border-radius:8px 0 0 8px; background:linear-gradient(#159fe5,#075da8); }
 .nav-icono,.nav-modulo.activo .nav-icono,.nav-modulo:hover .nav-icono { width:20px; height:20px; flex-basis:20px; border:0; border-radius:0; color:currentColor; background:transparent; box-shadow:none; }
 .nav-texto { font-size:14px; font-weight:650; }
@@ -88,12 +88,14 @@
   height: 72px !important;
   min-height: 72px !important;
   padding: 0 10px !important;
+  justify-content: center !important;
 }
 
 .sistema-sidebar .sistema-marca .marca-logo-completo {
   width: 250px !important;
   height: 72px !important;
   flex: 0 1 250px !important;
+  margin-inline: auto !important;
   min-width: 0;
 }
 @media (min-width: 761px) {
@@ -109,6 +111,11 @@
 @media (max-width: 760px) {
   .sistema-sidebar .sistema-marca {
     padding-right: 40px !important;
+  }
+
+  .sistema-sidebar .sistema-marca .marca-logo-completo {
+    width: min(250px, 100%) !important;
+    flex-basis: min(250px, 100%) !important;
   }
 }
 
@@ -206,7 +213,7 @@
 .sistema-app[data-theme="dark"] .sistema-sidebar{background:var(--sidebar-gradient)!important;border-right-color:#244763!important;box-shadow:10px 0 30px #00000045!important}
 .sistema-app[data-theme="dark"] .sistema-marca{border-color:#244763!important}.sistema-app[data-theme="dark"] .sistema-marca strong{color:#f7fbff!important}.sistema-app[data-theme="dark"] .sistema-marca small{color:#9bb4ca!important}
 .sistema-app[data-theme="dark"] .sistema-marca{background:linear-gradient(180deg,#153c58,#0c293f)!important}.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo{padding:5px!important;background:#fff!important;border-color:#315d7d!important}.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo img{mix-blend-mode:normal!important;object-fit:contain!important}
-.sistema-app[data-theme="dark"] .sistema-nav section+section{border-color:#244763!important}.sistema-app[data-theme="dark"] .sistema-nav section p{color:#70c9ff!important}
+.sistema-app[data-theme="dark"] .sistema-nav section+section{margin-top:0!important;padding-top:0!important;border-top:0!important}.sistema-app[data-theme="dark"] .sistema-nav section p{color:#70c9ff!important;border-top-color:#315d7d!important}
 .sistema-app[data-theme="dark"] .sistema-nav .nav-modulo,.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir{color:#b8d0e3!important;background:transparent!important;border-color:transparent!important}
 .sistema-app[data-theme="dark"] .sistema-nav .nav-modulo:hover,.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir:hover{color:#fff!important;background:#143e5b!important;border-color:#315d7d!important}
 .sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo{color:#fff!important;background:#155273!important;border-color:#1a9ddd!important;box-shadow:inset 3px 0 #52c7ff,0 6px 16px #0000002e!important}

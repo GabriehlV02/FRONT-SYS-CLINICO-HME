@@ -76,3 +76,35 @@
 .fi-formulario input{height:38px;padding:0 10px;border:1px solid #bfd8e9;border-radius:7px;color:#173d60;background:#f8fcff;font:inherit}
 .fi-error{margin:12px 18px 0;color:#a12828;font-size:11px}
 @media(max-width:700px){.fi-encabezado,.fi-controles{align-items:stretch;flex-direction:column}.fi-resumen{flex-wrap:wrap}.fi-buscador{width:auto}.fi-filtros{align-self:flex-start}.fi-descargo-principal{align-items:flex-start}.fi-productos{margin-left:0}.fi-modal dl{grid-template-columns:1fr}.fi-formulario{grid-template-columns:1fr}.fi-formulario label:first-child{grid-column:auto}}
+
+.sistema-app[data-theme="dark"] .farmacia-internacion-vista{color:var(--text)}
+.sistema-app[data-theme="dark"] .farmacia-internacion-vista>.subvistas-carrusel{border-color:var(--border);background:color-mix(in srgb,var(--shell) 94%,transparent);box-shadow:var(--shadow)}
+.sistema-app[data-theme="dark"] .farmacia-internacion-vista .recepcion-subvistas>button{color:var(--subtle)}
+.sistema-app[data-theme="dark"] .farmacia-internacion-vista .recepcion-subvistas>button>span{border-color:var(--border);color:#8bdcff;background:var(--primary-soft)}
+.sistema-app[data-theme="dark"] .farmacia-internacion-vista .recepcion-subvistas>button:hover{border-color:var(--border-strong);color:var(--heading);background:var(--panel-2)}
+.sistema-app[data-theme="dark"] .farmacia-internacion-vista .recepcion-subvistas>button.activo{color:#fff;background:var(--primary-gradient)}
+.sistema-app[data-theme="dark"] .farmacia-internacion-vista .recepcion-subvistas>button.activo>span{color:#fff;background:#ffffff20}
+.sistema-app[data-theme="dark"] :is(.fi-panel,.fi-descargo,.fi-modal){border-color:var(--border);background:var(--panel);color:var(--text);box-shadow:var(--shadow)}
+.sistema-app[data-theme="dark"] :is(.fi-encabezado,.fi-modal header,.fi-modal footer){border-color:var(--border)}
+.sistema-app[data-theme="dark"] .fi-encabezado h2,.sistema-app[data-theme="dark"] .fi-modal header h3,.sistema-app[data-theme="dark"] .fi-modal dd,.sistema-app[data-theme="dark"] .fi-modal h4,.sistema-app[data-theme="dark"] .fi-modal li strong{color:var(--heading)}
+.sistema-app[data-theme="dark"] :is(.fi-encabezado small,.fi-descargo-paciente small,.fi-productos small,.fi-recibido-info,.fi-vacio small,.fi-modal header small,.fi-modal dt,.fi-modal li span){color:var(--muted)}
+.sistema-app[data-theme="dark"] .fi-resumen span,.sistema-app[data-theme="dark"] .fi-total{color:#c2d6e7;background:var(--panel-3)}
+.sistema-app[data-theme="dark"] .fi-resumen span:first-child{color:var(--warning);background:var(--warning-bg)}
+.sistema-app[data-theme="dark"] .fi-resumen span:last-child,.sistema-app[data-theme="dark"] .fi-estado.recibido{color:var(--success);background:var(--success-bg)}
+.sistema-app[data-theme="dark"] .fi-estado.pendiente{color:var(--warning);background:var(--warning-bg)}
+.sistema-app[data-theme="dark"] .fi-buscador,.sistema-app[data-theme="dark"] .fi-filtros,.sistema-app[data-theme="dark"] .fi-modal li{border-color:var(--border);color:var(--muted);background:var(--field)}
+.sistema-app[data-theme="dark"] .fi-buscador input,.sistema-app[data-theme="dark"] .fi-formulario input{color:var(--text)}
+.sistema-app[data-theme="dark"] .fi-buscador input::placeholder{color:var(--subtle)}
+.sistema-app[data-theme="dark"] .fi-filtros button{color:var(--subtle)}
+.sistema-app[data-theme="dark"] .fi-filtros button.activo,.sistema-app[data-theme="dark"] .fi-primario{color:#fff;background:var(--primary-gradient)}
+.sistema-app[data-theme="dark"] .fi-descargo-paciente strong,.sistema-app[data-theme="dark"] .fi-productos strong,.sistema-app[data-theme="dark"] .fi-vacio strong{color:var(--heading)}
+.sistema-app[data-theme="dark"] .fi-icono,.sistema-app[data-theme="dark"] .fi-vacio>span,.sistema-app[data-theme="dark"] .fi-ubicacion{border-color:var(--border);color:#8bdcff;background:var(--primary-soft)}
+.sistema-app[data-theme="dark"] .fi-productos>div{border-left-color:var(--primary);background:var(--field)}
+.sistema-app[data-theme="dark"] .fi-secundario,.sistema-app[data-theme="dark"] .fi-acciones-tabla button{border-color:var(--border-strong);color:var(--text);background:var(--panel-2)}
+.sistema-app[data-theme="dark"] .fi-tabla th{border-color:var(--border);color:var(--muted);background:var(--panel-2)}
+.sistema-app[data-theme="dark"] .fi-tabla td{border-color:var(--border);color:var(--subtle)}
+.sistema-app[data-theme="dark"] .fi-tabla td strong{color:var(--heading)}
+.sistema-app[data-theme="dark"] .fi-modal header>button{color:var(--subtle)}
+.sistema-app[data-theme="dark"] .fi-formulario label{color:var(--subtle)}
+.sistema-app[data-theme="dark"] .fi-formulario input{border-color:var(--border-strong);background:var(--field)}
+.sistema-app[data-theme="dark"] .fi-error{color:var(--danger)}

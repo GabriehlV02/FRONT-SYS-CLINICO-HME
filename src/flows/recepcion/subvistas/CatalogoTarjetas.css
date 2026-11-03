@@ -77,3 +77,29 @@
 }
 .sistema-app .catalogo-clinico-tarjetas footer button:hover { background: #06679e; border-color: #06679e; }
 .sistema-app .catalogo-clinico-tarjetas footer button:focus-visible { outline: 2px solid #087dbd; outline-offset: 3px; }
+
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas > article {
+  border-color: var(--border);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas .punto-tarjeta-info > small,
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas footer small { color: var(--muted); }
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas .punto-tarjeta-info > strong,
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas footer b { color: var(--heading); }
+.sistema-app[data-theme="dark"] .catalogo-clinico-detalles { color: var(--subtle); }
+.sistema-app[data-theme="dark"] .catalogo-clinico-stock { color: #b8eaff; background: var(--primary-soft); }
+.sistema-app[data-theme="dark"] .catalogo-clinico-stock.agotado { color: var(--warning); background: var(--warning-bg); }
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas > article > footer {
+  border-color: var(--border);
+  background: var(--panel-2);
+}
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas footer button {
+  border-color: var(--primary);
+  background: var(--primary-gradient);
+  color: var(--primary-text);
+}
+.sistema-app[data-theme="dark"] .catalogo-clinico-tarjetas footer button:hover {
+  border-color: var(--primary-strong);
+  background: var(--primary-strong);
+}

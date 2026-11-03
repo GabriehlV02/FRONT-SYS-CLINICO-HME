@@ -37,6 +37,7 @@ const CronogramaEstudiosView = lazy(() => import('../flows/recepcion/subvistas/C
 const AgendaImagenologiaView = lazy(() => import('./vistas/AgendaImagenologiaView'));
 const FarmaciaView = lazy(() => import('../flows/farmacia/FarmaciaView').then(m => ({ default: m.FarmaciaView })));
 const AdministracionFarmaciaView = lazy(() => import('../flows/farmacia/AdministracionFarmaciaView').then(m => ({ default: m.AdministracionFarmaciaView })));
+const AsistenteFarmaciaView = lazy(() => import('../flows/farmacia/AsistenteFarmaciaView').then(m => ({ default: m.AsistenteFarmaciaView })));
 const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
 const HistoriasClinicasView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.HistoriasClinicasView })));
 const LaboratorioView = lazy(() => import('../flows/laboratorio/LaboratorioView').then(m => ({ default: m.LaboratorioView })));
@@ -757,11 +758,7 @@ export default function Aplicacion() {
           ) : modulo === "imagenologia" && subvistaImagenologia === "visor" ? (
             <VistaRayosX modalidad={visorModalidad || undefined} />
           ) : modulo === "farmacia-ia" ? (
-            <section className="modulo-vacio" aria-labelledby="farmacia-ia-titulo">
-              <span><Icon name="sparkles" size={28} /></span>
-              <h2 id="farmacia-ia-titulo">IA de farmacia</h2>
-              <p>El asistente de farmacia aún no está configurado.</p>
-            </section>
+            <AsistenteFarmaciaView />
           ) : modulo === "configuracion" ? (
             <VistaConfiguracion initialSection={subvistaConfiguracion} tema={tema} onCambiarTema={setTema} usuario={sesion.usuario} />
           ) : modulo === "auditorias" ? (

@@ -6,7 +6,6 @@ import './AnimacionesLogin.css';
 import './LoginRefinamiento.css';
 import '../../../ui/styles/LoginFields.css';
 import Icon from '../../componentes/Icono';
-import { notificar } from '../../componentes/Notificaciones';
 import type { Sesion } from '../../types/sesion';
 
 type Props = { onLogin: (sesion: Sesion) => void };
@@ -63,7 +62,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
             : response.status === 429
               ? 'Se realizaron muchos intentos. Espera un momento antes de volver a intentar.'
               : 'El servicio de autenticación no está disponible. Intenta nuevamente en unos minutos.';
-        notificar('error', `No se pudo iniciar sesión · Error ${response.status}`, mensaje);
+        setError(mensaje); // notificar('error', `No se pudo iniciar sesión · Error ${response.status}`, mensaje);
         return;
       }
       if (!response.ok) throw new Error(data.message || 'No se pudo iniciar sesión.');
@@ -72,7 +71,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       else localStorage.removeItem('pulso_usuario_recordado');
       localStorage.removeItem('pulso_session'); sessionStorage.removeItem('pulso_session');
       (recordar ? localStorage : sessionStorage).setItem('pulso_session', JSON.stringify(sesion)); onLogin(sesion);
-    } catch { setError(''); notificar('error', 'No se pudo iniciar sesión · Error de conexión', 'No pudimos conectar con el servidor. Verifica tu conexión e intenta otra vez.'); }
+    } catch { setError('No pudimos conectar con el servidor. Verifica tu conexión e intenta otra vez.'); }
     finally { window.clearTimeout(limite); setLoading(false); }
   };
 
@@ -128,7 +127,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
           <p className="login-kicker">PORTAL CLÍNICO</p>
           <h1>Iniciar sesión</h1>
           <p className="login-subtitulo">Ingresa con tu cuenta institucional.</p>
-          {error && <div className="login-error" role="alert"><Icon name="close" size={17} /><div><strong>No se pudo iniciar sesión</strong><span>{error}</span></div></div>}
+          {error && <div className="login-error" role="alert" aria-live="polite"><Icon name="close" size={17} /><div><strong>No se pudo iniciar sesión</strong><span>{error}</span></div></div>}
           <div className="login-field"><label className="login-label" htmlFor="clinico-usuario">Correo, CI o usuario</label><div className="login-input"><Icon name="users" size={19} /><input id="clinico-usuario" autoFocus required autoComplete="username" value={form.usuario} onChange={(e) => setForm({ ...form, usuario: e.target.value })} placeholder="Ingresa tu correo o CI" /></div></div>
           <div className="login-field"><label className="login-label" htmlFor="clinico-password">Contraseña</label><div className="login-input"><Icon name="asset" size={18} /><input id="clinico-password" required type={mostrarPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Ingresa tu contraseña" /><button type="button" onMouseDown={(e) => e.preventDefault()} onClick={(e) => { const input = e.currentTarget.previousElementSibling as HTMLInputElement; const start = input.selectionStart, end = input.selectionEnd; setMostrarPassword((v) => !v); requestAnimationFrame(() => { input.focus({ preventScroll: true }); input.setSelectionRange(start, end); }); }} aria-pressed={mostrarPassword} aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}><Icon name={mostrarPassword ? 'eyeOff' : 'eye'} size={18} /></button></div></div>
           <div className="login-opciones">

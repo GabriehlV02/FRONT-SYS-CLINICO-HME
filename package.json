@@ -10,19 +10,19 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "latest",
-    "vite": "latest",
-    "typescript": "latest",
-    "react": "latest",
-    "react-dom": "latest",
     "@cornerstonejs/core": "^5.8.2",
     "@cornerstonejs/dicom-image-loader": "^5.8.2",
     "@cornerstonejs/tools": "^5.8.2",
+    "@vitejs/plugin-react": "latest",
     "dicom-parser": "^1.8.21",
     "events": "^3.3.0",
     "jszip": "^3.10.1",
     "libarchive.js": "^2.0.2",
-    "node-unrar-js": "^2.0.2"
+    "node-unrar-js": "^2.0.2",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest"
   },
   "devDependencies": {
     "@types/node": "latest",

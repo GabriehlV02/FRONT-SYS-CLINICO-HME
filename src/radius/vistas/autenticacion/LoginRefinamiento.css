@@ -282,3 +282,12 @@ body:has(.login-page-clinico),
   .login-page-clinico .login-card:not(.login-card-recuperacion) .login-subtitulo { margin-bottom:22px !important; }
   .login-page-clinico .login-card:not(.login-card-recuperacion) .login-helper { margin-top:17px !important; }
 }
+/* Mejoras locales para errores y foco del acceso clínico. */
+.login-page-clinico .login-error{display:flex;align-items:flex-start;gap:11px;margin:0 0 20px!important;padding:13px 15px!important;border:1px solid #f0c9c6!important;border-radius:12px!important;color:#7f302c!important;background:#fff6f5!important;font-size:12px!important;line-height:1.5!important;box-shadow:0 5px 14px rgba(122,48,44,.05)}
+.login-page-clinico .login-error svg{flex:0 0 auto;margin-top:1px;color:#b94840}
+.login-page-clinico .login-error strong,.login-page-clinico .login-error span{display:block}
+.login-page-clinico .login-error strong{margin-bottom:2px;font-size:12px}
+.login-page-clinico .login-error span{color:#8b514d}
+.login-page-clinico .login-input button{width:40px!important;height:40px!important;flex:0 0 40px!important;border-radius:10px!important}
+.login-page-clinico .login-input button:focus-visible,.login-page-clinico .login-ayuda-link:focus-visible,.login-page-clinico .login-submit:focus-visible{outline:3px solid rgba(8,127,192,.35);outline-offset:3px}
+.login-page-clinico .login-ayuda-link{min-height:40px;padding:7px 0!important;display:inline-flex;align-items:center;gap:7px}

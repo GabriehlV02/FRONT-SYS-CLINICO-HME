@@ -1,13 +1,12 @@
 .punto-imagen-fondo{position:fixed;inset:0;z-index:1500;display:grid;place-items:center;padding:18px;background:rgba(12,38,61,.48);backdrop-filter:blur(3px)}
-.punto-imagen-modal{width:min(460px,100%);display:grid;gap:14px;padding:22px;border:1px solid #c9dfed;border-radius:16px;color:#173d5b;background:#fff;box-shadow:0 24px 70px rgba(9,44,70,.25)}
+.punto-imagen-modal{box-sizing:border-box;width:min(460px,100%);display:grid;gap:14px;padding:22px;border:1px solid #c9dfed;border-radius:16px;color:#173d5b;background:#fff;box-shadow:0 24px 70px rgba(9,44,70,.25)}
 .punto-imagen-modal>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding-bottom:14px;border-bottom:1px solid #e1edf4}
 .punto-imagen-modal>header span{color:#087db8;font-size:9px;font-weight:850;letter-spacing:.09em}
 .punto-imagen-modal>header h3{margin:4px 0;color:#143d5c;font-size:18px}
 .punto-imagen-modal>header small{color:#6c8398;font-size:11px}
 .punto-imagen-modal>header button{width:32px;height:32px;border:1px solid #d3e3ed;border-radius:8px;color:#52738b;background:#f6fafc;font-size:20px;cursor:pointer}
 .punto-imagen-modal>label{display:grid;gap:6px;color:#41627b;font-size:11px;font-weight:750}
-.punto-consulta-fecha{display:grid;grid-template-columns:1fr 1fr;gap:12px}.punto-consulta-fecha label{display:grid;gap:6px;color:#41627b;font-size:11px;font-weight:750}.punto-consulta-fecha :is(input,select){height:40px;padding:0 11px;border:1px solid #cbdde9;border-radius:8px;color:#173d5b;background:#fbfdff;font:inherit;font-size:13px}@media(max-width:520px){.punto-consulta-fecha{grid-template-columns:1fr}}
-.punto-imagen-modal>label :is(select,input){height:40px;padding:0 11px;border:1px solid #cbdde9;border-radius:8px;color:#173d5b;background:#fbfdff;font:inherit;font-size:13px}
+.punto-consulta-fecha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}.punto-consulta-fecha label{display:grid;min-width:0;gap:6px;color:#41627b;font-size:11px;font-weight:750}.punto-consulta-fecha :is(input,select),.punto-imagen-modal>label :is(select,input){box-sizing:border-box;width:100%;height:40px;padding:0 11px;border:1px solid #cbdde9;border-radius:8px;color:#173d5b;background:#fbfdff;font:inherit;font-size:13px}.punto-imagen-modal>label{min-width:0}@media(max-width:520px){.punto-consulta-fecha{grid-template-columns:1fr}}
 .punto-imagen-modal>footer{display:flex;justify-content:flex-end;gap:9px;margin-top:3px;padding-top:14px;border-top:1px solid #e5eef4}
 .punto-imagen-modal>footer button{min-height:38px;padding:0 13px;border:1px solid #cbdde9;border-radius:8px;color:#385b75;background:#fff;font-size:12px;font-weight:750;cursor:pointer}
 .punto-imagen-modal>footer .punto-imagen-primario{display:inline-flex;align-items:center;gap:7px;border-color:#087bb8;color:#fff;background:linear-gradient(110deg,#126cd4,#079dca)}

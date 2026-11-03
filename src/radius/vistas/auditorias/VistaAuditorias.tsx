@@ -5,8 +5,9 @@ import type { Sesion } from '../../types/sesion';
 import './VistaAuditorias.css';
 import AuditoriaVentas from './AuditoriaVentas';
 import AuditoriaAtencion from './AuditoriaAtencion';
+import AuditoriaItems from './AuditoriaItems';
 
-type SubvistaId = 'usuarios' | 'ventas' | 'atencion' | 'pacientes' | 'farmacia';
+type SubvistaId = 'usuarios' | 'ventas' | 'atencion' | 'pacientes' | 'farmacia' | 'items';
 type Usuario = {
   id: string;
   nombres: string;
@@ -31,12 +32,13 @@ type Evento = {
 };
 type PaginaEventos = { eventos: Evento[]; pagina: number; ultimaPagina: number; total: number };
 
-const subvistas: { id: SubvistaId; nombre: string; descripcion: string; icono: 'users' | 'cash' | 'stethoscope' | 'patient' | 'pill' }[] = [
+const subvistas: { id: SubvistaId; nombre: string; descripcion: string; icono: 'users' | 'cash' | 'stethoscope' | 'patient' | 'pill' | 'package' }[] = [
   { id: 'usuarios', nombre: 'Usuarios', descripcion: 'Cuentas, accesos y actividad realizada en el sistema.', icono: 'users' },
   { id: 'ventas', nombre: 'Ventas', descripcion: 'Cambios y operaciones de venta registrados.', icono: 'cash' },
   { id: 'atencion', nombre: 'Atención', descripcion: 'Actividad de atención clínica y emergencias.', icono: 'stethoscope' },
   { id: 'pacientes', nombre: 'Pacientes', descripcion: 'Consultas y modificaciones de fichas clínicas.', icono: 'patient' },
   { id: 'farmacia', nombre: 'Farmacia', descripcion: 'Movimientos de productos e inventario.', icono: 'pill' },
+  { id: 'items', nombre: 'Ítems', descripcion: 'Auditoría de existencias, mínimos y vencimientos.', icono: 'package' },
 ];
 
 function fecha(value?: string | null) {
@@ -228,6 +230,8 @@ export default function VistaAuditorias({ sesion }: { sesion: Sesion }) {
         <AuditoriaVentas />
       ) : subvista === 'atencion' ? (
         <AuditoriaAtencion />
+      ) : subvista === 'items' ? (
+        <AuditoriaItems />
       ) : (
         <section className="auditorias-panel auditorias-proximamente"><span className="auditorias-vacio-icono"><Icon name="audit" size={24} /></span><h3>Registro de {actual.nombre.toLocaleLowerCase('es-BO')}</h3><p>Esta sección está preparada para mostrar quién realizó cada acción, cuándo ocurrió y en qué registro del sistema.</p><small>La fuente de eventos de esta área todavía no está conectada.</small></section>
       )}

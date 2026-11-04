@@ -156,7 +156,7 @@ export function CajaRecepcionView({
   useEffect(()=>{
     if(modo !== 'buscar') return;
     const termino=busquedaCliente.trim().toLocaleLowerCase('es');
-    setClientesEncontrados(termino.length<2 ? [] : fichasPacientes.filter(p=>`${nombrePacienteClinico(p)} ${p.ci}`.toLocaleLowerCase('es').includes(termino)).slice(0,20).map(p=>({id:'paciente:'+p.id,paciente_id:p.id,nombre_razon_social:nombrePacienteClinico(p),nit_ci:p.ci,telefono:p.telefono || null,correo:null})));
+    setClientesEncontrados(termino.length<2 ? [] : fichasPacientes.filter(p=>`${nombrePacienteClinico(p)} ${p.ci}`.toLocaleLowerCase('es').includes(termino)).slice(0,8).map(p=>({id:'paciente:'+p.id,paciente_id:p.id,nombre_razon_social:nombrePacienteClinico(p),nit_ci:p.ci,telefono:p.telefono || null,correo:null})));
     setBuscandoClientes(false);setErrorCliente(errorPacientes);
   },[modo,busquedaCliente,fichasPacientes,errorPacientes]);
   useEffect(() => {
@@ -855,10 +855,7 @@ export function CajaRecepcionView({
                           key={cliente.id}
                           onClick={() => seleccionarCliente(cliente)}
                         >
-                          <span>
-                            <span className="cliente-nombre-coincidencia">{resaltarCoincidencia(cliente.nombre_razon_social, busquedaCliente)}</span>
-                            <small>{cliente.nit_ci ? <>{'CI/NIT: '}{resaltarCoincidencia(cliente.nit_ci, busquedaCliente)}</> : "Sin CI/NIT registrado"}</small>
-                          </span>
+                          <span className="cliente-coincidencia-resumen"><span className="cliente-nombre-coincidencia">{resaltarCoincidencia(cliente.nombre_razon_social, busquedaCliente)}</span><small>{cliente.nit_ci ? <>{'CI: '}{resaltarCoincidencia(cliente.nit_ci, busquedaCliente)}</> : 'Sin CI'}</small></span>
                           <Icon name="chevronRight" size={15} />
                         </button>
                       ))

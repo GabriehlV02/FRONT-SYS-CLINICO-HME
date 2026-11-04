@@ -1,0 +1,99 @@
+.uso-items-modal:has(#uso-items-form-titulo) {
+  width: min(100% - 32px, 1080px) !important;
+  border: 1px solid #d8e8f1;
+  border-radius: 16px;
+  box-shadow: 0 28px 70px rgb(4 43 72 / 35%);
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header {
+  padding: 22px 28px;
+  background: linear-gradient(105deg, #fff 0%, #f4fbfe 100%);
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header h3 { font-size: 21px; }
+.uso-items-modal:has(#uso-items-form-titulo) > header button { width: 34px; height: 34px; color: #0b587f; }
+
+.uso-items-modal:has(#uso-items-form-titulo) > header + div {
+  grid-template-columns: minmax(0, 1fr) minmax(360px, .95fr) !important;
+  gap: 28px !important;
+  padding: 26px 28px !important;
+  background: #fbfdfe;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section {
+  min-width: 0;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section > strong {
+  display: block;
+  margin-bottom: 12px;
+  color: #164d6d;
+  font-size: 14px;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) input,
+.uso-items-modal:has(#uso-items-form-titulo) select,
+.uso-items-modal:has(#uso-items-form-titulo) textarea {
+  width: 100%;
+  border: 1px solid #c8dfea;
+  border-radius: 8px;
+  color: #173f57;
+  background: #fff;
+  font: inherit;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) select { height: 43px; padding: 0 11px; }
+.uso-items-modal:has(#uso-items-form-titulo) textarea { min-height: 82px; padding: 11px; resize: vertical; }
+.uso-items-modal:has(#uso-items-form-titulo) label { color: #315d76; font-size: 12px; font-weight: 750; }
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section:nth-child(2) > div > label {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+  width: 100%;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section:nth-child(2) > div {
+  gap: 16px !important;
+  padding: 18px;
+  border: 1px solid #d9e8ef;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section:nth-child(2) > div > button {
+  width: 100%;
+  min-height: 43px;
+  justify-self: stretch !important;
+  border-radius: 8px !important;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section:first-child > div:last-child {
+  border-color: #d5e5ee !important;
+  border-radius: 12px !important;
+  background: #fff;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section:first-child > div:last-child label:hover { background: #f2fafd; }
+.uso-items-modal:has(#uso-items-form-titulo) > header + div > section:first-child > label:has(input:placeholder-shown) + div { display: none; }
+.uso-items-modal:has(#uso-items-form-titulo) input[type='checkbox'] { width: 16px; height: 16px; accent-color: #0788bd; }
+
+.uso-items-modal:has(#uso-items-form-titulo) > section:last-child {
+  margin: 0 28px 28px !important;
+  border-color: #d5e5ee !important;
+  border-radius: 12px !important;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) > section:last-child > header {
+  padding: 13px 16px !important;
+  color: #164d6d;
+  background: #eef8fc !important;
+}
+
+.uso-items-modal:has(#uso-items-form-titulo) th { padding: 12px 15px; color: #4b7187; background: #fff; font-size: 10px; letter-spacing: .04em; }
+.uso-items-modal:has(#uso-items-form-titulo) td { padding: 12px 15px; border-top: 1px solid #e6eff4; color: #274f67; }
+.uso-items-modal:has(#uso-items-form-titulo) td select { min-width: 125px; height: 34px; font-size: 12px; }
+
+@media (max-width: 760px) {
+  .uso-items-modal:has(#uso-items-form-titulo) > header + div { grid-template-columns: 1fr !important; padding: 20px !important; gap: 22px !important; }
+  .uso-items-modal:has(#uso-items-form-titulo) > section:last-child { margin: 0 20px 20px !important; overflow-x: auto; }
+}

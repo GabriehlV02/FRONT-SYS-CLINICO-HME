@@ -62,6 +62,7 @@ const CocinaAdministracionView = lazy(() => import('../flows/cocina/CocinaAdmini
 const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
 const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
 const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaView').then(m => ({ default: m.AnestesiologiaView })));
+const PruebasCamaraView = lazy(() => import('../flows/quirofano/PruebasCamaraView').then(m => ({ default: m.PruebasCamaraView })));
 const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
 const VistaEstudiosCobrados = lazy(() => import('./vistas/VistaEstudiosCobrados'));
 const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
@@ -142,6 +143,7 @@ const modulos: Modulo[] = [
   { id: 'ambulancia', nombre: 'Ambulancia', icono: 'ambulance', grupo: 'AMBULANCIA' },
   { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'clipboardMedical', grupo: 'QUIRÓFANO' },
   { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'surgery', grupo: 'QUIRÓFANO' },
+  { id: 'pruebas-camara-quirofano', nombre: 'Pruebas de cámara', icono: 'camera', grupo: 'QUIRÓFANO' },
   { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'syringe', grupo: 'QUIRÓFANO' },
   { id: 'cuenta-quirofano', nombre: 'Registro de cirugías', icono: 'calendar', grupo: 'QUIRÓFANO' },
   { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'package', grupo: 'ESTERILIZACIÓN' },
@@ -282,7 +284,7 @@ export default function Aplicacion() {
     const perfil = sesion?.usuario.perfilAtencion;
     if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion', 'farmacia-internacion', 'enfermera-quirofano'].includes(item.id);
     if (perfil === 'medico') return ['pacientes', 'atencion-medica', 'atencion-urgencias', 'medico-internacion'].includes(item.id);
-    if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'central-esterilizacion', 'recepcion-material-sucio', 'entrega-material-esteril'].includes(item.id);
+    if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'pruebas-camara-quirofano', 'central-esterilizacion', 'recepcion-material-sucio', 'entrega-material-esteril'].includes(item.id);
     return true;
   });
   useEffect(() => {
@@ -751,6 +753,8 @@ export default function Aplicacion() {
             <MedicoQuirofanoView />
           ) : modulo === 'anestesiologia-quirofano' ? (
             <AnestesiologiaView />
+          ) : modulo === 'pruebas-camara-quirofano' ? (
+            <PruebasCamaraView />
           ) : modulo === 'central-esterilizacion' ? (
             <EsterilizacionView titulo="Inventario de material" subvistasVisibles={['inventario', 'kits', 'roperia']} />
           ) : modulo === 'recepcion-material-sucio' ? (

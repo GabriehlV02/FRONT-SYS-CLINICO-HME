@@ -411,6 +411,16 @@ export function CajaRecepcionView({
       }
 
       if (estudiosImagen.length) {
+        const fichaPaciente = fichasPacientes.find((ficha) => ficha.ci === ciPaciente);
+        if (!fichaPaciente) throw new Error('No se encontró la ficha clínica del paciente para programar el estudio.');
+        const respuestasEstudios = await Promise.all(estudiosImagen.map((linea) => apiFetch(`/api/v1/pacientes/${fichaPaciente.id}/estudios`, {
+          method: 'POST', headers: { Accept: 'application/json' }, body: JSON.stringify({
+            tipo: 'RADIOGRAFIA', nombre: `Radiografía de ${linea.piezaImagen} AP`,
+            indicaciones: 'Proyección AP. Verificar preparación y datos del paciente antes de la toma.', solicitado_por: 'Recepción', estado_detalle: 'Cobrado en caja',
+          }),
+        })));
+        const falloEstudio = respuestasEstudios.find((respuesta) => !respuesta.ok);
+        if (falloEstudio) { const datos = await falloEstudio.json(); throw new Error(datos.message || 'El cobro fue registrado, pero no se pudo programar el estudio en la agenda.'); }
         registrarSolicitudesImagenologia(
           paciente,
           ciPaciente,

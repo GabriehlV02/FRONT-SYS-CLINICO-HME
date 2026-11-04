@@ -17,9 +17,18 @@ export type PacienteRegistrado = {
   fecha_nacimiento: string;
   genero: string;
   telefono?: string | null;
+  complemento_ci?: string | null;
+  expedido_en?: string | null;
+  nit?: string | null;
+  razon_social?: string | null;
+  ci_con_qr?: boolean;
+  pais?: string | null;
+  departamento?: string | null;
   ciudad?: string | null;
   zona_barrio?: string | null;
   direccion_domicilio?: string | null;
+  responsables?: Array<{ nombre_completo?: string | null; ci?: string | null; telefono?: string | null; parentesco?: string | null }>;
+  registros_admision?: Array<{ como_se_entero?: string | null; observaciones?: string | null; habilitado?: boolean }>;
 };
 
 type DatosPaciente = {

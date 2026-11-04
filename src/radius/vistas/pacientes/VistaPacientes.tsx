@@ -100,6 +100,12 @@ function InspeccionPaciente({ paciente, estudios, onVolver }: { paciente: Pacien
   </section>;
 }
 
+function FichaPacienteCompleta({ paciente, estudios, onVolver }: { paciente: Paciente; estudios: EstudioDemo[]; onVolver: () => void }) {
+  const consumos = estudios.filter(estudio => estudio.pacienteId === paciente.id);
+  const datos = [['Nombres', paciente.nombres], ['Apellido paterno', paciente.primerApellido], ['Apellido materno', paciente.segundoApellido], ['CI', paciente.numeroDocumento], ['Complemento', paciente.complementoCi || 'No registrado'], ['Expedido en', paciente.expedidoEn || 'No registrado'], ['CI con QR', paciente.ciConQr ? 'Sí' : 'No'], ['NIT', paciente.nit || 'No registrado'], ['Razón social', paciente.razonSocial || 'No registrada'], ['Fecha de nacimiento', paciente.fechaNacimiento ? new Date(`${paciente.fechaNacimiento}T00:00:00`).toLocaleDateString('es-BO') : 'No registrada'], ['Edad', calcularEdad(paciente.fechaNacimiento) === null ? 'No registrada' : `${calcularEdad(paciente.fechaNacimiento)} años`], ['Sexo', paciente.sexo.replaceAll('_', ' ') || 'No registrado'], ['Celular', paciente.telefono || 'No registrado'], ['País', paciente.pais || 'No registrado'], ['Departamento', paciente.departamento || 'No registrado'], ['Ciudad', paciente.ciudad || 'No registrada'], ['Zona / barrio', paciente.zonaBarrio || 'No registrada'], ['Dirección', paciente.direccion || 'No registrada'], ['Responsable', paciente.responsableNombre || 'No registrado'], ['CI responsable', paciente.responsableCi || 'No registrado'], ['Teléfono responsable', paciente.responsableTelefono || 'No registrado'], ['Parentesco', paciente.responsableParentesco || 'No registrado'], ['Cómo se enteró', paciente.comoSeEntero || 'No registrado'], ['Observaciones', paciente.observaciones || 'Sin observaciones'], ['Estado', paciente.habilitado === false ? 'Inhabilitado' : 'Habilitado']];
+  return <section className="ficha-paciente-completa" aria-label={`Ficha de ${nombreCompleto(paciente)}`}><header><div className="ficha-paciente-identidad"><span className="ficha-paciente-avatar">{`${paciente.nombres[0] || ''}${paciente.primerApellido[0] || ''}`}</span><div><span>FICHA DEL PACIENTE</span><h2>{nombreCompleto(paciente)}</h2><p>{paciente.tipoDocumento} {paciente.numeroDocumento} <i/> Paciente registrado</p></div></div><button type="button" onClick={onVolver}><Icon name="chevronLeft" size={17}/> Volver al listado</button></header><div className="ficha-paciente-completa-cuerpo"><section className="ficha-paciente-informacion"><header><div><span>INFORMACIÓN PERSONAL</span><h3>Datos registrados</h3></div><small>{paciente.sucursal || 'Central'}</small></header><div>{datos.map(([etiqueta, valor]) => <article key={etiqueta} className={etiqueta === 'Dirección' ? 'ficha-dato-amplio' : ''}><span>{etiqueta}</span><strong>{valor}</strong></article>)}</div></section><aside className="ficha-paciente-consumos"><header><div><span>HISTORIAL</span><h3>Consumos y pagos</h3></div><small>{consumos.length} registrados</small></header>{consumos.length ? <div className="ficha-consumos-lista">{consumos.map(consumo => <article key={consumo.id}><strong>{consumo.titulo}</strong><span>{consumo.categoria}</span><footer><time>{new Date(consumo.creadaEn).toLocaleDateString('es-BO')}</time><b>Registrado</b></footer></article>)}</div> : <div className="ficha-consumos-vacio"><Icon name="fileText" size={25}/><strong>Sin consumos o pagos registrados</strong><span>Los servicios, estudios y pagos del paciente aparecerán aquí.</span></div>}</aside></div></section>;
+}
+
 export default function VistaPacientes({ modalidad, soloConEstudio = false, modoClinico = false }: { modalidad?: "Radiografía" | "Tomografía" | "Ecografía" | "Ecocardiograma"; soloConEstudio?: boolean; modoClinico?: boolean }) {
   const [errorListado, setErrorListado] = useState('');
   const [recarga, setRecarga] = useState(0);
@@ -323,6 +329,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     </div>
   );
   if (viendo && !modoClinico) return <InspeccionPaciente paciente={viendo} estudios={estudios} onVolver={() => setViendo(null)} />;
+  if (pacienteSeleccionado && modoClinico) return <FichaPacienteCompleta paciente={pacienteSeleccionado} estudios={estudios} onVolver={() => setPacienteSeleccionado(null)} />;
   return (
     <div className="usuarios-vista pacientes-vista" onPointerDownCapture={replegarSidebar}>
       {errorListado && <div role="alert">{errorListado} <button type="button" onClick={() => setRecarga(actual => actual + 1)}>Reintentar</button></div>}
@@ -370,7 +377,7 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           visibles.map((p) => {
             const estudio = estudioDe(p);
             return (
-              <div className={`usuarios-fila ${pacienteSeleccionado?.id === p.id ? "paciente-activo" : ""}`} key={p.id} onClick={() => setPacienteSeleccionado(p)}>
+              <div className={`usuarios-fila ${pacienteSeleccionado?.id === p.id ? "paciente-activo" : ""}`} key={p.id}>
                 <div className="usuario-identidad">
                   <div>
                     <strong>{nombreCompleto(p)}</strong>
@@ -416,7 +423,15 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                   </span>
                 </div></>}
                 <div className="acciones-tabla">
-                  {!modoClinico && <button
+                  {modoClinico ? <button
+                    className="usuario-accion"
+                    type="button"
+                    onClick={() => setPacienteSeleccionado(p)}
+                    title="Ver paciente"
+                    aria-label={`Ver paciente ${nombreCompleto(p)}`}
+                  >
+                    <Icon name="eye" size={16} /><span>Ver paciente</span>
+                  </button> : <button
                     className="usuario-accion"
                     onClick={() => {
                       if (modalidad === 'Tomografía' && estudio) {
@@ -446,8 +461,10 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
       </div>
       <Paginacion tam />
       </div>
-      {pacienteSeleccionado && <aside className="historial-consumos" aria-label={`Historial de consumo de ${nombreCompleto(pacienteSeleccionado)}`}>
-        <header><div><p>HISTORIAL DE CONSUMOS</p><h3>{nombreCompleto(pacienteSeleccionado)}</h3><small>{pacienteSeleccionado.tipoDocumento} {pacienteSeleccionado.numeroDocumento}</small></div><button type="button" onClick={() => setPacienteSeleccionado(null)} aria-label="Cerrar historial"><Icon name="close" size={16} /></button></header>
+      {pacienteSeleccionado && <aside className="historial-consumos" aria-label={`Ficha e historial de consumo de ${nombreCompleto(pacienteSeleccionado)}`}>
+        <header><div><p>FICHA DEL PACIENTE</p><h3>{nombreCompleto(pacienteSeleccionado)}</h3><small>{pacienteSeleccionado.tipoDocumento} {pacienteSeleccionado.numeroDocumento}</small></div><button type="button" onClick={() => setPacienteSeleccionado(null)} aria-label="Cerrar ficha"><Icon name="close" size={16} /></button></header>
+        <section className="ficha-paciente-datos"><div><span>Fecha de nacimiento</span><strong>{pacienteSeleccionado.fechaNacimiento ? new Date(`${pacienteSeleccionado.fechaNacimiento}T00:00:00`).toLocaleDateString('es-BO') : 'No registrada'}</strong></div><div><span>Edad</span><strong>{calcularEdad(pacienteSeleccionado.fechaNacimiento) === null ? 'No registrada' : `${calcularEdad(pacienteSeleccionado.fechaNacimiento)} años`}</strong></div><div><span>Sexo</span><strong>{pacienteSeleccionado.sexo.replace('_', ' ') || 'No registrado'}</strong></div><div><span>Celular</span><strong>{pacienteSeleccionado.telefono || 'No registrado'}</strong></div><div className="ficha-paciente-direccion"><span>Dirección</span><strong>{pacienteSeleccionado.direccion || 'No registrada'}</strong></div></section>
+        <h4 className="historial-consumos-titulo">Historial de consumos</h4>
         <label className="historial-filtro"><span>Todos</span><select aria-label="Filtrar historial"><option>Todos</option><option>Pagados</option><option>Pendientes</option></select></label>
         <div className="historial-lista">{historialConsumos.length ? historialConsumos.map((estudio) => <article className="consumo-card pagado" key={estudio.id}><strong>{estudio.titulo}</strong><span>HOSPITAL MARÍA ESPERANZA</span><small>{estudio.categoria}</small><footer><time>{new Date(estudio.creadaEn).toLocaleDateString("es-BO", { day: "numeric", month: "long", year: "numeric" })}</time><b>Registrado</b></footer></article>) : <div className="historial-vacio"><Icon name="fileText" size={23} /><strong>Sin consumos registrados</strong><small>Los estudios, servicios y cargos de este paciente aparecerán aquí.</small></div>}</div>
       </aside>}

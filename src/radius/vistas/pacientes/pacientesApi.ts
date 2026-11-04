@@ -3,6 +3,8 @@ import type { PacienteDemo } from '../../datos/almacenDemo';
 import type { PacienteRegistrado } from './ModalRegistroPaciente';
 
 export function pacienteParaVista(paciente: PacienteRegistrado): PacienteDemo {
+  const responsable = paciente.responsables?.[0];
+  const admision = paciente.registros_admision?.[0];
   return {
     id: paciente.id,
     nombres: paciente.nombres,
@@ -15,6 +17,10 @@ export function pacienteParaVista(paciente: PacienteRegistrado): PacienteDemo {
     telefono: paciente.telefono || '',
     direccion: [paciente.ciudad, paciente.zona_barrio, paciente.direccion_domicilio].filter(Boolean).join(', '),
     creadoEn: paciente.created_at || '',
+    complementoCi: paciente.complemento_ci || '', expedidoEn: paciente.expedido_en || '', nit: paciente.nit || '', razonSocial: paciente.razon_social || '', ciConQr: Boolean(paciente.ci_con_qr),
+    pais: paciente.pais || '', departamento: paciente.departamento || '', ciudad: paciente.ciudad || '', zonaBarrio: paciente.zona_barrio || '',
+    responsableNombre: responsable?.nombre_completo || '', responsableCi: responsable?.ci || '', responsableTelefono: responsable?.telefono || '', responsableParentesco: responsable?.parentesco || '',
+    comoSeEntero: admision?.como_se_entero || '', observaciones: admision?.observaciones || '', habilitado: admision?.habilitado,
   };
 }
 

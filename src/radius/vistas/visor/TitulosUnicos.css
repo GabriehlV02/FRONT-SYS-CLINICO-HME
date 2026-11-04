@@ -5,3 +5,7 @@
 .orthanc-cabecera small,.estudios-cabecera small,.usuarios-cabecera small,.rx-cabecera small,.pagina-cabecera small{display:block;margin-top:6px;color:#777;font-size:11px}
 .orthanc-estado,.estudios-herramientas,.usuarios-herramientas,.rx-estacion{margin-top:14px}
 @media(max-width:760px){.orthanc-cabecera,.estudios-cabecera,.usuarios-cabecera,.rx-cabecera,.pagina-cabecera{min-height:48px}.orthanc-cabecera h2,.estudios-cabecera h2,.usuarios-cabecera h2,.rx-cabecera h2,.pagina-cabecera h2{font-size:22px}.orthanc-estado,.estudios-herramientas,.usuarios-herramientas,.rx-estacion{margin-top:12px}}
+/* Convención institucional: toda acción de retorno permanece al inicio de su vista. */
+.sistema-app button[class*="volver"],
+.sistema-app button[class*="regresar"],
+.sistema-app button[aria-label^="Volver"]{justify-self:start}

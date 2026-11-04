@@ -495,18 +495,6 @@ export default function Aplicacion() {
             <small>Sistema clinico</small>
           </span>
           <button
-            className="replegar-menu"
-            onClick={alternarSidebar}
-            aria-label={
-              sidebarReplegado
-                ? "Desplegar menú lateral"
-                : "Replegar menú lateral"
-            }
-            title={sidebarReplegado ? "Desplegar menú" : "Replegar menú"}
-          >
-            <Icon name={sidebarReplegado ? "chevronRight" : "chevronLeft"} size={17} />
-          </button>
-          <button
             className="cerrar-menu"
             onClick={() => setMenuAbierto(false)}
             aria-label="Cerrar menú"

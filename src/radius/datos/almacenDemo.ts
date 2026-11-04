@@ -1,4 +1,4 @@
-export type PacienteDemo={id:string;nombres:string;primerApellido:string;segundoApellido:string;tipoDocumento:string;numeroDocumento:string;fechaNacimiento:string;sexo:string;telefono:string;direccion:string;sucursal?:string;creadoEn:string};
+export type PacienteDemo={id:string;nombres:string;primerApellido:string;segundoApellido:string;tipoDocumento:string;numeroDocumento:string;fechaNacimiento:string;sexo:string;telefono:string;direccion:string;sucursal?:string;creadoEn:string;complementoCi?:string;expedidoEn?:string;nit?:string;razonSocial?:string;pais?:string;departamento?:string;ciudad?:string;zonaBarrio?:string;ciConQr?:boolean;responsableNombre?:string;responsableCi?:string;responsableTelefono?:string;responsableParentesco?:string;comoSeEntero?:string;observaciones?:string;habilitado?:boolean};
 export type EstudioDemo={id:string;pacienteId:string;paciente:string;titulo:string;categoria:string;descripcion:string;nombreArchivo:string;mime:string;archivoUrl?:string;creadaEn:string};
 export type InformeDemo={pacienteId:string;nombreArchivo:string;mime:string;creadoEn:string};
 

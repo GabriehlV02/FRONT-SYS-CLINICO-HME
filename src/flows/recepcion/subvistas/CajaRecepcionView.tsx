@@ -158,7 +158,7 @@ export function CajaRecepcionView({
   const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
   const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
   const [consumoSeleccionado, setConsumoSeleccionado] = useState<ConsumoHistorial | null>(null);
-  const [carritoAbierto, setCarritoAbierto] = useState(false);
+  const [carritoAbierto, setCarritoAbierto] = useState(true);
   useEffect(()=>{
     if(modo !== 'buscar') return;
     const termino=busquedaCliente.trim().toLocaleLowerCase('es');
@@ -867,7 +867,7 @@ export function CajaRecepcionView({
               <div className="punto-carrito-lineas">
                 {lineas.map((i) => <article key={i.id}><strong>{i.nombre}</strong><small>{dinero(i.precio)} c/u</small><div><button type="button" onClick={() => cantidad(i.id, -1)}>−</button><input className="punto-cantidad-input" type="text" inputMode="numeric" pattern="[0-9]*" aria-label={`Cantidad de ${i.nombre}`} value={String(i.cantidad)} onFocus={(e) => e.currentTarget.select()} onChange={(e) => escribirCantidad(i.id, e.target.value)} /><button type="button" onClick={() => cantidad(i.id, 1)}>+</button><span>{dinero(i.precio * i.cantidad)}</span><button className="punto-quitar" type="button" onClick={() => setLineas(a => a.filter(x => x.id !== i.id))}>×</button></div></article>)}
               </div>
-              <section className="punto-resumen"><div><span>Subtotal</span><b>{dinero(subtotal)}</b></div><label>Descuento<input type="number" min="0" value={descuento} onChange={(e) => setDescuento(e.target.value)} placeholder="0.00" /></label><div className="punto-total"><span>Total</span><b>{dinero(total)}</b></div></section>
+              <section className="punto-resumen punto-resumen-carrito"><div className="punto-total"><span>Subtotal a pagar</span><b>{dinero(total)}</b></div></section>
             </section>
           )}
           {(mensaje || errorPacientes) && <p className="punto-aviso exito">{mensaje || errorPacientes}</p>}
@@ -1104,11 +1104,7 @@ export function CajaRecepcionView({
               ))
             ) : null}
           </div>
-          <section className="punto-resumen">
-            <div>
-              <span>Subtotal</span>
-              <b>{dinero(subtotal)}</b>
-            </div>
+          <section className="punto-resumen punto-descuento">
             <label>
               Descuento
               <input
@@ -1119,10 +1115,6 @@ export function CajaRecepcionView({
                 placeholder="0.00"
               />
             </label>
-            <div className="punto-total">
-              <span>Total</span>
-              <b>{dinero(total)}</b>
-            </div>
           </section>
           <section className="punto-pago-mixto">
             <header>

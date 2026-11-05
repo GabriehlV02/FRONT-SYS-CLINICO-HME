@@ -43,6 +43,9 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [busqueda, setBusqueda] = useState('');
   const [busquedaAtendidas, setBusquedaAtendidas] = useState('');
+  const [fechaSeleccionada, setFechaSeleccionada] = useState(fechaHoy);
+  const [fechaDesde, setFechaDesde] = useState('');
+  const [fechaHasta, setFechaHasta] = useState('');
 
   useEffect(() => {
     const cancelarSuscripcion = suscribirSignosVitales(() => setCitas((actuales) => [...actuales]));
@@ -66,7 +69,8 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   const visibles = useMemo(() => citas.filter((cita) => /administrador/i.test(medico) || (profesionalActual ? cita.profesionalId === profesionalActual.id : cita.doctor === medico))
     .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)), [citas, medico, profesionalActual]);
   const coincide = (cita: CitaConfirmada, texto: string) => `${cita.paciente} ${cita.ci} ${cita.doctor} ${cita.especialidad}`.toLocaleLowerCase().includes(texto.trim().toLocaleLowerCase());
-  const pendientes = visibles.filter((cita) => !obtenerAtencionAmbulatoria(cita)?.finalizadaEn && coincide(cita, busqueda));
+  const coincideFecha = (cita: CitaConfirmada) => fechaDesde && fechaHasta ? cita.fecha >= fechaDesde && cita.fecha <= fechaHasta : cita.fecha === fechaSeleccionada;
+  const pendientes = visibles.filter((cita) => coincideFecha(cita) && !obtenerAtencionAmbulatoria(cita)?.finalizadaEn && coincide(cita, busqueda));
   const atendidasHoy = visibles.filter((cita) => { const finalizada = obtenerAtencionAmbulatoria(cita)?.finalizadaEn; return finalizada && fechaHoy() === fechaHoyDe(finalizada) && coincide(cita, busquedaAtendidas); });
   const atender = (cita: CitaConfirmada) => { registrarAtencionAmbulatoria(cita, medico); onAtender?.(cita); };
   const signosRegistrados = (cita: CitaConfirmada) => Object.values(obtenerSignosVitales(cita.ci) ?? {}).some(Boolean);
@@ -74,6 +78,7 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   return <section className="agenda-ambulatoria" aria-label="Consultas ambulatorias pendientes de atención">{errorPacientes && <p role="alert">{errorPacientes}</p>}
     <div className="agenda-herramientas">
       <label><Icon name="search" size={17} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por paciente o CI" aria-label="Buscar consulta pendiente" /></label>
+      <div className="agenda-filtros-fecha"><label>Fecha<input type="date" value={fechaSeleccionada} disabled={Boolean(fechaDesde || fechaHasta)} onChange={(event) => setFechaSeleccionada(event.target.value)} aria-label="Ver agenda del día" /></label><label>Desde<input type="date" value={fechaDesde} max={fechaHasta || undefined} onChange={(event) => setFechaDesde(event.target.value)} /></label><label>Hasta<input type="date" value={fechaHasta} min={fechaDesde || undefined} onChange={(event) => setFechaHasta(event.target.value)} /></label>{(fechaDesde || fechaHasta) && <button type="button" onClick={() => { setFechaDesde(''); setFechaHasta(''); }}>Hoy</button>}</div>
       <span><Icon name="calendar" size={17} /> {pendientes.length} pendientes</span>
     </div>
     <div className="agenda-ambulatoria-tablero">

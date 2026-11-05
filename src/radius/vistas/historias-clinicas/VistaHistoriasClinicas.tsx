@@ -1,3 +1,4 @@
+import { AvisoTemporal } from '../../componentes/AvisoTemporal';
 import { useMemo, useState, useSyncExternalStore } from 'react';
 import { usePacientes } from '../pacientes/usePacientes';
 import { obtenerEpisodios, suscribirEpisodios } from '../../../flows/consultorio/registroHistoria';
@@ -113,7 +114,7 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
             {!episodiosFiltrados.length && <div className="historia-paciente-vacio">No hay registros que coincidan con los filtros seleccionados.</div>}
           </div>
         </div>
-        {mensaje && <p className="historia-paciente-aviso" role="status">{mensaje}</p>}
+        {mensaje && <AvisoTemporal mensaje={mensaje} />}
       </section>
     </section>
   );
@@ -137,7 +138,7 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
           </>}
         </div>
 
-        {mensaje && <p className="historias-aviso" role="status">{mensaje}</p>}
+        {mensaje && <AvisoTemporal mensaje={mensaje} />}
         <div className="historias-tabla-contenedor">
           <div className={`historias-tabla ${esEstudios ? 'historias-tabla-estudios' : ''}`} role="table" aria-label="Listado de pacientes">
             <div className={`historias-fila historias-columnas ${esEstudios ? 'historias-fila-estudios' : ''}`} role="row">

@@ -12,7 +12,8 @@ export type ConfiguracionLaboratorio = { categorias: CategoriaLaboratorio[]; tip
 
 const clave = 'clinico.laboratorio.catalogo.v1';
 const evento = 'laboratorio:catalogo';
-const claveAmpliacion = 'clinico.laboratorio.catalogo.ampliacion.v1';
+const claveLimpiezaEjemplos = 'clinico.laboratorio.catalogo.vaciado-inicial.v1';
+const claveRespaldoEjemplos = 'clinico.laboratorio.catalogo.respaldo-antes-limpieza.v1';
 const gruposAdicionales: CategoriaLaboratorio[] = [
   { id: 'coagulacion', nombre: 'Hemostasia y coagulación', descripcion: 'Pruebas de coagulación', activa: true },
   { id: 'electrolitos', nombre: 'Electrolitos', descripcion: 'Electrolitos séricos', activa: true },
@@ -71,7 +72,10 @@ const inicial: ConfiguracionLaboratorio = {
 
 export function leerCatalogoLaboratorio(): ConfiguracionLaboratorio {
   const guardado = localStorage.getItem(clave);
-  if (!guardado) return structuredClone(inicial);
+  if (!guardado) {
+    localStorage.setItem(claveLimpiezaEjemplos, '1');
+    return { categorias: [], tipos: [] };
+  }
   const datos = JSON.parse(guardado) as ConfiguracionLaboratorio;
   if (!datos || !Array.isArray(datos.categorias) || !Array.isArray(datos.tipos)
     || !datos.categorias.every(c => c && ['id', 'nombre', 'descripcion'].every(k => typeof c[k as keyof CategoriaLaboratorio] === 'string') && typeof c.activa === 'boolean')
@@ -79,31 +83,12 @@ export function leerCatalogoLaboratorio(): ConfiguracionLaboratorio {
       && typeof t.activo === 'boolean' && Array.isArray(t.parametros) && t.parametros.every(p => p && ['id', 'nombre', 'unidad', 'referencia'].every(k => typeof p[k as keyof ParametroLaboratorio] === 'string') && ['numero', 'texto'].includes(p.tipo)))) {
     throw new Error('No se pudo leer la configuración local de laboratorio.');
   }
-  if (!localStorage.getItem(claveAmpliacion)) {
-    for (const categoria of gruposAdicionales) {
-      if (!datos.categorias.some(c => c.id === categoria.id || c.nombre.toLocaleLowerCase() === categoria.nombre.toLocaleLowerCase())) datos.categorias.push(structuredClone(categoria));
-    }
-    for (const tipo of tiposAdicionales) {
-      if (datos.categorias.some(c => c.id === tipo.categoriaId) && !datos.tipos.some(t => t.id === tipo.id || t.codigo.toUpperCase() === tipo.codigo || t.nombre.toLocaleLowerCase() === tipo.nombre.toLocaleLowerCase())) datos.tipos.push(structuredClone(tipo));
-    }
+  if (!localStorage.getItem(claveLimpiezaEjemplos)) {
+    if (!localStorage.getItem(claveRespaldoEjemplos)) localStorage.setItem(claveRespaldoEjemplos, guardado);
+    datos.categorias = [];
+    datos.tipos = [];
     localStorage.setItem(clave, JSON.stringify(datos));
-    localStorage.setItem(claveAmpliacion, '1');
-  }
-  const claveEjemplo = 'clinico.laboratorio.catalogo.ejemplo-formula.v1';
-  if (!localStorage.getItem(claveEjemplo)) {
-    if (!datos.categorias.some(c => c.id === categoriaEjemploFormula.id)) datos.categorias.push(structuredClone(categoriaEjemploFormula));
-    if (!datos.tipos.some(t => t.id === estudioEjemploFormula.id || t.codigo.toUpperCase() === estudioEjemploFormula.codigo || t.nombre === estudioEjemploFormula.nombre)) datos.tipos.push(structuredClone(estudioEjemploFormula));
-    localStorage.setItem(clave, JSON.stringify(datos));
-    localStorage.setItem(claveEjemplo, '1');
-  }
-  const claveReferencias = 'clinico.laboratorio.catalogo.referencias-lipidos-adultos.v1';
-  if (!localStorage.getItem(claveReferencias)) {
-    datos.tipos = datos.tipos.map(t => !['lab-lipidico', estudioEjemploFormula.id].includes(t.id) ? t : {
-      ...t, parametros: t.parametros.map(p => !p.referencia.trim() && !p.rangoReferencia && p.unidad === 'mg/dL' && referenciasLipidosAdultos[p.nombre.replace(' estimado', '')]
-        ? { ...p, ...structuredClone(referenciasLipidosAdultos[p.nombre.replace(' estimado', '')]) } : p),
-    });
-    localStorage.setItem(clave, JSON.stringify(datos));
-    localStorage.setItem(claveReferencias, '1');
+    localStorage.setItem(claveLimpiezaEjemplos, '1');
   }
   return datos;
 }

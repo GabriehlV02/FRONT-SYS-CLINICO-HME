@@ -1,0 +1,6 @@
+.aviso-temporal-global { position: fixed; z-index: 10000; top: 82px; right: 22px; display: flex; align-items: flex-start; gap: 10px; width: min(370px, calc(100vw - 30px)); padding: 14px; border: 1px solid #cce6dc; border-left: 4px solid #30966b; border-radius: 11px; background: #fff; color: #173c37; box-shadow: 0 12px 30px #173c3730; }
+.aviso-temporal-global > span { display: grid; place-items: center; flex: 0 0 28px; height: 28px; border-radius: 8px; color: #277956; background: #e0f3ea; font-weight: 700; }
+.aviso-temporal-global p { flex: 1; min-width: 0; margin: 4px 0; color: #173c37; font-size: 13px; line-height: 1.4; }
+.aviso-temporal-global button { flex: 0 0 26px; width: 26px; height: 26px; padding: 0; border: 0; background: transparent; color: #5d7771; font-size: 20px; cursor: pointer; }
+.aviso-temporal-global button:focus-visible { outline: 2px solid #087ebc; outline-offset: 2px; }
+@media (max-width: 600px) { .aviso-temporal-global { top: 68px; right: 12px; } }

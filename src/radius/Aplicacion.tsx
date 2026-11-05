@@ -17,6 +17,7 @@ import "./vistas/visor/TitulosUnicos.css";
 import "./vistas/visor/ResponsividadGlobal.css";
 import "./vistas/visor/PerfilAcceso.css";
 import "./vistas/visor/SidebarHover.css";
+import "./vistas/visor/NotificacionesTopbar.css";
 
 import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
 import type { SignoVitalConfig } from '../flows/triaje/ConfiguracionSignosVitalesView';
@@ -250,7 +251,49 @@ export default function Aplicacion() {
   const cirugiaSeleccionadaBase = cirugiaSeleccionadaReal ?? cirugiasVisiblesEnfermeria[0];
   const asignacionSeleccionada = cirugiaSeleccionadaBase ? buscarAsignacionQuirofano(cirugiaSeleccionadaBase) : undefined;
   const cirugiaSeleccionada = cirugiaSeleccionadaBase ? { ...cirugiaSeleccionadaBase, instrumentista: asignacionSeleccionada?.instrumentista || cirugiaSeleccionadaBase.instrumentista, circulante: asignacionSeleccionada?.circulante || cirugiaSeleccionadaBase.circulante } : cirugiaSeleccionadaBase;
-  const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState(signosVitalesIniciales);
+  const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState<SignoVitalConfig[]>([]);
+  const [estadoSignos, setEstadoSignos] = useState<'cargando' | 'listo' | 'error'>('cargando');
+  const [versionSignos, setVersionSignos] = useState(0);
+  useEffect(() => {
+    if (!sesion?.token) return;
+    const controller = new AbortController();
+    setEstadoSignos('cargando');
+    apiFetch('/api/v1/configuracion/signos-vitales', { signal: controller.signal })
+      .then(async respuesta => {
+        if (!respuesta.ok) throw new Error('No se pudo cargar la configuración de signos vitales.');
+        const datos = await respuesta.json() as { data: SignoVitalConfig[] };
+        setSignosVitalesConfigurados(datos.data);
+        setEstadoSignos('listo');
+      })
+      .catch(() => { if (!controller.signal.aborted) setEstadoSignos('error'); });
+    return () => controller.abort();
+  }, [sesion?.token, versionSignos]);
+  const actualizarSignosVitales = async (siguientes: SignoVitalConfig[]) => {
+    const agregado = siguientes.find(signo => !signosVitalesConfigurados.some(actual => actual.id === signo.id));
+    const eliminado = signosVitalesConfigurados.find(signo => !siguientes.some(actual => actual.id === signo.id));
+    const modificado = siguientes.find(signo => {
+      const anterior = signosVitalesConfigurados.find(actual => actual.id === signo.id);
+      return anterior && JSON.stringify(anterior) !== JSON.stringify(signo);
+    });
+    const signo = agregado || eliminado || modificado;
+    if (!signo) return;
+    const metodo = agregado ? 'POST' : eliminado ? 'DELETE' : 'PUT';
+    const respuesta = await apiFetch('/api/v1/configuracion/signos-vitales' + (agregado ? '' : '/' + encodeURIComponent(signo.id)), {
+      method: metodo,
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      ...(eliminado ? {} : { body: JSON.stringify(signo) }),
+    });
+    if (!respuesta.ok) {
+      const detalle = await respuesta.json().catch(() => ({})) as { message?: string };
+      throw new Error(detalle.message || 'No se pudo guardar el cambio. Inténtalo nuevamente.');
+    }
+    if (eliminado) {
+      setSignosVitalesConfigurados(actuales => actuales.filter(actual => actual.id !== eliminado.id));
+    } else {
+      const { data } = await respuesta.json() as { data: SignoVitalConfig };
+      setSignosVitalesConfigurados(actuales => agregado ? [...actuales, data] : actuales.map(actual => actual.id === data.id ? data : actual));
+    }
+  };
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
   const [pacienteColaAtencion, setPacienteColaAtencion] = useState<CitaConfirmada | null>(null);
@@ -607,10 +650,10 @@ export default function Aplicacion() {
             <input aria-label="Buscar módulo" placeholder="Buscar un módulo" value={busqueda} onChange={e => setBusqueda(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setBusqueda(''); }}/>
             {busqueda.trim() && <div className="pulso-resultados">{opcionesBusqueda.filter(m => m.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(textoBusqueda)).map(m => <button type="button" key={m.id} onClick={() => { if (subvistasImagenologia.some(vista => vista.id === m.id)) { setModulo("imagenologia"); setSubvistaImagenologia(m.id as SubvistaImagenologia); } else setModulo(m.id); setBusqueda(''); }}>{m.nombre}</button>)}{!opcionesBusqueda.some(m => m.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(textoBusqueda)) && <p>No se encontraron módulos.</p>}</div>}
           </label>
-          <button className="topbar-boton" aria-label="Notificaciones" aria-expanded={verAvisos} onClick={() => setVerAvisos(!verAvisos)}>
+          <div className="topbar-notificaciones"><button className="topbar-boton" aria-label="Notificaciones" aria-expanded={verAvisos} onClick={() => setVerAvisos(!verAvisos)}>
             <Icon name="bell" size={20} />
           </button>
-          {verAvisos && <section className="pulso-avisos" aria-label="Notificaciones recientes"><h2>Notificaciones</h2><button onClick={() => setVerAvisos(false)}>Cerrar</button>{avisos.length ? avisos.map((a, i) => <article key={i}><strong>{a.titulo}</strong><p>{a.mensaje}</p></article>) : <p>No hay notificaciones en esta sesión.</p>}</section>}
+          {verAvisos && <section className="pulso-avisos" aria-label="Notificaciones recientes"><header><h2>Notificaciones</h2><button type="button" onClick={() => setVerAvisos(false)} aria-label="Cerrar notificaciones">×</button></header>{avisos.length ? avisos.map((a, i) => <article key={i}><strong>{a.titulo}</strong><p>{a.mensaje}</p></article>) : <div className="pulso-avisos-vacio"><Icon name="bell" size={22} /><p>No hay notificaciones en esta sesión.</p></div>}</section>}</div>
           {esMedico && <button className="cola-atencion-rapida" type="button" onClick={() => setColaAtencionAbierta(true)}><Icon name="userCheck" size={17} /> Cola de atención</button>}
           <button className="perfil" type="button" onClick={() => { setModulo("configuracion"); setSubvistaConfiguracion("usuario"); }} aria-label="Abrir Mi usuario">
             <span className="perfil-avatar">
@@ -703,11 +746,13 @@ export default function Aplicacion() {
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'uso-items' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'uso-items' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('uso-items')}><span><Icon name="package" size={17} /></span><strong>Uso de ítems</strong></button>
                 <button type="button" aria-current={subvistaTriajeAmbulatorio === 'configuracion' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'configuracion' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('configuracion')}><span><Icon name="settings" size={17} /></span><strong>Configuración</strong></button>
               </HorizontalSubvistaNav>
-              {subvistaTriajeAmbulatorio === 'signos-vitales' && <SignosVitalesView camposConfigurados={signosVitalesConfigurados} />}
+              {subvistaTriajeAmbulatorio === 'signos-vitales' && estadoSignos === 'listo' && <SignosVitalesView camposConfigurados={signosVitalesConfigurados} />}
               {subvistaTriajeAmbulatorio === 'agenda' && <CitasRecepcionView />}
               {subvistaTriajeAmbulatorio === 'registro-uso' && <RegistroUsoTriajeView />}
               {subvistaTriajeAmbulatorio === 'uso-items' && <UsoItemsAmbulatorioView />}
-              {subvistaTriajeAmbulatorio === 'configuracion' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={setSignosVitalesConfigurados} />}
+              {subvistaTriajeAmbulatorio === 'configuracion' && estadoSignos === 'listo' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={actualizarSignosVitales} />}
+              {(subvistaTriajeAmbulatorio === 'signos-vitales' || subvistaTriajeAmbulatorio === 'configuracion') && estadoSignos === 'cargando' && <p>Cargando configuración de signos vitales...</p>}
+              {(subvistaTriajeAmbulatorio === 'signos-vitales' || subvistaTriajeAmbulatorio === 'configuracion') && estadoSignos === 'error' && <div role="alert"><p>No se pudo cargar la configuración de signos vitales.</p><button type="button" onClick={() => setVersionSignos(version => version + 1)}>Reintentar</button></div>}
             </section>
           ) : modulo === 'triaje-emergencias' ? (
             <TriajeEmergenciasView />

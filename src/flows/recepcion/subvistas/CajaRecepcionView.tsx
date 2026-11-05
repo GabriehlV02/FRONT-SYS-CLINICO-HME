@@ -1,9 +1,10 @@
 import { useProfesionales, etiquetaProfesional } from '../../../radius/profesionales';
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import ModalRegistroPaciente from '../../../radius/vistas/pacientes/ModalRegistroPaciente';
 import { usePacientes } from '../../../radius/vistas/pacientes/usePacientes';
 import { nombrePacienteClinico } from '../../../radius/vistas/pacientes/pacientesApi';
 import Icon from "../../../radius/componentes/Icono";
+import { notificar } from "../../../radius/componentes/Notificaciones";
 import { apiContableFetch, apiFetch } from "../../../radius/api";
 import { registrarSolicitudesImagenologia } from "../../../radius/datos/solicitudesImagenologiaDemo";
 import "./CajaImagenologiaDemo.css";
@@ -29,6 +30,7 @@ type Linea = Item & {
   piezaImagen?: string;
 };
 type Pago = { id: number; metodo: string; monto: string };
+type CajaVenta = { id: number; nombre: string; codigo: string; sucursal_id: number; sucursal: string; almacenes: { id: number; nombre: string }[] };
 type ClienteVenta = {
   id: string;
   paciente_id?: string;
@@ -53,18 +55,12 @@ const resaltarCoincidencia = (texto: string, consulta: string): ReactNode => {
     ? <strong className="cliente-texto-coincidente" key={indice}>{parte}</strong>
     : <span key={indice}>{parte}</span>);
 };
-type ConsumoHistorial = { n: string; fecha: string; total: string; estado: 'Pagado' | 'No pagado' | 'Anulado' | 'Pre venta'; detalle: string };
+type VentaHistorial = { id: string; codigo: string; estado: string; total: string | number; fecha: string; sucursal: string | null; caja: string | null; cajero: string; pagos: { metodo: string; monto: string | number }[] | null; cambio: string | number | null; detalles: { nombre_item: string; cantidad: string | number; precio_unitario: string | number; total: string | number }[] };
+type ConsumoHistorial = { id: string; n: string; fecha: string; total: string; estado: 'Pagado' | 'No pagado' | 'Anulado' | 'Pre venta'; detalle: string; datos: DetalleConsumo };
 type ItemConsumo = { concepto: string; cantidad: number; unitario: string; total: string };
 type DetalleConsumo = { items: ItemConsumo[]; pagado: string; pagos: string[]; cajero: string; caja: string; sucursal: string };
 
-const obtenerDetalleConsumo = (consumo: ConsumoHistorial): DetalleConsumo => {
-  const base = { cajero: "Administrador", caja: "Caja 01 · Recepción", sucursal: "Hospital María Esperanza" };
-  if (consumo.n === "131910") return { ...base, pagado: "0.00", pagos: ["Pendiente de cobro"], items: [{ concepto: "Hemograma completo", cantidad: 1, unitario: "50.00", total: "50.00" }, { concepto: "Estudio de imagenología", cantidad: 1, unitario: "120.00", total: "120.00" }, { concepto: "Consulta ambulatoria", cantidad: 1, unitario: "610.00", total: "610.00" }] };
-  if (consumo.n === "131912") return { ...base, pagado: "0.00", pagos: ["Pre venta · sin cobro"], items: [{ concepto: "Estudio de imagenología", cantidad: 1, unitario: "1.200.00", total: "1.200.00" }, { concepto: "Paquete de servicios ambulatorios", cantidad: 1, unitario: "1.200.00", total: "1.200.00" }] };
-  if (consumo.n === "EM-000318") return { ...base, pagado: "0.00", pagos: ["Pendiente de cobro"], items: [{ concepto: "Oxígeno medicinal", cantidad: 2, unitario: "84.00", total: "168.00" }, { concepto: "Materiales de emergencia", cantidad: 1, unitario: "70.00", total: "70.00" }] };
-  if (consumo.n === "EM-000317") return { ...base, pagado: "0.00", pagos: ["Pendiente de cobro"], items: [{ concepto: "Medicamentos de emergencia", cantidad: 1, unitario: "65.00", total: "65.00" }, { concepto: "Insumos médicos", cantidad: 1, unitario: "30.00", total: "30.00" }] };
-  return { ...base, pagado: consumo.estado === "Pagado" ? consumo.total : "0.00", pagos: consumo.estado === "Pagado" ? ["Efectivo · Bs. " + consumo.total] : [consumo.estado === "Anulado" ? "Venta anulada · sin cobro" : "Pendiente de cobro"], items: [{ concepto: "Consulta ambulatoria", cantidad: 1, unitario: "80.00", total: "80.00" }, { concepto: "Hemograma completo", cantidad: 1, unitario: "50.00", total: "50.00" }, { concepto: "Materiales de curación", cantidad: 1, unitario: "30.00", total: "30.00" }] };
-};
+const formatoImporte = (valor: string | number) => Number(valor).toFixed(2);
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
 const fechaVencimientoCatalogo = (fecha?: string) => fecha
   ? new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium' }).format(new Date(`${fecha.slice(0, 10)}T00:00:00`))
@@ -120,7 +116,11 @@ export function CajaRecepcionView({
     [modo, setModo] = useState<"inicio" | "buscar" | "registrar">("inicio"),
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(""),
-    [mensaje, setMensaje] = useState("");
+    [errorAviso, setErrorAviso] = useState("");
+  const setMensaje = (texto: string, tipo: 'exito' | 'error' | 'advertencia' = 'exito') => {
+    setErrorAviso(tipo === 'exito' ? '' : texto);
+    if (texto) notificar(tipo, tipo === 'exito' ? 'Recepción' : tipo === 'error' ? 'No se pudo completar' : 'Revisa los datos', texto);
+  };
   const [catalogo, setCatalogo] = useState<Item[]>([]);
   const [errorCatalogo, setErrorCatalogo] = useState('');
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
@@ -143,9 +143,47 @@ export function CajaRecepcionView({
   const [horaConsulta, setHoraConsulta] = useState('');
   const [motivoOperativoConsulta, setMotivoOperativoConsulta] = useState('');
   const [precioConsulta, setPrecioConsulta] = useState(80);
-  const [sucursalActiva, setSucursalActiva] = useState('Hospital María Esperanza');
-  const [cajaActiva, setCajaActiva] = useState('Caja 01 · Recepción');
+  const [cajasVenta, setCajasVenta] = useState<CajaVenta[]>([]);
+  const [cajaVentaId, setCajaVentaId] = useState('');
+  const [almacenVentaId, setAlmacenVentaId] = useState('');
+  const [errorCajasVenta, setErrorCajasVenta] = useState('');
+  const solicitudVenta = useRef(crypto.randomUUID());
+  const cajaVenta = cajasVenta.find(caja => String(caja.id) === cajaVentaId);
+  useEffect(() => {
+    const controller = new AbortController();
+    apiFetch('/api/v1/recepcion/ventas/opciones', { signal: controller.signal })
+      .then(async respuesta => { const datos = await respuesta.json(); if (!respuesta.ok) throw new Error(datos.message || 'No se pudieron cargar las cajas.'); return datos.data as CajaVenta[]; })
+      .then(cajas => { setCajasVenta(cajas); if (cajas.length === 1) { setCajaVentaId(String(cajas[0].id)); if (cajas[0].almacenes.length === 1) setAlmacenVentaId(String(cajas[0].almacenes[0].id)); } })
+      .catch(error => { if (!controller.signal.aborted) setErrorCajasVenta(error.message); });
+    return () => controller.abort();
+  }, []);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteVenta | null>(null);
+  const seleccionClienteVersion = useRef(0);
+  const [ventasPaciente, setVentasPaciente] = useState<VentaHistorial[]>([]);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
+  const [errorHistorial, setErrorHistorial] = useState('');
+  const [revisionHistorial, setRevisionHistorial] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setVentasPaciente([]);
+    setConsumoSeleccionado(null);
+    setFiltroHistorial('Todos');
+    setErrorHistorial('');
+    if (!clienteSeleccionado?.id || !clienteSeleccionado.paciente_id) {
+      setCargandoHistorial(false);
+      return () => controller.abort();
+    }
+    setCargandoHistorial(true);
+    apiFetch(`/api/v1/recepcion/clientes/${encodeURIComponent(clienteSeleccionado.id)}/ventas`, { signal: controller.signal })
+      .then(async respuesta => {
+        const resultado = await respuesta.json();
+        if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo cargar el historial de ventas.');
+        if (!controller.signal.aborted) setVentasPaciente(resultado.data);
+      })
+      .catch(error => { if (!controller.signal.aborted) setErrorHistorial(error.message || 'No se pudo cargar el historial de ventas.'); })
+      .finally(() => { if (!controller.signal.aborted) setCargandoHistorial(false); });
+    return () => controller.abort();
+  }, [clienteSeleccionado?.id, clienteSeleccionado?.paciente_id, revisionHistorial]);
   const [datosFactura, setDatosFactura] = useState({ nitCi: '', razonSocial: '', nitCiOriginal: '' });
   const [registroCliente, setRegistroCliente] = useState({ nombre: "", nitCi: "", telefono: "", correo: "" });
   const [busquedaCliente, setBusquedaCliente] = useState("");
@@ -159,6 +197,22 @@ export function CajaRecepcionView({
   const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
   const [consumoSeleccionado, setConsumoSeleccionado] = useState<ConsumoHistorial | null>(null);
   const [carritoAbierto, setCarritoAbierto] = useState(true);
+  const historialPaciente: ConsumoHistorial[] = ventasPaciente.map(venta => {
+    const pagos = venta.pagos;
+    const fecha = new Date(venta.fecha.replace(' ', 'T'));
+    const estado = venta.estado === 'COMPLETADA' ? 'Pagado' : venta.estado === 'ANULADA' ? 'Anulado' : 'Pre venta';
+    return {
+      id: venta.id, n: venta.codigo, fecha: Number.isNaN(fecha.getTime()) ? venta.fecha : new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium', timeStyle: 'short' }).format(fecha),
+      total: formatoImporte(venta.total), estado,
+      detalle: venta.detalles.length === 1 ? '1 producto o servicio' : `${venta.detalles.length} productos o servicios`,
+      datos: {
+        cajero: venta.cajero || 'No registrado', caja: venta.caja || 'No registrada', sucursal: venta.sucursal || 'No registrada',
+        pagado: pagos ? formatoImporte(pagos.reduce((total, pago) => total + Number(pago.monto), 0) - Number(venta.cambio || 0)) : 'No registrado',
+        pagos: pagos ? pagos.map(pago => `${pago.metodo} · Bs. ${formatoImporte(pago.monto)}`) : ['Método no registrado'],
+        items: venta.detalles.map(item => ({ concepto: item.nombre_item, cantidad: Number(item.cantidad), unitario: formatoImporte(item.precio_unitario), total: formatoImporte(item.total) })),
+      },
+    };
+  });
   useEffect(()=>{
     if(modo !== 'buscar') return;
     const termino=busquedaCliente.trim().toLocaleLowerCase('es');
@@ -245,12 +299,13 @@ export function CajaRecepcionView({
     setFechaConsulta('');
     setHoraConsulta('');
   };
-  const agendarConsulta = () => {
-    if (!consultaParaAgendar || !fechaConsulta || !horaConsulta) return setMensaje('Selecciona especialidad, médico, fecha y hora para continuar.');
-    if (!fechaEnTurno || !horasAtencionConsulta.includes(horaConsulta)) return setMensaje('Selecciona un día y una hora dentro del turno de consulta externa del médico.');
+  const agendarConsulta = async () => {
+    if (!consultaParaAgendar || !fechaConsulta || !horaConsulta) return setMensaje('Selecciona especialidad, médico, fecha y hora para continuar.', 'advertencia');
+    if (!fechaEnTurno || !horasAtencionConsulta.includes(horaConsulta)) return setMensaje('Selecciona un día y una hora dentro del turno de consulta externa del médico.', 'advertencia');
     const ficha = fichasPacientes.find(p => p.ci === ciPaciente), profesional = resolver(medicoConsulta);
     const motivoCapturado = motivoOperativoConsulta.trim() || window.prompt('Motivo de consulta para el médico (opcional):')?.trim() || '';
-    if (!ficha || !profesional) return setMensaje('Selecciona un paciente registrado y un médico activo.');
+    if (!ficha || !profesional) return setMensaje('Selecciona un paciente registrado y un médico activo.', 'advertencia');
+    try{const r=await apiFetch('/api/citas',{method:'POST',headers:{Accept:'application/json'},body:JSON.stringify({paciente_id:ficha.id,profesional_id:profesional.id,doctor:profesional.nombre,especialidad:especialidadConsulta,consultorio:'Consultorio 1',fecha:fechaConsulta,hora:horaConsulta,estado:'por_confirmar'})});const d=await r.json();if(!r.ok)throw new Error(Object.values(d.errors || {}).flat().join(' ') || d.message || 'No se pudo agendar la consulta.');}catch(e){setMensaje((e as Error).message, 'error');return;}
     const linea: Linea = { ...consultaParaAgendar, id: `${consultaParaAgendar.id}-${fechaConsulta}-${horaConsulta}-${medicoConsulta}`, nombre: `${consultaParaAgendar.nombre} · ${especialidadConsulta}`, cantidad: 1 };
     setLineas(actuales => [...actuales, linea]);
     const citaOperativa = { id: `cita-operativa-${Date.now()}`, pacienteId: ficha.id, paciente: nombrePacienteClinico(ficha), ci: ficha.ci, doctor: medicoConsulta, especialidad: especialidadConsulta, motivoOperativo: motivoCapturado, fecha: fechaConsulta, hora: horaConsulta, estado: 'confirmada', consultorio: 'Consulta ambulatoria', edad: ficha.fecha_nacimiento ? new Date().getFullYear() - new Date(ficha.fecha_nacimiento).getFullYear() : undefined, fechaNacimiento: ficha.fecha_nacimiento };
@@ -265,7 +320,7 @@ export function CajaRecepcionView({
   const agregarEstudioImagen = () => {
     if (!imagenParaAgregar) return;
     const pieza = piezaEstudioImagen === "Otra" ? otraPiezaImagen.trim() : piezaEstudioImagen;
-    if (!pieza) return setMensaje("Indica la pieza o región del estudio.");
+    if (!pieza) return setMensaje("Indica la pieza o región del estudio.", 'advertencia');
     const linea: Linea = {
       ...imagenParaAgregar,
       id: `${imagenParaAgregar.id}-${tipoEstudioImagen}-${pieza}`,
@@ -308,70 +363,20 @@ export function CajaRecepcionView({
       ),
     );
   };
-  const historialPaciente: ConsumoHistorial[] =
-    paciente === "Luis Escobar"
-      ? [
-          {
-            n: "EM-000318",
-            fecha: "29 de septiembre de 2026 09:08",
-            total: "238.00",
-            estado: "No pagado",
-            detalle: "Emergencias · Oxígeno y materiales",
-          },
-          {
-            n: "EM-000317",
-            fecha: "29 de septiembre de 2026 08:45",
-            total: "95.00",
-            estado: "No pagado",
-            detalle: "Emergencias · Medicamentos e insumos",
-          },
-          {
-            n: "131909",
-            fecha: "18 de agosto de 2026 19:02",
-            total: "160.00",
-            estado: "Pagado",
-            detalle: "Descargos Ambulatorios 510",
-          },
-        ]
-      : [
-          {
-            n: "131932",
-            fecha: "19 de agosto de 2026 10:56",
-            total: "160.00",
-            estado: "Pagado",
-            detalle: "Descargos Ambulatorios 510",
-          },
-          {
-            n: "131910",
-            fecha: "18 de agosto de 2026 19:17",
-            total: "780.00",
-            estado: "No pagado",
-            detalle: "Descargos Ambulatorios 510",
-          },
-          {
-            n: "131912",
-            fecha: "18 de agosto de 2026 21:02",
-            total: "2.400.00",
-            estado: "Pre venta",
-            detalle: "Descargos Ambulatorios 510",
-          },
-          {
-            n: "131909",
-            fecha: "18 de agosto de 2026 19:02",
-            total: "160.00",
-            estado: "Anulado",
-            detalle: "Descargos Ambulatorios 510",
-          },
-        ];
   const seleccionarCliente = async (cliente: ClienteVenta) => {
+    const version = ++seleccionClienteVersion.current;
+    setClienteSeleccionado(null);
+    setVentasPaciente([]);
+    setConsumoSeleccionado(null);
     if (cliente.paciente_id && cliente.id.startsWith('paciente:')) {
       try {
         const respuesta = await apiFetch(`/api/v1/pacientes/${cliente.paciente_id}/cliente-contable`, {method:'POST',headers:{Accept:'application/json'}});
         const resultado = await respuesta.json();
         if (!respuesta.ok || !resultado.data) throw new Error(resultado.message || 'No se pudo vincular el paciente para cobro.');
         cliente = resultado.data;
-      } catch (causa) {setErrorCliente((causa as Error).message);return;}
+      } catch (causa) {if (version === seleccionClienteVersion.current) setErrorCliente((causa as Error).message);return;}
     }
+    if (version !== seleccionClienteVersion.current) return;
     setClienteSeleccionado(cliente);
     setPaciente(cliente.nombre_razon_social);
     setCiPaciente(cliente.nit_ci || '');
@@ -441,28 +446,37 @@ export function CajaRecepcionView({
   };
   const cobrar = async () => {
     if (!lineas.length || pendiente > 0) return;
+    if (lineas.some(linea => !['Producto', 'Insumo'].includes(linea.tipo) || !/^item-\d+$/.test(linea.id))) {
+      setMensaje('Por ahora solo se pueden registrar ventas de productos e insumos. Retira los servicios del carrito.', 'advertencia');
+      return;
+    }
+    if (!cajaVentaId || !almacenVentaId) {
+      setMensaje('Selecciona una caja y un almacén asignados antes de cobrar.', 'advertencia');
+      return;
+    }
     if (!clienteSeleccionado) {
-      setMensaje("Busca o registra un cliente antes de cobrar la venta.");
+      setMensaje("Busca o registra un cliente antes de cobrar la venta.", 'advertencia');
       return;
     }
     const estudiosImagen = lineas.filter((linea) => linea.estudioImagen && linea.piezaImagen);
     if (estudiosImagen.length && (!paciente.trim() || !ciPaciente.trim())) {
-      setMensaje("Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.");
+      setMensaje("Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.", 'advertencia');
       return;
     }
     setCobrando(true);
     setMensaje("");
     try {
-      const respuesta = await apiContableFetch("/v1/ventas", {
+      const respuesta = await apiFetch("/api/v1/recepcion/ventas", {
         method: "POST",
         body: JSON.stringify({
+          solicitud_id: solicitudVenta.current,
           cliente_id: clienteSeleccionado.id,
+          caja_id: Number(cajaVentaId),
+          almacen_id: Number(almacenVentaId),
           descuento: rebaja,
-          ...(farmacia ? { observaciones: 'Origen: farmacia' } : {}),
+          pagos: pagos.filter(pago => Number(pago.monto) > 0).map(pago => ({ metodo: pago.metodo, monto: pago.monto })),
           detalles: lineas.map((linea) => ({
-            codigo_item: linea.codigo,
-            nombre_item: linea.nombre,
-            tipo_item: linea.tipo,
+            item_id: Number(linea.id.slice(5)),
             cantidad: linea.cantidad,
             precio_unitario: linea.precio,
           })),
@@ -497,12 +511,14 @@ export function CajaRecepcionView({
         );
       }
       setMensaje(`${resultado.data.codigo || "Venta"} registrada correctamente.`);
+      solicitudVenta.current = crypto.randomUUID();
+      setRecargaCatalogo(valor => valor + 1);
+      setRevisionHistorial(valor => valor + 1);
       setLineas([]);
       setPagos([pagoNuevo(Date.now())]);
       setDescuento("");
-      setClienteSeleccionado(null);
     } catch (error) {
-      setMensaje(error instanceof Error ? error.message : "No se pudo registrar la venta.");
+      setMensaje(error instanceof Error ? error.message : "No se pudo registrar la venta.", 'error');
     } finally {
       setCobrando(false);
     }
@@ -510,7 +526,7 @@ export function CajaRecepcionView({
   const replegarSidebarAlOperar = () => {
     if (!farmacia && !cocina) window.dispatchEvent(new Event("clinico:replegar-sidebar"));
   };
-  const detalleConsumoSeleccionado = consumoSeleccionado ? obtenerDetalleConsumo(consumoSeleccionado) : null;
+  const detalleConsumoSeleccionado = consumoSeleccionado?.datos ?? null;
   return (
     <section className={`punto-pos ${(farmacia || cocina) ? "punto-pos-farmacia" : ""}`} onClickCapture={(evento) => { if ((evento.target as HTMLElement).closest("button")) replegarSidebarAlOperar(); }}>
       {consumoSeleccionado && detalleConsumoSeleccionado && <div className="punto-detalle-consumo-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsumoSeleccionado(null); }}>
@@ -522,7 +538,7 @@ export function CajaRecepcionView({
           </header>
           <div className="punto-detalle-consumo-resumen"><span><b>Fecha</b>{consumoSeleccionado.fecha}</span><span><b>Sucursal</b>{detalleConsumoSeleccionado.sucursal}</span><span><b>Caja</b>{detalleConsumoSeleccionado.caja}</span><span><b>Cobró</b>{detalleConsumoSeleccionado.cajero}</span></div>
           <section className="punto-detalle-consumo-items" aria-label="Ítems del consumo"><div className="punto-detalle-consumo-titulo"><span>CONSUMO REGISTRADO</span><small>{consumoSeleccionado.detalle}</small></div><div className="punto-detalle-consumo-tabla"><div className="punto-detalle-consumo-tabla-cabecera"><span>Ítem</span><span>Cant.</span><span>P. unit.</span><span>Total</span></div>{detalleConsumoSeleccionado.items.map((item, indice) => <div className="punto-detalle-consumo-tabla-fila" key={`${item.concepto}-${indice}`}><strong>{item.concepto}</strong><span>{item.cantidad}</span><span>Bs. {item.unitario}</span><b>Bs. {item.total}</b></div>)}</div></section>
-          <section className="punto-detalle-consumo-pago"><div><span>Total a pagar</span><strong>Bs. {consumoSeleccionado.total}</strong></div><div><span>Total pagado</span><strong>Bs. {detalleConsumoSeleccionado.pagado}</strong></div><div className="punto-detalle-consumo-metodos"><span>Método{detalleConsumoSeleccionado.pagos.length > 1 ? 's' : ''} de pago</span>{detalleConsumoSeleccionado.pagos.map(metodo => <b key={metodo}>{metodo}</b>)}</div></section>
+          <section className="punto-detalle-consumo-pago"><div><span>Total a pagar</span><strong>Bs. {consumoSeleccionado.total}</strong></div><div><span>Total pagado</span><strong>{detalleConsumoSeleccionado.pagado === 'No registrado' ? 'No registrado' : `Bs. ${detalleConsumoSeleccionado.pagado}`}</strong></div><div className="punto-detalle-consumo-metodos"><span>Método{detalleConsumoSeleccionado.pagos.length > 1 ? 's' : ''} de pago</span>{detalleConsumoSeleccionado.pagos.map((metodo, indice) => <b key={indice}>{metodo}</b>)}</div></section>
           <footer><button type="button" onClick={() => setConsumoSeleccionado(null)}>Cerrar</button></footer>
         </section>
       </div>}
@@ -668,8 +684,9 @@ export function CajaRecepcionView({
         {navegacion}
         <header className="punto-pos-cabecera punto-pos-contexto">
         <div className="punto-contexto">
-          <SelectorContexto etiqueta="Sucursal" valor={sucursalActiva} opciones={['Hospital María Esperanza', 'Centro de Hemodiálisis', 'Policonsultorio']} onCambiar={setSucursalActiva}/>
-          <SelectorContexto etiqueta="Caja" valor={cajaActiva} opciones={['Caja 01 · Recepción', 'Caja 02 · Farmacia', ...(cocina ? ['Caja 03 · Cocina'] : [])]} onCambiar={setCajaActiva}/>
+          <label><span>Caja y sucursal</span><select value={cajaVentaId} onChange={evento => { const id = evento.target.value; const caja = cajasVenta.find(actual => String(actual.id) === id); setCajaVentaId(id); setAlmacenVentaId(caja?.almacenes.length === 1 ? String(caja.almacenes[0].id) : ''); }}><option value="">Selecciona una caja</option>{cajasVenta.map(caja => <option key={caja.id} value={caja.id}>{caja.sucursal} · {caja.nombre}</option>)}</select></label>
+          <label><span>Almacén</span><select value={almacenVentaId} onChange={evento => setAlmacenVentaId(evento.target.value)} disabled={!cajaVenta}><option value="">Selecciona un almacén</option>{cajaVenta?.almacenes.map(almacen => <option key={almacen.id} value={almacen.id}>{almacen.nombre}</option>)}</select></label>
+          {errorCajasVenta && <p role="alert">{errorCajasVenta}</p>}
         </div>
         </header>
       </div>
@@ -705,19 +722,8 @@ export function CajaRecepcionView({
                     <p>HISTORIAL DE CONSUMO</p>
                     <h3>{paciente}</h3>
                   </div>
-                  <b>HC-004821</b>
+                  {ciPaciente && <b>CI {ciPaciente}</b>}
                 </header>
-                {paciente === "Luis Escobar" && (
-                  <section className="punto-acceso-internacion">
-                    <strong>Internado</strong>
-                    <button
-                      type="button"
-                      onClick={() => onAbrirCuenta?.("internacion", paciente)}
-                    >
-                      Ver cuenta <Icon name="arrowRight" size={14} />
-                    </button>
-                  </section>
-                )}
                 <select
                   value={filtroHistorial}
                   onChange={(e) => setFiltroHistorial(e.target.value)}
@@ -730,6 +736,10 @@ export function CajaRecepcionView({
                   <option>Pre venta</option>
                 </select>
                 <div className="punto-historial-lista">
+                  {cargandoHistorial && <p role="status">Cargando ventas del paciente…</p>}
+                  {errorHistorial && <p role="alert">{errorHistorial} <button type="button" onClick={() => setRevisionHistorial(valor => valor + 1)}>Reintentar</button></p>}
+                  {!cargandoHistorial && !errorHistorial && !clienteSeleccionado?.paciente_id && <p>Selecciona un paciente registrado para consultar sus ventas.</p>}
+                  {!cargandoHistorial && !errorHistorial && clienteSeleccionado?.paciente_id && !historialPaciente.some(c => filtroHistorial === 'Todos' || c.estado === filtroHistorial) && <p>No hay ventas para mostrar.</p>}
                   {historialPaciente
                     .filter(
                       (c) =>
@@ -738,7 +748,7 @@ export function CajaRecepcionView({
                     )
                     .map((c) => (
                       <article
-                        key={c.n}
+                        key={c.id}
                         className={`estado-${c.estado.toLowerCase().replace(" ", "-")}`}
                         role="button"
                         tabIndex={0}
@@ -748,14 +758,14 @@ export function CajaRecepcionView({
                       >
                         <div>
                           <strong>N.º {c.n}</strong>
-                          <small>HOSPITAL</small>
+                          <small>{c.datos.sucursal}</small>
                         </div>
                         <span className="punto-historial-estado">
                           {c.estado}
                         </span>
                         <p>
                           <Icon name="chevronRight" size={14} /> Cajero/a:
-                          farmacia test farmacia test
+                          {' '}{c.datos.cajero}
                           <br />
                           <em>{c.detalle}</em>
                         </p>
@@ -870,7 +880,7 @@ export function CajaRecepcionView({
               <section className="punto-resumen punto-resumen-carrito"><div className="punto-total"><span>Subtotal a pagar</span><b>{dinero(total)}</b></div></section>
             </section>
           )}
-          {(mensaje || errorPacientes) && <p className="punto-aviso exito">{mensaje || errorPacientes}</p>}
+          {(errorAviso || errorPacientes) && <p className="punto-aviso" role="alert">{errorAviso || errorPacientes}</p>}
 
             <div className="punto-tarjetas catalogo-clinico-tarjetas">
               {resultados.map((i) => (
@@ -1029,6 +1039,7 @@ export function CajaRecepcionView({
                     className="cliente-cambiar"
                     type="button"
                     onClick={() => {
+                      seleccionClienteVersion.current++;
                       setClienteSeleccionado(null);
                       setDatosFactura({ nitCi: '', razonSocial: '', nitCiOriginal: '' });
                       setPaciente("");
@@ -1203,7 +1214,7 @@ export function CajaRecepcionView({
             disabled={!lineas.length || pendiente > 0 || cobrando}
             onClick={() => void cobrar()}
           >
-            <Icon name="check" size={17} /> {cobrando ? "Registrando venta..." : "Cobrar e imprimir factura"}
+            <Icon name="check" size={17} /> {cobrando ? "Registrando venta..." : "Cobrar venta"}
           </button>
           <button
             className="punto-preventa"

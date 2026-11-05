@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { AvisoTemporal } from '../../radius/componentes/AvisoTemporal';
 import Icon, { type IconName } from '../../radius/componentes/Icono';
 import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav';
 import './LaboratorioAlmacenView.css';
@@ -67,7 +68,7 @@ export function LaboratorioAlmacenView() {
       <div className="laboratorio-almacen-columnas">{actual.columnas.map(columna => <span key={columna}>{columna}</span>)}</div>
       <div className="laboratorio-almacen-vacio"><span><Icon name={vistas.find(vista => vista.id === subvista)?.icono ?? 'package'} size={29} /></span><strong>{actual.vacio}</strong><small>Los registros creados en esta sección aparecerán aquí.</small></div>
     </section>}
-    {mensaje && <p className="laboratorio-almacen-mensaje" role="status"><Icon name="check" size={16} /> {mensaje}</p>}
+    {mensaje && <AvisoTemporal mensaje={mensaje} />}
     {solicitudAbierta && <div className="solicitud-stock-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) cerrarSolicitud(); }}>
       <section className="solicitud-stock-modal" role="dialog" aria-modal="true" aria-labelledby="solicitud-stock-titulo">
         <header><div><p>LABORATORIO · ALMACÉN</p><h2 id="solicitud-stock-titulo">Solicitar stock</h2><small>Agrega los insumos que necesitas y define la cantidad solicitada.</small></div><button type="button" aria-label="Cerrar solicitud" onClick={cerrarSolicitud}><Icon name="close" size={19}/></button></header>

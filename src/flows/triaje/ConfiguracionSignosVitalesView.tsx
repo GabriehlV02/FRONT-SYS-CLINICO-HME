@@ -185,7 +185,7 @@ function EditorSignosVitalesView({
   onChange,
 }: {
   signos: SignoVitalConfig[];
-  onChange: (signos: SignoVitalConfig[]) => void;
+  onChange: (signos: SignoVitalConfig[]) => Promise<void>;
 }) {
   const [nombreRango, setNombreRango] = useState("");
   const [seleccionRango, setSeleccionRango] = useState("personalizado");
@@ -196,6 +196,7 @@ function EditorSignosVitalesView({
   const [minimo, setMinimo] = useState("");
   const [maximo, setMaximo] = useState("");
   const [error, setError] = useState("");
+  const [guardando, setGuardando] = useState(false);
   const abreviaturas = {
     ...abreviaturasUnidades,
     ...Object.fromEntries(
@@ -252,7 +253,7 @@ function EditorSignosVitalesView({
       rango &&
       (!Number.isInteger(rango.minimo) || !Number.isInteger(rango.maximo))
     )
-      actualizar("tipo", "N?mero decimal");
+      actualizar("tipo", "Número decimal");
   };
   const personalizarRango = () => {
     setSeleccionRango("personalizado");
@@ -279,7 +280,7 @@ function EditorSignosVitalesView({
     setEditando(null);
     modal.current?.close();
   };
-  const guardar = (evento: FormEvent) => {
+  const guardar = async (evento: FormEvent) => {
     evento.preventDefault();
     const datos: Formulario = {
       ...formulario,
@@ -336,11 +337,18 @@ function EditorSignosVitalesView({
         ...detalleRango,
       };
     }
-    if (editando)
-      onChange(signos.map((s) => (s.id === editando ? { ...s, ...datos } : s)));
-    else
-      onChange([...signos, { ...datos, id: `signo-${crypto.randomUUID()}` }]);
-    cancelar();
+    setGuardando(true);
+    try {
+      if (editando)
+        await onChange(signos.map((s) => (s.id === editando ? { ...s, ...datos } : s)));
+      else
+        await onChange([...signos, { ...datos, id: `signo-${crypto.randomUUID()}` }]);
+      cancelar();
+    } catch (error) {
+      setError(error instanceof Error ? error.message : "No se pudo guardar el signo vital.");
+    } finally {
+      setGuardando(false);
+    }
   };
   const editar = (s: SignoVitalConfig) => {
     setNombreRango(s.rangoReferencia?.nombre || s.nombre);
@@ -581,7 +589,7 @@ function EditorSignosVitalesView({
               >
                 Cancelar
               </button>
-              <button className="config-signos-guardar" type="submit">
+              <button className="config-signos-guardar" type="submit" disabled={guardando}>
                 <Icon name="check" size={16} />
                 {editando ? "Guardar cambios" : "Guardar signo vital"}
               </button>
@@ -679,7 +687,7 @@ function EditorSignosVitalesView({
                     type="button"
                     onClick={() => {
                       if (editando === s.id) cancelar();
-                      onChange(signos.filter((actual) => actual.id !== s.id));
+                      void onChange(signos.filter((actual) => actual.id !== s.id)).catch((error: unknown) => window.alert(error instanceof Error ? error.message : "No se pudo eliminar el signo vital."));
                     }}
                     aria-label={`Eliminar ${s.nombre}`}
                   >
@@ -708,11 +716,11 @@ const serviciosIniciales: { id: ServicioSignos; nombre: string; descripcion: str
   { id: "quirofano", nombre: "Servicio de Quirófano", descripcion: "Control pre, intra y postoperatorio." },
 ];
 
-export function ConfiguracionSignosVitalesView({ signos, onChange }: { signos: SignoVitalConfig[]; onChange: (signos: SignoVitalConfig[]) => void }) {
+export function ConfiguracionSignosVitalesView({ signos, onChange }: { signos: SignoVitalConfig[]; onChange: (signos: SignoVitalConfig[]) => Promise<void> }) {
   const [servicioActivo, setServicioActivo] = useState<ServicioSignos | null>(null);
   const [vistaConfiguracion, setVistaConfiguracion] = useState<'servicios' | 'signos'>('servicios');
   const [busquedaAsignados, setBusquedaAsignados] = useState('');
-  const [signosPorServicio] = useState<Record<ServicioSignos, SignoVitalConfig[]>>(() => Object.fromEntries(serviciosIniciales.map(servicio => [servicio.id, servicio.id === "consulta-ambulatoria" ? signos : signos.map(signo => ({ ...signo }))])));
+  const signosPorServicio = Object.fromEntries(serviciosIniciales.map(servicio => [servicio.id, signos])) as Record<ServicioSignos, SignoVitalConfig[]>;
   const servicio = serviciosIniciales.find(actual => actual.id === servicioActivo);
   return <section className="config-signos-servicios" aria-label="Configuración de signos vitales">{servicioActivo && servicio ? <section className="config-signos-asignacion"><button type="button" className="config-signos-volver" onClick={() => setServicioActivo(null)}><Icon name="chevronLeft" size={16} /> Volver a servicios</button><header className="config-signos-datos-servicio"><div><span>Servicio de atención</span><h2>{servicio.nombre}</h2><small>{servicio.descripcion}</small></div><b>{signosPorServicio[servicioActivo].length} signos asignados</b></header><section className="config-signos-lista"><header><div><strong>Signos vitales asignados</strong><small>Estos son los campos activos para este servicio.</small></div></header><div className="config-signos-asignados-herramientas"><label><Icon name="search" size={16} /><input value={busquedaAsignados} onChange={evento => setBusquedaAsignados(evento.target.value)} placeholder="Buscar signo vital" aria-label="Buscar signo vital asignado" /></label><button type="button" onClick={() => { setServicioActivo(null); setVistaConfiguracion('signos'); }}><Icon name="plus" size={16} /> Nuevo signo vital</button></div><div className="config-signos-asignados">{signosPorServicio[servicioActivo].filter(signo => `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`.toLowerCase().includes(busquedaAsignados.toLowerCase())).map(signo => <article key={signo.id}><div><strong>{signo.nombre}</strong><small>{signo.unidad}</small></div><b>{signo.abreviatura}</b></article>)}{!signosPorServicio[servicioActivo].some(signo => `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`.toLowerCase().includes(busquedaAsignados.toLowerCase())) && <p className="config-signos-sin-resultados">No hay signos vitales que coincidan.</p>}</div></section></section> : <><nav className="config-signos-subvistas" aria-label="Sub-vistas de configuración"><button type="button" className={vistaConfiguracion === 'servicios' ? 'activa' : ''} onClick={() => setVistaConfiguracion('servicios')}>Servicios de atención</button><button type="button" className={vistaConfiguracion === 'signos' ? 'activa' : ''} onClick={() => setVistaConfiguracion('signos')}>Signos vitales</button></nav>{vistaConfiguracion === 'signos' ? <><header><h2>Signos vitales</h2></header><EditorSignosVitalesView signos={signos} onChange={onChange} /></> : <><header><h2>Signos vitales por servicios de atención</h2></header><section className="config-signos-lista config-signos-tabla-servicios"><header><div><strong>Servicios asistenciales</strong><small>Ingresa a un servicio para asignar los signos vitales que utilizará.</small></div></header><div className="config-signos-tabla"><div className="config-signos-encabezado config-signos-encabezado-servicios"><span>Servicio</span><span>Signos configurados</span><span>Acción</span></div>{serviciosIniciales.map(servicio => <article className="config-signos-fila-servicio" key={servicio.id}><strong>{servicio.nombre}</strong><b>{signosPorServicio[servicio.id].length} campos</b><button type="button" className="config-signos-accion-editar" onClick={() => setServicioActivo(servicio.id)}><Icon name="edit" size={15} /> Asignar signos</button></article>)}</div></section></>}</>}</section>;
 }

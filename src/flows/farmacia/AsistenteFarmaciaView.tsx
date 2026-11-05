@@ -19,7 +19,8 @@ const formatoCantidad = (valor: number) => valor.toLocaleString('es-BO', { maxim
 const formatoFecha = (valor: string | null) => valor ? new Intl.DateTimeFormat('es-BO', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(valor.replace(' ', 'T'))) : '—';
 const etiquetaEstadoInventario = (estado: InventarioFisico['estado']) => ({ EN_CURSO: 'Inventario en curso', ESPERANDO_ALMACEN: 'Pendiente de almacén', FINALIZADO: 'Finalizado', CANCELADO: 'Cancelado' })[estado];
 const claseEstadoInventario = (estado: InventarioFisico['estado']) => ({ EN_CURSO: 'en-curso', ESPERANDO_ALMACEN: 'pendiente', FINALIZADO: 'finalizado', CANCELADO: 'cancelado' })[estado];
-type SpeechRecognitionLike = { lang: string; interimResults: boolean; onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onerror: (() => void) | null; onend: (() => void) | null; start: () => void; stop: () => void };
+type SpeechRecognitionResultLike = ArrayLike<{ transcript: string }> & { isFinal: boolean };
+type SpeechRecognitionLike = { lang: string; continuous: boolean; interimResults: boolean; onresult: ((event: { resultIndex: number; results: ArrayLike<SpeechRecognitionResultLike> }) => void) | null; onerror: ((event: { error?: string }) => void) | null; onend: (() => void) | null; start: () => void; stop: () => void };
 type SpeechWindow = Window & { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
 
 const configuracionInicial: ConfiguracionIa = {
@@ -149,10 +150,13 @@ export function AsistenteFarmaciaView() {
   const [cargandoModoInventario, setCargandoModoInventario] = useState(false);
   const peticionInventarios = useRef(0);
   const [escuchando, setEscuchando] = useState(false);
+  const [vozManosLibres, setVozManosLibres] = useState(false);
   const [avisoVoz, setAvisoVoz] = useState('');
   const [vozMarcelo, setVozMarcelo] = useState<SpeechSynthesisVoice | null>(null);
   const reconocimiento = useRef<SpeechRecognitionLike | null>(null);
-  const consultaPorVoz = useRef(false);
+  const escuchandoRef = useRef(false);
+  const modoManosLibresRef = useRef(false);
+  const procesandoVozRef = useRef(false);
   const finConversacion = useRef<HTMLDivElement>(null);
 
   useEffect(() => { finConversacion.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [mensajes]);
@@ -195,13 +199,18 @@ export function AsistenteFarmaciaView() {
     } catch (error) { if (idPeticion === peticionInventarios.current) setErrorInventarios(error instanceof Error ? error.message : 'No se pudieron cargar los inventarios.'); }
     finally { if (idPeticion === peticionInventarios.current) setCargandoInventarios(false); }
   };
-  const cargarInventarioActivo = async () => {
+  const cargarInventarioActivo = async (): Promise<InventarioFisico | null> => {
     setCargandoModoInventario(true);
     try {
       const respuesta = await apiFetch('/api/farmacia/tomi/inventario-activo');
       const datos = await respuesta.json().catch(() => ({}));
-      if (respuesta.ok) setInventarioActivo(datos.data || null);
-    } catch { /* El chat puede seguir disponible aunque el estado no cargue. */ }
+      if (respuesta.ok) {
+        const activo: InventarioFisico | null = datos.data || null;
+        setInventarioActivo(activo);
+        return activo;
+      }
+      return null;
+    } catch { /* El chat puede seguir disponible aunque el estado no cargue. */ return null; }
     finally { setCargandoModoInventario(false); }
   };
   useEffect(() => {
@@ -212,20 +221,28 @@ export function AsistenteFarmaciaView() {
   useEffect(() => { if (subvista === 'chat') void cargarInventarioActivo(); }, [subvista]);
   useEffect(() => () => reconocimiento.current?.stop(), []);
   useEffect(() => {
+    if (subvista === 'chat') return;
+    modoManosLibresRef.current = false;
+    procesandoVozRef.current = false;
+    setVozManosLibres(false);
+    reconocimiento.current?.stop();
+    escuchandoRef.current = false;
+    setEscuchando(false);
+  }, [subvista]);
+  useEffect(() => {
     if (!('speechSynthesis' in window)) return;
     const cargar = () => {
       const voces = window.speechSynthesis.getVoices();
-      setVozMarcelo(voces.find(voz => /marcelo/i.test(voz.name) && voz.lang.toLowerCase() === 'es-bo') || voces.find(voz => /marcelo/i.test(voz.name) && voz.lang.toLowerCase().startsWith('es')) || null);
+      setVozMarcelo(voces.find(voz => /marcelo/i.test(voz.name) && voz.lang.toLowerCase() === 'es-bo') || voces.find(voz => /marcelo/i.test(voz.name) && voz.lang.toLowerCase().startsWith('es')) || voces.find(voz => voz.lang.toLowerCase().startsWith('es')) || null);
     };
     cargar();
     window.speechSynthesis.addEventListener('voiceschanged', cargar);
     return () => window.speechSynthesis.removeEventListener('voiceschanged', cargar);
   }, []);
 
-  const enviarMensaje = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const texto = mensaje.trim();
-    if (!texto || pensando) return;
+  const enviarConsulta = async (textoEntrada: string, porVoz = false) => {
+    const texto = textoEntrada.trim();
+    if (!texto || pensando) { procesandoVozRef.current = false; return; }
     const ahora = new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit' }).format(new Date());
     const mensajeUsuario: MensajeChat = { id: Date.now(), rol: 'user', texto, hora: ahora };
     const conversacion = [...mensajes, mensajeUsuario];
@@ -236,35 +253,119 @@ export function AsistenteFarmaciaView() {
       if (!respuesta.ok) throw new Error(datos.message || 'No se pudo conectar con TOMI.');
       const inventarioDescargaId = Number(datos.inventarioFinalizadoId) || undefined;
       setMensajes(actuales => [...actuales, { id: Date.now() + 1, rol: 'assistant', texto: datos.message, hora: new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit' }).format(new Date()), inventarioDescargaId }]);
-      void cargarInventarioActivo();
+      const inventarioActual = await cargarInventarioActivo();
       if (inventarioDescargaId) void descargarExcel(inventarioDescargaId);
-      if (consultaPorVoz.current) { consultaPorVoz.current = false; void escucharRespuesta(datos.message); }
+      if (porVoz) {
+        modoManosLibresRef.current = Boolean(inventarioActual);
+        setVozManosLibres(Boolean(inventarioActual));
+        escucharRespuesta(datos.message, Boolean(inventarioActual));
+      } else if (modoManosLibresRef.current && inventarioActual) {
+        escucharRespuesta(datos.message, true);
+      }
     } catch (error) {
       const detalle = error instanceof Error ? error.message : '';
       const mensajeTecnico = /Cannot redeclare class|Fatal error|Stack trace|\.php:\d+/i.test(detalle);
-      setErrorChat(mensajeTecnico ? 'No se pudo completar la respuesta. Actualiza la página e inténtalo otra vez.' : detalle || 'No se pudo conectar con TOMI.');
+      const mensajeError = porVoz ? 'No te escuché. Repítelo otra vez, por favor.' : (mensajeTecnico ? 'No se pudo completar la respuesta. Actualiza la página e inténtalo otra vez.' : detalle || 'No se pudo conectar con TOMI.');
+      setErrorChat(mensajeError);
+      if (porVoz) {
+        setMensajes(actuales => [...actuales, { id: Date.now() + 1, rol: 'assistant', texto: mensajeError, hora: new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit' }).format(new Date()) }]);
+        escucharRespuesta(mensajeError, modoManosLibresRef.current);
+      }
     } finally { setPensando(false); }
   };
 
-  const alternarVoz = () => {
-    if (escuchando) { reconocimiento.current?.stop(); setEscuchando(false); return; }
+  const enviarMensaje = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const texto = mensaje.trim();
+    if (!texto || pensando) return;
+    setMensaje('');
+    void enviarConsulta(texto);
+  };
+
+  const iniciarReconocimiento = (manosLibres = false) => {
+    if (escuchandoRef.current) return;
     const SpeechRecognition = (window as SpeechWindow).SpeechRecognition || (window as SpeechWindow).webkitSpeechRecognition;
     if (!SpeechRecognition) { setAvisoVoz('El dictado por voz no está disponible en este navegador. Prueba con Edge o Chrome.'); return; }
     const instancia = new SpeechRecognition();
-    instancia.lang = 'es-BO'; instancia.interimResults = true;
-    instancia.onresult = event => { const resultado = event.results[event.results.length - 1]; if (resultado?.[0]) { consultaPorVoz.current = true; setMensaje(resultado[0].transcript); } };
-    instancia.onerror = () => { setEscuchando(false); setAvisoVoz('No se pudo acceder al micrófono. Revisa el permiso del navegador.'); };
-    instancia.onend = () => setEscuchando(false);
-    reconocimiento.current = instancia; setAvisoVoz(''); setEscuchando(true);
-    try { instancia.start(); } catch { setEscuchando(false); setAvisoVoz('No se pudo iniciar el micrófono. Inténtalo de nuevo.'); }
+    instancia.lang = 'es-BO'; instancia.continuous = true; instancia.interimResults = true;
+    let segmentos: string[] = [];
+    let temporizador: number | null = null;
+    const enviarSegmentos = () => {
+      if (temporizador !== null) window.clearTimeout(temporizador);
+      temporizador = null;
+      const texto = segmentos.join(' ').trim();
+      segmentos = [];
+      if (!texto) return;
+      procesandoVozRef.current = true;
+      setMensaje(texto);
+      setAvisoVoz('');
+      instancia.stop();
+      void enviarConsulta(texto, true);
+    };
+    instancia.onresult = event => {
+      for (let indice = event.resultIndex; indice < event.results.length; indice += 1) {
+        const resultado = event.results[indice];
+        if (resultado?.isFinal && resultado[0]?.transcript.trim()) segmentos.push(resultado[0].transcript.trim());
+      }
+      if (segmentos.length) {
+        if (temporizador !== null) window.clearTimeout(temporizador);
+        temporizador = window.setTimeout(enviarSegmentos, 700);
+      }
+    };
+    instancia.onerror = event => {
+      if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        modoManosLibresRef.current = false;
+        procesandoVozRef.current = false;
+        setVozManosLibres(false);
+        setAvisoVoz('No se pudo acceder al micrófono. Revisa el permiso del navegador.');
+      }
+    };
+    instancia.onend = () => {
+      escuchandoRef.current = false;
+      setEscuchando(false);
+      if (segmentos.length) enviarSegmentos();
+      if (modoManosLibresRef.current && !procesandoVozRef.current && subvista === 'chat' && !window.speechSynthesis?.speaking) {
+        window.setTimeout(() => {
+          if (modoManosLibresRef.current && !procesandoVozRef.current && !escuchandoRef.current) iniciarReconocimiento(true);
+        }, 350);
+      }
+    };
+    reconocimiento.current = instancia;
+    setAvisoVoz(manosLibres ? 'TOMI está escuchando. Di el código y la cantidad.' : 'Habla después de iniciar el micrófono.');
+    escuchandoRef.current = true;
+    setEscuchando(true);
+    try { instancia.start(); } catch { escuchandoRef.current = false; setEscuchando(false); setAvisoVoz('No se pudo iniciar el micrófono. Inténtalo de nuevo.'); }
   };
 
-  const escucharRespuesta = (texto: string) => {
-    if (!('speechSynthesis' in window)) { setAvisoVoz('La lectura en voz alta no está disponible en este navegador.'); return; }
-    if (!vozMarcelo) { setAvisoVoz('No se encontró Microsoft Marcelo Online (Natural) en español de Bolivia en este navegador.'); return; }
+  const alternarVoz = () => {
+    if (escuchandoRef.current) {
+      modoManosLibresRef.current = false;
+      procesandoVozRef.current = false;
+      setVozManosLibres(false);
+      reconocimiento.current?.stop();
+      escuchandoRef.current = false;
+      setEscuchando(false);
+      setAvisoVoz('Escucha manos libres detenida.');
+      return;
+    }
+    const manosLibres = Boolean(inventarioActivo);
+    modoManosLibresRef.current = manosLibres;
+    setVozManosLibres(manosLibres);
+    iniciarReconocimiento(manosLibres);
+  };
+
+  const escucharRespuesta = (texto: string, reanudarEscucha = false) => {
+    const reanudar = () => {
+      procesandoVozRef.current = false;
+      if (reanudarEscucha && modoManosLibresRef.current) window.setTimeout(() => iniciarReconocimiento(true), 300);
+    };
+    if (!('speechSynthesis' in window)) { reanudar(); return; }
     window.speechSynthesis.cancel();
     const voz = new SpeechSynthesisUtterance(texto);
-    voz.voice = vozMarcelo; voz.lang = 'es-BO'; voz.rate = 1.02; voz.pitch = 1;
+    if (vozMarcelo) voz.voice = vozMarcelo;
+    voz.lang = 'es-BO'; voz.rate = 1.02; voz.pitch = 1;
+    voz.onend = reanudar;
+    voz.onerror = reanudar;
     window.speechSynthesis.speak(voz);
   };
 
@@ -395,7 +496,7 @@ export function AsistenteFarmaciaView() {
         </div>
         <form className="farmacia-ia-compositor" onSubmit={enviarMensaje}>
           <label className="visually-hidden" htmlFor="farmacia-ia-mensaje">Escribe una consulta</label>
-          <textarea id="farmacia-ia-mensaje" rows={1} value={mensaje} onChange={event => { consultaPorVoz.current = false; setMensaje(event.target.value); }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder="Ej.: Busca paracetamol, hay ibuprofeno? o stock de amoxicilina" />
+          <textarea id="farmacia-ia-mensaje" rows={1} value={mensaje} onChange={event => { procesandoVozRef.current = false; setMensaje(event.target.value); }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder="Ej.: Busca paracetamol, hay ibuprofeno? o stock de amoxicilina" />
           <button type="button" className={`farmacia-ia-microfono ${escuchando ? 'escuchando' : ''}`} onClick={alternarVoz} aria-label={escuchando ? 'Detener dictado' : 'Dictar consulta por voz'} title={escuchando ? 'Detener dictado' : 'Dictar por voz'}><Icon name={escuchando ? 'check' : 'mic'} size={18} /></button>
           <button type="submit" className="farmacia-ia-enviar" aria-label="Enviar mensaje" disabled={!mensaje.trim() || pensando}><Icon name="arrowRight" size={18} /></button>
           <small className={errorChat ? 'farmacia-ia-error' : ''}>{errorChat || avisoVoz || (escuchando ? 'Escuchando… habla con claridad y pulsa el micrófono para detener.' : 'Dictado por voz · Verifica la información con el personal farmacéutico. No es un sistema de prescripción.')}</small>

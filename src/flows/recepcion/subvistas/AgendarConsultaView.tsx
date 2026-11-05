@@ -25,6 +25,7 @@ type Props = {
     id: string;
     pacienteId: string;
     profesionalId?:string;
+    especialidad: string;
     paciente: string;
     ci: string;
     doctor: string;
@@ -53,7 +54,6 @@ const nombreCompleto = (paciente: Paciente) =>
     .filter(Boolean)
     .join(' ');
 const paraAgenda = (p: PacienteRegistrado): Paciente => ({id:p.id,nombres:p.nombres,apellidoPaterno:p.apellido_paterno,apellidoMaterno:p.apellido_materno,ci:p.ci,celular:p.telefono || ''});
-const textoNormalizado = (valor: string) => valor.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
 
 export function AgendarConsultaView({
   doctorInicial = '',
@@ -64,19 +64,19 @@ export function AgendarConsultaView({
   onAgendada,
 }: Props) {
   const {profesionales,medicos,errorProfesionales,resolver}=useProfesionales();
-  const [precioConsulta, setPrecioConsulta] = useState(0);
+  const [servicios, setServicios] = useState<Array<{id:string;contableId:number;nombre:string;tipo:string;precio:number}>>([]);
+  const [servicioId, setServicioId] = useState('');
+  const [errorServicios, setErrorServicios] = useState('');
   useEffect(() => {
     const controller = new AbortController();
     void apiFetch('/api/catalogo', { signal: controller.signal }).then(async respuesta => {
-      const datos = await respuesta.json() as { data?: Array<{ nombre: string; tipo: string; precio: number }> };
-      if (!respuesta.ok) throw new Error('No se pudo consultar la tarifa de consulta.');
-      const consulta = datos.data?.find(item => item.tipo === 'servicio' && textoNormalizado(item.nombre) === 'consulta medica');
-      if (!consulta) throw new Error('No existe el servicio Consulta médica en el catálogo contable.');
-      if (!controller.signal.aborted) setPrecioConsulta(Number(consulta.precio) || 0);
-    }).catch(() => { if (!controller.signal.aborted) setPrecioConsulta(0); });
+      const datos = await respuesta.json();
+      if (!respuesta.ok) throw new Error(datos.message || 'No se pudo cargar el catálogo de servicios.');
+      if (!controller.signal.aborted) setServicios((datos.data || []).filter((item: {tipo:string}) => item.tipo === 'servicio'));
+    }).catch(error => { if (!controller.signal.aborted) setErrorServicios(error.message || 'No se pudo cargar el catálogo de servicios.'); });
     return () => controller.abort();
   }, []);
-  const especialidades:Record<string,{precio:number;doctores:string[]}>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,{precio:precioConsulta,doctores:medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)}]));
+  const especialidades:Record<string,{doctores:string[]}>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,{doctores:medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)}]));
   const doctores=medicos.map(etiquetaProfesional);
   const { pacientes: fichas, errorPacientes } = usePacientes();
   const pacientes = useMemo(() => fichas.map(paraAgenda), [fichas]);
@@ -92,8 +92,6 @@ export function AgendarConsultaView({
     fechaInicial ?? fechaLocal(),
   );
   const [hora, setHora] = useState(horaInicial);
-  const [metodo, setMetodo] = useState('Efectivo');
-  const [recibido, setRecibido] = useState('');
   const [mensaje, setMensaje] = useState('');
   const resultados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
@@ -113,8 +111,9 @@ export function AgendarConsultaView({
   const doctoresDisponibles = especialidad
     ? (especialidades[especialidad]?.doctores || [])
     : doctores;
-  const precio = especialidad ? (especialidades[especialidad]?.precio || 0) : 0;
-  const pagoValido = metodo !== 'Efectivo' || Number(recibido) >= precio;
+  const servicio = servicios.find(item => item.id === servicioId);
+  const precio = servicio ? Number(servicio.precio) : 0;
+  const [guardando, setGuardando] = useState(false);
   const horasDisponibles = useMemo(() => {
     if (fecha !== fechaLocal()) return horas;
     const ahora = new Date();
@@ -128,15 +127,15 @@ export function AgendarConsultaView({
   }, [hora, horasDisponibles, soloCobro]);
 
   const confirmar = async () => {
-    if (!paciente || !especialidad || !doctor || !fecha || !pagoValido) return;
+    if (!paciente || !especialidad || !doctor || !fecha || !servicio || guardando || soloCobro) return;
     if (!soloCobro && !horasDisponibles.includes(hora)) {
       setMensaje('Selecciona un horario futuro disponible para la fecha elegida.');
       return;
     }
     if(!consultaPendiente && !resolver(doctor)){setMensaje('Selecciona un médico activo del catálogo.');return;}
-    if(precio<=0){setMensaje('La especialidad no tiene una tarifa de consulta configurada. Puedes registrar su cita por confirmar en el cronograma.');return;}
+    setGuardando(true);
     try {
-    const respuesta = await apiFetch(consultaPendiente?.id ? `/api/citas/${consultaPendiente.id}/estado` : '/api/citas', {method:consultaPendiente?.id ? 'PATCH':'POST',headers:{Accept:'application/json'},body:JSON.stringify(consultaPendiente?.id ? {estado:'confirmada'} : {paciente_id:paciente.id,profesional_id:resolver(doctor)?.id,doctor:resolver(doctor)?.nombre || doctor,especialidad,consultorio:'Consultorio 1',fecha,hora,estado:'confirmada'})});
+    const respuesta = await apiFetch(consultaPendiente?.id ? `/api/citas/${consultaPendiente.id}/estado` : '/api/citas', {method:consultaPendiente?.id ? 'PATCH':'POST',headers:{Accept:'application/json'},body:JSON.stringify(consultaPendiente?.id ? {estado:'confirmada'} : {paciente_id:paciente.id,profesional_id:resolver(doctor)?.id,doctor:resolver(doctor)?.nombre || doctor,especialidad,consultorio:'Consultorio 1',fecha,hora,estado:'por_confirmar',servicio_id:servicio.contableId})});
     const datos = await respuesta.json();
     if(!respuesta.ok) throw new Error(Object.values(datos.errors || {}).flat()[0] as string || datos.message || 'No se pudo guardar la cita.');
     onAgendada({
@@ -146,8 +145,9 @@ export function AgendarConsultaView({
       doctor:datos.doctor,
       fecha,
       hora,
+      especialidad,
     });
-    } catch(causa) {setMensaje((causa as Error).message);}
+    } catch(causa) {setMensaje((causa as Error).message);} finally {setGuardando(false);}
   };
 
   return (
@@ -157,8 +157,8 @@ export function AgendarConsultaView({
           <Icon name="chevronLeft" size={16} /> Volver al cronograma
         </button>
         <div>
-          <span>AGENDAMIENTO Y COBRO</span>
-          <h1>{soloCobro ? 'Confirmar y cobrar consulta' : 'Nueva consulta'}</h1>
+          <span>AGENDAMIENTO DE CONSULTA</span>
+          <h1>{soloCobro ? 'Consulta pendiente' : 'Nueva consulta'}</h1>
         </div>
       </header>
       <div className="agendar-columnas">
@@ -221,7 +221,7 @@ export function AgendarConsultaView({
               </button>}
             </div>
           )}
-          {(mensaje || errorPacientes) && <p className="agendar-error" role="alert">{mensaje || errorPacientes || errorProfesionales}</p>}
+          {(mensaje || errorPacientes || errorProfesionales || errorServicios) && <p className="agendar-error" role="alert">{mensaje || errorPacientes || errorProfesionales || errorServicios}</p>}
           <div className="agendar-seccion-titulo">
             <b>2</b>
             <div>
@@ -230,6 +230,7 @@ export function AgendarConsultaView({
             </div>
           </div>
           <div className="agendar-campos">
+            <label>Servicio a cobrar<select value={servicioId} onChange={e => setServicioId(e.target.value)}><option value="">Selecciona un servicio</option>{servicios.map(item => <option key={item.id} value={item.id}>{item.nombre} · Bs {Number(item.precio).toFixed(2)}</option>)}</select></label>
             <label>
               Especialidad
               <select
@@ -296,52 +297,10 @@ export function AgendarConsultaView({
           </div>
         </section>
         <aside className="panel agendar-cobro">
-          <div className="agendar-seccion-titulo">
-            <b>3</b>
-            <div>
-              <strong>Cobro</strong>
-              <small>La consulta se agenda al registrar el pago.</small>
-            </div>
-          </div>
-          <div className="agendar-resumen">
-            <span>{especialidad || 'Consulta médica'}</span>
-            <strong>Bs {precio.toFixed(2)}</strong>
-          </div>
-          <label>
-            Método de pago
-            <select value={metodo} onChange={(e) => setMetodo(e.target.value)}>
-              <option>Efectivo</option>
-              <option>QR</option>
-              <option>Tarjeta</option>
-              <option>Transferencia</option>
-            </select>
-          </label>
-          {metodo === 'Efectivo' && (
-            <label>
-              Monto recibido
-              <input
-                type="number"
-                min={0}
-                value={recibido}
-                onChange={(e) => setRecibido(e.target.value)}
-                placeholder="0.00"
-              />
-            </label>
-          )}
-          <div className="agendar-total">
-            <span>Total a cobrar</span>
-            <strong>Bs {precio.toFixed(2)}</strong>
-          </div>
-          <button
-            className="primario"
-            type="button"
-            disabled={
-              !paciente || !especialidad || !doctor || !fecha || !pagoValido
-            }
-            onClick={confirmar}
-          >
-            Cobrar y agendar <Icon name="arrowRight" size={16} />
-          </button>
+          <div className="agendar-seccion-titulo"><b>3</b><div><strong>Servicio</strong><small>Importe del catálogo contable</small></div></div>
+          <div className="agendar-resumen"><span>{servicio?.nombre || 'Selecciona un servicio'}</span><strong>Bs {precio.toFixed(2)}</strong></div>
+          <p role="status">El cobro desde esta pantalla aún no está conectado. La cita se guardará por confirmar; registra el pago en caja.</p>
+          {soloCobro ? <button className="primario" type="button" onClick={onVolver}>Volver a la agenda</button> : <button className="primario" type="button" disabled={!paciente || !especialidad || !doctor || !fecha || !hora || !servicio || guardando} onClick={confirmar}>{guardando ? 'Guardando…' : 'Agendar por confirmar'} <Icon name="arrowRight" size={16}/></button>}
         </aside>
       </div>
     </section>

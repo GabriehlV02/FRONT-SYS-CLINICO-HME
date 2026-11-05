@@ -8,12 +8,16 @@ import { obtenerAtencionAmbulatoria, obtenerEpisodios, registrarAtencionAmbulato
 import './AgendaAmbulatoriaView.css';
 import './AgendaAmbulatoriaViewAlineacion.css';
 
-export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; consultorio?: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
+export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; estado?: string; consultorio?: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
 // La agenda almacena la fecha como YYYY-MM-DD. No se usa toLocaleDateString
 // porque el resultado varía según el navegador y puede devolver M/D/YYYY.
 const fechaHoy = () => {
   const hoy = new Date();
   return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+};
+const fechaHoyDe = (valor: string) => {
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? '' : `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
 };
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
   const {profesionales}=useProfesionales();
@@ -31,7 +35,7 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   useEffect(() => { void apiFetch('/api/citas').then(async (response) => {
     if (!response.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
     const datos = await response.json() as Array<CitaConfirmada & { estado: string }>;
-    setCitas(datos.filter(cita => cita.estado === 'confirmada' && cita.fecha === fechaHoy()));
+    setCitas(datos.filter(cita => cita.estado === 'confirmada' || cita.estado === 'por_confirmar'));
   }).catch(causa => setErrorPacientes((causa as Error).message)); }, []);
 
   // El backend limita la agenda del médico autenticado; este filtro evita una
@@ -39,26 +43,26 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   const visibles = useMemo(() => citas.filter((cita) => /administrador/i.test(medico) || (profesionalActual ? cita.profesionalId === profesionalActual.id : cita.doctor === medico))
     .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)), [citas, medico, profesionalActual]);
   const coincide = (cita: CitaConfirmada, texto: string) => `${cita.paciente} ${cita.ci} ${cita.doctor} ${cita.especialidad}`.toLocaleLowerCase().includes(texto.trim().toLocaleLowerCase());
-  const pendientes = visibles.filter((cita) => !obtenerAtencionAmbulatoria(cita) && coincide(cita, busqueda));
-  const atendidasHoy = visibles.filter((cita) => obtenerAtencionAmbulatoria(cita) && coincide(cita, busquedaAtendidas));
+  const pendientes = visibles.filter((cita) => !obtenerAtencionAmbulatoria(cita)?.finalizadaEn && coincide(cita, busqueda));
+  const atendidasHoy = visibles.filter((cita) => { const finalizada = obtenerAtencionAmbulatoria(cita)?.finalizadaEn; return finalizada && fechaHoy() === fechaHoyDe(finalizada) && coincide(cita, busquedaAtendidas); });
   const atender = (cita: CitaConfirmada) => { registrarAtencionAmbulatoria(cita, medico); onAtender?.(cita); };
   const signosRegistrados = (cita: CitaConfirmada) => Object.values(obtenerSignosVitales(cita.ci) ?? {}).some(Boolean);
 
-  return <section className="agenda-ambulatoria" aria-label="Agenda de pacientes ambulatorios confirmados">{errorPacientes && <p role="alert">{errorPacientes}</p>}
+  return <section className="agenda-ambulatoria" aria-label="Consultas ambulatorias pendientes de atención">{errorPacientes && <p role="alert">{errorPacientes}</p>}
     <div className="agenda-herramientas">
-      <label><Icon name="search" size={17} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por paciente o CI" aria-label="Buscar consulta confirmada" /></label>
-      <span><Icon name="calendar" size={17} /> {visibles.length} confirmadas</span>
+      <label><Icon name="search" size={17} /><input value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por paciente o CI" aria-label="Buscar consulta pendiente" /></label>
+      <span><Icon name="calendar" size={17} /> {pendientes.length} pendientes</span>
     </div>
     <div className="agenda-ambulatoria-tablero">
       <section className="agenda-cola panel">
         <header><span>CONSULTA</span><span>PACIENTE</span><span>MÉDICO / ESPECIALIDAD</span><span>SIGNOS VITALES</span><span>ACCIÓN</span></header>
         {pendientes.length ? pendientes.map((cita) => <article key={cita.id}>
-          <time>{cita.hora}</time>
+          <time dateTime={`${cita.fecha}T${cita.hora}`}><strong>{cita.hora}</strong><small>{cita.fecha.split('-').reverse().join('/')}</small></time>
           <div><strong>{cita.paciente}</strong><small>CI {cita.ci}</small></div>
-          <div className="agenda-medico"><strong>{cita.doctor}</strong><small>{cita.especialidad || 'Consulta ambulatoria'}</small></div>
+          <div className="agenda-medico"><strong>{cita.doctor}</strong><small>{cita.especialidad || 'Consulta ambulatoria'}</small>{cita.estado === 'por_confirmar' && <small>Por confirmar · Cobro pendiente de verificar</small>}</div>
           <span className={`agenda-signos ${signosRegistrados(cita) ? 'registrados' : 'pendientes'}`}>{signosRegistrados(cita) ? 'Registrados' : 'Pendientes de registro'}</span>
-          <button type="button" onClick={() => atender(cita)}><Icon name="userCheck" size={15} /> Atender</button>
-        </article>) : <div className="agenda-cola-vacia"><Icon name="calendar" size={25} /><strong>No hay consultas por atender</strong><small>Las citas confirmadas aparecerán en esta lista.</small></div>}
+          <button type="button" onClick={() => atender(cita)}><Icon name="userCheck" size={15} /> {obtenerAtencionAmbulatoria(cita) ? 'Continuar' : 'Atender'}</button>
+        </article>) : <div className="agenda-cola-vacia"><Icon name="calendar" size={25} /><strong>No hay consultas por atender</strong><small>Las citas pendientes y confirmadas aparecerán en esta lista.</small></div>}
       </section>
       <aside className="agenda-lateral agenda-atendidas">
         <header><div><p>ATENDIDOS HOY</p><strong>Consultas realizadas</strong></div><span>{atendidasHoy.length}</span></header>

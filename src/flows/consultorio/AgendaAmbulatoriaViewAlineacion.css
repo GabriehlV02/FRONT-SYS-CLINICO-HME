@@ -39,3 +39,6 @@
 .agenda-ambulatoria-tablero {
   grid-template-columns: minmax(0, 1fr) 310px;
 }
+
+.agenda-ambulatoria .agenda-cola article time { display: grid; gap: 4px; }
+.agenda-ambulatoria .agenda-cola article time small { font-size: 11px; font-weight: 400; color: #587b96; white-space: nowrap; }

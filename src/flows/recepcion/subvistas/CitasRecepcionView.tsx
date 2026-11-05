@@ -290,8 +290,8 @@ export function CitasRecepcionView({ medicoInicial, agendarInicial = false }: { 
                     paciente: datos.paciente,
                     ci: datos.ci,
                     doctor: datos.doctor,
-                    motivo: 'Medicina general',
-                    estado: 'Confirmada',
+                    motivo: datos.especialidad,
+                    estado: 'Por confirmar',
                   },
                 ],
           );

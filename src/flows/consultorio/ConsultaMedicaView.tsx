@@ -28,6 +28,7 @@ const unidadesVitales: Record<string, string> = { temperatura: '°C', glicemia: 
 type TipoOrden = 'laboratorio' | 'imagenologia' | 'internacion';
 type SeccionConsulta = 'atencion' | 'resultados' | 'historia' | 'tratamientos';
 type DatosClinicos = { motivoConsulta: string; enfermedadActual: string; examenFisico: string };
+type DiagnosticoConPlan = { id: string; diagnostico: string; planes: string[] };
 const titulosOrden: Record<TipoOrden, string> = { laboratorio: 'laboratorio', imagenologia: 'imagenología', internacion: 'internación' };
 const seccionesConsulta: { id: SeccionConsulta; nombre: string; icono: 'userCheck' | 'lab' | 'fileText' | 'patient' }[] = [
   { id: 'atencion', nombre: 'Atención', icono: 'userCheck' },
@@ -58,7 +59,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   const [vitales, setVitales] = useState<Record<string, string>>({});
   const [notasMedicas, setNotasMedicas] = useState<Record<string, string>>({});
   const [antecedentes, setAntecedentes] = useState<Record<string, string>>({});
-  const [diagnosticosFinales, setDiagnosticosFinales] = useState<Record<string, string>>({});
+  const [diagnosticosFinales, setDiagnosticosFinales] = useState<Record<string, DiagnosticoConPlan[]>>({});
   const [atencionesCerradas, setAtencionesCerradas] = useState<Record<string, boolean>>({});
   const [busquedaOrdenMedica, setBusquedaOrdenMedica] = useState('');
   const [ordenesMedicas, setOrdenesMedicas] = useState<Record<string, string[]>>({});
@@ -93,6 +94,12 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   const datosClinicosPaciente = datosClinicos[paciente.ci] ?? { motivoConsulta: episodioActual?.motivo || '', enfermedadActual: episodioActual?.enfermedadActual || '', examenFisico: episodioActual?.examenFisico || '' };
   const atencionFinalizada = Boolean(atencionesCerradas[paciente.ci] || episodioActual?.finalizadaEn);
   const ordenesPaciente = ordenesMedicas[paciente.ci] ?? [];
+  const diagnosticosPaciente = diagnosticosFinales[paciente.ci] ?? (episodioActual?.diagnosticos ?? []).map((item, indice) => ({ ...item, id: `historial-${indice}` }));
+  const consultasAnteriores = obtenerEpisodios().filter(episodio => episodio.paciente.ci === paciente.ci && episodio.origenId !== origenConsulta).sort((a, b) => (b.actualizadoEn || '').localeCompare(a.actualizadoEn || ''));
+  const ultimaConsulta = consultasAnteriores[0];
+  const antecedentesPaciente = consultasAnteriores.find(episodio => episodio.antecedentes.trim())?.antecedentes || 'Sin antecedentes registrados';
+  const alergiasPaciente = consultasAnteriores.find(episodio => /alerg/i.test(episodio.antecedentes))?.antecedentes || 'Sin alergias registradas';
+  const diagnosticosPrevios = consultasAnteriores.flatMap(episodio => episodio.diagnosticos?.map(diagnostico => diagnostico.diagnostico) ?? []).filter(Boolean);
   const ordenesFiltradas = catalogoOrdenesMedicas.filter(orden => orden.toLowerCase().includes(busquedaOrdenMedica.toLowerCase()) && !ordenesPaciente.includes(orden));
   const partesNombre = paciente.paciente.trim().split(/\s+/);
   const nombre = paciente.nombre ?? partesNombre[0] ?? 'No registrado';
@@ -108,6 +115,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
       examenFisico: datosClinicosPaciente.examenFisico.trim() || existente?.examenFisico || '',
       antecedentes: antecedentes[paciente.ci] ?? existente?.antecedentes ?? '',
       notas: notasMedicas[paciente.ci] ?? existente?.notas ?? '',
+      diagnosticos: diagnosticosPaciente.map(({ diagnostico, planes }) => ({ diagnostico, planes: planes.filter(Boolean) })),
       signosVitales: Object.keys(datos).length ? { ...datos } : existente?.signosVitales ?? {},
       recetas: [...(existente?.recetas ?? []).map(r => ({ ...r, fecha: r.fecha || existente?.fecha, medico: r.medico || existente?.medico })), receta], ordenes: existente?.ordenes ?? [],
       resultados: existente?.resultados ?? [], reconsultas: existente?.reconsultas ?? [],
@@ -118,13 +126,13 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
       ...(laboratoriosElegidos ? [{ tipo: 'Laboratorio', detalle: laboratoriosElegidos, estado: 'Solicitado' }] : []),
       ...(tipoOrden && tipoOrden !== 'laboratorio' && detalleOrden.trim() ? [{ tipo: titulosOrden[tipoOrden], detalle: detalleOrden.trim(), estado: 'Solicitado' }] : []),
     ];
-    const episodio = guardarEpisodio({ origenId: origenConsulta, tipo: 'Consulta médica', paciente, medico: paciente.doctor && paciente.doctor !== 'Agenda ambulatoria' ? paciente.doctor : medico, fecha: paciente.fecha, motivo: datosClinicosPaciente.motivoConsulta.trim(), enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(), examenFisico: datosClinicosPaciente.examenFisico.trim(), antecedentes: (antecedentes[paciente.ci] ?? episodioActual?.antecedentes ?? '').trim(), notas: (notasMedicas[paciente.ci] ?? episodioActual?.notas ?? '').trim(), signosVitales: Object.keys(datos).length ? { ...datos } : episodioActual?.signosVitales ?? {}, recetas: [], ordenes, resultados: [], reconsultas: [], ...(finalizar ? { finalizadaEn: new Date().toISOString() } : {}) });
+    const episodio = guardarEpisodio({ origenId: origenConsulta, tipo: 'Consulta médica', paciente, medico: paciente.doctor && paciente.doctor !== 'Agenda ambulatoria' ? paciente.doctor : medico, fecha: paciente.fecha, motivo: datosClinicosPaciente.motivoConsulta.trim(), enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(), examenFisico: datosClinicosPaciente.examenFisico.trim(), antecedentes: (antecedentes[paciente.ci] ?? episodioActual?.antecedentes ?? '').trim(), notas: (notasMedicas[paciente.ci] ?? episodioActual?.notas ?? '').trim(), diagnosticos: diagnosticosPaciente.map(({ diagnostico, planes }) => ({ diagnostico, planes: planes.filter(Boolean) })), signosVitales: Object.keys(datos).length ? { ...datos } : episodioActual?.signosVitales ?? {}, recetas: [], ordenes, resultados: [], reconsultas: [], ...(finalizar ? { finalizadaEn: new Date().toISOString() } : {}) });
     setEpisodioGuardado(episodio.episodioId);
     if (finalizar) setAtencionesCerradas((actual) => ({ ...actual, [paciente.ci]: true }));
   };
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
     <section className="consulta-activa-derecha">
-      <header className="consulta-area-cabecera"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci} · Cita {paciente.hora}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div><div><dt>Domicilio</dt><dd>{paciente.domicilio ?? 'No registrado'}</dd></div></dl></div></header>
+      <header className="consulta-area-cabecera"><div className="consulta-resumen-paciente"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div></dl></div><section className="consulta-contexto-clinico" aria-label="Resumen de antecedentes del paciente"><header><p>RESUMEN CLÍNICO</p><small>Información de consultas previas</small></header><dl><div><dt>Antecedentes</dt><dd>{antecedentesPaciente}</dd></div><div><dt>Alergias</dt><dd>{alergiasPaciente}</dd></div><div><dt>Diagnósticos previos</dt><dd>{diagnosticosPrevios.length ? diagnosticosPrevios.join(' · ') : 'Sin diagnósticos registrados'}</dd></div><div><dt>Última consulta</dt><dd>{ultimaConsulta ? `${ultimaConsulta.fecha} · ${ultimaConsulta.motivo || 'Sin motivo registrado'}` : 'Sin consultas previas'}</dd></div></dl></section></div></header>
       <div className="consulta-secciones-bar">
       <nav className="consulta-secciones" aria-label="Secciones de la consulta">
         <button type="button" className="consulta-volver-listado" onClick={() => window.dispatchEvent(new Event('consulta:volver-al-listado'))}><Icon name="chevronLeft" size={16} /><span>Volver al listado</span></button>
@@ -144,17 +152,21 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
           <section className="consulta-seguimiento-clinico" aria-label="Seguimiento clínico de la consulta">
             <details className="consulta-seguimiento-panel" open><summary><span>Anamnesis · Relato cronológico</span><Icon name="chevronRight" size={18} /></summary><div><textarea aria-label="Anamnesis" value={antecedentes[paciente.ci] ?? ''} onChange={(event) => setAntecedentes((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Describe el relato cronológico, antecedentes relevantes y evolución del cuadro actual..." /></div></details>
             <RevisionConsulta pacienteId={paciente.ci} />
-            <section className="consulta-seguimiento-panel consulta-diagnostico-final"><header><h3>Diagnóstico final</h3></header><textarea aria-label="Diagnóstico final" value={diagnosticosFinales[paciente.ci] ?? ''} onChange={(event) => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Registra el diagnóstico final..." />{!diagnosticosFinales[paciente.ci] && <p>Aún no se ha registrado el diagnóstico final.</p>}</section>
+            <section className="consulta-seguimiento-panel consulta-diagnostico-final">
+              <header><div><h3>Diagnósticos y plan médico</h3><small>Registra los planes o indicaciones que correspondan a cada diagnóstico.</small></div><button type="button" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: [...(actual[paciente.ci] ?? []), { id: `diagnostico-${Date.now()}`, diagnostico: '', planes: [''] }] }))}><Icon name="plus" size={15} /> Añadir diagnóstico</button></header>
+              <div className="consulta-diagnosticos-lista">
+                {(diagnosticosPaciente.length ? diagnosticosPaciente : [{ id: 'nuevo', diagnostico: '', planes: [''] }]).map((entrada) => <article className="consulta-diagnostico-item" key={entrada.id}>
+                  <label>Diagnóstico<textarea value={entrada.diagnostico} onChange={(event) => setDiagnosticosFinales((actual) => { const lista = actual[paciente.ci] ?? []; const existe = lista.some(item => item.id === entrada.id); const actualizado = existe ? lista.map(item => item.id === entrada.id ? { ...item, diagnostico: event.target.value } : item) : [{ ...entrada, diagnostico: event.target.value }]; return { ...actual, [paciente.ci]: actualizado }; })} placeholder="Ej.: infección respiratoria alta" /></label>
+                  <div className="consulta-planes-diagnostico"><strong>Plan médico / indicaciones</strong>{entrada.planes.map((plan, indice) => <div className="consulta-plan-campo" key={`${entrada.id}-${indice}`}><textarea aria-label={`Plan médico ${indice + 1}`} value={plan} onChange={(event) => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? [entrada]).map(item => item.id === entrada.id ? { ...item, planes: item.planes.map((valor, posicion) => posicion === indice ? event.target.value : valor) } : item) }))} placeholder="Escribe la indicación o plan de contingencia..." />{entrada.planes.length > 1 && <button type="button" aria-label="Quitar plan" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? []).map(item => item.id === entrada.id ? { ...item, planes: item.planes.filter((_, posicion) => posicion !== indice) } : item) }))}>×</button>}</div>)}<button className="consulta-agregar-plan" type="button" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? [entrada]).map(item => item.id === entrada.id ? { ...item, planes: [...item.planes, ''] } : item) }))}><Icon name="plus" size={14} /> Añadir indicación</button></div>
+                  {diagnosticosPaciente.length > 1 && <button className="consulta-quitar-diagnostico" type="button" aria-label="Quitar diagnóstico" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? []).filter(item => item.id !== entrada.id) }))}>×</button>}
+                </article>)}
+              </div>
+            </section>
             <section className="consulta-seguimiento-panel consulta-cierre-consulta"><header><div><h3>Cierre de atención</h3><small>Completa este paso al finalizar la consulta.</small></div>{!atencionFinalizada && <button type="button" disabled={!datosClinicosPaciente.motivoConsulta.trim()} onClick={() => guardarEnHistoria(true)}>Finalizar atención</button>}</header><p>{atencionFinalizada ? 'Atención finalizada y registrada en la historia clínica.' : 'Registra el motivo de consulta antes de finalizar la atención.'}</p></section>
           </section>
         </div>
         <div className="consulta-atencion-lateral">
           <section className="consulta-ordenes-medicas panel"><header><div><p>ÓRDENES MÉDICAS</p><h3>Órdenes del paciente</h3></div><span>{ordenesPaciente.length}</span></header><OrdenesConsulta paciente={paciente} onAbrir={(tipo) => { setTipoOrden(tipo); setDetalleOrden(''); }} onAbrirRecetario={() => { setSeccion('tratamientos'); setRecetarioAbierto(true); }} /><label className="consulta-buscador-orden"><Icon name="search" size={16}/><input value={busquedaOrdenMedica} onChange={event => setBusquedaOrdenMedica(event.target.value)} placeholder="Buscar orden médica" /></label>{busquedaOrdenMedica && <div className="consulta-resultados-orden">{ordenesFiltradas.length ? ordenesFiltradas.map(orden => <button type="button" key={orden} onClick={() => { setOrdenesMedicas(actual => ({ ...actual, [paciente.ci]: [...(actual[paciente.ci] ?? []), orden] })); setBusquedaOrdenMedica(''); }}><span>{orden}</span><Icon name="plus" size={15}/></button>) : <p>No hay órdenes disponibles.</p>}</div>}<section className="consulta-lista-ordenes"><header><strong>Listado de órdenes</strong><small>{ordenesPaciente.length} agregada{ordenesPaciente.length === 1 ? '' : 's'}</small></header>{ordenesPaciente.length ? ordenesPaciente.map(orden => <article key={orden}><span><Icon name="fileText" size={15}/></span><strong>{orden}</strong><button type="button" aria-label={`Quitar ${orden}`} onClick={() => setOrdenesMedicas(actual => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? []).filter(item => item !== orden) }))}>×</button></article>) : <p>Busca una orden médica para añadirla al listado.</p>}</section></section>
-        <section className="consulta-nota panel">
-          <p>NOTAS MÉDICAS</p>
-            <h3>Notas médicas</h3>
-            <textarea aria-label="Notas Médicas" value={notasMedicas[paciente.ci] ?? ''} onChange={(event) => setNotasMedicas((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Escribe aquí las notas médicas..." />
-          </section>
         </div>
       </div>
       </>}

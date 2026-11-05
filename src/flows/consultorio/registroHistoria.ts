@@ -16,6 +16,7 @@ export type EpisodioClinico = {
   examenFisico: string;
   antecedentes: string;
   notas: string;
+  diagnosticos?: { diagnostico: string; planes: string[] }[];
   signosVitales: Record<string, string>;
   recetas: DocumentoEpisodio[];
   ordenes: DocumentoEpisodio[];

@@ -1,0 +1,3 @@
+.agenda-cola>header,.agenda-cola>article{grid-template-columns:76px minmax(180px,1.2fr) minmax(145px,.9fr) minmax(180px,1.1fr) minmax(126px,.72fr) auto}
+.agenda-motivo strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:950px){.agenda-cola>header,.agenda-cola>article{min-width:1030px}}

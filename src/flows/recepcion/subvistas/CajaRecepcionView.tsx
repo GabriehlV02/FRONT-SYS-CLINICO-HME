@@ -141,6 +141,7 @@ export function CajaRecepcionView({
   const [medicoConsulta, setMedicoConsulta] = useState('');
   const [fechaConsulta, setFechaConsulta] = useState('');
   const [horaConsulta, setHoraConsulta] = useState('');
+  const [motivoOperativoConsulta, setMotivoOperativoConsulta] = useState('');
   const [precioConsulta, setPrecioConsulta] = useState(80);
   const [sucursalActiva, setSucursalActiva] = useState('Hospital María Esperanza');
   const [cajaActiva, setCajaActiva] = useState('Caja 01 · Recepción');
@@ -248,9 +249,15 @@ export function CajaRecepcionView({
     if (!consultaParaAgendar || !fechaConsulta || !horaConsulta) return setMensaje('Selecciona especialidad, médico, fecha y hora para continuar.');
     if (!fechaEnTurno || !horasAtencionConsulta.includes(horaConsulta)) return setMensaje('Selecciona un día y una hora dentro del turno de consulta externa del médico.');
     const ficha = fichasPacientes.find(p => p.ci === ciPaciente), profesional = resolver(medicoConsulta);
+    const motivoCapturado = motivoOperativoConsulta.trim() || window.prompt('Motivo de consulta para el médico (opcional):')?.trim() || '';
     if (!ficha || !profesional) return setMensaje('Selecciona un paciente registrado y un médico activo.');
     const linea: Linea = { ...consultaParaAgendar, id: `${consultaParaAgendar.id}-${fechaConsulta}-${horaConsulta}-${medicoConsulta}`, nombre: `${consultaParaAgendar.nombre} · ${especialidadConsulta}`, cantidad: 1 };
     setLineas(actuales => [...actuales, linea]);
+    const citaOperativa = { id: `cita-operativa-${Date.now()}`, pacienteId: ficha.id, paciente: nombrePacienteClinico(ficha), ci: ficha.ci, doctor: medicoConsulta, especialidad: especialidadConsulta, motivoOperativo: motivoCapturado, fecha: fechaConsulta, hora: horaConsulta, estado: 'confirmada', consultorio: 'Consulta ambulatoria', edad: ficha.fecha_nacimiento ? new Date().getFullYear() - new Date(ficha.fecha_nacimiento).getFullYear() : undefined, fechaNacimiento: ficha.fecha_nacimiento };
+    const citasOperativas = JSON.parse(localStorage.getItem('clinico_citas_operativas_v1') || '[]');
+    localStorage.setItem('clinico_citas_operativas_v1', JSON.stringify([...citasOperativas, citaOperativa]));
+    window.dispatchEvent(new Event('agenda:operativa-actualizada'));
+    setMotivoOperativoConsulta('');
     setMensaje(`Consulta agendada con ${medicoConsulta} para el ${fechaConsulta} a las ${horaConsulta}.`);
     setConsultaParaAgendar(null);
     setCarritoAbierto(true);

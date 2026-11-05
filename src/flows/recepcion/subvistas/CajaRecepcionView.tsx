@@ -66,6 +66,9 @@ const obtenerDetalleConsumo = (consumo: ConsumoHistorial): DetalleConsumo => {
   return { ...base, pagado: consumo.estado === "Pagado" ? consumo.total : "0.00", pagos: consumo.estado === "Pagado" ? ["Efectivo · Bs. " + consumo.total] : [consumo.estado === "Anulado" ? "Venta anulada · sin cobro" : "Pendiente de cobro"], items: [{ concepto: "Consulta ambulatoria", cantidad: 1, unitario: "80.00", total: "80.00" }, { concepto: "Hemograma completo", cantidad: 1, unitario: "50.00", total: "50.00" }, { concepto: "Materiales de curación", cantidad: 1, unitario: "30.00", total: "30.00" }] };
 };
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
+const fechaVencimientoCatalogo = (fecha?: string) => fecha
+  ? new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium' }).format(new Date(`${fecha.slice(0, 10)}T00:00:00`))
+  : 'Sin fecha registrada';
 const alertasInventario = (item: Item) => {
   const alertas: { tipo: "stock" | "vencimiento"; texto: string; nivel: "bajo" | "proximo" | "vencido" }[] = [];
   if (item.stock !== undefined && item.stockMinimo !== undefined && item.stock <= item.stockMinimo) alertas.push({ tipo: "stock", texto: `Stock bajo: ${item.stock} de mínimo ${item.stockMinimo}`, nivel: "bajo" });
@@ -782,7 +785,7 @@ export function CajaRecepcionView({
                   <div className="punto-tarjeta-info">
                     <small>{i.codigo}</small>
                     <strong>{i.nombre}</strong>
-                    <div className="catalogo-clinico-detalles"><span>{i.tipo}</span>{i.stock !== undefined && <span className={'catalogo-clinico-stock' + (i.stock <= 0 ? ' agotado' : '')}>Stock <b>{i.stock}</b></span>}</div>
+                    <div className="catalogo-clinico-detalles">{i.stock !== undefined ? <span className="catalogo-clinico-vencimiento">Vencimiento <b>{fechaVencimientoCatalogo(i.fechaVencimiento)}</b></span> : <span>{i.tipo}</span>}{i.stock !== undefined && <span className={'catalogo-clinico-stock' + (i.stock <= 0 ? ' agotado' : '')}>Stock <b>{i.stock}</b></span>}</div>
                     {farmacia && alertasInventario(i).length > 0 && <div className="punto-alertas-inventario" aria-label={`Alertas de ${i.nombre}`}>
                       {alertasInventario(i).map(alerta => <span key={alerta.tipo} className={alerta.nivel}><Icon name={alerta.tipo === "stock" ? "package" : "calendar"} size={13}/>{alerta.texto}</span>)}
                     </div>}

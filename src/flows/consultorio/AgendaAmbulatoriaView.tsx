@@ -19,6 +19,17 @@ const fechaHoyDe = (valor: string) => {
   const fecha = new Date(valor);
   return Number.isNaN(fecha.getTime()) ? '' : `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
 };
+const citasDemoDelMedico = (medico: string): CitaConfirmada[] => {
+  const fecha = fechaHoy();
+  return [
+    { id: 'demo-consulta-001', pacienteId: 'demo-pac-001', paciente: 'María Fernanda López', ci: '6894521', doctor: medico, especialidad: 'Medicina Interna', fecha, hora: '08:00', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 42, fechaNacimiento: '1984-03-14' },
+    { id: 'demo-consulta-002', pacienteId: 'demo-pac-002', paciente: 'Carlos Mendoza Rojas', ci: '7459823', doctor: medico, especialidad: 'Cardiología', fecha, hora: '08:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 55, fechaNacimiento: '1971-08-22' },
+    { id: 'demo-consulta-003', pacienteId: 'demo-pac-003', paciente: 'Lucía Valdez Herrera', ci: '5128934', doctor: medico, especialidad: 'Neumología', fecha, hora: '09:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 36, fechaNacimiento: '1990-11-05' },
+    { id: 'demo-consulta-004', pacienteId: 'demo-pac-004', paciente: 'Jorge Ramírez Soria', ci: '8246175', doctor: medico, especialidad: 'Medicina Interna', fecha, hora: '10:00', estado: 'por_confirmar', consultorio: 'Consultorio 1', edad: 61, fechaNacimiento: '1965-01-28' },
+    { id: 'demo-consulta-005', pacienteId: 'demo-pac-005', paciente: 'Sofía Quispe Flores', ci: '6381942', doctor: medico, especialidad: 'Pediatría', fecha, hora: '10:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 9, fechaNacimiento: '2017-06-10' },
+    { id: 'demo-consulta-006', pacienteId: 'demo-pac-006', paciente: 'Elena Paredes Vargas', ci: '4712058', doctor: medico, especialidad: 'Cardiología', fecha, hora: '11:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 48, fechaNacimiento: '1978-12-03' },
+  ];
+};
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
   const {profesionales}=useProfesionales();
   const profesionalActual=profesionales.find(p=>p.usuario_id===String(leerSesion()?.usuario.id));
@@ -32,11 +43,15 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
     const cancelarSuscripcion = suscribirSignosVitales(() => setCitas((actuales) => [...actuales]));
     return () => { cancelarSuscripcion(); };
   }, []);
-  useEffect(() => { void apiFetch('/api/citas').then(async (response) => {
+  useEffect(() => { if (import.meta.env.VITE_USE_API !== 'true') return; void apiFetch('/api/citas').then(async (response) => {
     if (!response.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
     const datos = await response.json() as Array<CitaConfirmada & { estado: string }>;
     setCitas(datos.filter(cita => cita.estado === 'confirmada' || cita.estado === 'por_confirmar'));
-  }).catch(causa => setErrorPacientes((causa as Error).message)); }, []);
+  }).catch(() => undefined); }, []);
+  useEffect(() => {
+    setCitas(citasDemoDelMedico(medico));
+    setErrorPacientes('');
+  }, [medico]);
 
   // El backend limita la agenda del médico autenticado; este filtro evita una
   // exposición momentánea mientras se carga el perfil profesional.

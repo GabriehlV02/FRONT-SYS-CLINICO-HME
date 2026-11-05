@@ -28,6 +28,7 @@
 .consulta-secciones .consulta-volver-listado::after { display: none; }
 .consulta-secciones .consulta-volver-listado { position: absolute; z-index: 2; top: 12px; left: 18px; margin: 0; }
 .consulta-area-cabecera { padding-top: 46px; }
+.consulta-secciones .consulta-volver-listado{display:inline-flex;align-items:center;gap:9px;min-height:40px;padding:4px 13px 4px 5px;border-color:#c7dfed;border-radius:10px;color:#164f77;background:#fff;box-shadow:0 4px 12px rgba(18,77,112,.1);font-size:12px;letter-spacing:0}.consulta-secciones .consulta-volver-listado svg{width:30px;height:30px;padding:6px;border-radius:8px;color:#087fb7;background:#e7f7fd;transition:transform .18s ease,background .18s ease}.consulta-secciones .consulta-volver-listado:hover{border-color:#63b7dc;color:#056b9f;background:#f3fbff;box-shadow:0 7px 16px rgba(18,113,156,.16);transform:translateY(-1px)}.consulta-secciones .consulta-volver-listado:hover svg{color:#fff;background:#087fb7;transform:translateX(-2px)}
 @media (max-width: 600px) { .consulta-secciones .consulta-volver-listado { left: 14px; } .consulta-area-cabecera { padding-top: 46px; } }
 @media (max-width: 900px) { .consulta-volver-listado { width: 100%; justify-content: center; } }
 .consulta-atencion-principal{display:grid;gap:14px;min-width:0}.consulta-antecedentes{display:grid;gap:8px;padding:14px 18px}.consulta-antecedentes h3{margin:0;color:#064773;font-size:15px}.consulta-antecedentes textarea{box-sizing:border-box;width:100%;min-height:88px;padding:9px;border:1px solid #bfd8e9;border-radius:7px;color:#173d60;background:#f8fcff;outline:0;resize:vertical;font:inherit;font-size:12px}.consulta-antecedentes textarea:focus{border-color:#55aee0;box-shadow:0 0 0 3px rgba(58,157,216,.13)}
@@ -47,3 +48,9 @@
 /* Las cuatro acciones de órdenes se mantienen en una grilla 2 × 2 dentro del panel lateral. */
 .consulta-ordenes-medicas .consulta-ordenes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;align-items:stretch;gap:8px}
 .consulta-ordenes-medicas .consulta-ordenes button{min-width:0;width:100%;justify-content:center;padding-inline:8px;white-space:normal;text-align:center}
+
+/* Los signos vitales aprovechan el ancho disponible sin perder legibilidad. */
+.consulta-signos-form{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:1100px){.consulta-signos-form{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.consulta-signos-form{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.consulta-signos-form{grid-template-columns:1fr}}

@@ -146,3 +146,31 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Ajustes de interacción para tabletas y pantallas táctiles. */
+@media (hover: none) and (pointer: coarse) {
+  .sistema-app :is(button, a, [role="button"]) { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  .sistema-app :is(button:not(.libro-navegar), input, select, textarea) { min-height: 44px; }
+  .sistema-app :is(input, select, textarea) { font-size: 16px; }
+  .sistema-app :is(.consultorio-subvistas, .recepcion-subvistas, .punto-catalogo-filtros, .punto-busquedas) { scrollbar-width: thin; overscroll-behavior-inline: contain; }
+}
+
+@media (min-width: 761px) and (max-width: 1180px) {
+  .sistema-app .area-trabajo { padding-inline: clamp(14px, 2vw, 26px); }
+  .sistema-app .punto-pos-layout, .sistema-app .punto-pos-layout.con-historial { gap: 14px; }
+  .sistema-app .punto-carrito { position: static; }
+  .sistema-app .agenda-cola > :is(header, article) { grid-template-columns: 64px minmax(170px, 1.25fr) minmax(145px, 1fr) auto; }
+}
+
+@media (max-width: 760px) {
+  .sistema-app .punto-catalogo-filtros { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
+  .sistema-app .punto-catalogo-filtros > * { flex: 0 0 auto; }
+  .sistema-app .punto-busquedas { gap: 8px; }
+  .sistema-app .punto-busquedas > label { flex-basis: 100%; min-height: 44px; }
+  .sistema-app .punto-carrito-flotante { min-height: auto; padding: 14px; }
+  .sistema-app .punto-consulta-modal { width: 100%; max-width: 100%; max-height: min(94dvh, 760px); margin: 0; overflow: auto; border-radius: 18px 18px 0 0; }
+  .sistema-app .punto-imagen-fondo:has(.punto-consulta-modal) { align-items: end; padding: 0; }
+  .sistema-app .punto-consulta-modal .punto-consulta-fecha { grid-template-columns: 1fr; }
+  .sistema-app .punto-consulta-modal footer { position: sticky; bottom: 0; display: grid; grid-template-columns: 1fr; gap: 8px; padding-top: 12px; background: #fff; }
+  .sistema-app .punto-consulta-modal footer button { width: 100%; min-height: 46px; justify-content: center; }
+}

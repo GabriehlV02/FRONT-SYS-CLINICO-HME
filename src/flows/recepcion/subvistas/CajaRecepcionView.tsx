@@ -145,6 +145,7 @@ export function CajaRecepcionView({
   const [sucursalActiva, setSucursalActiva] = useState('Hospital María Esperanza');
   const [cajaActiva, setCajaActiva] = useState('Caja 01 · Recepción');
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteVenta | null>(null);
+  const [datosFactura, setDatosFactura] = useState({ nitCi: '', razonSocial: '', nitCiOriginal: '' });
   const [registroCliente, setRegistroCliente] = useState({ nombre: "", nitCi: "", telefono: "", correo: "" });
   const [busquedaCliente, setBusquedaCliente] = useState("");
   const [clientesEncontrados, setClientesEncontrados] = useState<ClienteVenta[]>([]);
@@ -156,6 +157,7 @@ export function CajaRecepcionView({
   const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
   const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
   const [consumoSeleccionado, setConsumoSeleccionado] = useState<ConsumoHistorial | null>(null);
+  const [carritoAbierto, setCarritoAbierto] = useState(false);
   useEffect(()=>{
     if(modo !== 'buscar') return;
     const termino=busquedaCliente.trim().toLocaleLowerCase('es');
@@ -341,6 +343,11 @@ export function CajaRecepcionView({
     setClienteSeleccionado(cliente);
     setPaciente(cliente.nombre_razon_social);
     setCiPaciente(cliente.nit_ci || '');
+    setDatosFactura({
+      nitCi: cliente.nit_ci || '',
+      razonSocial: cliente.nombre_razon_social,
+      nitCiOriginal: cliente.nit_ci || '',
+    });
     setHistorialAbierto(true);
     setBusquedaCliente("");
     setRegistroCliente({ nombre: "", nitCi: "", telefono: "", correo: "" });
@@ -709,7 +716,7 @@ export function CajaRecepcionView({
             )}
           </aside>
         )}
-        <section className="punto-catalogo">
+        <section className={`punto-catalogo ${carritoAbierto ? 'vista-carrito' : ''}`}>
           {cargandoCatalogo && <p role="status">Consultando productos y servicios del contable…</p>}
           {errorCatalogo && <p className="punto-catalogo-error" role="alert"><span>{errorCatalogo}</span><button type="button" onClick={() => setRecargaCatalogo(v => v + 1)}>Reintentar</button></p>}
           <div className="punto-busquedas">
@@ -721,6 +728,16 @@ export function CajaRecepcionView({
                 placeholder="Buscar producto por nombre, código o categoría…"
               />
             </label>
+            {carritoAbierto && busqueda.trim() && (
+              <div className="punto-buscador-carrito-resultados" role="listbox" aria-label="Productos encontrados">
+                {Object.entries(resultados.slice(0, 14).reduce<Record<string, Item[]>>((grupos, item) => {
+                  const grupo = item.categoria || item.tipo;
+                  (grupos[grupo] ||= []).push(item);
+                  return grupos;
+                }, {})).map(([categoria, items]) => <div key={categoria}><strong>{categoria}</strong>{items.map(item => <button type="button" role="option" key={item.id} onClick={() => prepararAgregar(item)}><span>{item.nombre}</span><small>{dinero(item.precio)}</small></button>)}</div>)}
+                {!resultados.length && <p>Sin coincidencias para esta búsqueda.</p>}
+              </div>
+            )}
             {!farmacia && !cocina && (
               <button
                 className="punto-accion-laboratorio"
@@ -760,15 +777,26 @@ export function CajaRecepcionView({
           </div>
           <div className="punto-catalogo-filtros">
             <div className="punto-categorias">
+              <button
+                className={`punto-boton-carrito ${carritoAbierto ? 'activo' : ''}`}
+                type="button"
+                aria-haspopup="dialog"
+                aria-expanded={carritoAbierto}
+                onClick={() => setCarritoAbierto(abierto => !abierto)}
+              >
+                <Icon name="asset" size={16} />
+                <span>Carrito</span>
+                {lineas.length > 0 && <b>{lineas.reduce((total, linea) => total + linea.cantidad, 0)}</b>}
+              </button>
               {(farmacia
                 ? (["Todos", "Producto", "Insumo"] as const)
                 : (["Todos", "Producto", "Insumo", "Servicio"] as const)
               ).map((o) => (
                 <button
                   type="button"
-                  className={tipo === o ? "activo" : ""}
+                  className={!carritoAbierto && tipo === o ? "activo" : ""}
                   key={o}
-                  onClick={() => setTipo(o)}
+                  onClick={() => { setCarritoAbierto(false); setTipo(o); }}
                 >
                   {o}
                 </button>
@@ -777,6 +805,17 @@ export function CajaRecepcionView({
             <button className="punto-actualizar-catalogo" type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}><Icon name="refresh" size={15}/> Actualizar</button>
 
           </div>
+          {carritoAbierto && (
+            <section className="punto-carrito-flotante" role="dialog" aria-label="Carrito de venta">
+              <header>
+                <div><strong>Carrito de venta</strong><small>{lineas.reduce((total, linea) => total + linea.cantidad, 0)} productos</small></div>
+              </header>
+              <div className="punto-carrito-lineas">
+                {lineas.map((i) => <article key={i.id}><strong>{i.nombre}</strong><small>{dinero(i.precio)} c/u</small><div><button type="button" onClick={() => cantidad(i.id, -1)}>−</button><input className="punto-cantidad-input" type="text" inputMode="numeric" pattern="[0-9]*" aria-label={`Cantidad de ${i.nombre}`} value={String(i.cantidad)} onFocus={(e) => e.currentTarget.select()} onChange={(e) => escribirCantidad(i.id, e.target.value)} /><button type="button" onClick={() => cantidad(i.id, 1)}>+</button><span>{dinero(i.precio * i.cantidad)}</span><button className="punto-quitar" type="button" onClick={() => setLineas(a => a.filter(x => x.id !== i.id))}>×</button></div></article>)}
+              </div>
+              <section className="punto-resumen"><div><span>Subtotal</span><b>{dinero(subtotal)}</b></div><label>Descuento<input type="number" min="0" value={descuento} onChange={(e) => setDescuento(e.target.value)} placeholder="0.00" /></label><div className="punto-total"><span>Total</span><b>{dinero(total)}</b></div></section>
+            </section>
+          )}
           {(mensaje || errorPacientes) && <p className="punto-aviso exito">{mensaje || errorPacientes}</p>}
 
             <div className="punto-tarjetas catalogo-clinico-tarjetas">
@@ -815,22 +854,6 @@ export function CajaRecepcionView({
             <Icon name="asset" size={24} />
           </header>
           <section className="punto-cliente">
-            <header>
-              <strong>Paciente para cobro</strong>
-              {clienteSeleccionado && (
-                <button
-                  className="cliente-cambiar"
-                  type="button"
-                  onClick={() => {
-                    setClienteSeleccionado(null);
-                    setPaciente("");
-                    setCiPaciente("");
-                  }}
-                >
-                  Cambiar
-                </button>
-              )}
-            </header>
             {!clienteSeleccionado && modo === "inicio" && (
               <div className="cliente-acciones">
                 <button type="button" onClick={() => { setErrorCliente(""); setModo("buscar"); }}>
@@ -945,17 +968,48 @@ export function CajaRecepcionView({
               </div>
             )}
             {clienteSeleccionado && (
-              <button className="cliente-resumen" type="button">
-                <span>
-                  <small>Paciente para cobro</small>
+              <div className="cliente-resumen">
+                <div className="cliente-paciente-factura">
                   <b>{clienteSeleccionado.nombre_razon_social}</b>
-                </span>
-                <span>
-                  <small>CI / NIT</small>
-                  <b>{clienteSeleccionado.nit_ci || "No registrado"}</b>
-                </span>
-                <Icon name="chevronDown" size={18} />
-              </button>
+                  <button
+                    className="cliente-cambiar"
+                    type="button"
+                    onClick={() => {
+                      setClienteSeleccionado(null);
+                      setDatosFactura({ nitCi: '', razonSocial: '', nitCiOriginal: '' });
+                      setPaciente("");
+                      setCiPaciente("");
+                    }}
+                  >
+                    Cambiar
+                  </button>
+                </div>
+                <label className="cliente-documento-factura">
+                  <small>CI / NIT para factura</small>
+                  <input
+                    aria-label="CI o NIT para la factura"
+                    value={datosFactura.nitCi}
+                    onChange={(evento) => setDatosFactura(actual => ({
+                      ...actual,
+                      nitCi: evento.target.value,
+                      razonSocial: actual.nitCi.trim() === actual.nitCiOriginal.trim() ? '' : actual.razonSocial,
+                    }))}
+                    placeholder="CI / NIT"
+                  />
+                </label>
+                {datosFactura.nitCi.trim() !== datosFactura.nitCiOriginal.trim() && (
+                  <label className="cliente-razon-social-factura">
+                    <small>Razón social o nombre para factura</small>
+                    <input
+                      autoFocus
+                      aria-label="Razón social o nombre para la factura"
+                      value={datosFactura.razonSocial}
+                      onChange={(evento) => setDatosFactura(actual => ({ ...actual, razonSocial: evento.target.value }))}
+                      placeholder="Escribe el nombre que saldrá en la factura"
+                    />
+                  </label>
+                )}
+              </div>
             )}
           </section>
           <div className="punto-carrito-lineas">
@@ -994,9 +1048,7 @@ export function CajaRecepcionView({
                   </div>
                 </article>
               ))
-            ) : (
-              <p>No hay productos en el carrito.</p>
-            )}
+            ) : null}
           </div>
           <section className="punto-resumen">
             <div>

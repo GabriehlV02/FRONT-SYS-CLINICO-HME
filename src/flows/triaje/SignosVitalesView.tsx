@@ -6,11 +6,14 @@ import './SignosVitalesView.css';
 import './ColaTriaje.css';
 import type { SignoVitalConfig } from './ConfiguracionSignosVitalesView';
 import { guardarSignosVitales } from './registroSignosVitales';
+import { obtenerAtencionAmbulatoria } from '../consultorio/registroHistoria';
 
 type PacienteEnEspera = {
   id: string;
   pacienteId?: string;
   hora: string;
+  fecha: string;
+  estado?: string;
   paciente: string;
   ci: string;
   edad: number;
@@ -34,7 +37,7 @@ const camposVitalesPredeterminados = [
 export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?: SignoVitalConfig[] }) {
   const [cola, setCola] = useState(colaInicial);
   const [errorPacientes, setErrorPacientes] = useState('');
-  useEffect(()=>{const controller=new AbortController();void apiFetch('/api/citas',{signal:controller.signal}).then(async r=>{if(!r.ok) throw new Error('No se pudo consultar la cola de pacientes.');const citas=await r.json() as (CitaConfirmada & {estado:string})[];setCola(citas.filter(c=>c.estado==='confirmada' && c.fecha===new Date().toLocaleDateString('en-CA')).map(c=>({...c,edad:Number(c.edad) || 0})));}).catch(causa=>{if(!controller.signal.aborted)setErrorPacientes((causa as Error).message);});return()=>controller.abort();},[]);
+  useEffect(()=>{const controller=new AbortController();void apiFetch('/api/citas',{signal:controller.signal}).then(async r=>{if(!r.ok) throw new Error('No se pudo consultar la cola de pacientes.');const citas=await r.json() as (CitaConfirmada & {estado:string})[];if(!controller.signal.aborted)setCola(citas.filter(c=>(c.estado==='confirmada' || c.estado==='por_confirmar') && !obtenerAtencionAmbulatoria(c)?.finalizadaEn).sort((a,b)=>`${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)).map(c=>({...c,edad:Number(c.edad) || 0})));}).catch(causa=>{if(!controller.signal.aborted)setErrorPacientes((causa as Error).message);});return()=>controller.abort();},[]);
   const [busqueda, setBusqueda] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<PacienteEnEspera | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});
@@ -103,12 +106,12 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
       <section className="signos-vitales-lista" aria-label="Cola de pacientes para signos vitales">{errorPacientes && <p role="alert">{errorPacientes}</p>}
         <header><span>Consulta</span><span>Paciente</span><span>Médico / especialidad</span><span>Acción</span></header>
         {visibles.map((paciente) => <article key={paciente.id}>
-          <time>{paciente.hora}</time>
+          <time dateTime={`${paciente.fecha}T${paciente.hora}`}><strong>{paciente.hora}</strong><small>{paciente.fecha.split('-').reverse().join('/')}</small></time>
           <div className="signos-paciente"><span>{paciente.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span><div><strong>{paciente.paciente}</strong><small>CI {paciente.ci}</small></div></div>
-          <div className="signos-consulta"><strong>{paciente.doctor}</strong><small>{paciente.especialidad}</small></div>
+          <div className="signos-consulta"><strong>{paciente.doctor}</strong><small>{paciente.especialidad}</small>{paciente.estado === 'por_confirmar' && <small>Por confirmar · Cobro pendiente de verificar</small>}</div>
           <button className="accion-registrar-signos" type="button" onClick={() => setPacienteSeleccionado(paciente)}><Icon name="patient" size={16} /> Registrar</button>
         </article>)}
-        {!visibles.length && <p className="signos-vitales-vacio">{busqueda ? 'No hay pacientes que coincidan con la búsqueda.' : 'No hay pacientes en espera.'}</p>}
+        {!visibles.length && <p className="signos-vitales-vacio">{busqueda ? 'No hay pacientes que coincidan con la búsqueda.' : 'No hay consultas pendientes de atención.'}</p>}
       </section>
       <aside id="cola-atendidos" hidden={!panelAtendidosAbierto} className="signos-atendidos" aria-label="Pacientes atendidos">
           <div className="signos-atendidos-contenido">

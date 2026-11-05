@@ -79,3 +79,6 @@
   .signos-vitales-lista article .accion-registrar-signos { grid-column: 2; justify-self: start; }
 }
 @media (prefers-reduced-motion: reduce) { .signos-atendidos-contenido { animation: none; } }
+
+.signos-vitales-lista article time { display: grid; gap: 4px; }
+.signos-vitales-lista article time small { font-size: 11px; font-weight: 400; color: #587b96; white-space: nowrap; }

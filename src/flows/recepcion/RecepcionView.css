@@ -2051,6 +2051,7 @@
 .punto-cobrar:disabled {
   opacity: 0.48;
 }
+.punto-preventa{height:42px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #b5a7e6;border-radius:8px;color:#624aa6;background:#f5f2ff;font-size:13px;font-weight:750}.punto-preventa:hover:not(:disabled){border-color:#8065c7;color:#fff;background:#7357bc}.punto-preventa:disabled{opacity:.48}
 
 /* Barra de trabajo refinada para Farmacia */
 .punto-pos-farmacia .punto-catalogo {

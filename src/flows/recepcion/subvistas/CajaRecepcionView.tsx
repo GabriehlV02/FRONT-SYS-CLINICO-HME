@@ -137,7 +137,7 @@ export function CajaRecepcionView({
   }, [recargaCatalogo]);
   const [imagenParaAgregar, setImagenParaAgregar] = useState<Item | null>(null);
   const [consultaParaAgendar, setConsultaParaAgendar] = useState<Item | null>(null);
-  const [especialidadConsulta, setEspecialidadConsulta] = useState('Medicina general');
+  const [especialidadConsulta, setEspecialidadConsulta] = useState('Medicina Interna');
   const [medicoConsulta, setMedicoConsulta] = useState('');
   const [fechaConsulta, setFechaConsulta] = useState('');
   const [horaConsulta, setHoraConsulta] = useState('');
@@ -195,6 +195,21 @@ export function CajaRecepcionView({
     pagado = pagos.reduce((t, p) => t + Math.max(Number(p.monto) || 0, 0), 0),
     pendiente = Math.max(total - pagado, 0),
     cambio = Math.max(pagado - total, 0);
+  const profesionalConsulta = resolver(medicoConsulta);
+  const diasAtencionConsulta = profesionalConsulta?.horario?.startsWith('Lun') ? [1, 3, 5] : [2, 4, 6];
+  const horasAtencionConsulta = profesionalConsulta?.horario?.includes('08:00')
+    ? ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30']
+    : ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'];
+  const fechaEnTurno = !fechaConsulta || diasAtencionConsulta.includes(new Date(`${fechaConsulta}T12:00:00`).getDay());
+  useEffect(() => {
+    if (!consultaParaAgendar) return;
+    const campoHora = document.querySelector('.punto-consulta-modal input[type="time"]') as HTMLInputElement | null;
+    if (!campoHora) return;
+    campoHora.min = horasAtencionConsulta[0];
+    campoHora.max = horasAtencionConsulta.at(-1) || '';
+    campoHora.step = '1800';
+    if (horaConsulta && !horasAtencionConsulta.includes(horaConsulta)) setHoraConsulta('');
+  }, [consultaParaAgendar, horasAtencionConsulta, horaConsulta]);
   const agregar = (i: Item) => {
     setLineas((a) =>
       a.some((x) => x.id === i.id)
@@ -208,7 +223,7 @@ export function CajaRecepcionView({
     // El id procede del catálogo contable y no siempre se llama "consulta".
     const esConsultaMedica = item.tipo === 'Servicio' && /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre));
     if (esConsultaMedica) {
-      setConsultaParaAgendar(item); setEspecialidadConsulta('Medicina general'); setMedicoConsulta(medicosPorEspecialidad['Medicina general']?.[0] || ''); setFechaConsulta(''); setHoraConsulta('');
+      setConsultaParaAgendar(item); setEspecialidadConsulta('Medicina Interna'); setMedicoConsulta(medicosPorEspecialidad['Medicina Interna']?.[0] || ''); setFechaConsulta(''); setHoraConsulta('');
       return;
     }
     if (item.categoria === "Imagenología") {
@@ -220,15 +235,25 @@ export function CajaRecepcionView({
     }
     agregar(item);
   };
-  const agendarConsulta = async () => {
+  const abrirConsultaExterna = () => {
+    const consulta = catalogo.find(item => item.tipo === 'Servicio' && /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre)))
+      || { id: 'consulta-externa-demo', nombre: 'Consulta médica', tipo: 'Servicio' as Tipo, codigo: 'SRV-CONS-EXT', precio: precioConsulta };
+    setConsultaParaAgendar(consulta);
+    setEspecialidadConsulta('Medicina Interna');
+    setMedicoConsulta(medicosPorEspecialidad['Medicina Interna']?.[0] || '');
+    setFechaConsulta('');
+    setHoraConsulta('');
+  };
+  const agendarConsulta = () => {
     if (!consultaParaAgendar || !fechaConsulta || !horaConsulta) return setMensaje('Selecciona especialidad, médico, fecha y hora para continuar.');
-    const ficha=fichasPacientes.find(p=>p.ci===ciPaciente),profesional=resolver(medicoConsulta);
-    if(!ficha || !profesional) return setMensaje('Selecciona un paciente registrado y un médico activo.');
-    try{const r=await apiFetch('/api/citas',{method:'POST',headers:{Accept:'application/json'},body:JSON.stringify({paciente_id:ficha.id,profesional_id:profesional.id,doctor:profesional.nombre,especialidad:especialidadConsulta,consultorio:'Consultorio 1',fecha:fechaConsulta,hora:horaConsulta,estado:'por_confirmar'})});const d=await r.json();if(!r.ok)throw new Error(Object.values(d.errors || {}).flat().join(' ') || d.message || 'No se pudo agendar la consulta.');}catch(e){setMensaje((e as Error).message);return;}
+    if (!fechaEnTurno || !horasAtencionConsulta.includes(horaConsulta)) return setMensaje('Selecciona un día y una hora dentro del turno de consulta externa del médico.');
+    const ficha = fichasPacientes.find(p => p.ci === ciPaciente), profesional = resolver(medicoConsulta);
+    if (!ficha || !profesional) return setMensaje('Selecciona un paciente registrado y un médico activo.');
     const linea: Linea = { ...consultaParaAgendar, id: `${consultaParaAgendar.id}-${fechaConsulta}-${horaConsulta}-${medicoConsulta}`, nombre: `${consultaParaAgendar.nombre} · ${especialidadConsulta}`, cantidad: 1 };
     setLineas(actuales => [...actuales, linea]);
     setMensaje(`Consulta agendada con ${medicoConsulta} para el ${fechaConsulta} a las ${horaConsulta}.`);
     setConsultaParaAgendar(null);
+    setCarritoAbierto(true);
   };
   const agregarEstudioImagen = () => {
     if (!imagenParaAgregar) return;
@@ -384,6 +409,28 @@ export function CajaRecepcionView({
     } finally {
       setGuardandoCliente(false);
     }
+  };
+  const realizarPreVenta = () => {
+    if (!lineas.length) return setMensaje('Agrega al menos un producto o servicio antes de realizar la pre venta.');
+    if (!clienteSeleccionado) return setMensaje('Busca o registra un cliente antes de realizar la pre venta.');
+    const registro = {
+      id: `PV-${Date.now()}`,
+      estado: 'Pre venta',
+      creadoEn: new Date().toISOString(),
+      cliente: { id: clienteSeleccionado.id, nombre: clienteSeleccionado.nombre_razon_social, nitCi: datosFactura.nitCi, razonSocial: datosFactura.razonSocial },
+      detalles: lineas.map(linea => ({ id: linea.id, nombre: linea.nombre, cantidad: linea.cantidad, precio: linea.precio })),
+      total, pagado, pendiente, descuento: rebaja,
+      pagos: pagos.filter(pago => Number(pago.monto) > 0),
+    };
+    try {
+      const actuales = JSON.parse(localStorage.getItem('clinico_preventas_v1') || '[]') as unknown[];
+      localStorage.setItem('clinico_preventas_v1', JSON.stringify([registro, ...actuales]));
+      setMensaje(`Pre venta ${registro.id} guardada. Saldo pendiente: ${dinero(pendiente)}.`);
+      setLineas([]);
+      setPagos([pagoNuevo(Date.now())]);
+      setDescuento('');
+      setClienteSeleccionado(null);
+    } catch { setMensaje('No se pudo guardar la pre venta localmente.'); }
   };
   const cobrar = async () => {
     if (!lineas.length || pendiente > 0) return;
@@ -752,7 +799,7 @@ export function CajaRecepcionView({
               </button>
             )}
             {!farmacia && !cocina && onConsultaExterna && (
-              <button className="punto-accion-consulta-externa" type="button" onClick={onConsultaExterna}>
+              <button className="punto-accion-consulta-externa" type="button" onClick={abrirConsultaExterna}>
                 <Icon name="calendar" size={16} /> Consulta externa
               </button>
             )}
@@ -1158,6 +1205,14 @@ export function CajaRecepcionView({
             onClick={() => void cobrar()}
           >
             <Icon name="check" size={17} /> {cobrando ? "Registrando venta..." : "Cobrar e imprimir factura"}
+          </button>
+          <button
+            className="punto-preventa"
+            type="button"
+            disabled={!lineas.length || cobrando}
+            onClick={realizarPreVenta}
+          >
+            <Icon name="fileText" size={17} /> Realizar pre venta{pendiente > 0 ? ` · Falta ${dinero(pendiente)}` : ''}
           </button>
         </aside>
       </div>

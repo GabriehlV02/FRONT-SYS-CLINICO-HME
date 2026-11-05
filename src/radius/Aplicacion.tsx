@@ -104,6 +104,12 @@ type SubvistaEnfermeraInternacion = "internados" | "altas";
 type TemaSistema = "light" | "dark";
 type CirugiaProgramada = { id: string; hora: string; sala: string; paciente: string; procedimiento: string; cirujano: string; estado: string; historia: string; ci: string; edad: string; diagnostico: string; anestesiologo: string; ayudante: string; instrumentista: string; circulante: string };
 
+const claveUbicacion = 'clinico_ubicacion_activa_v1';
+const leerUbicacion = (): Record<string, string> => {
+  try { return JSON.parse(localStorage.getItem(claveUbicacion) || '{}') as Record<string, string>; }
+  catch { return {}; }
+};
+
 const cirugiasProgramadas: CirugiaProgramada[] = [
   { id: 'cir-hernia', hora: '08:00', sala: 'Quirófano 01', paciente: 'María Fernanda López García', procedimiento: 'Hernioplastía inguinal', cirujano: 'Dr. Luis Esteban Escobar Rocha', estado: 'En preparación', historia: 'HC-004821', ci: '6894521 LP', edad: '42 años', diagnostico: 'Hernia inguinal derecha', anestesiologo: 'Dra. Valeria Rojas Pardo', ayudante: 'Dr. Marco Antonio Vargas', instrumentista: 'Lic. Elena Morales', circulante: 'Lic. Patricia Flores' },
   { id: 'cir-colecistectomia', hora: '10:00', sala: 'Quirófano 02', paciente: 'Carlos Alberto Mendoza Rojas', procedimiento: 'Colecistectomía laparoscópica', cirujano: 'Dra. Ana Sofía Quispe Vargas', estado: 'Programada', historia: 'HC-008214', ci: '7459823 LP', edad: '55 años', diagnostico: 'Colelitiasis sintomática', anestesiologo: 'Dr. Ricardo Paredes', ayudante: 'Dra. Luisa Fernández', instrumentista: 'Lic. Andrea Soria', circulante: 'Lic. Miguel Álvarez' },
@@ -192,6 +198,7 @@ function TablaSubvistaPaciente({ vista }: { vista: 'historias' | 'estudios' }) {
 
 export default function Aplicacion() {
   const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
+  const ubicacionInicial = leerUbicacion();
   useEffect(() => {
     if (!sesion?.token) return;
     const controller = new AbortController();
@@ -202,23 +209,26 @@ export default function Aplicacion() {
     }).catch(() => undefined);
     return () => controller.abort();
   }, [sesion?.token]);
-  const [modulo, setModulo] = useState("");
-  const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>("pacientes");
+  const [modulo, setModulo] = useState(ubicacionInicial.modulo || "");
+  const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>((ubicacionInicial.subvistaImagenologia as SubvistaImagenologia) || "pacientes");
   const [visorModalidad, setVisorModalidad] = useState<"Tomografía" | null>(null);
-  const [subvistaModalidad, setSubvistaModalidad] = useState<SubvistaModalidad>("pacientes");
+  const [subvistaModalidad, setSubvistaModalidad] = useState<SubvistaModalidad>((ubicacionInicial.subvistaModalidad as SubvistaModalidad) || "pacientes");
   const [rolEnfermeriaQuirofano, setRolEnfermeriaQuirofano] = useState<RolEnfermeriaQuirofano>("instrumentista");
   const [subvistaAlmacenQuirofano, setSubvistaAlmacenQuirofano] = useState<SubvistaAlmacenQuirofano>("quirofano-1");
   const [cirugiaInstrumentista, setCirugiaInstrumentista] = useState<string | null>(null);
   const [fechaDesdeCirugias, setFechaDesdeCirugias] = useState('');
   const [fechaHastaCirugias, setFechaHastaCirugias] = useState('');
-  const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>("caja");
-  const [subvistaPacientes, setSubvistaPacientes] = useState<SubvistaPacientes>("pacientes");
-  const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>("usuario");
-  const [subvistaAtencionAgenda, setSubvistaAtencionAgenda] = useState<SubvistaAtencionAgenda>("pacientes");
-  const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>("signos-vitales");
-  const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] = useState<SubvistaMedicoInternacion>("internados");
-  const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] = useState<SubvistaEnfermeraInternacion>("internados");
-  const [subvistaTerapia, setSubvistaTerapia] = useState<'registro-enfermeria' | 'monitorizacion' | 'registros'>('registro-enfermeria');
+  const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>((ubicacionInicial.subvistaRecepcion as SubvistaRecepcion) || "caja");
+  const [subvistaPacientes, setSubvistaPacientes] = useState<SubvistaPacientes>((ubicacionInicial.subvistaPacientes as SubvistaPacientes) || "pacientes");
+  const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>((ubicacionInicial.subvistaConfiguracion as SubvistaConfiguracion) || "usuario");
+  const [subvistaAtencionAgenda, setSubvistaAtencionAgenda] = useState<SubvistaAtencionAgenda>((ubicacionInicial.subvistaAtencionAgenda as SubvistaAtencionAgenda) || "pacientes");
+  const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>((ubicacionInicial.subvistaTriajeAmbulatorio as SubvistaTriajeAmbulatorio) || "signos-vitales");
+  const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] = useState<SubvistaMedicoInternacion>((ubicacionInicial.subvistaMedicoInternacion as SubvistaMedicoInternacion) || "internados");
+  const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] = useState<SubvistaEnfermeraInternacion>((ubicacionInicial.subvistaEnfermeraInternacion as SubvistaEnfermeraInternacion) || "internados");
+  const [subvistaTerapia, setSubvistaTerapia] = useState<'registro-enfermeria' | 'monitorizacion' | 'registros'>((ubicacionInicial.subvistaTerapia as 'registro-enfermeria' | 'monitorizacion' | 'registros') || 'registro-enfermeria');
+  useEffect(() => {
+    localStorage.setItem(claveUbicacion, JSON.stringify({ modulo, subvistaImagenologia, subvistaModalidad, subvistaRecepcion, subvistaPacientes, subvistaConfiguracion, subvistaAtencionAgenda, subvistaTriajeAmbulatorio, subvistaMedicoInternacion, subvistaEnfermeraInternacion, subvistaTerapia }));
+  }, [modulo, subvistaImagenologia, subvistaModalidad, subvistaRecepcion, subvistaPacientes, subvistaConfiguracion, subvistaAtencionAgenda, subvistaTriajeAmbulatorio, subvistaMedicoInternacion, subvistaEnfermeraInternacion, subvistaTerapia]);
   const [versionAsignaciones, setVersionAsignaciones] = useState(0);
   useEffect(() => {
     const actualizar = () => setVersionAsignaciones(version => version + 1);

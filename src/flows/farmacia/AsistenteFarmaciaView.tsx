@@ -13,13 +13,13 @@ type ProductoUbicacionFarmacia = { id: number; codigo: string; nombre: string; m
 type AlmacenFarmacia = { id: number; nombre: string; items: number; estructuras: EstructuraFarmacia[]; productos?: ProductoUbicacionFarmacia[] };
 type DetalleSucursalFarmacia = { sucursalId: number; nombre?: string; items: number; almacenes: AlmacenFarmacia[] };
 type AlmacenInventarioFisico = { id: number; sucursalId: number; sucursal: string; nombre: string };
-type InventarioFisico = { id: number; sucursal: string; almacen: string; estado: 'ESPERANDO_ALMACEN' | 'EN_CURSO' | 'FINALIZADO' | 'CANCELADO'; inicio: string; finalizado: string | null; cantidadEsperada: number; cantidadContada: number; faltantes: number; sobrantes: number; itemsTotal: number; itemsContados: number };
+type InventarioFisico = { id: number; sucursal: string; almacen: string; estado: 'ESPERANDO_ALMACEN' | 'EN_CURSO' | 'FINALIZADO' | 'CANCELADO'; inicio: string; finalizado: string | null; cantidadEsperada: number; cantidadContada: number; faltantes: number; sobrantes: number; itemsTotal: number; itemsContados: number; ejemplos?: { codigo: string; nombre: string }[] };
 type DetalleInventarioFisico = InventarioFisico & { items: { id: number; itemId: number; codigo: string; nombre: string; generico: string; marca: string; presentacion: string; esperada: number; contada: number | null }[] };
 const formatoCantidad = (valor: number) => valor.toLocaleString('es-BO', { maximumFractionDigits: 3 });
 const formatoFecha = (valor: string | null) => valor ? new Intl.DateTimeFormat('es-BO', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(valor.replace(' ', 'T'))) : '—';
 const etiquetaEstadoInventario = (estado: InventarioFisico['estado']) => ({ EN_CURSO: 'Inventario en curso', ESPERANDO_ALMACEN: 'Pendiente de almacén', FINALIZADO: 'Finalizado', CANCELADO: 'Cancelado' })[estado];
 const claseEstadoInventario = (estado: InventarioFisico['estado']) => ({ EN_CURSO: 'en-curso', ESPERANDO_ALMACEN: 'pendiente', FINALIZADO: 'finalizado', CANCELADO: 'cancelado' })[estado];
-type SpeechRecognitionResultLike = ArrayLike<{ transcript: string }> & { isFinal: boolean };
+type SpeechRecognitionResultLike = ArrayLike<{ transcript: string; confidence?: number }> & { isFinal: boolean };
 type SpeechRecognitionLike = { lang: string; continuous: boolean; interimResults: boolean; onresult: ((event: { resultIndex: number; results: ArrayLike<SpeechRecognitionResultLike> }) => void) | null; onerror: ((event: { error?: string }) => void) | null; onend: (() => void) | null; start: () => void; stop: () => void };
 type SpeechWindow = Window & { SpeechRecognition?: new () => SpeechRecognitionLike; webkitSpeechRecognition?: new () => SpeechRecognitionLike };
 
@@ -151,12 +151,14 @@ export function AsistenteFarmaciaView() {
   const peticionInventarios = useRef(0);
   const [escuchando, setEscuchando] = useState(false);
   const [vozManosLibres, setVozManosLibres] = useState(false);
+  const [pruebaMicrofono, setPruebaMicrofono] = useState(false);
   const [avisoVoz, setAvisoVoz] = useState('');
   const [vozMarcelo, setVozMarcelo] = useState<SpeechSynthesisVoice | null>(null);
   const reconocimiento = useRef<SpeechRecognitionLike | null>(null);
   const escuchandoRef = useRef(false);
   const modoManosLibresRef = useRef(false);
   const procesandoVozRef = useRef(false);
+  const pruebaMicrofonoRef = useRef(false);
   const finConversacion = useRef<HTMLDivElement>(null);
 
   useEffect(() => { finConversacion.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }); }, [mensajes]);
@@ -250,24 +252,28 @@ export function AsistenteFarmaciaView() {
     try {
       const respuesta = await apiFetch('/api/farmacia/tomi/chat', { method: 'POST', body: JSON.stringify({ messages: conversacion.slice(-16).map(item => ({ role: item.rol, content: item.texto })), model: configuracion.modelo, style: configuracion.instrucciones }) });
       const datos = await respuesta.json().catch(() => ({}));
-      if (!respuesta.ok) throw new Error(datos.message || 'No se pudo conectar con TOMI.');
+      if (!respuesta.ok) throw new Error(respuesta.status >= 500 ? 'No se pudo guardar o confirmar el conteo por un error del servidor.' : datos.message || 'No se pudo completar la consulta.');
       const inventarioDescargaId = Number(datos.inventarioFinalizadoId) || undefined;
       setMensajes(actuales => [...actuales, { id: Date.now() + 1, rol: 'assistant', texto: datos.message, hora: new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit' }).format(new Date()), inventarioDescargaId }]);
       const inventarioActual = await cargarInventarioActivo();
       if (inventarioDescargaId) void descargarExcel(inventarioDescargaId);
-      if (porVoz) {
-        modoManosLibresRef.current = Boolean(inventarioActual);
-        setVozManosLibres(Boolean(inventarioActual));
-        escucharRespuesta(datos.message, Boolean(inventarioActual));
-      } else if (modoManosLibresRef.current && inventarioActual) {
-        escucharRespuesta(datos.message, true);
+      if (porVoz && modoManosLibresRef.current && !inventarioActual) {
+        modoManosLibresRef.current = false;
+        setVozManosLibres(false);
       }
+      if (porVoz && inventarioActual) {
+        modoManosLibresRef.current = true;
+        setVozManosLibres(true);
+      }
+      if (porVoz || modoManosLibresRef.current) escucharRespuesta(datos.message, Boolean(modoManosLibresRef.current && inventarioActual));
     } catch (error) {
       const detalle = error instanceof Error ? error.message : '';
       const mensajeTecnico = /Cannot redeclare class|Fatal error|Stack trace|\.php:\d+/i.test(detalle);
-      const mensajeError = porVoz ? 'No te escuché. Repítelo otra vez, por favor.' : (mensajeTecnico ? 'No se pudo completar la respuesta. Actualiza la página e inténtalo otra vez.' : detalle || 'No se pudo conectar con TOMI.');
+      const falloConexion = /conect|network|fetch|servicio de ia/i.test(detalle);
+      const falloRegistro = /guardar|confirmar el conteo|servidor/i.test(detalle);
+      const mensajeError = porVoz ? (falloConexion || falloRegistro ? 'No pude confirmar si el conteo se guardó. Revisa el progreso del inventario antes de repetirlo.' : 'No te escuché. Repítelo otra vez, por favor.') : (mensajeTecnico ? 'No se pudo completar la respuesta. Actualiza la página e inténtalo otra vez.' : detalle || 'No se pudo conectar con TOMI.');
       setErrorChat(mensajeError);
-      if (porVoz) {
+      if (porVoz || modoManosLibresRef.current) {
         setMensajes(actuales => [...actuales, { id: Date.now() + 1, rol: 'assistant', texto: mensajeError, hora: new Intl.DateTimeFormat('es-BO', { hour: '2-digit', minute: '2-digit' }).format(new Date()) }]);
         escucharRespuesta(mensajeError, modoManosLibresRef.current);
       }
@@ -285,17 +291,42 @@ export function AsistenteFarmaciaView() {
   const iniciarReconocimiento = (manosLibres = false) => {
     if (escuchandoRef.current) return;
     const SpeechRecognition = (window as SpeechWindow).SpeechRecognition || (window as SpeechWindow).webkitSpeechRecognition;
-    if (!SpeechRecognition) { setAvisoVoz('El dictado por voz no está disponible en este navegador. Prueba con Edge o Chrome.'); return; }
+    if (!SpeechRecognition) { pruebaMicrofonoRef.current = false; setPruebaMicrofono(false); modoManosLibresRef.current = false; setVozManosLibres(false); setAvisoVoz('El dictado por voz no está disponible en este navegador. Prueba con Edge o Chrome.'); return; }
     const instancia = new SpeechRecognition();
     instancia.lang = 'es-BO'; instancia.continuous = true; instancia.interimResults = true;
     let segmentos: string[] = [];
+    let confianzaMinima = 1;
     let temporizador: number | null = null;
     const enviarSegmentos = () => {
       if (temporizador !== null) window.clearTimeout(temporizador);
       temporizador = null;
-      const texto = segmentos.join(' ').trim();
+      let texto = segmentos.join(' ').trim();
       segmentos = [];
       if (!texto) return;
+      if (pruebaMicrofonoRef.current) {
+        pruebaMicrofonoRef.current = false;
+        setPruebaMicrofono(false);
+        setMensaje(texto);
+        setAvisoVoz(`Te escuché: “${texto}”. La prueba del micrófono funcionó.`);
+        procesandoVozRef.current = false;
+        instancia.stop();
+        escucharRespuesta('Prueba de micrófono correcta. Te escuché decir: '+texto+'.', false);
+        return;
+      }
+      if (modoManosLibresRef.current) {
+        const comandoTomi = texto.match(/^tomi[\s,:-]+(.+)$/i);
+        if (!comandoTomi) {
+          setAvisoVoz('Di “TOMI” seguido del código y la cantidad para registrar un conteo.');
+          return;
+        }
+        texto = comandoTomi[1].trim();
+      }
+      if (confianzaMinima > 0 && confianzaMinima < 0.42) {
+        procesandoVozRef.current = true;
+        instancia.stop();
+        escucharRespuesta('No escuché con claridad. Repite el código y la cantidad, por favor.', modoManosLibresRef.current);
+        return;
+      }
       procesandoVozRef.current = true;
       setMensaje(texto);
       setAvisoVoz('');
@@ -305,7 +336,10 @@ export function AsistenteFarmaciaView() {
     instancia.onresult = event => {
       for (let indice = event.resultIndex; indice < event.results.length; indice += 1) {
         const resultado = event.results[indice];
-        if (resultado?.isFinal && resultado[0]?.transcript.trim()) segmentos.push(resultado[0].transcript.trim());
+        if (resultado?.isFinal && resultado[0]?.transcript.trim()) {
+          segmentos.push(resultado[0].transcript.trim());
+          if (typeof resultado[0].confidence === 'number') confianzaMinima = Math.min(confianzaMinima, resultado[0].confidence);
+        }
       }
       if (segmentos.length) {
         if (temporizador !== null) window.clearTimeout(temporizador);
@@ -314,6 +348,8 @@ export function AsistenteFarmaciaView() {
     };
     instancia.onerror = event => {
       if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        pruebaMicrofonoRef.current = false;
+        setPruebaMicrofono(false);
         modoManosLibresRef.current = false;
         procesandoVozRef.current = false;
         setVozManosLibres(false);
@@ -323,6 +359,11 @@ export function AsistenteFarmaciaView() {
     instancia.onend = () => {
       escuchandoRef.current = false;
       setEscuchando(false);
+      if (pruebaMicrofonoRef.current && !segmentos.length) {
+        pruebaMicrofonoRef.current = false;
+        setPruebaMicrofono(false);
+        setAvisoVoz('No detecté voz. Revisa el permiso y el micrófono e inténtalo de nuevo.');
+      }
       if (segmentos.length) enviarSegmentos();
       if (modoManosLibresRef.current && !procesandoVozRef.current && subvista === 'chat' && !window.speechSynthesis?.speaking) {
         window.setTimeout(() => {
@@ -348,6 +389,13 @@ export function AsistenteFarmaciaView() {
       setAvisoVoz('Escucha manos libres detenida.');
       return;
     }
+    if (window.speechSynthesis?.speaking) {
+      modoManosLibresRef.current = false;
+      setVozManosLibres(false);
+      window.speechSynthesis.cancel();
+      setAvisoVoz('Escucha pausada. Pulsa el micrófono para reanudar cuando estés listo.');
+      return;
+    }
     const manosLibres = Boolean(inventarioActivo);
     modoManosLibresRef.current = manosLibres;
     setVozManosLibres(manosLibres);
@@ -355,7 +403,10 @@ export function AsistenteFarmaciaView() {
   };
 
   const escucharRespuesta = (texto: string, reanudarEscucha = false) => {
+    let finalizada = false;
     const reanudar = () => {
+      if (finalizada) return;
+      finalizada = true;
       procesandoVozRef.current = false;
       if (reanudarEscucha && modoManosLibresRef.current) window.setTimeout(() => iniciarReconocimiento(true), 300);
     };
@@ -370,6 +421,17 @@ export function AsistenteFarmaciaView() {
   };
 
   const probarVoz = () => escucharRespuesta('¡Hola! Soy TOMI, tu asistente de farmacia. Cuéntame qué producto buscas y con gusto te ayudo a revisar la información disponible.');
+  const probarMicrofono = () => {
+    if (escuchandoRef.current) { setAvisoVoz('Pausa la escucha de TOMI antes de probar el micrófono.'); return; }
+    modoManosLibresRef.current = false;
+    procesandoVozRef.current = false;
+    setVozManosLibres(false);
+    setEscuchando(false);
+    pruebaMicrofonoRef.current = true;
+    setPruebaMicrofono(true);
+    setAvisoVoz('Cuando se active el micrófono, di una frase corta para comprobar el audio.');
+    iniciarReconocimiento(false);
+  };
 
   const verSucursal = async (sucursal: SucursalFarmacia) => {
     setMensajeDistribucion(''); setErrorSucursales(''); setDetalleSucursal(null);
@@ -484,9 +546,9 @@ export function AsistenteFarmaciaView() {
     </nav>
 
     {subvista === 'chat' ? <section className="farmacia-ia-chat" role="tabpanel" aria-label="Conversación con TOMI">
-      <aside className="farmacia-ia-lateral farmacia-ia-panel-modo"><div className="farmacia-ia-tomi-avatar"><Icon name="sparkles" size={25} /></div><h2>TOMI</h2><p>Asistente de farmacia</p><span className={`farmacia-ia-presencia ${estadoApi.configured ? '' : 'pendiente'}`}><i /> {estadoApi.configured ? 'IA configurada' : 'Modo local de inventario'}</span><div className="farmacia-ia-lateral-separador" /><section className={`farmacia-ia-estado-modo ${inventarioActivo ? 'activo' : ''}`} aria-live="polite"><div className="farmacia-ia-estado-modo-titulo"><Icon name="package" size={17} /><h3>MODO INVENTARIO</h3></div>{cargandoModoInventario ? <p>Consultando estado…</p> : inventarioActivo ? <><strong className="farmacia-ia-modo-chip"><i />{inventarioActivo.estado === 'ESPERANDO_ALMACEN' ? 'Esperando sucursal' : 'Inventario en curso'}</strong>{inventarioActivo.sucursal && <p className="farmacia-ia-modo-ubicacion">{inventarioActivo.sucursal}<small>{inventarioActivo.almacen}</small></p>}<div className="farmacia-ia-modo-progreso"><span>Progreso</span><strong>{inventarioActivo.itemsContados} / {inventarioActivo.itemsTotal}</strong></div><div className="farmacia-ia-modo-barra"><i style={{ width: `${inventarioActivo.itemsTotal ? Math.min(100, inventarioActivo.itemsContados / inventarioActivo.itemsTotal * 100) : 0}%` }} /></div><small className="farmacia-ia-modo-ayuda">Di el código y la cantidad contada. Para cerrar, di “termina el modo inventario”.</small></> : <><strong className="farmacia-ia-modo-chip inactivo"><i />Sin inventario activo</strong><p className="farmacia-ia-modo-ayuda">Di <b>“modo inventario”</b> para empezar. TOMI te preguntará en qué sucursal y almacén harás el conteo.</p></>}</section><div className="farmacia-ia-panel-nota"><Icon name="check" size={14} /> El estado del inventario se conserva. Las conversaciones no se guardan.</div></aside>
+      <aside className="farmacia-ia-lateral farmacia-ia-panel-modo"><div className="farmacia-ia-tomi-avatar"><Icon name="sparkles" size={25} /></div><h2>TOMI</h2><p>Asistente de farmacia</p><span className={`farmacia-ia-presencia ${estadoApi.configured ? '' : 'pendiente'}`}><i /> {estadoApi.configured ? 'IA configurada' : 'Modo local de inventario'}</span><div className="farmacia-ia-lateral-separador" /><section className={`farmacia-ia-estado-modo ${inventarioActivo ? 'activo' : ''}`} aria-live="polite"><div className="farmacia-ia-estado-modo-titulo"><Icon name="package" size={17} /><h3>MODO INVENTARIO</h3></div>{cargandoModoInventario ? <p>Consultando estado…</p> : inventarioActivo ? <><strong className="farmacia-ia-modo-chip"><i />{inventarioActivo.estado === 'ESPERANDO_ALMACEN' ? 'Esperando sucursal' : 'Inventario en curso'}</strong>{inventarioActivo.sucursal && <p className="farmacia-ia-modo-ubicacion">{inventarioActivo.sucursal}<small>{inventarioActivo.almacen}</small></p>}<div className="farmacia-ia-modo-progreso"><span>Progreso</span><strong>{inventarioActivo.itemsContados} / {inventarioActivo.itemsTotal}</strong></div><div className="farmacia-ia-modo-barra"><i style={{ width: `${inventarioActivo.itemsTotal ? Math.min(100, inventarioActivo.itemsContados / inventarioActivo.itemsTotal * 100) : 0}%` }} /></div><small className="farmacia-ia-modo-ayuda">Di “TOMI” y luego el código y la cantidad. Di “TOMI siguiente” para continuar o “TOMI finalizar inventario” al terminar.</small>{Boolean(inventarioActivo.ejemplos?.length) && <div className="farmacia-ia-ejemplos"><strong>Productos pendientes</strong>{inventarioActivo.ejemplos?.map(item => <button type="button" key={item.codigo} onClick={() => setMensaje(`TOMI ${item.codigo}, cantidad `)}><span>{item.nombre}</span><code>{item.codigo}</code></button>)}</div>}</> : <><strong className="farmacia-ia-modo-chip inactivo"><i />Sin inventario activo</strong><p className="farmacia-ia-modo-ayuda">Di <b>“modo inventario”</b> para empezar. TOMI te preguntará en qué sucursal y almacén harás el conteo.</p></>}</section><div className="farmacia-ia-panel-nota"><Icon name="check" size={14} /> Cada conteo por voz se confirma antes de guardarse.</div></aside>
       <div className="farmacia-ia-sala">
-        <div className="farmacia-ia-sala-cabecera"><div><span className={`farmacia-ia-online ${estadoApi.configured ? '' : 'pendiente'}`} /><strong>Chat con TOMI</strong><small>{estadoApi.configured ? estadoApi.model + ' · Clave configurada' : 'Consultas locales de inventario activas'}</small></div><button className="farmacia-ia-probar-voz" type="button" onClick={probarVoz}><Icon name="volume" size={15} /> Escuchar ejemplo</button></div>
+        <div className="farmacia-ia-sala-cabecera"><div><span className={`farmacia-ia-online ${estadoApi.configured ? '' : 'pendiente'}`} /><strong>Chat con TOMI</strong><small>{estadoApi.configured ? estadoApi.model + ' · Clave configurada' : 'Consultas locales de inventario activas'}</small></div><div className="farmacia-ia-pruebas-voz"><button className="farmacia-ia-probar-voz" type="button" onClick={probarMicrofono} disabled={pruebaMicrofono}><Icon name="mic" size={15} /> {pruebaMicrofono ? 'Probando micrófono…' : 'Probar micrófono'}</button><button className="farmacia-ia-probar-voz farmacia-ia-probar-audio" type="button" onClick={probarVoz}><Icon name="volume" size={15} /> Probar audio</button></div></div>
         <div className="farmacia-ia-conversacion" aria-live="polite">
           <div className="farmacia-ia-mensajes">{mensajes.map(item => <article key={item.id} className={`farmacia-ia-mensaje ${item.rol}`}>
             {item.rol === 'assistant' && <span className="farmacia-ia-avatar"><Icon name="sparkles" size={15} /></span>}
@@ -497,9 +559,9 @@ export function AsistenteFarmaciaView() {
         <form className="farmacia-ia-compositor" onSubmit={enviarMensaje}>
           <label className="visually-hidden" htmlFor="farmacia-ia-mensaje">Escribe una consulta</label>
           <textarea id="farmacia-ia-mensaje" rows={1} value={mensaje} onChange={event => { procesandoVozRef.current = false; setMensaje(event.target.value); }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); } }} placeholder="Ej.: Busca paracetamol, hay ibuprofeno? o stock de amoxicilina" />
-          <button type="button" className={`farmacia-ia-microfono ${escuchando ? 'escuchando' : ''}`} onClick={alternarVoz} aria-label={escuchando ? 'Detener dictado' : 'Dictar consulta por voz'} title={escuchando ? 'Detener dictado' : 'Dictar por voz'}><Icon name={escuchando ? 'check' : 'mic'} size={18} /></button>
+          <button type="button" className={`farmacia-ia-microfono ${escuchando ? 'escuchando' : ''}`} onClick={alternarVoz} aria-label={escuchando ? 'Pausar escucha de TOMI' : inventarioActivo ? 'Reanudar escucha de TOMI' : 'Dictar consulta por voz'} title={escuchando ? 'Pausar escucha de TOMI' : inventarioActivo ? 'Reanudar escucha de TOMI' : 'Dictar por voz'}><Icon name={escuchando ? 'check' : 'mic'} size={18} /></button>
           <button type="submit" className="farmacia-ia-enviar" aria-label="Enviar mensaje" disabled={!mensaje.trim() || pensando}><Icon name="arrowRight" size={18} /></button>
-          <small className={errorChat ? 'farmacia-ia-error' : ''}>{errorChat || avisoVoz || (escuchando ? 'Escuchando… habla con claridad y pulsa el micrófono para detener.' : 'Dictado por voz · Verifica la información con el personal farmacéutico. No es un sistema de prescripción.')}</small>
+          <small className={errorChat ? 'farmacia-ia-error' : ''}>{errorChat || avisoVoz || (escuchando ? (vozManosLibres ? 'TOMI espera su palabra de activación. Di TOMI, seguido del código y la cantidad.' : 'Escuchando; pulsa el micrófono para detener.') : inventarioActivo ? 'Escucha pausada. Pulsa el micrófono para reanudar el conteo por voz.' : 'Dictado por voz. Verifica la información con el personal farmacéutico.')}</small>
         </form>
       </div>
     </section> : subvista === 'inventario' ? <section className="farmacia-ia-admin farmacia-ia-inventario" role="tabpanel" aria-label="Inventarios de farmacia">

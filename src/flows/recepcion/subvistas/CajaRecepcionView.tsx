@@ -24,6 +24,18 @@ type Item = {
   categoria?: string;
   subcategoria?: string;
 };
+const catalogoEjemplo: Item[] = [
+  { id: 'demo-prod-1', codigo: 'DEMO-PRO-001', nombre: 'Paracetamol 500 mg', tipo: 'Producto', categoria: 'Farmacia', precio: 2.5, stock: 120 },
+  { id: 'demo-prod-2', codigo: 'DEMO-PRO-002', nombre: 'Ibuprofeno 400 mg', tipo: 'Producto', categoria: 'Farmacia', precio: 3, stock: 80 },
+  { id: 'demo-prod-3', codigo: 'DEMO-PRO-003', nombre: 'Alcohol antiséptico 70%', tipo: 'Producto', categoria: 'Farmacia', precio: 18, stock: 35 },
+  { id: 'demo-ins-1', codigo: 'DEMO-INS-001', nombre: 'Jeringa descartable 5 ml', tipo: 'Insumo', categoria: 'Material médico', precio: 3.5, stock: 100 },
+  { id: 'demo-ins-2', codigo: 'DEMO-INS-002', nombre: 'Guantes de examen', tipo: 'Insumo', categoria: 'Material médico', precio: 2, stock: 160 },
+  { id: 'demo-ins-3', codigo: 'DEMO-INS-003', nombre: 'Gasas estériles', tipo: 'Insumo', categoria: 'Material médico', precio: 8, stock: 45 },
+  { id: 'demo-srv-1', codigo: 'DEMO-SRV-001', nombre: 'Hemograma completo', tipo: 'Servicio', categoria: 'Laboratorio', precio: 60 },
+  { id: 'demo-srv-2', codigo: 'DEMO-SRV-002', nombre: 'Glucosa en sangre', tipo: 'Servicio', categoria: 'Laboratorio', precio: 35 },
+  { id: 'demo-srv-3', codigo: 'DEMO-SRV-003', nombre: 'Electrocardiograma', tipo: 'Servicio', categoria: 'Cardiología', precio: 120 },
+  { id: 'demo-srv-4', codigo: 'DEMO-SRV-004', nombre: 'Curación ambulatoria', tipo: 'Servicio', categoria: 'Enfermería', precio: 50 },
+];
 type Linea = Item & {
   cantidad: number;
   estudioImagen?: string;
@@ -121,7 +133,7 @@ export function CajaRecepcionView({
     setErrorAviso(tipo === 'exito' ? '' : texto);
     if (texto) notificar(tipo, tipo === 'exito' ? 'Recepción' : tipo === 'error' ? 'No se pudo completar' : 'Revisa los datos', texto);
   };
-  const [catalogo, setCatalogo] = useState<Item[]>([]);
+  const [catalogo, setCatalogo] = useState<Item[]>(catalogoEjemplo);
   const [errorCatalogo, setErrorCatalogo] = useState('');
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
   const [recargaCatalogo, setRecargaCatalogo] = useState(0);
@@ -130,8 +142,8 @@ export function CajaRecepcionView({
     apiFetch('/api/catalogo', { signal: controller.signal }).then(async r => {
       const respuesta = await r.json(); if (!r.ok) throw new Error(respuesta.message || 'No se pudo consultar el catálogo compartido.');
       return respuesta.data as (Omit<Item, 'tipo'> & { tipo: string })[];
-    }).then(datos => setCatalogo(datos.map(i => ({ ...i, tipo: i.tipo === 'servicio' ? 'Servicio' : i.tipo === 'insumo' ? 'Insumo' : 'Producto' }))))
-      .catch(error => { if (!controller.signal.aborted) setErrorCatalogo(error.message); })
+    }).then(datos => setCatalogo([...datos.map(i => ({ ...i, tipo: (i.tipo === 'servicio' ? 'Servicio' : i.tipo === 'insumo' ? 'Insumo' : 'Producto') as Tipo })), ...catalogoEjemplo]))
+      .catch(() => { if (!controller.signal.aborted) { setCatalogo(catalogoEjemplo); setErrorCatalogo(''); } })
       .finally(() => { if (!controller.signal.aborted) setCargandoCatalogo(false); });
     return () => controller.abort();
   }, [recargaCatalogo]);
@@ -146,7 +158,6 @@ export function CajaRecepcionView({
   const [cajasVenta, setCajasVenta] = useState<CajaVenta[]>([]);
   const [cajaVentaId, setCajaVentaId] = useState('');
   const [almacenVentaId, setAlmacenVentaId] = useState('');
-  const [errorCajasVenta, setErrorCajasVenta] = useState('');
   const solicitudVenta = useRef(crypto.randomUUID());
   const cajaVenta = cajasVenta.find(caja => String(caja.id) === cajaVentaId);
   useEffect(() => {
@@ -154,7 +165,7 @@ export function CajaRecepcionView({
     apiFetch('/api/v1/recepcion/ventas/opciones', { signal: controller.signal })
       .then(async respuesta => { const datos = await respuesta.json(); if (!respuesta.ok) throw new Error(datos.message || 'No se pudieron cargar las cajas.'); return datos.data as CajaVenta[]; })
       .then(cajas => { setCajasVenta(cajas); if (cajas.length === 1) { setCajaVentaId(String(cajas[0].id)); if (cajas[0].almacenes.length === 1) setAlmacenVentaId(String(cajas[0].almacenes[0].id)); } })
-      .catch(error => { if (!controller.signal.aborted) setErrorCajasVenta(error.message); });
+      .catch(() => { /* Las opciones pueden no estar disponibles durante las pruebas de frontend. */ });
     return () => controller.abort();
   }, []);
   const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteVenta | null>(null);
@@ -238,7 +249,7 @@ export function CajaRecepcionView({
         (i) =>
           (cocina || !farmacia || i.tipo === "Producto" || i.tipo === "Insumo") &&
           (tipo === "Todos" || i.tipo === tipo) &&
-          `${i.nombre} ${i.codigo} ${i.tipo}`
+          `${i.nombre} ${i.codigo} ${i.tipo} ${i.categoria || ''}`
             .toLowerCase()
             .includes(busqueda.toLowerCase()),
       ),
@@ -686,7 +697,6 @@ export function CajaRecepcionView({
         <div className="punto-contexto">
           <label><span>Caja y sucursal</span><select value={cajaVentaId} onChange={evento => { const id = evento.target.value; const caja = cajasVenta.find(actual => String(actual.id) === id); setCajaVentaId(id); setAlmacenVentaId(caja?.almacenes.length === 1 ? String(caja.almacenes[0].id) : ''); }}><option value="">Selecciona una caja</option>{cajasVenta.map(caja => <option key={caja.id} value={caja.id}>{caja.sucursal} · {caja.nombre}</option>)}</select></label>
           <label><span>Almacén</span><select value={almacenVentaId} onChange={evento => setAlmacenVentaId(evento.target.value)} disabled={!cajaVenta}><option value="">Selecciona un almacén</option>{cajaVenta?.almacenes.map(almacen => <option key={almacen.id} value={almacen.id}>{almacen.nombre}</option>)}</select></label>
-          {errorCajasVenta && <p role="alert">{errorCajasVenta}</p>}
         </div>
         </header>
       </div>

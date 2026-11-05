@@ -3,3 +3,192 @@
 .em-identidad-panel:has(.em-identidad-vacia) {
   display: none;
 }
+
+/* Resumen de la atención: franja abierta, amplia y fácil de escanear. */
+.em-trabajo > .em-resumen {
+  display: block;
+  width: 100%;
+  padding: 0 !important;
+  border: 0 !important;
+  border-top: 3px solid #079bc9 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.em-trabajo > .em-resumen > .em-total {
+  display: grid !important;
+  grid-template-columns: minmax(150px, .7fr) minmax(235px, 1.2fr) minmax(150px, .65fr) auto;
+  align-items: center !important;
+  gap: 22px;
+  width: 100%;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 16px 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+  text-align: left !important;
+}
+
+.em-trabajo > .em-resumen .em-total-cubiculo,
+.em-trabajo > .em-resumen .em-total-fecha,
+.em-trabajo > .em-resumen .em-total-consumido {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 3px;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.em-trabajo > .em-resumen .em-total-cubiculo,
+.em-trabajo > .em-resumen .em-total-fecha {
+  padding-right: 22px !important;
+  border-right: 1px solid #d9e8f0 !important;
+}
+
+.em-trabajo > .em-resumen .em-total small {
+  color: #5d7890;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .45px;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.em-trabajo > .em-resumen .em-total-cubiculo strong {
+  color: #075d94;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.12;
+}
+
+.em-trabajo > .em-resumen .em-total-fecha strong {
+  color: #163f62;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.em-trabajo > .em-resumen .em-total-consumido strong {
+  color: #0087bd;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -.3px;
+  line-height: 1.05;
+}
+
+.em-trabajo > .em-resumen .em-total-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.em-trabajo > .em-resumen .em-total-acciones button {
+  width: auto !important;
+  min-height: 38px;
+  margin: 0 !important;
+  padding: 8px 14px !important;
+}
+
+@media (max-width: 1050px) {
+  .em-trabajo > .em-resumen > .em-total {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .em-trabajo > .em-resumen .em-total-acciones {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 650px) {
+  .em-trabajo > .em-resumen > .em-total {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 14px 0 !important;
+  }
+
+  .em-trabajo > .em-resumen .em-total-cubiculo,
+  .em-trabajo > .em-resumen .em-total-fecha {
+    width: 100%;
+    padding: 0 0 12px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid #d9e8f0 !important;
+  }
+
+  .em-trabajo > .em-resumen .em-total-acciones {
+    grid-column: auto;
+  }
+}
+
+/* Datos esenciales en dos filas compactas. */
+.em-trabajo > .em-resumen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 14px 18px !important;
+}
+
+.em-trabajo > .em-resumen > .em-resumen-identidad {
+  display: grid;
+  flex: 1;
+  gap: 12px;
+  min-width: 0;
+}
+
+.em-identidad-fila {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) minmax(110px, .7fr) minmax(110px, .7fr);
+  gap: 24px;
+}
+
+.em-identidad-fila-familiar {
+  grid-template-columns: minmax(220px, 2fr) minmax(220px, 1.4fr);
+}
+
+.em-identidad-fila > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.em-trabajo > .em-resumen .em-identidad-fila small {
+  color: #617d94;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .4px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.em-identidad-fila strong {
+  color: #173f62;
+  font-size: 14px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.em-trabajo > .em-resumen > .em-total-acciones {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 850px) {
+  .em-trabajo > .em-resumen { align-items: flex-start; flex-direction: column; }
+  .em-trabajo > .em-resumen > .em-resumen-identidad { width: 100%; }
+}
+
+@media (max-width: 550px) {
+  .em-identidad-fila { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .em-identidad-fila > div:first-child { grid-column: 1 / -1; }
+  .em-identidad-fila-familiar > div:first-child { grid-column: auto; }
+}

@@ -9,7 +9,7 @@ import { abrirImpresionReceta, imprimirReceta } from './imprimirReceta';
 import { apiFetch } from '../../radius/api';
 
 const nuevoMedicamento = (): MedicamentoReceta => ({ id: crypto.randomUUID(), nombre: '', dosis: '', via: '', frecuencia: '', duracion: '', cantidad: '', indicaciones: '' });
-export function RecetarioMedico({ paciente, medico, abierto, onAbrir, onCerrar, onGuardar }: { paciente: CitaConfirmada; medico: string; abierto: boolean; onAbrir: () => void; onCerrar: () => void; onGuardar: (receta: DocumentoEpisodio) => void }) {
+export function RecetarioMedico({ paciente, medico, abierto, onAbrir, onCerrar, onGuardar, medicamentosIniciales = [] }: { paciente: CitaConfirmada; medico: string; abierto: boolean; onAbrir: () => void; onCerrar: () => void; onGuardar: (receta: DocumentoEpisodio) => void; medicamentosIniciales?: MedicamentoReceta[] }) {
   const episodios = useSyncExternalStore(suscribirEpisodios, obtenerEpisodios);
   const recetas = episodios.filter(e => e.paciente.ci === paciente.ci).flatMap(e => e.recetas.map((receta, indice) => ({ receta, fecha: receta.receta?.fecha || receta.fecha || e.fecha, medico: receta.medico || e.medico, id: receta.receta?.id || `${e.episodioId}-${indice}` }))).reverse();
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
@@ -24,17 +24,18 @@ export function RecetarioMedico({ paciente, medico, abierto, onAbrir, onCerrar, 
   return <section className="recetario-historial panel"><header><div><p>Recetario médico</p><h3>Historial de recetas</h3><small>{paciente.paciente} · CI {paciente.ci}</small></div><button type="button" onClick={onAbrir}><Icon name="plus" size={16}/> Nueva receta</button></header>
     {errorImpresion && <p className="receta-error" role="alert">{errorImpresion}</p>}{mensaje && <AvisoTemporal mensaje={mensaje} />}
     {recetas.length ? <div className="recetario-listado">{recetas.map(item => <article key={item.id}><div><span>{item.receta.estado || 'Registrada'}</span><h4>{item.receta.tipo}</h4><small>{item.fecha.includes('T') ? new Date(item.fecha).toLocaleString('es-BO') : item.fecha} · {item.medico}</small><p>{item.receta.receta ? `${item.receta.receta.medicamentos.length} medicamento(s)` : item.receta.detalle}</p></div><div className="recetario-fila-acciones"><button type="button" onClick={() => reimprimir(item.receta, item.fecha, item.medico)}><Icon name="print" size={15}/> Reimprimir</button><button type="button" aria-expanded={seleccionada === item.id} onClick={() => setSeleccionada(actual => actual === item.id ? null : item.id)}>{seleccionada === item.id ? 'Ocultar' : 'Ver receta'}</button></div>{seleccionada === item.id && <div className="recetario-detalle"><p>{item.receta.detalle}</p></div>}</article>)}</div> : <div className="recetario-vacio"><Icon name="fileText" size={32}/><h4>Este paciente aún no tiene recetas</h4><p>Las recetas que registres aparecerán aquí con su fecha y médico.</p><button type="button" onClick={onAbrir}>Crear primera receta</button></div>}
-    {abierto && <NuevaReceta key={paciente.ci} paciente={paciente} medico={medico} onCerrar={onCerrar} onGuardar={receta => { onGuardar(receta); setMensaje('Receta guardada en el historial del paciente.'); onCerrar(); }}/>} 
+    {abierto && <NuevaReceta key={paciente.ci} paciente={paciente} medico={medico} medicamentosIniciales={medicamentosIniciales} onCerrar={onCerrar} onGuardar={receta => { onGuardar(receta); setMensaje('Receta guardada en el historial del paciente.'); onCerrar(); }}/>
+    }
   </section>;
 }
 
 
 type ProductoReceta = { id: string; nombre: string; codigo: string; tipo: string; unidad: string; categoria?: string; grupo?: string; via?: string };
 const normalizarMedicamento = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-function NuevaReceta({ paciente, medico, onCerrar, onGuardar }: { paciente: CitaConfirmada; medico: string; onCerrar: () => void; onGuardar: (receta: DocumentoEpisodio) => void }) {
+function NuevaReceta({ paciente, medico, onCerrar, onGuardar, medicamentosIniciales }: { paciente: CitaConfirmada; medico: string; onCerrar: () => void; onGuardar: (receta: DocumentoEpisodio) => void; medicamentosIniciales: MedicamentoReceta[] }) {
   const dialogo = useRef<HTMLDialogElement>(null), formulario = useRef<HTMLFormElement>(null), buscador = useRef<HTMLInputElement>(null);
   const guardando = useRef(false);
-  const [medicamentos, setMedicamentos] = useState<MedicamentoReceta[]>([]);
+  const [medicamentos, setMedicamentos] = useState<MedicamentoReceta[]>(() => medicamentosIniciales.map(m => ({ ...m, id: crypto.randomUUID() })));
   const [borrador, setBorrador] = useState<MedicamentoReceta>(nuevoMedicamento);
   const [editando, setEditando] = useState<string | null>(null);
   const [catalogo, setCatalogo] = useState<ProductoReceta[]>([]);

@@ -3,9 +3,9 @@ import { apiEmergencias, type ItemEmergencia } from '../emergencias/emergenciasA
 import './HojaLaboratorios.css';
 import { leerCatalogoLaboratorio, suscribirCatalogoLaboratorio, tiposLaboratorioActivos } from '../laboratorio/catalogoLaboratorio';
 
-export function HojaLaboratorios({ paciente, onCerrar, onAceptar, permitirEstudiosLocales = false }: { paciente: string; onCerrar: () => void; onAceptar: (items: ItemEmergencia[]) => void | Promise<void>; permitirEstudiosLocales?: boolean }) {
+export function HojaLaboratorios({ paciente, onCerrar, onAceptar, permitirEstudiosLocales = false, seleccionInicial = [] }: { paciente: string; onCerrar: () => void; onAceptar: (items: ItemEmergencia[]) => void | Promise<void>; permitirEstudiosLocales?: boolean; seleccionInicial?: string[] }) {
   const [catalogo, setCatalogo] = useState<ItemEmergencia[]>([]);
-  const [seleccion, setSeleccion] = useState<string[]>([]);
+  const [seleccion, setSeleccion] = useState<string[]>(seleccionInicial);
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);

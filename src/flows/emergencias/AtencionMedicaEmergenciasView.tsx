@@ -10,6 +10,8 @@ import { HorizontalSubvistaNav } from '../../ui/components/HorizontalSubvistaNav
 import './TriajeEmergenciasView.css';
 import './AtencionMedicaEmergenciasView.css';
 import './AtencionMedicaEmergenciasActions.css';
+import './EmergenciasTablaClinica.css';
+import './EmergenciasAccionesContraste.css';
 import { cubiculosEmergencias, nombreCubiculo } from './cubiculos';
 import { PacienteIngresoEmergencia, fechaHoraIngresoActual, inicioEnIso } from './PacienteIngresoEmergencia';
 import { DiagnosticosFinalesSelector } from './DiagnosticosFinalesSelector';

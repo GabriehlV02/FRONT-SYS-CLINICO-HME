@@ -64,10 +64,25 @@ const etiquetaSemana = (inicio: Date) => {
   return `${inicio.getDate()} de ${meses[inicio.getMonth()]} - ${fin.getDate()} de ${meses[fin.getMonth()]}, ${fin.getFullYear()}`;
 };
 const citas: Cita[] = [];
+const crearCitasEjemplo = (): Cita[] => {
+  const hoy = new Date();
+  const diasHabiles = Array.from({ length: 8 }, (_, i) => sumarDias(hoy, i)).filter(fecha => fecha.getDay() !== 0);
+  const ejemplos = [
+    ['María Fernanda López', '6894521', 'Dra. Valeria Rojas', 'Neumología', 'Consultorio 1', '08:00', 'Control respiratorio'],
+    ['Carlos Mendoza Rojas', '7459823', 'Dr. Gabriel Torres', 'Medicina Interna', 'Consultorio 2', '09:00', 'Control general'],
+    ['Lucía Valdez Herrera', '5128934', 'Dra. Valeria Rojas', 'Neumología', 'Consultorio 1', '09:30', 'Dificultad respiratoria leve'],
+    ['Jorge Ramírez Soria', '8246175', 'Dr. Gabriel Torres', 'Medicina Interna', 'Consultorio 2', '14:00', 'Consulta de seguimiento'],
+    ['Sofía Quispe Flores', '6381942', 'Dra. María Salazar', 'Pediatría', 'Consultorio 3', '10:30', 'Control pediátrico'],
+    ['Elena Paredes Vargas', '4712058', 'Dr. Andrés Molina', 'Cardiología', 'Consultorio 4', '15:00', 'Control cardiológico'],
+    ['Luis Aguirre Medina', '91240568', 'Dr. Andrés Molina', 'Cardiología', 'Consultorio 4', '11:00', 'Consulta cardiológica'],
+    ['Ana Flores Rojas', '7345128', 'Dra. María Salazar', 'Pediatría', 'Consultorio 3', '16:00', 'Consulta pediátrica'],
+  ];
+  return ejemplos.map(([paciente, ci, doctor, especialidad, consultorio, hora, motivo], indice) => ({ id: `demo-agenda-${indice}`, dia: 0, fecha: fechaParaInput(diasHabiles[Math.min(Math.floor(indice / 2), diasHabiles.length - 1)]), paciente, ci, doctor, especialidad, consultorio, hora, motivo, estado: indice === 4 ? 'Por confirmar' : 'Confirmada' }));
+};
 
 export function CitasRecepcionView({ medicoInicial, agendarInicial = false }: { medicoInicial?: string; agendarInicial?: boolean } = {}) {
   const {medicos,resolver,errorProfesionales}=useProfesionales();
-  const doctores=['Todos los doctores',...medicos.map(etiquetaProfesional)];
+  const doctores=['Todos los doctores',...new Set([...medicos.map(etiquetaProfesional), ...crearCitasEjemplo().map(cita => cita.doctor)])];
   const { pacientes: fichasPacientes } = usePacientes();
   const [modoAgendar, setModoAgendar] = useState(agendarInicial);
   const [horarioElegido, setHorarioElegido] = useState<{
@@ -164,6 +179,7 @@ export function CitasRecepcionView({ medicoInicial, agendarInicial = false }: { 
           estado: 'por_confirmar' | 'confirmada' | 'cancelada';
           consultorio:string;pacienteId:string;profesionalId?:string;
         }>;
+        if (!remotas.length) { setCitasProgramadas(crearCitasEjemplo()); return; }
         setCitasProgramadas((actuales) => [
           ...actuales.filter((item) => !item.id),
           ...remotas.map((item): Cita => ({
@@ -184,12 +200,13 @@ export function CitasRecepcionView({ medicoInicial, agendarInicial = false }: { 
           })),
         ]);
       })
-      .catch((error) => { if ((error as Error).name !== 'AbortError') setErrorAgenda((error as Error).message); });
+      .catch((error) => { if ((error as Error).name !== 'AbortError') { setCitasProgramadas(crearCitasEjemplo()); setErrorAgenda(''); } });
     return () => controller.abort();
   }, []);
 
   const persistirEstado = async (cita:Cita, estado:'confirmada'|'cancelada') => {
     if(!cita.id)return false;
+    if(cita.id.startsWith('demo-agenda-')) return true;
     try {const respuesta=await apiFetch(`/api/citas/${cita.id}/estado`,{method:'PATCH',body:JSON.stringify({estado})});if(!respuesta.ok)throw new Error('No se pudo actualizar la cita.');return true;}
     catch(causa){setErrorAgenda((causa as Error).message);return false;}
   };

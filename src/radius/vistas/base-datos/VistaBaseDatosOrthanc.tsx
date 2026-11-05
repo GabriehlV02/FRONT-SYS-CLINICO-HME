@@ -86,7 +86,9 @@ export default function VistaBaseDatosOrthanc() {
     setErrorConexion("");
     setResultado("");
     try {
-      setEstado(await json<Estado>("/api/orthanc/estado"));
+      const conexion = await json<Estado>("/api/orthanc/estado");
+      if (!conexion.conectado) throw new Error("Orthanc no está disponible.");
+      setEstado(conexion);
       const r = await json<{
         total: number;
         nuevos: number;
@@ -98,11 +100,8 @@ export default function VistaBaseDatosOrthanc() {
         `${r.total} estudios encontrados · ${r.nuevos} nuevos · ${r.asignados} asociados · ${r.pendientes} pendientes`,
       );
     } catch (e) {
-      const mensaje =
-        e instanceof Error ? e.message : "No se pudo consultar Orthanc.";
       setEstado(null);
-      setErrorConexion(mensaje);
-      setError(mensaje);
+      setErrorConexion("No se pudo conectar con Orthanc. Revisa el servidor e inténtalo nuevamente.");
     } finally {
       setSincronizando(false);
       setCargando(false);
@@ -280,20 +279,20 @@ export default function VistaBaseDatosOrthanc() {
           </span>
         </div>
         <div className="orthanc-metrica">
-          <strong>{estudios.length}</strong>
+          <strong>{estado?.conectado ? estudios.length : "—"}</strong>
           <small>estudios en el servidor</small>
         </div>
         <div className="orthanc-metrica">
           <strong>
             {
-              new Set(estudios.map((e) => e.patientIdDicom || e.patientName))
-                .size
+              estado?.conectado ? new Set(estudios.map((e) => e.patientIdDicom || e.patientName))
+                .size : "—"
             }
           </strong>
           <small>pacientes DICOM</small>
         </div>
         <div className="orthanc-metrica">
-          <strong>{estudios.filter((e) => !e.pacienteId).length}</strong>
+          <strong>{estado?.conectado ? estudios.filter((e) => !e.pacienteId).length : "—"}</strong>
           <small>pendientes de asociar</small>
         </div>
         <button
@@ -471,12 +470,12 @@ export default function VistaBaseDatosOrthanc() {
           <strong>
             {cargando
               ? "Leyendo la base de datos…"
-              : "No hay estudios para mostrar"}
+              : errorConexion ? "Servidor no disponible" : "No hay estudios para mostrar"}
           </strong>
           <small>
             {cargando
               ? "La primera consulta puede tardar si Orthanc contiene muchos estudios."
-              : "Cambia la búsqueda, modalidad o rango de fechas."}
+              : errorConexion ? "Sincroniza nuevamente cuando se restablezca la conexión." : "Cambia la búsqueda, modalidad o rango de fechas."}
           </small>
         </div>
       )}

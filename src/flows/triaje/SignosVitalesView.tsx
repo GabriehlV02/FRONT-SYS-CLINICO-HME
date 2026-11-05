@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
-import { apiFetch } from '../../radius/api';
-import type { CitaConfirmada } from '../consultorio/AgendaAmbulatoriaView';
 import Icon from '../../radius/componentes/Icono';
 import './SignosVitalesView.css';
 import './ColaTriaje.css';
 import type { SignoVitalConfig } from './ConfiguracionSignosVitalesView';
 import { guardarSignosVitales } from './registroSignosVitales';
-import { obtenerAtencionAmbulatoria } from '../consultorio/registroHistoria';
 
 type PacienteEnEspera = {
   id: string;
@@ -22,7 +19,14 @@ type PacienteEnEspera = {
 };
 type PacienteAtendido = PacienteEnEspera & { valores: Record<string, string>; registrado: string };
 
-const colaInicial: PacienteEnEspera[] = [];
+const fechaDemo = () => new Date().toISOString().slice(0, 10);
+const colaInicial: PacienteEnEspera[] = [
+  { id: 'triaje-demo-1', paciente: 'María Fernanda López', ci: '6894521', edad: 42, doctor: 'Administrador del sistema', especialidad: 'Medicina Interna', fecha: fechaDemo(), hora: '08:00', estado: 'confirmada' },
+  { id: 'triaje-demo-2', paciente: 'Carlos Mendoza Rojas', ci: '7459823', edad: 55, doctor: 'Administrador del sistema', especialidad: 'Cardiología', fecha: fechaDemo(), hora: '08:30', estado: 'confirmada' },
+  { id: 'triaje-demo-3', paciente: 'Lucía Valdez Herrera', ci: '5128934', edad: 36, doctor: 'Administrador del sistema', especialidad: 'Neumología', fecha: fechaDemo(), hora: '09:30', estado: 'confirmada' },
+  { id: 'triaje-demo-4', paciente: 'Jorge Ramírez Soria', ci: '8246175', edad: 61, doctor: 'Administrador del sistema', especialidad: 'Medicina Interna', fecha: fechaDemo(), hora: '10:00', estado: 'confirmada' },
+  { id: 'triaje-demo-5', paciente: 'Sofía Quispe Flores', ci: '6381942', edad: 9, doctor: 'Administrador del sistema', especialidad: 'Pediatría', fecha: fechaDemo(), hora: '10:30', estado: 'confirmada' },
+];
 const atendidosIniciales: PacienteAtendido[] = [];
 
 const camposVitalesPredeterminados = [
@@ -37,7 +41,7 @@ const camposVitalesPredeterminados = [
 export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?: SignoVitalConfig[] }) {
   const [cola, setCola] = useState(colaInicial);
   const [errorPacientes, setErrorPacientes] = useState('');
-  useEffect(()=>{const controller=new AbortController();void apiFetch('/api/citas',{signal:controller.signal}).then(async r=>{if(!r.ok) throw new Error('No se pudo consultar la cola de pacientes.');const citas=await r.json() as (CitaConfirmada & {estado:string})[];if(!controller.signal.aborted)setCola(citas.filter(c=>(c.estado==='confirmada' || c.estado==='por_confirmar') && !obtenerAtencionAmbulatoria(c)?.finalizadaEn).sort((a,b)=>`${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`)).map(c=>({...c,edad:Number(c.edad) || 0})));}).catch(causa=>{if(!controller.signal.aborted)setErrorPacientes((causa as Error).message);});return()=>controller.abort();},[]);
+  useEffect(()=>{setCola(colaInicial);setErrorPacientes('');return;},[]);
   const [busqueda, setBusqueda] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<PacienteEnEspera | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});

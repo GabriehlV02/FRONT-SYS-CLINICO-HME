@@ -1,2 +1,4 @@
-import Aplicacion from './radius/Aplicacion';
-export function App() { return <Aplicacion/>; }
+import Aplicacion from "./radius/Aplicacion";
+export function App() {
+  return <Aplicacion />;
+}

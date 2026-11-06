@@ -13,10 +13,16 @@
   box-shadow: 0 12px 28px rgb(18 94 62 / 18%);
   font-size: 13px;
   font-weight: 800;
-  animation: est-notificacion-entrada .18s ease-out;
+  animation: est-notificacion-entrada 0.18s ease-out;
 }
 
 @keyframes est-notificacion-entrada {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

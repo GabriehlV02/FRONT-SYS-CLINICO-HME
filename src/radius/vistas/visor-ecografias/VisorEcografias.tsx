@@ -75,7 +75,10 @@ export default function VisorEcografias() {
     document.addEventListener("fullscreenchange", actualizarPantallaCompleta);
     actualizarPantallaCompleta();
     return () =>
-      document.removeEventListener("fullscreenchange", actualizarPantallaCompleta);
+      document.removeEventListener(
+        "fullscreenchange",
+        actualizarPantallaCompleta,
+      );
   }, []);
 
   useEffect(() => {
@@ -162,7 +165,9 @@ export default function VisorEcografias() {
       );
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "No se pudo abrir el estudio ecográfico.",
+        e instanceof Error
+          ? e.message
+          : "No se pudo abrir el estudio ecográfico.",
       );
     } finally {
       setCargando(false);
@@ -182,15 +187,15 @@ export default function VisorEcografias() {
           datos.message || "No se pudo obtener el estudio desde Orthanc.",
         );
       }
-      const archivo = new File(
-        [await respuesta.blob()],
-        item.nombreArchivo,
-        { type: "application/zip" },
-      );
+      const archivo = new File([await respuesta.blob()], item.nombreArchivo, {
+        type: "application/zip",
+      });
       cargarResultado(await importarEstudio([archivo]), archivo.name, item);
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "No se pudo abrir el estudio de Orthanc.",
+        e instanceof Error
+          ? e.message
+          : "No se pudo abrir el estudio de Orthanc.",
       );
     } finally {
       setCargando(false);
@@ -255,7 +260,9 @@ export default function VisorEcografias() {
       setEstudiosOrthanc(historial);
       const seleccionadoVista = historial.find((item) => item.id === id);
       if (!seleccionadoVista) {
-        throw new Error("No se pudo preparar el estudio ecográfico seleccionado.");
+        throw new Error(
+          "No se pudo preparar el estudio ecográfico seleccionado.",
+        );
       }
       await abrirEstudioOrthanc(seleccionadoVista);
     })().catch((e: unknown) =>
@@ -279,11 +286,15 @@ export default function VisorEcografias() {
       ).webkitRelativePath?.split("/")[0];
       cargarResultado(
         resultado,
-        archivos.length === 1 ? archivos[0].name : carpeta || "Estudio ecográfico",
+        archivos.length === 1
+          ? archivos[0].name
+          : carpeta || "Estudio ecográfico",
       );
     } catch (e) {
       setError(
-        e instanceof Error ? e.message : "No se pudo cargar el estudio ecográfico.",
+        e instanceof Error
+          ? e.message
+          : "No se pudo cargar el estudio ecográfico.",
       );
     } finally {
       setCargando(false);
@@ -344,16 +355,17 @@ export default function VisorEcografias() {
           <button type="button" onClick={() => entradaArchivo.current?.click()}>
             <Icon name="image" size={17} /> Abrir estudio
           </button>
-          <button
-            type="button"
-            onClick={() => entradaCarpeta.current?.click()}
-          >
+          <button type="button" onClick={() => entradaCarpeta.current?.click()}>
             <Icon name="package" size={17} /> Abrir carpeta
           </button>
         </div>
       </header>
 
-      {error && <div className="eco-viewer-error" role="alert">{error}</div>}
+      {error && (
+        <div className="eco-viewer-error" role="alert">
+          {error}
+        </div>
+      )}
 
       <section className="eco-console" ref={estacion}>
         <aside className="eco-study-list">
@@ -397,7 +409,10 @@ export default function VisorEcografias() {
                 <span className="eco-study-text">
                   <strong>{item.paciente}</strong>
                   <small>{item.titulo}</small>
-                  <em>Orthanc · {new Date(item.creadaEn).toLocaleDateString("es-ES")}</em>
+                  <em>
+                    Orthanc ·{" "}
+                    {new Date(item.creadaEn).toLocaleDateString("es-ES")}
+                  </em>
                 </span>
               </button>
             ))}
@@ -432,7 +447,11 @@ export default function VisorEcografias() {
               <button
                 type="button"
                 onClick={() => void alternarPantallaCompleta()}
-                title={pantallaCompleta ? "Salir de pantalla completa" : "Pantalla completa"}
+                title={
+                  pantallaCompleta
+                    ? "Salir de pantalla completa"
+                    : "Pantalla completa"
+                }
               >
                 <Icon name={pantallaCompleta ? "close" : "eye"} size={15} />
                 {pantallaCompleta ? "Salir" : "Pantalla completa"}
@@ -480,7 +499,9 @@ export default function VisorEcografias() {
                   <div className="eco-overlay-patient">
                     <strong>{estudio.paciente}</strong>
                     <span>{estudio.titulo}</span>
-                    <span>{new Date(estudio.creadaEn).toLocaleDateString("es-ES")}</span>
+                    <span>
+                      {new Date(estudio.creadaEn).toLocaleDateString("es-ES")}
+                    </span>
                   </div>
                   {totalCuadros > 0 && (
                     <div className="eco-frame-indicator">
@@ -488,7 +509,11 @@ export default function VisorEcografias() {
                     </div>
                   )}
                   <span className="eco-depth-scale" aria-hidden="true">
-                    <i /><i /><i /><i /><i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                    <i />
                   </span>
                 </>
               )}

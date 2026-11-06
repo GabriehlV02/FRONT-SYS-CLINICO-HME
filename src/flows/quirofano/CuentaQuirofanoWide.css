@@ -15,8 +15,8 @@
   overflow-x: auto;
   border: 1px solid #c4dfee;
   border-radius: 11px;
-  background: rgba(255, 255, 255, .94);
-  box-shadow: 0 8px 22px rgba(6, 71, 115, .1);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 22px rgba(6, 71, 115, 0.1);
 }
 
 .cuenta-q-subvistas button {
@@ -32,7 +32,12 @@
   color: #315d7d;
   background: transparent;
   cursor: pointer;
-  transition: color .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 
 .cuenta-q-subvistas button > span {
@@ -65,13 +70,13 @@
   border-color: #087fc0;
   color: #fff;
   background: linear-gradient(115deg, #086eaf, #0796c6 70%, #19aecb);
-  box-shadow: 0 6px 15px rgba(5, 111, 170, .22);
+  box-shadow: 0 6px 15px rgba(5, 111, 170, 0.22);
 }
 
 .cuenta-q-subvistas button.activo > span {
-  border-color: rgba(255, 255, 255, .34);
+  border-color: rgba(255, 255, 255, 0.34);
   color: #fff;
-  background: rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .cuenta-q-subvistas button.activo::after {
@@ -82,7 +87,7 @@
   height: 2px;
   border-radius: 3px 3px 0 0;
   background: #9be9f4;
-  content: '';
+  content: "";
 }
 
 .cuenta-q-programada {

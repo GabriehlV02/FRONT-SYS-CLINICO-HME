@@ -1,12 +1,25 @@
 /* Altura compartida por las barras de navegacion de subvistas. */
-.sistema-app :is(.recepcion-subvistas, .consultorio-subvistas, .imagenologia-subvistas, .subvistas-nav) {
+.sistema-app
+  :is(
+    .recepcion-subvistas,
+    .consultorio-subvistas,
+    .imagenologia-subvistas,
+    .subvistas-nav
+  ) {
   min-height: 0 !important;
   height: auto !important;
   padding-block: 4px 0 !important;
   align-items: stretch;
 }
 
-.sistema-app :is(.recepcion-subvistas, .consultorio-subvistas, .imagenologia-subvistas, .subvistas-nav) > button {
+.sistema-app
+  :is(
+    .recepcion-subvistas,
+    .consultorio-subvistas,
+    .imagenologia-subvistas,
+    .subvistas-nav
+  )
+  > button {
   box-sizing: border-box;
   height: 40px !important;
   min-height: 40px !important;
@@ -16,19 +29,43 @@
   line-height: 1.2 !important;
 }
 
-.sistema-app :is(.recepcion-subvistas, .consultorio-subvistas, .imagenologia-subvistas, .subvistas-nav) > button strong {
+.sistema-app
+  :is(
+    .recepcion-subvistas,
+    .consultorio-subvistas,
+    .imagenologia-subvistas,
+    .subvistas-nav
+  )
+  > button
+  strong {
   font-size: 13px !important;
   line-height: 1.2 !important;
 }
 
-.sistema-app :is(.recepcion-subvistas, .consultorio-subvistas, .imagenologia-subvistas, .subvistas-nav) > button > :is(span, i):has(svg) {
+.sistema-app
+  :is(
+    .recepcion-subvistas,
+    .consultorio-subvistas,
+    .imagenologia-subvistas,
+    .subvistas-nav
+  )
+  > button
+  > :is(span, i):has(svg) {
   width: 26px !important;
   height: 26px !important;
   flex: 0 0 26px !important;
   border-radius: 7px;
 }
 
-.sistema-app :is(.recepcion-subvistas, .consultorio-subvistas, .imagenologia-subvistas, .subvistas-nav) > button svg {
+.sistema-app
+  :is(
+    .recepcion-subvistas,
+    .consultorio-subvistas,
+    .imagenologia-subvistas,
+    .subvistas-nav
+  )
+  > button
+  svg {
   width: 16px !important;
   height: 16px !important;
 }
@@ -40,7 +77,14 @@
 }
 
 @media (pointer: coarse) {
-  .sistema-app :is(.recepcion-subvistas, .consultorio-subvistas, .imagenologia-subvistas, .subvistas-nav) > button {
+  .sistema-app
+    :is(
+      .recepcion-subvistas,
+      .consultorio-subvistas,
+      .imagenologia-subvistas,
+      .subvistas-nav
+    )
+    > button {
     height: 44px !important;
     min-height: 44px !important;
   }

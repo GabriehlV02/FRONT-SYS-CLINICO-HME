@@ -1,6 +1,6 @@
-import Icon from './Icon';
-import { Brand } from './Brand';
-import type { AuthSession, SystemConfig } from '../types';
+import Icon from "./Icon";
+import { Brand } from "./Brand";
+import type { AuthSession, SystemConfig } from "../types";
 type Props = {
   config: SystemConfig;
   active: string;
@@ -35,7 +35,7 @@ export function Sidebar({
     <>
       <aside
         id="system-sidebar"
-        className={`sistema-sidebar ${open ? 'sidebar-abierto' : ''}`}
+        className={`sistema-sidebar ${open ? "sidebar-abierto" : ""}`}
       >
         <div className="marca-container">
           <Brand name={config.name} sidebar subtitle={config.subtitle} />
@@ -43,12 +43,12 @@ export function Sidebar({
             className="replegar-menu"
             onClick={onCollapse}
             aria-label={
-              collapsed ? 'Desplegar menú lateral' : 'Replegar menú lateral'
+              collapsed ? "Desplegar menú lateral" : "Replegar menú lateral"
             }
             aria-expanded={!collapsed}
-            title={collapsed ? 'Desplegar menú' : 'Replegar menú'}
+            title={collapsed ? "Desplegar menú" : "Replegar menú"}
           >
-            <Icon name={collapsed ? 'chevronRight' : 'chevronLeft'} size={17} />
+            <Icon name={collapsed ? "chevronRight" : "chevronLeft"} size={17} />
           </button>
           <button
             className="cerrar-menu"
@@ -68,10 +68,10 @@ export function Sidebar({
                   .map((item) => (
                     <button
                       key={item.id}
-                      className={`nav-modulo ${isActive(item.id) ? 'activo' : ''}`}
+                      className={`nav-modulo ${isActive(item.id) ? "activo" : ""}`}
                       onClick={() => onSelect(item.id)}
                       aria-label={item.name}
-                      aria-current={isActive(item.id) ? 'page' : undefined}
+                      aria-current={isActive(item.id) ? "page" : undefined}
                       title={collapsed ? item.name : undefined}
                     >
                       <span className="nav-icono">
@@ -89,9 +89,13 @@ export function Sidebar({
             ))}
           </nav>
           <section className="sidebar-sesion" aria-label="Sesión actual">
-            <span className="sidebar-sesion-avatar"><Icon name="users" size={19} /></span>
+            <span className="sidebar-sesion-avatar">
+              <Icon name="users" size={19} />
+            </span>
             <div>
-              <strong title={session.user}>{session.user === 'demo' ? 'Usuario de prueba' : session.user}</strong>
+              <strong title={session.user}>
+                {session.user === "demo" ? "Usuario de prueba" : session.user}
+              </strong>
               <small>{session.role || config.role}</small>
             </div>
           </section>
@@ -99,7 +103,7 @@ export function Sidebar({
             className="boton-salir"
             onClick={onLogout}
             aria-label="Cerrar sesión"
-            title={collapsed ? 'Cerrar sesión' : undefined}
+            title={collapsed ? "Cerrar sesión" : undefined}
           >
             <span className="nav-icono">
               <Icon name="logout" size={19} />

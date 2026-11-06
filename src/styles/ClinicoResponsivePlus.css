@@ -20,7 +20,14 @@
   max-width: 100%;
 }
 
-.sistema-app :is(.fi-tabla-wrap, .tabla-scroll, .tabla-contenedor, .tabla-wrapper, .tabla-responsive) {
+.sistema-app
+  :is(
+    .fi-tabla-wrap,
+    .tabla-scroll,
+    .tabla-contenedor,
+    .tabla-wrapper,
+    .tabla-responsive
+  ) {
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
@@ -28,11 +35,26 @@
 }
 
 @media (max-width: 1100px) {
-  .sistema-app :is(.fi-encabezado, .recepcion-cabecera, .consultorio-cabecera, .laboratorio-cabecera, .quirofano-cabecera, .config-signos-cabecera) {
+  .sistema-app
+    :is(
+      .fi-encabezado,
+      .recepcion-cabecera,
+      .consultorio-cabecera,
+      .laboratorio-cabecera,
+      .quirofano-cabecera,
+      .config-signos-cabecera
+    ) {
     flex-wrap: wrap;
   }
 
-  .sistema-app :is(.fi-encabezado > *, .recepcion-cabecera > *, .consultorio-cabecera > *, .laboratorio-cabecera > *, .quirofano-cabecera > *) {
+  .sistema-app
+    :is(
+      .fi-encabezado > *,
+      .recepcion-cabecera > *,
+      .consultorio-cabecera > *,
+      .laboratorio-cabecera > *,
+      .quirofano-cabecera > *
+    ) {
     min-width: 0;
   }
 }
@@ -71,46 +93,107 @@
     padding-bottom: max(22px, env(safe-area-inset-bottom));
   }
 
-  .sistema-app :is(.fi-encabezado, .recepcion-cabecera, .consultorio-cabecera, .laboratorio-cabecera, .quirofano-cabecera, .config-signos-cabecera) {
+  .sistema-app
+    :is(
+      .fi-encabezado,
+      .recepcion-cabecera,
+      .consultorio-cabecera,
+      .laboratorio-cabecera,
+      .quirofano-cabecera,
+      .config-signos-cabecera
+    ) {
     align-items: stretch;
     flex-direction: column;
     gap: 12px;
   }
 
-  .sistema-app :is(.fi-encabezado > button, .recepcion-cabecera > button, .consultorio-cabecera > button, .laboratorio-cabecera > button, .quirofano-cabecera > button) {
+  .sistema-app
+    :is(
+      .fi-encabezado > button,
+      .recepcion-cabecera > button,
+      .consultorio-cabecera > button,
+      .laboratorio-cabecera > button,
+      .quirofano-cabecera > button
+    ) {
     width: 100%;
     justify-content: center;
   }
 
   /* Las acciones no se comprimen: ocupan filas completas y son c\u00f3modas al tacto. */
-  .sistema-app :is(.fi-acciones-tabla, .acciones-tabla, .historia-acciones, .usuario-form-acciones, .modal-acciones) {
+  .sistema-app
+    :is(
+      .fi-acciones-tabla,
+      .acciones-tabla,
+      .historia-acciones,
+      .usuario-form-acciones,
+      .modal-acciones
+    ) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
     gap: 8px;
   }
 
-  .sistema-app :is(.fi-acciones-tabla, .acciones-tabla, .historia-acciones, .usuario-form-acciones, .modal-acciones) > button {
+  .sistema-app
+    :is(
+      .fi-acciones-tabla,
+      .acciones-tabla,
+      .historia-acciones,
+      .usuario-form-acciones,
+      .modal-acciones
+    )
+    > button {
     width: 100%;
     min-height: 44px;
     justify-content: center;
   }
 
-  .sistema-app :is(.fi-tabla, .clinica-tabla, .recepcion-tabla, .usuarios-tabla, .orthanc-tabla, .estudios-tabla) {
+  .sistema-app
+    :is(
+      .fi-tabla,
+      .clinica-tabla,
+      .recepcion-tabla,
+      .usuarios-tabla,
+      .orthanc-tabla,
+      .estudios-tabla
+    ) {
     min-width: 640px;
   }
 
-  .sistema-app :is(.fi-tabla-wrap, .tabla-scroll, .tabla-contenedor, .tabla-wrapper, .tabla-responsive) {
+  .sistema-app
+    :is(
+      .fi-tabla-wrap,
+      .tabla-scroll,
+      .tabla-contenedor,
+      .tabla-wrapper,
+      .tabla-responsive
+    ) {
     margin-inline: calc(var(--clinico-space) * -0.25);
     padding-inline: calc(var(--clinico-space) * 0.25);
   }
 
-  .sistema-app :is(.modal-fondo, .orthanc-modal-fondo, .citas-modal-fondo, .usuario-modal-fondo, .recepcion-internacion-fondo, .fi-modal-fondo) {
+  .sistema-app
+    :is(
+      .modal-fondo,
+      .orthanc-modal-fondo,
+      .citas-modal-fondo,
+      .usuario-modal-fondo,
+      .recepcion-internacion-fondo,
+      .fi-modal-fondo
+    ) {
     align-items: end;
     padding: 0;
   }
 
-  .sistema-app :is(.modal-fondo > *, .orthanc-modal, .usuario-modal, .citas-modal-fondo > *, .recepcion-internacion-modal, .fi-modal) {
+  .sistema-app
+    :is(
+      .modal-fondo > *,
+      .orthanc-modal,
+      .usuario-modal,
+      .citas-modal-fondo > *,
+      .recepcion-internacion-modal,
+      .fi-modal
+    ) {
     width: 100%;
     max-width: 100%;
     max-height: min(92dvh, 760px);
@@ -118,7 +201,13 @@
     border-radius: 16px 16px 0 0;
   }
 
-  .sistema-app :is(.config-signos-dos-campos, .fi-formulario, .paciente-campos, .usuario-campos) {
+  .sistema-app
+    :is(
+      .config-signos-dos-campos,
+      .fi-formulario,
+      .paciente-campos,
+      .usuario-campos
+    ) {
     grid-template-columns: 1fr;
   }
 }
@@ -129,48 +218,127 @@
     padding-inline: max(8px, env(safe-area-inset-left));
   }
 
-  .sistema-app :is(.fi-acciones-tabla, .acciones-tabla, .historia-acciones, .usuario-form-acciones, .modal-acciones) {
+  .sistema-app
+    :is(
+      .fi-acciones-tabla,
+      .acciones-tabla,
+      .historia-acciones,
+      .usuario-form-acciones,
+      .modal-acciones
+    ) {
     grid-template-columns: 1fr;
   }
 
-  .sistema-app :is(.pagina-cabecera h1, .recepcion-cabecera h1, .consultorio-cabecera h1, .laboratorio-cabecera h1) {
+  .sistema-app
+    :is(
+      .pagina-cabecera h1,
+      .recepcion-cabecera h1,
+      .consultorio-cabecera h1,
+      .laboratorio-cabecera h1
+    ) {
     font-size: clamp(20px, 7vw, 26px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sistema-app *, .sistema-app *::before, .sistema-app *::after {
+  .sistema-app *,
+  .sistema-app *::before,
+  .sistema-app *::after {
     scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
-    animation-duration: .01ms !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
 }
 
 /* Ajustes de interacción para tabletas y pantallas táctiles. */
 @media (hover: none) and (pointer: coarse) {
-  .sistema-app :is(button, a, [role="button"]) { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
-  .sistema-app :is(button:not(.libro-navegar), input, select, textarea) { min-height: 44px; }
-  .sistema-app :is(input, select, textarea) { font-size: 16px; }
-  .sistema-app :is(.consultorio-subvistas, .recepcion-subvistas, .punto-catalogo-filtros, .punto-busquedas) { scrollbar-width: thin; overscroll-behavior-inline: contain; }
+  .sistema-app :is(button, a, [role="button"]) {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  .sistema-app :is(button:not(.libro-navegar), input, select, textarea) {
+    min-height: 44px;
+  }
+  .sistema-app :is(input, select, textarea) {
+    font-size: 16px;
+  }
+  .sistema-app
+    :is(
+      .consultorio-subvistas,
+      .recepcion-subvistas,
+      .punto-catalogo-filtros,
+      .punto-busquedas
+    ) {
+    scrollbar-width: thin;
+    overscroll-behavior-inline: contain;
+  }
 }
 
 @media (min-width: 761px) and (max-width: 1180px) {
-  .sistema-app .area-trabajo { padding-inline: clamp(14px, 2vw, 26px); }
-  .sistema-app .punto-pos-layout, .sistema-app .punto-pos-layout.con-historial { gap: 14px; }
-  .sistema-app .punto-carrito { position: static; }
-  .sistema-app .agenda-cola > :is(header, article) { grid-template-columns: 64px minmax(170px, 1.25fr) minmax(145px, 1fr) auto; }
+  .sistema-app .area-trabajo {
+    padding-inline: clamp(14px, 2vw, 26px);
+  }
+  .sistema-app .punto-pos-layout,
+  .sistema-app .punto-pos-layout.con-historial {
+    gap: 14px;
+  }
+  .sistema-app .punto-carrito {
+    position: static;
+  }
+  .sistema-app .agenda-cola > :is(header, article) {
+    grid-template-columns: 64px minmax(170px, 1.25fr) minmax(145px, 1fr) auto;
+  }
 }
 
 @media (max-width: 760px) {
-  .sistema-app .punto-catalogo-filtros { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
-  .sistema-app .punto-catalogo-filtros > * { flex: 0 0 auto; }
-  .sistema-app .punto-busquedas { gap: 8px; }
-  .sistema-app .punto-busquedas > label { flex-basis: 100%; min-height: 44px; }
-  .sistema-app .punto-carrito-flotante { min-height: auto; padding: 14px; }
-  .sistema-app .punto-consulta-modal { width: 100%; max-width: 100%; max-height: min(94dvh, 760px); margin: 0; overflow: auto; border-radius: 18px 18px 0 0; }
-  .sistema-app .punto-imagen-fondo:has(.punto-consulta-modal) { align-items: end; padding: 0; }
-  .sistema-app .punto-consulta-modal .punto-consulta-fecha { grid-template-columns: 1fr; }
-  .sistema-app .punto-consulta-modal footer { position: sticky; bottom: 0; display: grid; grid-template-columns: 1fr; gap: 8px; padding-top: 12px; background: #fff; }
-  .sistema-app .punto-consulta-modal footer button { width: 100%; min-height: 46px; justify-content: center; }
+  .sistema-app .punto-catalogo-filtros {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sistema-app .punto-catalogo-filtros > * {
+    flex: 0 0 auto;
+  }
+  .sistema-app .punto-busquedas {
+    gap: 8px;
+  }
+  .sistema-app .punto-busquedas > label {
+    flex-basis: 100%;
+    min-height: 44px;
+  }
+  .sistema-app .punto-carrito-flotante {
+    min-height: auto;
+    padding: 14px;
+  }
+  .sistema-app .punto-consulta-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(94dvh, 760px);
+    margin: 0;
+    overflow: auto;
+    border-radius: 18px 18px 0 0;
+  }
+  .sistema-app .punto-imagen-fondo:has(.punto-consulta-modal) {
+    align-items: end;
+    padding: 0;
+  }
+  .sistema-app .punto-consulta-modal .punto-consulta-fecha {
+    grid-template-columns: 1fr;
+  }
+  .sistema-app .punto-consulta-modal footer {
+    position: sticky;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-top: 12px;
+    background: #fff;
+  }
+  .sistema-app .punto-consulta-modal footer button {
+    width: 100%;
+    min-height: 46px;
+    justify-content: center;
+  }
 }

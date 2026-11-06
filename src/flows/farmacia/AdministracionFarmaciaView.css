@@ -1,25 +1,145 @@
-.farmacia-admin-almacen-filtros{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(320px,1.5fr);gap:14px;margin:0 0 20px}
-.farmacia-admin-sucursal{display:grid;align-content:start;gap:7px;color:#45657e;font-size:12px;font-weight:800}
-.farmacia-admin-sucursal select{width:100%;min-height:42px;padding:0 12px;border:1px solid #cbddea;border-radius:8px;color:#173d60;background:#fff;font:inherit}
-.farmacia-admin-almacenes{min-width:0;margin:0;padding:10px 12px;border:1px solid #d7e5ef;border-radius:9px}
-.farmacia-admin-almacenes legend{padding:0 5px;color:#45657e;font-size:12px;font-weight:800}
-.farmacia-admin-almacenes legend span{margin-left:6px;color:#708ba2;font-weight:600}
-.farmacia-admin-almacenes>small{color:#708ba2;font-size:11px}
-.farmacia-admin-almacenes-lista{display:flex;flex-wrap:wrap;gap:8px 14px}
-.farmacia-admin-almacenes-lista label{display:inline-flex;align-items:center;gap:6px;color:#315d7d;font-size:12px;font-weight:600;cursor:pointer}
-.farmacia-admin-almacenes-lista input{width:15px;height:15px;margin:0;accent-color:#087fc0}
-.farmacia-admin-almacenes-todos{margin-top:8px;padding:0;border:0;color:#0877bc;background:transparent;font-size:11px;font-weight:800;cursor:pointer}
-.farmacia-admin-almacen-error{margin:0 0 12px;padding:10px 12px;border:1px solid #f0c2c2;border-radius:8px;color:#9b3434!important;background:#fff5f5;font-size:12px!important;letter-spacing:0!important}
-.farmacia-admin-almacen-tabla{width:100%;overflow-x:auto}
-.farmacia-admin-almacen-tabla td strong{color:#173d60}
-.farmacia-admin-almacen-mensaje{height:150px;text-align:center!important;color:#66819a!important}
-.farmacia-admin-stock{display:inline-flex;padding:4px 9px;border-radius:20px;font-size:11px;font-weight:800}
-.farmacia-admin-stock.disponible{color:#21633e;background:#e8f6ec}
-.farmacia-admin-stock.agotado{color:#9a3c3c;background:#fae7e7}
-.sistema-app[data-theme="dark"] .farmacia-admin-sucursal,.sistema-app[data-theme="dark"] .farmacia-admin-almacenes legend,.sistema-app[data-theme="dark"] .farmacia-admin-almacenes-lista label{color:var(--subtle)}
-.sistema-app[data-theme="dark"] .farmacia-admin-sucursal select,.sistema-app[data-theme="dark"] .farmacia-admin-almacenes{border-color:var(--border);color:var(--text);background:var(--field)}
-.sistema-app[data-theme="dark"] .farmacia-admin-almacenes legend span,.sistema-app[data-theme="dark"] .farmacia-admin-almacenes>small,.sistema-app[data-theme="dark"] .farmacia-admin-almacen-mensaje{color:var(--muted)!important}
-.sistema-app[data-theme="dark"] .farmacia-admin-almacen-tabla td strong{color:var(--heading)}
-.sistema-app[data-theme="dark"] .farmacia-admin-stock.disponible{color:var(--success);background:var(--success-bg)}
-.sistema-app[data-theme="dark"] .farmacia-admin-stock.agotado{color:var(--danger);background:var(--danger-bg)}
-@media(max-width:760px){.farmacia-admin-almacen-filtros{grid-template-columns:1fr}}
+.farmacia-admin-almacen-filtros {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1.5fr);
+  gap: 14px;
+  margin: 0 0 20px;
+}
+.farmacia-admin-sucursal {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  color: #45657e;
+  font-size: 12px;
+  font-weight: 800;
+}
+.farmacia-admin-sucursal select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #cbddea;
+  border-radius: 8px;
+  color: #173d60;
+  background: #fff;
+  font: inherit;
+}
+.farmacia-admin-almacenes {
+  min-width: 0;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid #d7e5ef;
+  border-radius: 9px;
+}
+.farmacia-admin-almacenes legend {
+  padding: 0 5px;
+  color: #45657e;
+  font-size: 12px;
+  font-weight: 800;
+}
+.farmacia-admin-almacenes legend span {
+  margin-left: 6px;
+  color: #708ba2;
+  font-weight: 600;
+}
+.farmacia-admin-almacenes > small {
+  color: #708ba2;
+  font-size: 11px;
+}
+.farmacia-admin-almacenes-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+.farmacia-admin-almacenes-lista label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #315d7d;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.farmacia-admin-almacenes-lista input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: #087fc0;
+}
+.farmacia-admin-almacenes-todos {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  color: #0877bc;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-admin-almacen-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #f0c2c2;
+  border-radius: 8px;
+  color: #9b3434 !important;
+  background: #fff5f5;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+}
+.farmacia-admin-almacen-tabla {
+  width: 100%;
+  overflow-x: auto;
+}
+.farmacia-admin-almacen-tabla td strong {
+  color: #173d60;
+}
+.farmacia-admin-almacen-mensaje {
+  height: 150px;
+  text-align: center !important;
+  color: #66819a !important;
+}
+.farmacia-admin-stock {
+  display: inline-flex;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.farmacia-admin-stock.disponible {
+  color: #21633e;
+  background: #e8f6ec;
+}
+.farmacia-admin-stock.agotado {
+  color: #9a3c3c;
+  background: #fae7e7;
+}
+.sistema-app[data-theme="dark"] .farmacia-admin-sucursal,
+.sistema-app[data-theme="dark"] .farmacia-admin-almacenes legend,
+.sistema-app[data-theme="dark"] .farmacia-admin-almacenes-lista label {
+  color: var(--subtle);
+}
+.sistema-app[data-theme="dark"] .farmacia-admin-sucursal select,
+.sistema-app[data-theme="dark"] .farmacia-admin-almacenes {
+  border-color: var(--border);
+  color: var(--text);
+  background: var(--field);
+}
+.sistema-app[data-theme="dark"] .farmacia-admin-almacenes legend span,
+.sistema-app[data-theme="dark"] .farmacia-admin-almacenes > small,
+.sistema-app[data-theme="dark"] .farmacia-admin-almacen-mensaje {
+  color: var(--muted) !important;
+}
+.sistema-app[data-theme="dark"] .farmacia-admin-almacen-tabla td strong {
+  color: var(--heading);
+}
+.sistema-app[data-theme="dark"] .farmacia-admin-stock.disponible {
+  color: var(--success);
+  background: var(--success-bg);
+}
+.sistema-app[data-theme="dark"] .farmacia-admin-stock.agotado {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+@media (max-width: 760px) {
+  .farmacia-admin-almacen-filtros {
+    grid-template-columns: 1fr;
+  }
+}

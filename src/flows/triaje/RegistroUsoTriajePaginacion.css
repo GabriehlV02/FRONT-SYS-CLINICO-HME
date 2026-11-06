@@ -1,1 +1,38 @@
-.registro-atencion-paginacion{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 0;color:#5a7c94;font-size:12px}.registro-atencion-paginacion button{min-height:34px;padding:0 12px;border:1px solid #b9dcec;border-radius:7px;color:#0878b4;background:#fff;font:inherit;font-weight:800;cursor:pointer}.registro-atencion-paginacion button:disabled{opacity:.45;cursor:default}.registro-atencion-paginacion span{min-width:154px;text-align:center}@media(max-width:560px){.registro-atencion-paginacion{justify-content:center;flex-wrap:wrap}.registro-atencion-paginacion span{order:-1;width:100%}}
+.registro-atencion-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 0;
+  color: #5a7c94;
+  font-size: 12px;
+}
+.registro-atencion-paginacion button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid #b9dcec;
+  border-radius: 7px;
+  color: #0878b4;
+  background: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.registro-atencion-paginacion button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.registro-atencion-paginacion span {
+  min-width: 154px;
+  text-align: center;
+}
+@media (max-width: 560px) {
+  .registro-atencion-paginacion {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .registro-atencion-paginacion span {
+    order: -1;
+    width: 100%;
+  }
+}

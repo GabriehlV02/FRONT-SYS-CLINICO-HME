@@ -8,7 +8,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type WheelEvent as ReactWheelEvent,
 } from "react";
-import { listarPacientes } from '../pacientes/pacientesApi';
+import { listarPacientes } from "../pacientes/pacientesApi";
 import Icon from "../../componentes/Icono";
 import { notificar } from "../../componentes/Notificaciones";
 import { apiFetch } from "../../api";
@@ -50,13 +50,20 @@ type EstudioOrthanc = {
 
 type ModalidadVisor = "Radiografía" | "Tomografía" | "Ecografía";
 const correspondeModalidad = (categoria: string, modalidad: ModalidadVisor) => {
-  const valor = categoria.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-  if (modalidad === 'Tomografía') return /tomograf|\btac\b|\bct\b/.test(valor);
-  if (modalidad === 'Ecografía') return /ecograf|ultrason|\bus\b/.test(valor);
+  const valor = categoria
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (modalidad === "Tomografía") return /tomograf|\btac\b|\bct\b/.test(valor);
+  if (modalidad === "Ecografía") return /ecograf|ultrason|\bus\b/.test(valor);
   return /radiograf|rayos|\brx\b|\bcr\b|\bdx\b|\bdr\b/.test(valor);
 };
 
-export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?: ModalidadVisor }) {
+export default function VistaRayosX({
+  modalidad = "Radiografía",
+}: {
+  modalidad?: ModalidadVisor;
+}) {
   const [estudios, setEstudios] = useState<Estudio[]>([]),
     [estudiosOrthanc, setEstudiosOrthanc] = useState<EstudioOrthanc[]>([]),
     [actual, setActual] = useState<Estudio | null>(null),
@@ -94,8 +101,17 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
   const esDicom = dicomFiles.length > 0;
 
   useEffect(() => {
-    if (!reproduciendo || modalidad === "Radiografía" || !esDicom || corte.total < 2) return;
-    const intervalo = window.setInterval(() => dicomControl.current?.siguienteCorte(), modalidad === 'Ecografía' ? 90 : 120);
+    if (
+      !reproduciendo ||
+      modalidad === "Radiografía" ||
+      !esDicom ||
+      corte.total < 2
+    )
+      return;
+    const intervalo = window.setInterval(
+      () => dicomControl.current?.siguienteCorte(),
+      modalidad === "Ecografía" ? 90 : 120,
+    );
     return () => window.clearInterval(intervalo);
   }, [reproduciendo, modalidad, esDicom, corte.total]);
 
@@ -103,22 +119,29 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
     carpeta.current?.setAttribute("webkitdirectory", "");
     carpeta.current?.setAttribute("directory", "");
     setEstudios(
-      obtenerEstudios().filter((e) => correspondeModalidad(e.categoria, modalidad)).map((e) => ({
-        id: e.id,
-        titulo: e.titulo,
-        paciente: e.paciente,
-        categoria: e.categoria,
-        mime: e.mime,
-        url: "",
-        creadaEn: e.creadaEn,
-      })),
+      obtenerEstudios()
+        .filter((e) => correspondeModalidad(e.categoria, modalidad))
+        .map((e) => ({
+          id: e.id,
+          titulo: e.titulo,
+          paciente: e.paciente,
+          categoria: e.categoria,
+          mime: e.mime,
+          url: "",
+          creadaEn: e.creadaEn,
+        })),
     );
   }, [modalidad]);
   useEffect(() => {
-    const actualizarPantallaCompleta = () => setPantallaCompleta(document.fullscreenElement === estacion.current);
+    const actualizarPantallaCompleta = () =>
+      setPantallaCompleta(document.fullscreenElement === estacion.current);
     document.addEventListener("fullscreenchange", actualizarPantallaCompleta);
     actualizarPantallaCompleta();
-    return () => document.removeEventListener("fullscreenchange", actualizarPantallaCompleta);
+    return () =>
+      document.removeEventListener(
+        "fullscreenchange",
+        actualizarPantallaCompleta,
+      );
   }, []);
   const restablecerRaster = () => {
     setZoom(1);
@@ -209,14 +232,13 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
             ).webkitRelativePath?.split("/")[0] || "Estudio DICOM",
       );
     } catch (error) {
-      const detalle = error instanceof Error ? error.message : "Revise el archivo seleccionado.";
+      const detalle =
+        error instanceof Error
+          ? error.message
+          : "Revise el archivo seleccionado.";
       setMensajeCarga("");
       setErrorCarga(detalle);
-      notificar(
-        "error",
-        "No se pudo abrir el estudio",
-        detalle,
-      );
+      notificar("error", "No se pudo abrir el estudio", detalle);
     } finally {
       setCargando(false);
     }
@@ -241,7 +263,8 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
       destino instanceof HTMLElement &&
       (destino.isContentEditable ||
         ["INPUT", "TEXTAREA", "SELECT", "BUTTON"].includes(destino.tagName))
-    ) return;
+    )
+      return;
     const tecla = e.key.toLowerCase();
     if (e.key === "+" || e.key === "=") {
       e.preventDefault();
@@ -269,36 +292,42 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
       void alternarPantallaCompleta();
     }
   };
-  const abrirEstudioGuardado = useCallback(async (estudio: EstudioDemo) => {
-    if (!correspondeModalidad(estudio.categoria, modalidad)) return;
-    void abrirPantallaCompleta();
-    setEstudiosOrthanc([]);
-    setCargando(true);
-    setErrorCarga("");
-    setMensajeCarga(`Descargando y preparando ${estudio.nombreArchivo}. Esto puede tardar unos minutos…`);
-    try {
-      const file = await obtenerArchivoEstudio(estudio),
-        resultado = await importarEstudio([file]);
-      cargarResultado(resultado, estudio.nombreArchivo, estudio);
-    } catch (error) {
-      const detalle = error instanceof Error ? error.message : "Revise el archivo seleccionado.";
-      setMensajeCarga("");
-      setErrorCarga(detalle);
-      notificar(
-        "error",
-        "No se pudo abrir el estudio",
-        detalle,
+  const abrirEstudioGuardado = useCallback(
+    async (estudio: EstudioDemo) => {
+      if (!correspondeModalidad(estudio.categoria, modalidad)) return;
+      void abrirPantallaCompleta();
+      setEstudiosOrthanc([]);
+      setCargando(true);
+      setErrorCarga("");
+      setMensajeCarga(
+        `Descargando y preparando ${estudio.nombreArchivo}. Esto puede tardar unos minutos…`,
       );
-    } finally {
-      setCargando(false);
-    }
-  }, [modalidad]);
+      try {
+        const file = await obtenerArchivoEstudio(estudio),
+          resultado = await importarEstudio([file]);
+        cargarResultado(resultado, estudio.nombreArchivo, estudio);
+      } catch (error) {
+        const detalle =
+          error instanceof Error
+            ? error.message
+            : "Revise el archivo seleccionado.";
+        setMensajeCarga("");
+        setErrorCarga(detalle);
+        notificar("error", "No se pudo abrir el estudio", detalle);
+      } finally {
+        setCargando(false);
+      }
+    },
+    [modalidad],
+  );
   const abrirEstudioOrthanc = async (estudio: EstudioOrthanc) => {
-    if (!correspondeModalidad(estudio.modalidades.join(' '), modalidad)) return;
+    if (!correspondeModalidad(estudio.modalidades.join(" "), modalidad)) return;
     void abrirPantallaCompleta();
     setCargando(true);
     setErrorCarga("");
-    setMensajeCarga(`Descargando ${estudio.descripcion || "estudio DICOM"}. Esto puede tardar unos minutos…`);
+    setMensajeCarga(
+      `Descargando ${estudio.descripcion || "estudio DICOM"}. Esto puede tardar unos minutos…`,
+    );
     try {
       const respuesta = await apiFetch(
         `/api/orthanc/estudios/${encodeURIComponent(estudio.id)}/archivo`,
@@ -333,21 +362,21 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
         creadaEn: fecha,
       });
     } catch (error) {
-      const detalle = error instanceof Error ? error.message : "No se pudo obtener el estudio del servidor.";
+      const detalle =
+        error instanceof Error
+          ? error.message
+          : "No se pudo obtener el estudio del servidor.";
       setMensajeCarga("");
       setErrorCarga(detalle);
-      notificar(
-        "error",
-        "No se pudo abrir desde Orthanc",
-        detalle,
-      );
+      notificar("error", "No se pudo abrir desde Orthanc", detalle);
     } finally {
       setCargando(false);
     }
   };
   useEffect(() => {
     const seleccionado = obtenerEstudioSeleccionado();
-    if (seleccionado && correspondeModalidad(seleccionado.categoria, modalidad)) void abrirEstudioGuardado(seleccionado);
+    if (seleccionado && correspondeModalidad(seleccionado.categoria, modalidad))
+      void abrirEstudioGuardado(seleccionado);
   }, [abrirEstudioGuardado, modalidad]);
   useEffect(() => {
     const id = localStorage.getItem("radiuus_orthanc_estudio");
@@ -363,8 +392,10 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
       const seleccionado = (lista as EstudioOrthanc[]).find((e) => e.id === id);
       if (!seleccionado)
         throw new Error("El estudio seleccionado ya no está disponible.");
-      if (!correspondeModalidad(seleccionado.modalidades.join(' '), modalidad))
-        throw new Error(`El estudio seleccionado no corresponde a ${modalidad.toLowerCase()}.`);
+      if (!correspondeModalidad(seleccionado.modalidades.join(" "), modalidad))
+        throw new Error(
+          `El estudio seleccionado no corresponde a ${modalidad.toLowerCase()}.`,
+        );
       const idPaciente = seleccionado.patientIdDicom.trim().toUpperCase(),
         nombre = seleccionado.patientName.trim().toUpperCase(),
         idGenerico =
@@ -373,11 +404,13 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
             idPaciente.replace(/[^A-Z0-9]/g, ""),
           ),
         historial = (lista as EstudioOrthanc[])
-          .filter((e) => correspondeModalidad(e.modalidades.join(' '), modalidad) && (
-            idGenerico
-              ? e.patientName.trim().toUpperCase() === nombre
-              : e.patientIdDicom.trim().toUpperCase() === idPaciente &&
-                e.patientName.trim().toUpperCase() === nombre),
+          .filter(
+            (e) =>
+              correspondeModalidad(e.modalidades.join(" "), modalidad) &&
+              (idGenerico
+                ? e.patientName.trim().toUpperCase() === nombre
+                : e.patientIdDicom.trim().toUpperCase() === idPaciente &&
+                  e.patientName.trim().toUpperCase() === nombre),
           )
           .sort((a, b) => b.fechaEstudio.localeCompare(a.fechaEstudio));
       setEstudiosOrthanc(historial);
@@ -393,14 +426,16 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
 
   const abrirPantallaCompleta = async () => {
     try {
-      if (!document.fullscreenElement) await estacion.current?.requestFullscreen();
+      if (!document.fullscreenElement)
+        await estacion.current?.requestFullscreen();
     } catch {
       /* El navegador puede bloquear la solicitud fuera de un gesto directo. */
     }
   };
   const alternarPantallaCompleta = async () => {
     try {
-      if (document.fullscreenElement === estacion.current) await document.exitFullscreen();
+      if (document.fullscreenElement === estacion.current)
+        await document.exitFullscreen();
       else await abrirPantallaCompleta();
     } catch {
       /* El navegador puede bloquear la solicitud fuera de un gesto directo. */
@@ -535,7 +570,9 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
         const dicom = estudiosOrthanc.find((item) => item.id === actual.id),
           guardado = obtenerEstudios().find((item) => item.id === actual.id),
           pacienteLocal = guardado
-            ? (await listarPacientes()).find((item) => item.id === guardado.pacienteId)
+            ? (await listarPacientes()).find(
+                (item) => item.id === guardado.pacienteId,
+              )
             : undefined;
         const fechaDicom =
           dicom?.fechaEstudio && /^\d{8}$/.test(dicom.fechaEstudio)
@@ -544,7 +581,8 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
         ventana.document.write(
           crearPlantillaRadiografiaPdf({
             imagen: data,
-            logo: new URL("/logo-hospital-original.png", window.location.origin).href,
+            logo: new URL("/logo-hospital-original.png", window.location.origin)
+              .href,
             paciente: actual.paciente,
             pacienteId:
               dicom?.patientIdDicom ||
@@ -594,13 +632,21 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
     esDicom ? dicomControl.current?.centrar() : setPosicion({ x: 0, y: 0 });
 
   return (
-    <div className={`rx-vista rx-${modalidad === "Tomografía" ? "tomografia" : modalidad === "Ecografía" ? "ecografia" : "radiografia"}`}>
+    <div
+      className={`rx-vista rx-${modalidad === "Tomografía" ? "tomografia" : modalidad === "Ecografía" ? "ecografia" : "radiografia"}`}
+    >
       <header className="rx-cabecera">
         <div>
           <p>IMAGENOLOGÍA / VISOR</p>
           <h2>Visor de {modalidad.toLowerCase()}s</h2>
           <small>
-            DICOM, DICOMDIR, carpetas, ZIP, RAR e imágenes {modalidad === "Tomografía" ? "tomográficas" : modalidad === "Ecografía" ? "ecográficas" : "radiográficas"}.
+            DICOM, DICOMDIR, carpetas, ZIP, RAR e imágenes{" "}
+            {modalidad === "Tomografía"
+              ? "tomográficas"
+              : modalidad === "Ecografía"
+                ? "ecográficas"
+                : "radiográficas"}
+            .
           </small>
         </div>
         <div>
@@ -751,9 +797,29 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
                   ? `${Math.round(zoomDicom * 100)}%`
                   : `${Math.round(zoom * 100)}%`}
               </span>
-              <button onClick={() => cambiarZoom(1.25)} title="Aumentar zoom">+</button>
+              <button onClick={() => cambiarZoom(1.25)} title="Aumentar zoom">
+                +
+              </button>
             </div>
-            {modalidad !== "Radiografía" && esDicom && corte.total > 1 && <button className={reproduciendo ? "activo" : ""} onClick={() => setReproduciendo(valor => !valor)} title={modalidad === "Ecografía" ? "Reproducir o congelar la secuencia ecográfica" : "Reproducir o pausar los cortes tomográficos"}>{reproduciendo ? (modalidad === "Ecografía" ? "Congelar" : "Pausar") : (modalidad === "Ecografía" ? "Cine" : "Reproducir")}</button>}
+            {modalidad !== "Radiografía" && esDicom && corte.total > 1 && (
+              <button
+                className={reproduciendo ? "activo" : ""}
+                onClick={() => setReproduciendo((valor) => !valor)}
+                title={
+                  modalidad === "Ecografía"
+                    ? "Reproducir o congelar la secuencia ecográfica"
+                    : "Reproducir o pausar los cortes tomográficos"
+                }
+              >
+                {reproduciendo
+                  ? modalidad === "Ecografía"
+                    ? "Congelar"
+                    : "Pausar"
+                  : modalidad === "Ecografía"
+                    ? "Cine"
+                    : "Reproducir"}
+              </button>
+            )}
             <button onClick={() => rotar(-90)}>↶</button>
             <button onClick={() => rotar(90)}>↷</button>
             <button className={invertido ? "activo" : ""} onClick={negativo}>
@@ -770,8 +836,13 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
               Centrar
             </button>
             <button onClick={restablecer}>Restablecer</button>
-            <button disabled={!actual} onClick={() => void alternarPantallaCompleta()}>
-              {pantallaCompleta ? "Salir de pantalla completa" : "Pantalla completa"}
+            <button
+              disabled={!actual}
+              onClick={() => void alternarPantallaCompleta()}
+            >
+              {pantallaCompleta
+                ? "Salir de pantalla completa"
+                : "Pantalla completa"}
             </button>
             <span className="rx-toolbar-separador" />
             <button
@@ -809,18 +880,29 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
             onPointerCancel={terminarGesto}
           >
             {cargando ? (
-              <div className="rx-cargando-estudio" role="status" aria-live="polite">
+              <div
+                className="rx-cargando-estudio"
+                role="status"
+                aria-live="polite"
+              >
                 <span className="rx-spinner" />
                 <strong>Cargando estudio de la paciente</strong>
-                <p>{mensajeCarga || "Preparando las imágenes para el visor…"}</p>
-                <small>No cierre esta pantalla. El visor se abrirá automáticamente al terminar.</small>
+                <p>
+                  {mensajeCarga || "Preparando las imágenes para el visor…"}
+                </p>
+                <small>
+                  No cierre esta pantalla. El visor se abrirá automáticamente al
+                  terminar.
+                </small>
               </div>
             ) : errorCarga ? (
               <div className="rx-error-estudio" role="alert">
                 <Icon name="image" size={32} />
                 <strong>No se pudo cargar el estudio</strong>
                 <p>{errorCarga}</p>
-                <small>Puede volver al listado e intentar abrirlo nuevamente.</small>
+                <small>
+                  Puede volver al listado e intentar abrirlo nuevamente.
+                </small>
               </div>
             ) : esDicom ? (
               <VisorDicom
@@ -851,29 +933,36 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
                 </div>
               </>
             ) : (
-            <button
-              type="button"
-              className="rx-vacio"
-              onClick={() => archivo.current?.click()}
-              onKeyDown={(e) => e.stopPropagation()}
-            >
-              <Icon name="image" size={37} />
-              <h3>Abre un estudio {modalidad === "Tomografía" ? "tomográfico" : modalidad === "Ecografía" ? "ecográfico" : "radiológico"}</h3>
-              <p>
-                Haz clic para elegir archivos o arrastra un DICOM, ZIP, RAR o
-                imágenes aquí.
-              </p>
-              <span className="rx-vacio-accion">
-                <Icon name="plus" size={15} /> Seleccionar estudio
-              </span>
-            </button>
+              <button
+                type="button"
+                className="rx-vacio"
+                onClick={() => archivo.current?.click()}
+                onKeyDown={(e) => e.stopPropagation()}
+              >
+                <Icon name="image" size={37} />
+                <h3>
+                  Abre un estudio{" "}
+                  {modalidad === "Tomografía"
+                    ? "tomográfico"
+                    : modalidad === "Ecografía"
+                      ? "ecográfico"
+                      : "radiológico"}
+                </h3>
+                <p>
+                  Haz clic para elegir archivos o arrastra un DICOM, ZIP, RAR o
+                  imágenes aquí.
+                </p>
+                <span className="rx-vacio-accion">
+                  <Icon name="plus" size={15} /> Seleccionar estudio
+                </span>
+              </button>
             )}
             {arrastrandoArchivo && (
-            <div className="rx-drop-overlay" aria-live="polite">
-              <Icon name="package" size={32} />
-              <strong>Suelta el estudio para abrirlo</strong>
-              <span>DICOM, ZIP, RAR o imágenes</span>
-            </div>
+              <div className="rx-drop-overlay" aria-live="polite">
+                <Icon name="package" size={32} />
+                <strong>Suelta el estudio para abrirlo</strong>
+                <span>DICOM, ZIP, RAR o imágenes</span>
+              </div>
             )}
             {actual && (
               <div className="rx-ayuda-gestos">
@@ -895,54 +984,58 @@ export default function VistaRayosX({ modalidad = "Radiografía" }: { modalidad?
               </div>
             )}
           </div>
-            <div className="rx-ajustes">
-              <label>
-                <span>{modalidad === "Ecografía" ? "Ganancia" : "Brillo"}</span>
+          <div className="rx-ajustes">
+            <label>
+              <span>{modalidad === "Ecografía" ? "Ganancia" : "Brillo"}</span>
+              <input
+                type="range"
+                min="20"
+                max="200"
+                value={brillo}
+                onChange={(e) => {
+                  const valor = Number(e.target.value);
+                  setBrillo(valor);
+                  if (esDicom)
+                    dicomControl.current?.ajustarVentana(valor, contraste);
+                }}
+              />
+              <b>{brillo}%</b>
+            </label>
+            <label>
+              <span>Contraste</span>
+              <input
+                type="range"
+                min="20"
+                max="250"
+                value={contraste}
+                onChange={(e) => {
+                  const valor = Number(e.target.value);
+                  setContraste(valor);
+                  if (esDicom)
+                    dicomControl.current?.ajustarVentana(brillo, valor);
+                }}
+              />
+              <b>{contraste}%</b>
+            </label>
+            {modalidad === "Radiografía" && esDicom && corte.total > 1 && (
+              <label className="rx-navegacion-corte">
+                <span>Corte</span>
                 <input
                   type="range"
-                  min="20"
-                  max="200"
-                  value={brillo}
-                  onChange={(e) => {
-                    const valor = Number(e.target.value);
-                    setBrillo(valor);
-                    if (esDicom) dicomControl.current?.ajustarVentana(valor, contraste);
-                  }}
+                  min="1"
+                  max={corte.total}
+                  value={Math.min(corte.actual, corte.total)}
+                  onChange={(e) =>
+                    dicomControl.current?.irACorte(Number(e.target.value) - 1)
+                  }
+                  aria-label="Seleccionar corte DICOM"
                 />
-                <b>{brillo}%</b>
+                <b>
+                  {corte.actual} / {corte.total}
+                </b>
               </label>
-              <label>
-                <span>Contraste</span>
-                <input
-                  type="range"
-                  min="20"
-                  max="250"
-                  value={contraste}
-                  onChange={(e) => {
-                    const valor = Number(e.target.value);
-                    setContraste(valor);
-                    if (esDicom) dicomControl.current?.ajustarVentana(brillo, valor);
-                  }}
-                />
-                <b>{contraste}%</b>
-              </label>
-              {modalidad === "Radiografía" && esDicom && corte.total > 1 && (
-                <label className="rx-navegacion-corte">
-                  <span>Corte</span>
-                  <input
-                    type="range"
-                    min="1"
-                    max={corte.total}
-                    value={Math.min(corte.actual, corte.total)}
-                    onChange={(e) =>
-                      dicomControl.current?.irACorte(Number(e.target.value) - 1)
-                    }
-                    aria-label="Seleccionar corte DICOM"
-                  />
-                  <b>{corte.actual} / {corte.total}</b>
-                </label>
-              )}
-            </div>
+            )}
+          </div>
         </main>
       </section>
     </div>

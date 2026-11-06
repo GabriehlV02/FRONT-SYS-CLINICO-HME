@@ -2,7 +2,11 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
 import { obtenerRangos, type RangoReferencia } from "./rangosReferencia";
 import { SelectorUnidad } from "./SelectorUnidad";
-import { UnidadesMedidaView, useUnidadesMedida, type UnidadMedida } from "./UnidadesMedidaView";
+import {
+  UnidadesMedidaView,
+  useUnidadesMedida,
+  type UnidadMedida,
+} from "./UnidadesMedidaView";
 import "./ConfiguracionSignosVitalesView.css";
 import "./ConfiguracionSignosVitalesViewEspacio.css";
 
@@ -13,7 +17,11 @@ export type SignoVitalConfig = {
   abreviatura: string;
   tipo: "Número entero" | "Número decimal" | "Texto";
   rangoReferencia?: RangoReferencia;
-  componentes?: { id: string; nombre: string; rangoReferencia?: RangoReferencia | null }[];
+  componentes?: {
+    id: string;
+    nombre: string;
+    rangoReferencia?: RangoReferencia | null;
+  }[];
 };
 
 export const signosVitalesIniciales: SignoVitalConfig[] = [
@@ -151,7 +159,9 @@ function EditorSignosVitalesView({
   unidadesRegistradas: UnidadMedida[];
 }) {
   const [multiples, setMultiples] = useState(false);
-  const [componentes, setComponentes] = useState<{id:string; nombre:string; minimo:string; maximo:string}[]>([]);
+  const [componentes, setComponentes] = useState<
+    { id: string; nombre: string; minimo: string; maximo: string }[]
+  >([]);
   const [nombreRango, setNombreRango] = useState("");
   const [seleccionRango, setSeleccionRango] = useState("personalizado");
   const [detalleRango, setDetalleRango] = useState<
@@ -170,7 +180,9 @@ function EditorSignosVitalesView({
         .filter((s) => s.unidad.trim() && s.abreviatura.trim())
         .map((s) => [s.unidad.trim(), s.abreviatura.trim()]),
     ),
-    ...Object.fromEntries(unidadesRegistradas.map((unidad) => [unidad.nombre, unidad.abreviatura])),
+    ...Object.fromEntries(
+      unidadesRegistradas.map((unidad) => [unidad.nombre, unidad.abreviatura]),
+    ),
   };
   const unidades = Array.from(
     new Set(
@@ -256,8 +268,14 @@ function EditorSignosVitalesView({
       abreviatura: formulario.abreviatura.trim(),
       rangoReferencia: undefined,
     };
-    if (!datos.nombre || !unidades.includes(datos.unidad) || !datos.abreviatura) {
-      setError("Completa el nombre y selecciona una unidad de medida registrada.");
+    if (
+      !datos.nombre ||
+      !unidades.includes(datos.unidad) ||
+      !datos.abreviatura
+    ) {
+      setError(
+        "Completa el nombre y selecciona una unidad de medida registrada.",
+      );
       return;
     }
     if (
@@ -272,15 +290,39 @@ function EditorSignosVitalesView({
       return;
     }
     if (multiples) {
-      if (componentes.length < 2 || componentes.some(c => !c.nombre.trim() || ((c.minimo !== "" || c.maximo !== "") && (c.minimo === "" || c.maximo === "" || Number(c.minimo) >= Number(c.maximo))))) {
+      if (
+        componentes.length < 2 ||
+        componentes.some(
+          (c) =>
+            !c.nombre.trim() ||
+            ((c.minimo !== "" || c.maximo !== "") &&
+              (c.minimo === "" ||
+                c.maximo === "" ||
+                Number(c.minimo) >= Number(c.maximo))),
+        )
+      ) {
         setError("Agrega al menos dos datos con nombre y rangos válidos.");
         return;
       }
-      if (new Set(componentes.map(c => c.nombre.trim().toLocaleLowerCase())).size !== componentes.length) {
+      if (
+        new Set(componentes.map((c) => c.nombre.trim().toLocaleLowerCase()))
+          .size !== componentes.length
+      ) {
         setError("Cada dato debe tener un nombre diferente.");
         return;
       }
-      datos.componentes = componentes.map(c => ({ id: c.id, nombre: c.nombre.trim(), rangoReferencia: c.minimo !== "" ? { nombre: c.nombre.trim(), minimo: Number(c.minimo), maximo: Number(c.maximo) } : undefined }));
+      datos.componentes = componentes.map((c) => ({
+        id: c.id,
+        nombre: c.nombre.trim(),
+        rangoReferencia:
+          c.minimo !== ""
+            ? {
+                nombre: c.nombre.trim(),
+                minimo: Number(c.minimo),
+                maximo: Number(c.maximo),
+              }
+            : undefined,
+      }));
     } else {
       datos.componentes = [];
     }
@@ -320,19 +362,35 @@ function EditorSignosVitalesView({
     setGuardando(true);
     try {
       if (editando)
-        await onChange(signos.map((s) => (s.id === editando ? { ...s, ...datos } : s)));
+        await onChange(
+          signos.map((s) => (s.id === editando ? { ...s, ...datos } : s)),
+        );
       else
-        await onChange([...signos, { ...datos, id: `signo-${crypto.randomUUID()}` }]);
+        await onChange([
+          ...signos,
+          { ...datos, id: `signo-${crypto.randomUUID()}` },
+        ]);
       cancelar();
     } catch (error) {
-      setError(error instanceof Error ? error.message : "No se pudo guardar el signo vital.");
+      setError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo guardar el signo vital.",
+      );
     } finally {
       setGuardando(false);
     }
   };
   const editar = (s: SignoVitalConfig) => {
     setMultiples(Boolean(s.componentes?.length));
-    setComponentes((s.componentes || []).map(c => ({ id: c.id, nombre: c.nombre, minimo: c.rangoReferencia ? String(c.rangoReferencia.minimo) : "", maximo: c.rangoReferencia ? String(c.rangoReferencia.maximo) : "" })));
+    setComponentes(
+      (s.componentes || []).map((c) => ({
+        id: c.id,
+        nombre: c.nombre,
+        minimo: c.rangoReferencia ? String(c.rangoReferencia.minimo) : "",
+        maximo: c.rangoReferencia ? String(c.rangoReferencia.maximo) : "",
+      })),
+    );
     setNombreRango(s.rangoReferencia?.nombre || s.nombre);
     setSeleccionRango("personalizado");
     setDetalleRango({
@@ -416,114 +474,260 @@ function EditorSignosVitalesView({
               onChange={cambiarUnidad}
               onSelect={cambiarUnidad}
             />
-            <label className="config-signos-multiples-toggle"><input type="checkbox" checked={multiples} onChange={(e) => { setMultiples(e.target.checked); if (e.target.checked && componentes.length === 0) setComponentes([{id:crypto.randomUUID(), nombre:"", minimo:"", maximo:""}, {id:crypto.randomUUID(), nombre:"", minimo:"", maximo:""}]); }} /> Este signo tiene varios datos</label>
-            {multiples && <div className="config-signos-componentes"><strong>Datos de la medición</strong><small>Por ejemplo, presión sistólica y diastólica. Los rangos son opcionales y deben seguir el protocolo institucional.</small>{componentes.map((componente, indice) => <div className="config-signos-componente" key={componente.id}><label>Nombre del dato {indice + 1} *<input value={componente.nombre} maxLength={120} required onChange={e => setComponentes(actual => actual.map(c => c.id === componente.id ? {...c, nombre:e.target.value} : c))} placeholder="Ej. Sistólica" /></label><div className="config-signos-dos-campos"><label>Referencia mínima<input type="number" step="any" value={componente.minimo} onChange={e => setComponentes(actual => actual.map(c => c.id === componente.id ? {...c, minimo:e.target.value} : c))} /></label><label>Referencia máxima<input type="number" step="any" value={componente.maximo} onChange={e => setComponentes(actual => actual.map(c => c.id === componente.id ? {...c, maximo:e.target.value} : c))} /></label></div><button type="button" disabled={componentes.length <= 2} onClick={() => setComponentes(actual => actual.filter(c => c.id !== componente.id))}>Quitar dato</button></div>)}<button type="button" onClick={() => setComponentes(actual => [...actual, {id:crypto.randomUUID(), nombre:"", minimo:"", maximo:""}])} disabled={componentes.length >= 20}>+ Agregar dato</button></div>}
-            {!multiples && <>
-            <label>
-              Rangos de referencia{" "}
-              <select
-                value={conRango ? seleccionRango : "ninguno"}
-                disabled={formulario.tipo === "Texto"}
-                onChange={(e) => elegirRango(e.target.value)}
-              >
-                <option value="ninguno">Sin rango de referencia</option>
-                {sugerencias.length > 0 && (
-                  <optgroup label="Rangos disponibles para esta unidad">
-                    {sugerencias.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.nombre}: {r.minimo} – {r.maximo}{" "}
-                        {formulario.abreviatura}
-                      </option>
-                    ))}
-                  </optgroup>
-                )}
-                <option value="personalizado">Crear rango personalizado</option>
-              </select>
-              <small>
-                {formulario.tipo === "Texto"
-                  ? "Los rangos solo están disponibles para datos numéricos."
-                  : sugerencias.length
-                    ? "Elige la medición y el contexto adecuados. Puedes modificar los límites y guardar el rango con otro nombre."
-                    : "No hay una referencia general disponible para esta unidad. El peso, la talla, los volúmenes y otras medidas requieren un contexto específico; puedes crear tu propio rango."}
-              </small>
+            <label className="config-signos-multiples-toggle">
+              <input
+                type="checkbox"
+                checked={multiples}
+                onChange={(e) => {
+                  setMultiples(e.target.checked);
+                  if (e.target.checked && componentes.length === 0)
+                    setComponentes([
+                      {
+                        id: crypto.randomUUID(),
+                        nombre: "",
+                        minimo: "",
+                        maximo: "",
+                      },
+                      {
+                        id: crypto.randomUUID(),
+                        nombre: "",
+                        minimo: "",
+                        maximo: "",
+                      },
+                    ]);
+                }}
+              />{" "}
+              Este signo tiene varios datos
             </label>
-            {conRango && formulario.tipo !== "Texto" && (
-              <label>
-                Nombre del rango *
-                <input
-                  maxLength={100}
-                  value={nombreRango}
-                  onChange={(e) => {
-                    setNombreRango(e.target.value);
-                    personalizarRango();
-                  }}
-                  placeholder="Ej. Temperatura corporal - protocolo institucional"
-                  required
-                />
+            {multiples && (
+              <div className="config-signos-componentes">
+                <strong>Datos de la medición</strong>
                 <small>
-                  Se guardará con el signo vital y podrás reutilizarlo en otros
-                  campos con la misma unidad.
+                  Por ejemplo, presión sistólica y diastólica. Los rangos son
+                  opcionales y deben seguir el protocolo institucional.
                 </small>
-              </label>
-            )}
-            {conRango && detalleRango.contexto && (
-              <p className="config-signos-ayuda">
-                {detalleRango.contexto}{" "}
-                {detalleRango.fuente && (
-                  <a
-                    href={detalleRango.fuente}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Consultar referencia
-                  </a>
-                )}
-              </p>
-            )}
-            {conRango && formulario.tipo !== "Texto" && (
-              <div className="config-signos-dos-campos">
-                <label>
-                  Límite mínimo *
-                  <input
-                    type="number"
-                    step={formulario.tipo === "Número entero" ? "1" : "any"}
-                    value={minimo}
-                    onChange={(e) => {
-                      setMinimo(e.target.value);
-                      personalizarRango();
-                    }}
-                    required
-                  />
-                </label>
-                <label>
-                  Límite máximo *
-                  <input
-                    type="number"
-                    step={formulario.tipo === "Número entero" ? "1" : "any"}
-                    value={maximo}
-                    onChange={(e) => {
-                      setMaximo(e.target.value);
-                      personalizarRango();
-                    }}
-                    required
-                  />
-                </label>
+                {componentes.map((componente, indice) => (
+                  <div className="config-signos-componente" key={componente.id}>
+                    <label>
+                      Nombre del dato {indice + 1} *
+                      <input
+                        value={componente.nombre}
+                        maxLength={120}
+                        required
+                        onChange={(e) =>
+                          setComponentes((actual) =>
+                            actual.map((c) =>
+                              c.id === componente.id
+                                ? { ...c, nombre: e.target.value }
+                                : c,
+                            ),
+                          )
+                        }
+                        placeholder="Ej. Sistólica"
+                      />
+                    </label>
+                    <div className="config-signos-dos-campos">
+                      <label>
+                        Referencia mínima
+                        <input
+                          type="number"
+                          step="any"
+                          value={componente.minimo}
+                          onChange={(e) =>
+                            setComponentes((actual) =>
+                              actual.map((c) =>
+                                c.id === componente.id
+                                  ? { ...c, minimo: e.target.value }
+                                  : c,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+                      <label>
+                        Referencia máxima
+                        <input
+                          type="number"
+                          step="any"
+                          value={componente.maximo}
+                          onChange={(e) =>
+                            setComponentes((actual) =>
+                              actual.map((c) =>
+                                c.id === componente.id
+                                  ? { ...c, maximo: e.target.value }
+                                  : c,
+                              ),
+                            )
+                          }
+                        />
+                      </label>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={componentes.length <= 2}
+                      onClick={() =>
+                        setComponentes((actual) =>
+                          actual.filter((c) => c.id !== componente.id),
+                        )
+                      }
+                    >
+                      Quitar dato
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setComponentes((actual) => [
+                      ...actual,
+                      {
+                        id: crypto.randomUUID(),
+                        nombre: "",
+                        minimo: "",
+                        maximo: "",
+                      },
+                    ])
+                  }
+                  disabled={componentes.length >= 20}
+                >
+                  + Agregar dato
+                </button>
               </div>
             )}
-            </>}
+            {!multiples && (
+              <>
+                <label>
+                  Rangos de referencia{" "}
+                  <select
+                    value={conRango ? seleccionRango : "ninguno"}
+                    disabled={formulario.tipo === "Texto"}
+                    onChange={(e) => elegirRango(e.target.value)}
+                  >
+                    <option value="ninguno">Sin rango de referencia</option>
+                    {sugerencias.length > 0 && (
+                      <optgroup label="Rangos disponibles para esta unidad">
+                        {sugerencias.map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.nombre}: {r.minimo} – {r.maximo}{" "}
+                            {formulario.abreviatura}
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <option value="personalizado">
+                      Crear rango personalizado
+                    </option>
+                  </select>
+                  <small>
+                    {formulario.tipo === "Texto"
+                      ? "Los rangos solo están disponibles para datos numéricos."
+                      : sugerencias.length
+                        ? "Elige la medición y el contexto adecuados. Puedes modificar los límites y guardar el rango con otro nombre."
+                        : "No hay una referencia general disponible para esta unidad. El peso, la talla, los volúmenes y otras medidas requieren un contexto específico; puedes crear tu propio rango."}
+                  </small>
+                </label>
+                {conRango && formulario.tipo !== "Texto" && (
+                  <label>
+                    Nombre del rango *
+                    <input
+                      maxLength={100}
+                      value={nombreRango}
+                      onChange={(e) => {
+                        setNombreRango(e.target.value);
+                        personalizarRango();
+                      }}
+                      placeholder="Ej. Temperatura corporal - protocolo institucional"
+                      required
+                    />
+                    <small>
+                      Se guardará con el signo vital y podrás reutilizarlo en
+                      otros campos con la misma unidad.
+                    </small>
+                  </label>
+                )}
+                {conRango && detalleRango.contexto && (
+                  <p className="config-signos-ayuda">
+                    {detalleRango.contexto}{" "}
+                    {detalleRango.fuente && (
+                      <a
+                        href={detalleRango.fuente}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Consultar referencia
+                      </a>
+                    )}
+                  </p>
+                )}
+                {conRango && formulario.tipo !== "Texto" && (
+                  <div className="config-signos-dos-campos">
+                    <label>
+                      Límite mínimo *
+                      <input
+                        type="number"
+                        step={formulario.tipo === "Número entero" ? "1" : "any"}
+                        value={minimo}
+                        onChange={(e) => {
+                          setMinimo(e.target.value);
+                          personalizarRango();
+                        }}
+                        required
+                      />
+                    </label>
+                    <label>
+                      Límite máximo *
+                      <input
+                        type="number"
+                        step={formulario.tipo === "Número entero" ? "1" : "any"}
+                        value={maximo}
+                        onChange={(e) => {
+                          setMaximo(e.target.value);
+                          personalizarRango();
+                        }}
+                        required
+                      />
+                    </label>
+                  </div>
+                )}
+              </>
+            )}
             <div className="config-signos-preview">
               <small>VISTA PREVIA DEL CAMPO</small>
               <strong>
                 {formulario.nombre.trim() || "Nombre del signo vital"}
               </strong>
-              {multiples ? <div className="config-signos-preview-multiples">{componentes.map((componente, indice) => <div className="config-signos-preview-grupo" key={componente.id}>{indice > 0 && <span className="config-signos-preview-separador" aria-hidden="true">/</span>}<span className="config-signos-preview-caja"><span>{componente.nombre || "Nombre del dato"}: 0</span><b>{formulario.abreviatura || "unidad"}</b></span></div>)}</div> : <span>
-                {formulario.tipo === "Texto"
-                  ? "Texto de ejemplo"
-                  : formulario.tipo === "Número entero"
-                    ? "80"
-                    : "36.5"}{" "}
-                <b>{formulario.abreviatura || "unidad"}</b>
-              </span>}
+              {multiples ? (
+                <div className="config-signos-preview-multiples">
+                  {componentes.map((componente, indice) => (
+                    <div
+                      className="config-signos-preview-grupo"
+                      key={componente.id}
+                    >
+                      {indice > 0 && (
+                        <span
+                          className="config-signos-preview-separador"
+                          aria-hidden="true"
+                        >
+                          /
+                        </span>
+                      )}
+                      <span className="config-signos-preview-caja">
+                        <span>{componente.nombre || "Nombre del dato"}: 0</span>
+                        <b>{formulario.abreviatura || "unidad"}</b>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <span>
+                  {formulario.tipo === "Texto"
+                    ? "Texto de ejemplo"
+                    : formulario.tipo === "Número entero"
+                      ? "80"
+                      : "36.5"}{" "}
+                  <b>{formulario.abreviatura || "unidad"}</b>
+                </span>
+              )}
               {!multiples && conRango && minimo && maximo && (
                 <small>
                   {nombreRango || "Referencia"}: {minimo} – {maximo}{" "}
@@ -544,7 +748,11 @@ function EditorSignosVitalesView({
               >
                 Cancelar
               </button>
-              <button className="config-signos-guardar" type="submit" disabled={guardando}>
+              <button
+                className="config-signos-guardar"
+                type="submit"
+                disabled={guardando}
+              >
                 <Icon name="check" size={16} />
                 {editando ? "Guardar cambios" : "Guardar signo vital"}
               </button>
@@ -560,7 +768,9 @@ function EditorSignosVitalesView({
             <header>
               <div>
                 <strong id="config-signos-areas-titulo">Áreas de uso</strong>
-                <small>Configura en qué áreas estará disponible este signo vital.</small>
+                <small>
+                  Configura en qué áreas estará disponible este signo vital.
+                </small>
               </div>
               <button
                 className="config-signos-cerrar"
@@ -620,7 +830,13 @@ function EditorSignosVitalesView({
                 <strong>{s.nombre}</strong>
                 <span>{s.unidad}</span>
                 <b>{s.abreviatura}</b>
-                <em>{s.componentes?.length ? `${s.componentes.length} datos` : s.rangoReferencia ? `${s.rangoReferencia.minimo} – ${s.rangoReferencia.maximo}` : "Sin rango"}</em>
+                <em>
+                  {s.componentes?.length
+                    ? `${s.componentes.length} datos`
+                    : s.rangoReferencia
+                      ? `${s.rangoReferencia.minimo} – ${s.rangoReferencia.maximo}`
+                      : "Sin rango"}
+                </em>
                 <div>
                   <button
                     className="config-signos-accion-areas"
@@ -644,7 +860,15 @@ function EditorSignosVitalesView({
                     type="button"
                     onClick={() => {
                       if (editando === s.id) cancelar();
-                      void onChange(signos.filter((actual) => actual.id !== s.id)).catch((error: unknown) => window.alert(error instanceof Error ? error.message : "No se pudo eliminar el signo vital."));
+                      void onChange(
+                        signos.filter((actual) => actual.id !== s.id),
+                      ).catch((error: unknown) =>
+                        window.alert(
+                          error instanceof Error
+                            ? error.message
+                            : "No se pudo eliminar el signo vital.",
+                        ),
+                      );
                     }}
                     aria-label={`Eliminar ${s.nombre}`}
                   >
@@ -665,20 +889,222 @@ function EditorSignosVitalesView({
 
 type ServicioSignos = string;
 
-const serviciosIniciales: { id: ServicioSignos; nombre: string; descripcion: string }[] = [
-  { id: "consulta-ambulatoria", nombre: "Servicio de Consulta Ambulatoria", descripcion: "Signos para consulta externa y agenda médica." },
-  { id: "emergencias", nombre: "Servicio de Emergencias", descripcion: "Signos para triaje y atención de urgencias." },
-  { id: "internacion", nombre: "Servicio de Internación", descripcion: "Monitoreo de pacientes hospitalizados." },
-  { id: "terapia-intensiva", nombre: "Servicio de Terapia Intensiva", descripcion: "Vigilancia clínica de alta frecuencia." },
-  { id: "quirofano", nombre: "Servicio de Quirófano", descripcion: "Control pre, intra y postoperatorio." },
+const serviciosIniciales: {
+  id: ServicioSignos;
+  nombre: string;
+  descripcion: string;
+}[] = [
+  {
+    id: "consulta-ambulatoria",
+    nombre: "Servicio de Consulta Ambulatoria",
+    descripcion: "Signos para consulta externa y agenda médica.",
+  },
+  {
+    id: "emergencias",
+    nombre: "Servicio de Emergencias",
+    descripcion: "Signos para triaje y atención de urgencias.",
+  },
+  {
+    id: "internacion",
+    nombre: "Servicio de Internación",
+    descripcion: "Monitoreo de pacientes hospitalizados.",
+  },
+  {
+    id: "terapia-intensiva",
+    nombre: "Servicio de Terapia Intensiva",
+    descripcion: "Vigilancia clínica de alta frecuencia.",
+  },
+  {
+    id: "quirofano",
+    nombre: "Servicio de Quirófano",
+    descripcion: "Control pre, intra y postoperatorio.",
+  },
 ];
 
-export function ConfiguracionSignosVitalesView({ signos, onChange }: { signos: SignoVitalConfig[]; onChange: (signos: SignoVitalConfig[]) => Promise<void> }) {
-  const [servicioActivo, setServicioActivo] = useState<ServicioSignos | null>(null);
-  const [vistaConfiguracion, setVistaConfiguracion] = useState<'servicios' | 'signos' | 'unidades'>('servicios');
+export function ConfiguracionSignosVitalesView({
+  signos,
+  onChange,
+}: {
+  signos: SignoVitalConfig[];
+  onChange: (signos: SignoVitalConfig[]) => Promise<void>;
+}) {
+  const [servicioActivo, setServicioActivo] = useState<ServicioSignos | null>(
+    null,
+  );
+  const [vistaConfiguracion, setVistaConfiguracion] = useState<
+    "servicios" | "signos" | "unidades"
+  >("servicios");
   const catalogoUnidades = useUnidadesMedida();
-  const [busquedaAsignados, setBusquedaAsignados] = useState('');
-  const signosPorServicio = Object.fromEntries(serviciosIniciales.map(servicio => [servicio.id, signos])) as Record<ServicioSignos, SignoVitalConfig[]>;
-  const servicio = serviciosIniciales.find(actual => actual.id === servicioActivo);
-  return <section className="config-signos-servicios" aria-label="Configuración de signos vitales">{servicioActivo && servicio ? <section className="config-signos-asignacion"><button type="button" className="config-signos-volver" onClick={() => setServicioActivo(null)}><Icon name="chevronLeft" size={16} /> Volver a servicios</button><header className="config-signos-datos-servicio"><div><span>Servicio de atención</span><h2>{servicio.nombre}</h2><small>{servicio.descripcion}</small></div><b>{signosPorServicio[servicioActivo].length} signos asignados</b></header><section className="config-signos-lista"><header><div><strong>Signos vitales asignados</strong><small>Estos son los campos activos para este servicio.</small></div></header><div className="config-signos-asignados-herramientas"><label><Icon name="search" size={16} /><input value={busquedaAsignados} onChange={evento => setBusquedaAsignados(evento.target.value)} placeholder="Buscar signo vital" aria-label="Buscar signo vital asignado" /></label><button type="button" onClick={() => { setServicioActivo(null); setVistaConfiguracion('signos'); }}><Icon name="plus" size={16} /> Nuevo signo vital</button></div><div className="config-signos-asignados">{signosPorServicio[servicioActivo].filter(signo => `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`.toLowerCase().includes(busquedaAsignados.toLowerCase())).map(signo => <article key={signo.id}><div><strong>{signo.nombre}</strong><small>{signo.unidad}</small></div><b>{signo.abreviatura}</b></article>)}{!signosPorServicio[servicioActivo].some(signo => `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`.toLowerCase().includes(busquedaAsignados.toLowerCase())) && <p className="config-signos-sin-resultados">No hay signos vitales que coincidan.</p>}</div></section></section> : <><nav className="config-signos-subvistas" aria-label="Sub-vistas de configuración"><button type="button" className={vistaConfiguracion === 'servicios' ? 'activa' : ''} onClick={() => setVistaConfiguracion('servicios')}>Servicios de atención</button><button type="button" className={vistaConfiguracion === 'signos' ? 'activa' : ''} onClick={() => setVistaConfiguracion('signos')}>Signos vitales</button><button type="button" className={vistaConfiguracion === 'unidades' ? 'activa' : ''} onClick={() => setVistaConfiguracion('unidades')}>Unidades de medida</button></nav>{vistaConfiguracion === 'unidades' ? <UnidadesMedidaView catalogo={catalogoUnidades} /> : vistaConfiguracion === 'signos' ? <><header><h2>Signos vitales</h2></header><EditorSignosVitalesView signos={signos} onChange={onChange} unidadesRegistradas={catalogoUnidades.unidades} /></> : <><header><h2>Signos vitales por servicios de atención</h2></header><section className="config-signos-lista config-signos-tabla-servicios"><header><div><strong>Servicios asistenciales</strong><small>Ingresa a un servicio para asignar los signos vitales que utilizará.</small></div></header><div className="config-signos-tabla"><div className="config-signos-encabezado config-signos-encabezado-servicios"><span>Servicio</span><span>Signos configurados</span><span>Acción</span></div>{serviciosIniciales.map(servicio => <article className="config-signos-fila-servicio" key={servicio.id}><strong>{servicio.nombre}</strong><b>{signosPorServicio[servicio.id].length} campos</b><button type="button" className="config-signos-accion-editar" onClick={() => setServicioActivo(servicio.id)}><Icon name="edit" size={15} /> Asignar signos</button></article>)}</div></section></>}</>}</section>;
+  const [busquedaAsignados, setBusquedaAsignados] = useState("");
+  const signosPorServicio = Object.fromEntries(
+    serviciosIniciales.map((servicio) => [servicio.id, signos]),
+  ) as Record<ServicioSignos, SignoVitalConfig[]>;
+  const servicio = serviciosIniciales.find(
+    (actual) => actual.id === servicioActivo,
+  );
+  return (
+    <section
+      className="config-signos-servicios"
+      aria-label="Configuración de signos vitales"
+    >
+      {servicioActivo && servicio ? (
+        <section className="config-signos-asignacion">
+          <button
+            type="button"
+            className="config-signos-volver"
+            onClick={() => setServicioActivo(null)}
+          >
+            <Icon name="chevronLeft" size={16} /> Volver a servicios
+          </button>
+          <header className="config-signos-datos-servicio">
+            <div>
+              <span>Servicio de atención</span>
+              <h2>{servicio.nombre}</h2>
+              <small>{servicio.descripcion}</small>
+            </div>
+            <b>{signosPorServicio[servicioActivo].length} signos asignados</b>
+          </header>
+          <section className="config-signos-lista">
+            <header>
+              <div>
+                <strong>Signos vitales asignados</strong>
+                <small>Estos son los campos activos para este servicio.</small>
+              </div>
+            </header>
+            <div className="config-signos-asignados-herramientas">
+              <label>
+                <Icon name="search" size={16} />
+                <input
+                  value={busquedaAsignados}
+                  onChange={(evento) =>
+                    setBusquedaAsignados(evento.target.value)
+                  }
+                  placeholder="Buscar signo vital"
+                  aria-label="Buscar signo vital asignado"
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  setServicioActivo(null);
+                  setVistaConfiguracion("signos");
+                }}
+              >
+                <Icon name="plus" size={16} /> Nuevo signo vital
+              </button>
+            </div>
+            <div className="config-signos-asignados">
+              {signosPorServicio[servicioActivo]
+                .filter((signo) =>
+                  `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`
+                    .toLowerCase()
+                    .includes(busquedaAsignados.toLowerCase()),
+                )
+                .map((signo) => (
+                  <article key={signo.id}>
+                    <div>
+                      <strong>{signo.nombre}</strong>
+                      <small>{signo.unidad}</small>
+                    </div>
+                    <b>{signo.abreviatura}</b>
+                  </article>
+                ))}
+              {!signosPorServicio[servicioActivo].some((signo) =>
+                `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`
+                  .toLowerCase()
+                  .includes(busquedaAsignados.toLowerCase()),
+              ) && (
+                <p className="config-signos-sin-resultados">
+                  No hay signos vitales que coincidan.
+                </p>
+              )}
+            </div>
+          </section>
+        </section>
+      ) : (
+        <>
+          <nav
+            className="config-signos-subvistas"
+            aria-label="Sub-vistas de configuración"
+          >
+            <button
+              type="button"
+              className={vistaConfiguracion === "servicios" ? "activa" : ""}
+              onClick={() => setVistaConfiguracion("servicios")}
+            >
+              Servicios de atención
+            </button>
+            <button
+              type="button"
+              className={vistaConfiguracion === "signos" ? "activa" : ""}
+              onClick={() => setVistaConfiguracion("signos")}
+            >
+              Signos vitales
+            </button>
+            <button
+              type="button"
+              className={vistaConfiguracion === "unidades" ? "activa" : ""}
+              onClick={() => setVistaConfiguracion("unidades")}
+            >
+              Unidades de medida
+            </button>
+          </nav>
+          {vistaConfiguracion === "unidades" ? (
+            <UnidadesMedidaView catalogo={catalogoUnidades} />
+          ) : vistaConfiguracion === "signos" ? (
+            <>
+              <header>
+                <h2>Signos vitales</h2>
+              </header>
+              <EditorSignosVitalesView
+                signos={signos}
+                onChange={onChange}
+                unidadesRegistradas={catalogoUnidades.unidades}
+              />
+            </>
+          ) : (
+            <>
+              <header>
+                <h2>Signos vitales por servicios de atención</h2>
+              </header>
+              <section className="config-signos-lista config-signos-tabla-servicios">
+                <header>
+                  <div>
+                    <strong>Servicios asistenciales</strong>
+                    <small>
+                      Ingresa a un servicio para asignar los signos vitales que
+                      utilizará.
+                    </small>
+                  </div>
+                </header>
+                <div className="config-signos-tabla">
+                  <div className="config-signos-encabezado config-signos-encabezado-servicios">
+                    <span>Servicio</span>
+                    <span>Signos configurados</span>
+                    <span>Acción</span>
+                  </div>
+                  {serviciosIniciales.map((servicio) => (
+                    <article
+                      className="config-signos-fila-servicio"
+                      key={servicio.id}
+                    >
+                      <strong>{servicio.nombre}</strong>
+                      <b>{signosPorServicio[servicio.id].length} campos</b>
+                      <button
+                        type="button"
+                        className="config-signos-accion-editar"
+                        onClick={() => setServicioActivo(servicio.id)}
+                      >
+                        <Icon name="edit" size={15} /> Asignar signos
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+        </>
+      )}
+    </section>
+  );
 }

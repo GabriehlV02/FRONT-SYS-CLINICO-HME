@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import type { IconName } from './components/Icon';
+import type { ReactNode } from "react";
+import type { IconName } from "./components/Icon";
 
 export type AuthSession = {
   user: string;
@@ -8,7 +8,7 @@ export type AuthSession = {
 };
 
 export type SystemConfig = {
-  id: 'clinico' | 'contable' | 'portal';
+  id: "clinico" | "contable" | "portal";
   name: string;
   subtitle: string;
   loginTitle: string;
@@ -22,7 +22,18 @@ export type SystemConfig = {
   actionLabel: string;
   quickIds: string[];
   metrics: { title: string; icon: IconName; value: string; note: string }[];
-  modules: { id: string; name: string; icon: IconName; group: string; description: string }[];
+  modules: {
+    id: string;
+    name: string;
+    icon: IconName;
+    group: string;
+    description: string;
+  }[];
   sidebarGroups?: string[];
-  renderModule?: (id: string, select: (id: string) => void, activeId?: string, session?: AuthSession) => ReactNode;
+  renderModule?: (
+    id: string,
+    select: (id: string) => void,
+    activeId?: string,
+    session?: AuthSession,
+  ) => ReactNode;
 };

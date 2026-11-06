@@ -27,7 +27,9 @@ const leerSolicitudes = (): SolicitudImagenologiaDemo[] => {
 
 export const obtenerSolicitudesImagenologia = leerSolicitudes;
 
-export function guardarSolicitudesImagenologia(solicitudes: SolicitudImagenologiaDemo[]) {
+export function guardarSolicitudesImagenologia(
+  solicitudes: SolicitudImagenologiaDemo[],
+) {
   localStorage.setItem(CLAVE_SOLICITUDES, JSON.stringify(solicitudes));
   window.dispatchEvent(new Event("radiuus:datos-demo"));
 }
@@ -35,7 +37,12 @@ export function guardarSolicitudesImagenologia(solicitudes: SolicitudImagenologi
 export function registrarSolicitudesImagenologia(
   paciente: string,
   ci: string,
-  lineas: { estudio: string; pieza: string; precio: number; cantidad: number }[],
+  lineas: {
+    estudio: string;
+    pieza: string;
+    precio: number;
+    cantidad: number;
+  }[],
 ) {
   const cobradaEn = new Date().toISOString();
   const nuevas = lineas.flatMap((linea) =>

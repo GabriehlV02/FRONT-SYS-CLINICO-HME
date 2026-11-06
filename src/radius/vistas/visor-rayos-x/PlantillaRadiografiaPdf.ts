@@ -11,11 +11,25 @@ type DatosPdf = {
   corte: string;
 };
 
-const escapar = (valor:string) => valor.replace(/[&<>"']/g, caracter => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[caracter] || caracter));
-const dato = (valor:string) => escapar(valor.trim() || 'No registrado');
+const escapar = (valor: string) =>
+  valor.replace(
+    /[&<>"']/g,
+    (caracter) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[caracter] || caracter,
+  );
+const dato = (valor: string) => escapar(valor.trim() || "No registrado");
 
-export function crearPlantillaRadiografiaPdf(datos:DatosPdf) {
-  const generado = new Intl.DateTimeFormat('es-BO',{dateStyle:'long',timeStyle:'short'}).format(new Date());
+export function crearPlantillaRadiografiaPdf(datos: DatosPdf) {
+  const generado = new Intl.DateTimeFormat("es-BO", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(new Date());
   return `<!doctype html>
 <html lang="es"><head><meta charset="utf-8"><title>${dato(datos.estudio)}</title>
 <style>

@@ -1,106 +1,3224 @@
-.farmacia-ia{--fia-blue:#087fc0;--fia-ink:#173d60;--fia-muted:#69849a;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px;min-height:620px;height:calc(100dvh - 100px);padding:12px 16px 16px;border:1px solid #d4e4ef;border-radius:15px;background:linear-gradient(145deg,#f5faff 0%,#edf5fb 100%);box-shadow:0 10px 30px rgba(14,67,101,.07)}
-.farmacia-ia-cabecera{position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:112px;padding:21px 24px;border:1px solid #d4e7f2;border-radius:13px;background:linear-gradient(110deg,#fff 58%,#f0faff);overflow:hidden}.farmacia-ia-cabecera:after{position:absolute;right:-32px;top:-90px;width:280px;height:280px;border:1px solid #e0f1fa;border-radius:50%;box-shadow:0 0 0 28px #f5fbfe,0 0 0 58px #f8fcfe;content:"";pointer-events:none}
-.farmacia-ia-identidad{position:relative;z-index:1;display:flex;align-items:center;gap:15px}.farmacia-ia-identidad>span,.farmacia-ia-admin-intro>span{display:grid;place-items:center;width:52px;height:52px;border:1px solid #c8e8f7;border-radius:15px;color:var(--fia-blue);background:linear-gradient(145deg,#e9f8ff,#fff);box-shadow:0 4px 12px #087fc014}.farmacia-ia-identidad p{margin:0 0 4px;color:var(--fia-blue);font-size:10px;font-weight:900;letter-spacing:.14em}.farmacia-ia-identidad h1{margin:0;color:var(--fia-ink);font-size:25px;letter-spacing:-.035em}.farmacia-ia-identidad small{display:block;margin-top:3px;color:var(--fia-muted);font-size:12px}.farmacia-ia-estado{position:relative;z-index:1;display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #f1e2c0;border-radius:24px;color:#88651f;background:#fffaf0;font-size:11px;font-weight:800;white-space:nowrap}.farmacia-ia-estado i,.farmacia-ia-admin-aviso i{width:8px;height:8px;border-radius:50%;background:#dba738;box-shadow:0 0 0 3px #dba73820}
-.farmacia-ia-subvistas{display:flex;gap:5px;width:max-content;padding:4px;border:1px solid #d4e5ef;border-radius:11px;background:#fff;box-shadow:0 3px 12px #19496709}.farmacia-ia-subvistas button{display:flex;align-items:center;gap:8px;min-width:132px;padding:10px 15px;border:0;border-radius:8px;color:#426580;background:transparent;font:inherit;font-size:12px;font-weight:750;cursor:pointer;transition:background .16s,color .16s,transform .16s}.farmacia-ia-subvistas button:hover{background:#f2f9fd}.farmacia-ia-subvistas button.activo{color:#fff;background:linear-gradient(120deg,#078ac7,#0b9dc9);box-shadow:0 4px 10px #087fc02a}
-.farmacia-ia-chat,.farmacia-ia-admin{display:flex;min-height:0;border:1px solid #d8e6ee;border-radius:13px;background:#fff;overflow:hidden;box-shadow:0 7px 22px #19496708}.farmacia-ia-chat{display:grid;grid-template-columns:245px minmax(0,1fr)}
-.farmacia-ia-lateral{display:flex;flex-direction:column;align-items:center;padding:26px 19px 18px;border-right:1px solid #e4eef4;background:linear-gradient(180deg,#f5fbff,#fff 70%)}.farmacia-ia-tomi-avatar{display:grid;place-items:center;width:62px;height:62px;border:1px solid #bfe3f4;border-radius:20px;color:#fff;background:linear-gradient(145deg,#079bd2,#0871b4);box-shadow:0 8px 18px #087fc02a}.farmacia-ia-lateral h2{margin:13px 0 2px;color:#173d60;font-size:18px;letter-spacing:.03em}.farmacia-ia-lateral>p{margin:0;color:#7b93a6;font-size:11px}.farmacia-ia-presencia{display:flex;align-items:center;gap:7px;margin-top:14px;padding:6px 9px;border-radius:18px;color:#50738b;background:#edf6fa;font-size:10px;font-weight:700}.farmacia-ia-presencia i,.farmacia-ia-online{width:7px;height:7px;border-radius:50%;background:#45b58a;box-shadow:0 0 0 3px #45b58a20}.farmacia-ia-lateral-separador{width:100%;height:1px;margin:23px 0 18px;background:#e2edf3}.farmacia-ia-lateral h3{align-self:flex-start;margin:0 0 13px;color:#7b94a5;font-size:9px;letter-spacing:.1em}.farmacia-ia-lateral ul{display:grid;gap:13px;width:100%;margin:0;padding:0;list-style:none}.farmacia-ia-lateral li{display:flex;align-items:center;gap:9px;color:#426580;font-size:11px}.farmacia-ia-lateral li svg{color:#0789c4}.farmacia-ia-privacidad{display:flex;gap:7px;margin-top:auto;padding:10px;border:1px solid #dfedf3;border-radius:9px;color:#6e8798;background:#fff;font-size:9px;line-height:1.45}.farmacia-ia-privacidad svg{flex:none;color:#3c9b7a}
-.farmacia-ia-sala{display:flex;flex-direction:column;min-width:0;min-height:0}.farmacia-ia-sala-cabecera{display:flex;align-items:center;justify-content:space-between;min-height:58px;padding:0 24px;border-bottom:1px solid #e8eff4}.farmacia-ia-sala-cabecera>div{display:flex;align-items:center;gap:9px;color:#254c68;font-size:12px}.farmacia-ia-sala-cabecera small{margin-left:5px;color:#91a3b0;font-size:10px}.farmacia-ia-online{display:inline-block}.farmacia-ia-canal{display:flex;align-items:center;gap:6px;color:#6d8799;font-size:10px}.farmacia-ia-canal svg{color:#0789c4}.farmacia-ia-conversacion{display:flex;flex:1;flex-direction:column;min-height:0;overflow:auto;padding:24px clamp(18px,4vw,52px)}.farmacia-ia-mensajes{display:grid;align-content:start;gap:20px;width:min(100%,840px);margin:0 auto}.farmacia-ia-mensaje{display:flex;align-items:flex-end;gap:10px;max-width:83%}.farmacia-ia-mensaje.user{justify-self:end}.farmacia-ia-avatar{display:grid;place-items:center;width:32px;height:32px;flex:none;border:1px solid #d1e9f3;border-radius:12px;color:#087fc0;background:#f0f9fd}.farmacia-ia-emisor{display:grid;gap:5px;color:#8aa0af;font-size:9px;font-weight:750}.farmacia-ia-mensaje.user .farmacia-ia-emisor{text-align:right}.farmacia-ia-burbuja{padding:13px 16px;border:1px solid #e2ebf0;border-radius:15px 15px 15px 4px;color:#264b67;background:#f7fafc}.farmacia-ia-mensaje.user .farmacia-ia-burbuja{border-color:#087fc0;border-radius:15px 15px 4px 15px;color:#fff;background:linear-gradient(135deg,#087fc0,#0b94c6)}.farmacia-ia-burbuja p{margin:0;font-size:12px;line-height:1.65;white-space:pre-wrap}.farmacia-ia-burbuja time{display:block;margin-top:6px;color:#8299a9;font-size:9px}.farmacia-ia-mensaje.user .farmacia-ia-burbuja time{color:#e0f4fc}
-.farmacia-ia-sugerencias{width:min(100%,840px);margin:auto auto 9px;padding-top:24px}.farmacia-ia-sugerencias>span{display:block;margin:0 0 11px;color:#738da0;font-size:10px;font-weight:800}.farmacia-ia-sugerencias>div{display:flex;flex-wrap:wrap;gap:8px}.farmacia-ia-sugerencias button{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid #dce9f0;border-radius:22px;color:#315f7e;background:#fff;font:inherit;font-size:10px;cursor:pointer;transition:all .16s}.farmacia-ia-sugerencias button:hover{transform:translateY(-1px);border-color:#87c8e3;background:#f4fbfe}
-.farmacia-ia-compositor{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 42px 42px;gap:7px 8px;width:min(calc(100% - 44px),880px);margin:0 auto 18px;padding:11px 12px 10px 16px;border:1px solid #cddfe9;border-radius:15px;background:#fff;box-shadow:0 6px 20px #1949670d;transition:border-color .16s,box-shadow .16s}.farmacia-ia-compositor:focus-within{border-color:#70b8d8;box-shadow:0 0 0 3px #087fc014,0 6px 20px #1949670d}.farmacia-ia-compositor textarea{width:100%;min-height:39px;max-height:120px;resize:vertical;border:0;outline:0;color:#173d60;background:transparent;font:inherit;font-size:12px;line-height:1.5}.farmacia-ia-compositor>button{align-self:center;display:grid;place-items:center;width:38px;height:38px;border:0;border-radius:12px;cursor:pointer;transition:all .16s}.farmacia-ia-compositor>.farmacia-ia-enviar{color:#fff;background:#087fc0}.farmacia-ia-compositor>.farmacia-ia-enviar:hover:not(:disabled){background:#066da7;transform:translateY(-1px)}.farmacia-ia-compositor>.farmacia-ia-enviar:disabled{opacity:.42;cursor:not-allowed}.farmacia-ia-compositor>.farmacia-ia-microfono{border:1px solid #d8e8f0;color:#42708e;background:#f8fbfd}.farmacia-ia-compositor>.farmacia-ia-microfono:hover{border-color:#8ec9e1;color:#087fc0;background:#f1faff}.farmacia-ia-compositor>.farmacia-ia-microfono.escuchando{color:#fff;background:#df5260;box-shadow:0 0 0 4px #df52601c;animation:fia-pulse 1.3s infinite}.farmacia-ia-compositor>small{grid-column:1/-1;color:#8297a6;font-size:9px;line-height:1.5}.farmacia-ia-compositor>small:has(+ *){color:#8297a6}@keyframes fia-pulse{50%{box-shadow:0 0 0 7px #df526010}}
-.farmacia-ia-admin{padding:25px clamp(18px,4vw,45px);overflow:auto}.farmacia-ia-admin-intro{display:flex;align-items:center;gap:13px}.farmacia-ia-admin-intro h2{margin:0 0 4px;color:var(--fia-ink);font-size:19px}.farmacia-ia-admin-intro p{margin:0;color:var(--fia-muted);font-size:12px}.farmacia-ia-admin-aviso{display:flex;align-items:center;gap:10px;margin:20px 0;padding:12px 14px;border:1px solid #f1e4c6;border-radius:9px;color:#795f29;background:#fffbf2;font-size:11px}.farmacia-ia-admin-form{display:grid;gap:17px;width:min(100%,920px)}.farmacia-ia-admin-form>label,.farmacia-ia-campos-doble>label{display:grid;gap:7px;color:#315a75;font-size:11px;font-weight:800}.farmacia-ia-admin-form input:not([type=checkbox]),.farmacia-ia-admin-form textarea{width:100%;padding:11px 12px;border:1px solid #cbdde7;border-radius:8px;outline:none;color:#173d60;background:#fff;font:inherit;font-size:12px}.farmacia-ia-admin-form input:focus,.farmacia-ia-admin-form textarea:focus{border-color:#1595c9;box-shadow:0 0 0 3px #087fc014}.farmacia-ia-admin-form small{color:#7b92a2;font-size:10px;font-weight:400}.farmacia-ia-campos-doble{display:grid;grid-template-columns:1fr 1fr;gap:15px}.farmacia-ia-admin-form fieldset{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px;border:1px solid #dce8ee;border-radius:9px}.farmacia-ia-admin-form legend{padding:0 6px;color:#315a75;font-size:11px;font-weight:800}.farmacia-ia-check{display:flex;align-items:flex-start;gap:9px;padding:11px;border-radius:8px;background:#f8fbfd}.farmacia-ia-check input{margin-top:3px;accent-color:#087fc0}.farmacia-ia-check span{display:grid;gap:4px}.farmacia-ia-check strong{color:#294e69;font-size:11px}.farmacia-ia-check small{color:#7890a0;font-size:10px}.farmacia-ia-admin-form footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:3px}.farmacia-ia-admin-form footer>span{color:#08745b;font-size:10px;line-height:1.5}.farmacia-ia-admin-form footer button{display:flex;align-items:center;gap:7px;padding:10px 14px;border:0;border-radius:8px;color:#fff;background:#087fc0;font:inherit;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.farmacia-ia .visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-@media(max-width:850px){.farmacia-ia-chat{grid-template-columns:190px minmax(0,1fr)}.farmacia-ia-lateral{padding:22px 13px}.farmacia-ia-privacidad{font-size:8px}.farmacia-ia-sugerencias>div{display:grid}.farmacia-ia-sugerencias button{justify-content:space-between}}
-@media(max-width:650px){.farmacia-ia{height:auto;min-height:calc(100dvh - 120px);padding:10px;gap:9px}.farmacia-ia-cabecera{align-items:flex-start;min-height:auto;padding:14px}.farmacia-ia-cabecera:after{right:-180px}.farmacia-ia-identidad>span{width:43px;height:43px}.farmacia-ia-identidad h1{font-size:21px}.farmacia-ia-identidad small{max-width:220px;font-size:10px}.farmacia-ia-estado{gap:6px;padding:7px 8px;font-size:9px}.farmacia-ia-subvistas{width:100%}.farmacia-ia-subvistas button{flex:1;justify-content:center;min-width:0;padding:9px 8px}.farmacia-ia-chat{grid-template-columns:1fr;min-height:560px}.farmacia-ia-lateral{display:none}.farmacia-ia-sala-cabecera{min-height:49px;padding:0 14px}.farmacia-ia-conversacion{padding:16px 12px}.farmacia-ia-mensaje{max-width:96%}.farmacia-ia-sugerencias>div{display:grid}.farmacia-ia-compositor{width:calc(100% - 20px);margin-bottom:12px;grid-template-columns:minmax(0,1fr) 38px 38px}.farmacia-ia-compositor>button{width:36px;height:36px}.farmacia-ia-campos-doble,.farmacia-ia-admin-form fieldset{grid-template-columns:1fr}.farmacia-ia-admin-form footer{align-items:flex-start;flex-direction:column-reverse}.farmacia-ia-admin{padding:18px 14px}}
-.farmacia-ia-burbuja-pie{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:6px}.farmacia-ia-burbuja time{display:block;margin:0;color:#8299a9;font-size:9px}.farmacia-ia-burbuja-pie button{display:grid;place-items:center;width:25px;height:25px;border:0;border-radius:7px;color:#59829b;background:transparent;cursor:pointer}.farmacia-ia-burbuja-pie button:hover{color:#087fc0;background:#eaf6fc}.farmacia-ia-mensaje.user .farmacia-ia-burbuja-pie button{display:none}.farmacia-ia-mensaje.user .farmacia-ia-burbuja time{color:#e0f4fc}
-.farmacia-ia-probar-voz{display:flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #cde5f1;border-radius:9px;color:#0879b4;background:#f4fbff;font:inherit;font-size:10px;font-weight:750;cursor:pointer}.farmacia-ia-probar-voz:hover{border-color:#80c4df;background:#eaf8ff}.farmacia-ia-voz-ajustes{grid-template-columns:1fr!important;gap:14px!important;background:linear-gradient(120deg,#f8fcff,#fff)}.farmacia-ia-voz-ajustes>label{display:grid;gap:7px;color:#315a75;font-size:11px;font-weight:800}.farmacia-ia-voz-ajustes select{width:100%;max-width:560px;padding:10px 11px;border:1px solid #cbdde7;border-radius:8px;color:#173d60;background:#fff;font:inherit;font-size:12px}.farmacia-ia-voz-ajustes small{color:#7b92a2;font-size:10px;font-weight:400}.farmacia-ia-voz-rangos{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:650px}.farmacia-ia-voz-rangos label{display:grid;grid-template-columns:1fr auto;gap:7px;color:#315a75;font-size:11px;font-weight:750}.farmacia-ia-voz-rangos strong{color:#087fc0}.farmacia-ia-voz-rangos input{grid-column:1/-1;width:100%;accent-color:#087fc0}
-.farmacia-ia-presencia.pendiente{color:#846523;background:#fff8e9}.farmacia-ia-presencia.pendiente i,.farmacia-ia-online.pendiente{background:#dba738;box-shadow:0 0 0 3px #dba73820}.farmacia-ia-admin-aviso.conectado{border-color:#cbe8db;color:#236b54;background:#f2fbf6}.farmacia-ia-admin-aviso.conectado i{background:#45b58a;box-shadow:0 0 0 3px #45b58a20}.farmacia-ia-pensando{display:flex;align-items:center;gap:9px;width:max-content;color:#6e8798;font-size:11px}.farmacia-ia-pensando span{width:8px;height:8px;border-radius:50%;background:#0994c6;box-shadow:0 0 0 4px #0994c61c;animation:fia-pulse 1.2s infinite}.farmacia-ia-compositor>small:has(+ *){color:#8297a6}.farmacia-ia-compositor>small{min-height:14px}.farmacia-ia-compositor:has(small:not(:empty))>small{color:#8297a6}.farmacia-ia-compositor>small:first-letter{color:inherit}.farmacia-ia-compositor>small{line-height:1.5}.farmacia-ia-enviar:disabled{opacity:.45;cursor:wait}.farmacia-ia-probar-voz:disabled{opacity:.62;cursor:wait}
-.farmacia-ia-compositor>small.farmacia-ia-error{color:#b33a45}
-.farmacia-ia-sucursales{display:block;position:relative;padding:26px clamp(18px,4vw,42px);overflow:auto}.farmacia-ia-sucursales>.farmacia-ia-admin-intro{margin-bottom:22px}.farmacia-ia-sucursal-lista{display:grid;gap:12px}.farmacia-ia-sucursal{display:grid;grid-template-columns:minmax(190px,1fr) auto auto;align-items:center;gap:22px;padding:17px 19px;border:1px solid #dce9f0;border-radius:12px;background:linear-gradient(110deg,#fff,#f9fcfe)}.farmacia-ia-sucursal-identidad{display:flex;align-items:center;gap:12px}.farmacia-ia-sucursal-identidad>span{display:grid;place-items:center;width:42px;height:42px;border:1px solid #cee7f2;border-radius:12px;color:#087fc0;background:#f1faff}.farmacia-ia-sucursal-identidad h3{margin:0 0 4px;color:#173d60;font-size:14px}.farmacia-ia-sucursal-identidad small{color:#7890a1;font-size:10px}.farmacia-ia-sucursal-metricas{display:flex;flex-wrap:wrap;gap:8px}.farmacia-ia-sucursal-metricas span{padding:7px 9px;border:1px solid #e5eef3;border-radius:8px;color:#617e92;background:#fff;font-size:10px;white-space:nowrap}.farmacia-ia-sucursal-metricas strong{color:#087fc0}.farmacia-ia-sucursal>button,.farmacia-ia-modal footer>button:not(.farmacia-ia-cancelar){display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 13px;border:0;border-radius:8px;color:#fff;background:#087fc0;font:inherit;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.farmacia-ia-sucursal>button:hover,.farmacia-ia-modal footer>button:not(.farmacia-ia-cancelar):hover{background:#066da7}.farmacia-ia-admin-vacio,.farmacia-ia-admin-error{padding:16px;border:1px solid #dce9f0;border-radius:10px;color:#6c8799;background:#fff;font-size:12px}.farmacia-ia-admin-error{border-color:#efcaca;color:#a33232;background:#fff6f6}.farmacia-ia-modal-fondo{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;padding:20px;background:#092b4670;backdrop-filter:blur(4px)}.farmacia-ia-modal{display:flex;flex-direction:column;width:min(850px,100%);max-height:calc(100dvh - 40px);border:1px solid #c9dfea;border-radius:15px;background:#fff;box-shadow:0 24px 70px #092b4640;overflow:hidden}.farmacia-ia-modal>header{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 23px;border-bottom:1px solid #e5eef3}.farmacia-ia-modal>header small{color:#087fc0;font-size:9px;font-weight:900;letter-spacing:.1em}.farmacia-ia-modal>header h2{margin:4px 0;color:#173d60;font-size:21px}.farmacia-ia-modal>header p{margin:0;color:#71899b;font-size:11px}.farmacia-ia-modal>header>button,.farmacia-ia-estructura-cabecera>button,.farmacia-ia-repisas>div>button{display:grid;place-items:center;width:32px;height:32px;border:1px solid #dce8ee;border-radius:8px;color:#537189;background:#fff;font-size:20px;cursor:pointer}.farmacia-ia-modal-contenido{display:grid;gap:12px;overflow:auto;padding:18px 22px}.farmacia-ia-almacen-selector{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:12px;color:#315a75;font-size:11px;font-weight:800}.farmacia-ia-modal select,.farmacia-ia-modal input{min-width:0;padding:9px 10px;border:1px solid #cfdfeb;border-radius:8px;outline:none;color:#284b66;background:#fbfdff;font:inherit;font-size:11px}.farmacia-ia-modal select:focus,.farmacia-ia-modal input:focus{border-color:#1595c9;box-shadow:0 0 0 3px #087fc014}.farmacia-ia-estructura{padding:13px;border:1px solid #e0ebf1;border-radius:10px;background:#fbfdfe}.farmacia-ia-estructura-cabecera{display:grid;grid-template-columns:150px 1fr 32px;gap:8px}.farmacia-ia-repisas{display:grid;gap:7px;margin:12px 40px 0 158px}.farmacia-ia-repisas>strong{color:#6c8799;font-size:10px}.farmacia-ia-repisas>div{display:grid;grid-template-columns:1fr 32px;gap:7px}.farmacia-ia-repisas>.farmacia-ia-agregar-repisa,.farmacia-ia-agregar-estructura button{justify-self:start;padding:8px 10px;border:1px solid #cfe3ee;border-radius:8px;color:#0879b4;background:#f4fbff;font:inherit;font-size:10px;font-weight:750;cursor:pointer}.farmacia-ia-agregar-estructura{display:flex;flex-wrap:wrap;gap:8px}.farmacia-ia-modal>footer{display:flex;align-items:center;gap:8px;padding:14px 20px;border-top:1px solid #e5eef3;background:#fbfdfe}.farmacia-ia-modal>footer>span{flex:1;color:#34745e;font-size:10px}.farmacia-ia-modal footer>.farmacia-ia-cancelar{padding:9px 12px;border:1px solid #d3e1e9;border-radius:8px;color:#476a81;background:#fff;font:inherit;font-size:11px;font-weight:750;cursor:pointer}.farmacia-ia-modal footer>button:disabled{opacity:.55;cursor:wait}
-@media(max-width:800px){.farmacia-ia-sucursal{grid-template-columns:1fr auto;gap:12px}.farmacia-ia-sucursal-metricas{grid-column:1/-1;grid-row:2}.farmacia-ia-sucursal>button{grid-column:2;grid-row:1}.farmacia-ia-repisas{margin-left:0}}
-@media(max-width:560px){.farmacia-ia-sucursales{padding:18px 12px}.farmacia-ia-sucursal{grid-template-columns:1fr;padding:14px}.farmacia-ia-sucursal>button{grid-column:auto;grid-row:auto;justify-self:start}.farmacia-ia-sucursal-metricas{grid-column:auto;grid-row:auto}.farmacia-ia-modal-fondo{padding:8px}.farmacia-ia-modal{max-height:calc(100dvh - 16px)}.farmacia-ia-modal>header{padding:15px}.farmacia-ia-modal-contenido{padding:12px}.farmacia-ia-estructura-cabecera{grid-template-columns:105px 1fr 30px;gap:5px}.farmacia-ia-almacen-selector{grid-template-columns:1fr}.farmacia-ia-modal>footer{flex-wrap:wrap;padding:11px}.farmacia-ia-modal>footer>span{flex-basis:100%}}
-.farmacia-ia-sucursales{padding:clamp(20px,3vw,34px) clamp(18px,3vw,36px);background:radial-gradient(ellipse at 100% 0,#edf8ff 0,transparent 38%),#fff}.farmacia-ia-sucursales-encabezado{display:flex;align-items:center;min-height:92px;padding:18px 20px;border:1px solid #dcebf3;border-radius:14px;background:linear-gradient(110deg,#fff 45%,#f1faff);box-shadow:0 7px 22px #19496708}.farmacia-ia-sucursales-encabezado>span{width:50px;height:50px;border-color:#cce8f4;border-radius:15px;background:linear-gradient(145deg,#e6f7ff,#fff)}.farmacia-ia-sucursales-encabezado>div>small{display:block;margin-bottom:5px;color:#0787c3;font-size:9px;font-weight:900;letter-spacing:.13em}.farmacia-ia-sucursales-encabezado h2{font-size:21px}.farmacia-ia-sucursales-encabezado p{margin-top:5px}.farmacia-ia-resumen{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:17px 0 22px}.farmacia-ia-resumen-tarjeta{position:relative;display:grid;gap:8px;min-height:85px;padding:15px 17px;border:1px solid #e1ebf1;border-radius:12px;background:linear-gradient(145deg,#fff,#f9fcfe);box-shadow:0 5px 16px #19496708;overflow:hidden}.farmacia-ia-resumen-tarjeta:after{position:absolute;right:-19px;bottom:-34px;width:82px;height:82px;border:1px solid currentColor;border-radius:50%;opacity:.08;content:""}.farmacia-ia-resumen-tarjeta small{color:#72899a;font-size:10px;font-weight:750}.farmacia-ia-resumen-tarjeta strong{color:#173d60;font-size:25px;line-height:1}.farmacia-ia-resumen-tarjeta.azul{border-top:2px solid #168fc4}.farmacia-ia-resumen-tarjeta.verde{border-top:2px solid #45b58a}.farmacia-ia-resumen-tarjeta.morado{border-top:2px solid #8d79c5}.farmacia-ia-resumen-tarjeta.naranja{border-top:2px solid #e5a246}.farmacia-ia-sucursal-lista{gap:10px}.farmacia-ia-sucursal{position:relative;grid-template-columns:minmax(220px,1fr) minmax(300px,auto) auto;gap:18px;padding:15px 17px;border-color:#e3edf2;border-radius:13px;background:#fff;box-shadow:0 3px 12px #19496706;transition:border-color .18s,box-shadow .18s,transform .18s}.farmacia-ia-sucursal:before{position:absolute;inset:12px auto 12px 0;width:3px;border-radius:0 3px 3px 0;background:#1595c9;content:"";opacity:0;transition:opacity .18s}.farmacia-ia-sucursal:hover{transform:translateY(-1px);border-color:#b9ddeb;box-shadow:0 9px 22px #1949670e}.farmacia-ia-sucursal:hover:before{opacity:1}.farmacia-ia-sucursal-identidad>span{width:45px;height:45px;border-radius:13px}.farmacia-ia-sucursal-identidad h3{font-size:14px}.farmacia-ia-sucursal-metricas{gap:6px}.farmacia-ia-sucursal-metricas span{padding:7px 9px;border-color:#eaf0f4;border-radius:8px;background:#f9fbfc}.farmacia-ia-sucursal>button{min-width:122px;border-radius:9px;background:linear-gradient(120deg,#087fc0,#0998c5);box-shadow:0 4px 10px #087fc022}.farmacia-ia-sucursal>button svg{transition:transform .18s}.farmacia-ia-sucursal>button:hover svg{transform:translateX(3px)}.farmacia-ia-sin-sucursales{display:grid;justify-items:center;gap:7px;margin-top:16px;padding:40px 24px;border-style:dashed;text-align:center;background:linear-gradient(145deg,#fff,#f7fbfe)}.farmacia-ia-sin-sucursales>span{display:grid;place-items:center;width:52px;height:52px;border:1px solid #cee7f2;border-radius:16px;color:#087fc0;background:#f0f9fd}.farmacia-ia-sin-sucursales h3{margin:6px 0 0;color:#214a67;font-size:15px}.farmacia-ia-sin-sucursales p{max-width:460px;margin:0;color:#70899a;font-size:11px;line-height:1.6}.farmacia-ia-modal{border-color:#d5e6ef;border-radius:17px;box-shadow:0 28px 80px #082b464a}.farmacia-ia-modal>header{background:linear-gradient(110deg,#fff,#f5fbfe)}.farmacia-ia-modal-contenido{background:#fcfdfe}.farmacia-ia-estructura{border-radius:12px;background:#fff;box-shadow:0 3px 10px #19496706}.farmacia-ia-modal>footer{background:#f8fbfd}
-@media(max-width:900px){.farmacia-ia-resumen{grid-template-columns:repeat(2,minmax(0,1fr))}.farmacia-ia-sucursal{grid-template-columns:minmax(180px,1fr) auto}.farmacia-ia-sucursal-metricas{grid-column:1/-1;grid-row:2}.farmacia-ia-sucursal>button{grid-column:2;grid-row:1}}
-@media(max-width:560px){.farmacia-ia-sucursales{padding:14px 10px}.farmacia-ia-sucursales-encabezado{min-height:76px;padding:13px}.farmacia-ia-sucursales-encabezado>span{width:42px;height:42px}.farmacia-ia-sucursales-encabezado h2{font-size:17px}.farmacia-ia-resumen{gap:8px;margin:12px 0 16px}.farmacia-ia-resumen-tarjeta{min-height:72px;padding:12px}.farmacia-ia-resumen-tarjeta strong{font-size:21px}.farmacia-ia-sucursal{grid-template-columns:1fr;padding:13px}.farmacia-ia-sucursal>button{grid-column:auto;grid-row:auto;justify-self:start}.farmacia-ia-sucursal-metricas{grid-column:auto;grid-row:auto}}
-.farmacia-ia-inventario{display:block;padding:clamp(18px,3vw,32px);overflow:auto;background:radial-gradient(ellipse at 100% 0,#edf8ff 0,transparent 38%),#fff}.farmacia-ia-inventario-encabezado{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px;padding:19px 21px;border:1px solid #dcebf3;border-radius:14px;background:linear-gradient(110deg,#fff 45%,#f1faff);box-shadow:0 7px 22px #19496708}.farmacia-ia-inventario-encabezado small{color:#0787c3;font-size:9px;font-weight:900;letter-spacing:.13em}.farmacia-ia-inventario-encabezado h2{margin:5px 0;color:#173d60;font-size:22px}.farmacia-ia-inventario-encabezado p{margin:0;color:#71899b;font-size:11px}.farmacia-ia-inventario-encabezado>button{display:flex;align-items:center;gap:8px;padding:11px 14px;border:0;border-radius:9px;color:#fff;background:linear-gradient(120deg,#087fc0,#0998c5);box-shadow:0 4px 12px #087fc025;font:inherit;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.farmacia-ia-inventario-encabezado>button:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 7px 16px #087fc030}.farmacia-ia-inventario-encabezado>button:disabled{opacity:.5;cursor:not-allowed}.farmacia-ia-inventario-filtros{display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(140px,.7fr) minmax(140px,.7fr) auto;align-items:end;gap:10px;margin:0 0 14px;padding:14px;border:1px solid #e2edf3;border-radius:12px;background:#fbfdfe}.farmacia-ia-inventario-filtros label{display:grid;gap:6px;color:#527086;font-size:10px;font-weight:800}.farmacia-ia-inventario-filtros input{height:37px;box-sizing:border-box;padding:8px 10px;border:1px solid #d7e5ed;border-radius:8px;outline:0;color:#244b68;background:#fff;font:inherit;font-size:11px}.farmacia-ia-inventario-filtros input:focus{border-color:#72bfdd;box-shadow:0 0 0 3px #087fc014}.farmacia-ia-inventario-filtros>button{height:37px;padding:0 13px;border:1px solid #cfe2ec;border-radius:8px;color:#0879b4;background:#f2faff;font:inherit;font-size:10px;font-weight:800;cursor:pointer}.farmacia-ia-inventario-filtros>button:hover{background:#e6f6fd}.farmacia-ia-inventarios-tabla,.farmacia-ia-inventario-items{border:1px solid #e1ebf1;border-radius:12px;background:#fff;overflow:auto}.farmacia-ia-inventarios-tabla table,.farmacia-ia-inventario-items table{width:100%;border-collapse:collapse;white-space:nowrap}.farmacia-ia-inventarios-tabla th,.farmacia-ia-inventario-items th{padding:11px 12px;border-bottom:1px solid #e5edf2;color:#698397;background:#f7fafc;text-align:left;font-size:9px;font-weight:850;letter-spacing:.025em}.farmacia-ia-inventarios-tabla td,.farmacia-ia-inventario-items td{padding:12px;border-bottom:1px solid #edf2f5;color:#36566e;font-size:10px}.farmacia-ia-inventarios-tabla tbody tr:hover,.farmacia-ia-inventario-items tbody tr:hover{background:#f8fcfe}.farmacia-ia-inventarios-tabla td strong,.farmacia-ia-inventarios-tabla td small,.farmacia-ia-inventario-items td strong,.farmacia-ia-inventario-items td small{display:block}.farmacia-ia-inventarios-tabla td small,.farmacia-ia-inventario-items td small{margin-top:4px;color:#8196a5;font-size:9px}.farmacia-ia-estado-inventario{display:inline-flex;padding:5px 8px;border-radius:18px;font-size:9px;font-weight:800}.farmacia-ia-estado-inventario.en-curso{color:#8a6421;background:#fff7e5}.farmacia-ia-estado-inventario.finalizado{color:#237354;background:#eaf8f0}.farmacia-ia-inspeccionar{padding:7px 9px;border:1px solid #cde4ef;border-radius:7px;color:#0879b4;background:#f6fbfe;font:inherit;font-size:9px;font-weight:800;cursor:pointer}.farmacia-ia-inspeccionar:hover{border-color:#83c8e1;background:#eaf8fd}.farmacia-ia-valor-faltante{color:#b34c52!important;font-weight:800}.farmacia-ia-valor-sobrante{color:#297b62!important;font-weight:800}.farmacia-ia-tabla-vacia{margin:0;padding:28px;color:#7890a0;text-align:center;font-size:11px}.farmacia-ia-inventario-modal{width:min(560px,100%)}.farmacia-ia-inventario-modal .farmacia-ia-modal-contenido{min-height:80px}.farmacia-ia-detalle-inventario-modal{width:min(1100px,100%);max-height:calc(100dvh - 32px)}.farmacia-ia-inventario-metricas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:12px 18px;background:#fbfdfe}.farmacia-ia-inventario-metricas span{display:grid;gap:5px;padding:10px;border:1px solid #e3edf2;border-radius:9px;color:#758c9b;background:#fff;font-size:9px}.farmacia-ia-inventario-metricas strong{color:#234a66;font-size:16px}.farmacia-ia-inventario-items{margin:0 18px 16px;max-height:min(48dvh,500px);border-radius:9px}.farmacia-ia-inventario-items td input{width:95px}.farmacia-ia-detalle-inventario-modal>footer>span{color:#71899b}.farmacia-ia-detalle-inventario-modal>footer>button:not(.farmacia-ia-cancelar){margin-left:auto}
-@media(max-width:850px){.farmacia-ia-inventario-filtros{grid-template-columns:1fr 1fr}.farmacia-ia-inventario-filtros label:first-child{grid-column:1/-1}.farmacia-ia-inventario-filtros>button{justify-self:start}.farmacia-ia-inventario-metricas{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:560px){.farmacia-ia-inventario{padding:12px 9px}.farmacia-ia-inventario-encabezado{align-items:flex-start;flex-direction:column;padding:15px}.farmacia-ia-inventario-encabezado h2{font-size:19px}.farmacia-ia-inventario-filtros{grid-template-columns:1fr;padding:11px}.farmacia-ia-inventario-filtros label:first-child{grid-column:auto}.farmacia-ia-inventario-metricas{gap:6px;padding:10px}.farmacia-ia-inventario-metricas strong{font-size:14px}.farmacia-ia-inventario-items{margin:0 10px 10px}.farmacia-ia-detalle-inventario-modal>header{padding:14px}.farmacia-ia-detalle-inventario-modal>footer>span{flex-basis:100%}}
-.farmacia-ia-estado-inventario.pendiente{color:#526f87;background:#edf5fa}.farmacia-ia-acciones-inventario{display:flex;align-items:center;gap:5px}.farmacia-ia-descargar{padding:7px 9px;border:1px solid #cfe8dc;border-radius:7px;color:#237354;background:#f3fbf6;font:inherit;font-size:9px;font-weight:800;cursor:pointer}.farmacia-ia-descargar:hover:not(:disabled){background:#e7f7ee}.farmacia-ia-descargar:disabled{opacity:.45;cursor:not-allowed}.farmacia-ia-detalle-inventario-modal>footer>.farmacia-ia-cancelar:not(:disabled){color:#237354;border-color:#cfe8dc;background:#f3fbf6}
-@media(max-width:720px){.farmacia-ia-acciones-inventario{align-items:flex-start;flex-direction:column}}
-.farmacia-ia-detalle-estado-linea{display:flex;align-items:center;gap:10px;margin:0 0 7px}.farmacia-ia-detalle-estado-linea>small{margin:0!important}.farmacia-ia-detalle-estado{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:18px;font-size:10px;font-weight:850;line-height:1.2}.farmacia-ia-detalle-estado>i{width:7px;height:7px;flex:none;border-radius:50%;background:currentColor}.farmacia-ia-detalle-estado.en-curso{color:#946814;background:#fff5df}.farmacia-ia-detalle-estado.finalizado{color:#19764f;background:#e8f7ef}.farmacia-ia-detalle-estado.pendiente{color:#526f87;background:#edf5fa}.farmacia-ia-detalle-estado.cancelado{color:#8b5353;background:#fff0f0}.farmacia-ia-estado-inventario.cancelado{color:#8b5353;background:#fff0f0}
+.farmacia-ia {
+  --fia-blue: #087fc0;
+  --fia-ink: #173d60;
+  --fia-muted: #69849a;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  min-height: 620px;
+  height: calc(100dvh - 100px);
+  padding: 12px 16px 16px;
+  border: 1px solid #d4e4ef;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #f5faff 0%, #edf5fb 100%);
+  box-shadow: 0 10px 30px rgba(14, 67, 101, 0.07);
+}
+.farmacia-ia-cabecera {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 112px;
+  padding: 21px 24px;
+  border: 1px solid #d4e7f2;
+  border-radius: 13px;
+  background: linear-gradient(110deg, #fff 58%, #f0faff);
+  overflow: hidden;
+}
+.farmacia-ia-cabecera:after {
+  position: absolute;
+  right: -32px;
+  top: -90px;
+  width: 280px;
+  height: 280px;
+  border: 1px solid #e0f1fa;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 28px #f5fbfe,
+    0 0 0 58px #f8fcfe;
+  content: "";
+  pointer-events: none;
+}
+.farmacia-ia-identidad {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.farmacia-ia-identidad > span,
+.farmacia-ia-admin-intro > span {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #c8e8f7;
+  border-radius: 15px;
+  color: var(--fia-blue);
+  background: linear-gradient(145deg, #e9f8ff, #fff);
+  box-shadow: 0 4px 12px #087fc014;
+}
+.farmacia-ia-identidad p {
+  margin: 0 0 4px;
+  color: var(--fia-blue);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+}
+.farmacia-ia-identidad h1 {
+  margin: 0;
+  color: var(--fia-ink);
+  font-size: 25px;
+  letter-spacing: -0.035em;
+}
+.farmacia-ia-identidad small {
+  display: block;
+  margin-top: 3px;
+  color: var(--fia-muted);
+  font-size: 12px;
+}
+.farmacia-ia-estado {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid #f1e2c0;
+  border-radius: 24px;
+  color: #88651f;
+  background: #fffaf0;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.farmacia-ia-estado i,
+.farmacia-ia-admin-aviso i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dba738;
+  box-shadow: 0 0 0 3px #dba73820;
+}
+.farmacia-ia-subvistas {
+  display: flex;
+  gap: 5px;
+  width: max-content;
+  padding: 4px;
+  border: 1px solid #d4e5ef;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 3px 12px #19496709;
+}
+.farmacia-ia-subvistas button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 132px;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 8px;
+  color: #426580;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    background 0.16s,
+    color 0.16s,
+    transform 0.16s;
+}
+.farmacia-ia-subvistas button:hover {
+  background: #f2f9fd;
+}
+.farmacia-ia-subvistas button.activo {
+  color: #fff;
+  background: linear-gradient(120deg, #078ac7, #0b9dc9);
+  box-shadow: 0 4px 10px #087fc02a;
+}
+.farmacia-ia-chat,
+.farmacia-ia-admin {
+  display: flex;
+  min-height: 0;
+  border: 1px solid #d8e6ee;
+  border-radius: 13px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 7px 22px #19496708;
+}
+.farmacia-ia-chat {
+  display: grid;
+  grid-template-columns: 245px minmax(0, 1fr);
+}
+.farmacia-ia-lateral {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 26px 19px 18px;
+  border-right: 1px solid #e4eef4;
+  background: linear-gradient(180deg, #f5fbff, #fff 70%);
+}
+.farmacia-ia-tomi-avatar {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border: 1px solid #bfe3f4;
+  border-radius: 20px;
+  color: #fff;
+  background: linear-gradient(145deg, #079bd2, #0871b4);
+  box-shadow: 0 8px 18px #087fc02a;
+}
+.farmacia-ia-lateral h2 {
+  margin: 13px 0 2px;
+  color: #173d60;
+  font-size: 18px;
+  letter-spacing: 0.03em;
+}
+.farmacia-ia-lateral > p {
+  margin: 0;
+  color: #7b93a6;
+  font-size: 11px;
+}
+.farmacia-ia-presencia {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  padding: 6px 9px;
+  border-radius: 18px;
+  color: #50738b;
+  background: #edf6fa;
+  font-size: 10px;
+  font-weight: 700;
+}
+.farmacia-ia-presencia i,
+.farmacia-ia-online {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #45b58a;
+  box-shadow: 0 0 0 3px #45b58a20;
+}
+.farmacia-ia-lateral-separador {
+  width: 100%;
+  height: 1px;
+  margin: 23px 0 18px;
+  background: #e2edf3;
+}
+.farmacia-ia-lateral h3 {
+  align-self: flex-start;
+  margin: 0 0 13px;
+  color: #7b94a5;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+.farmacia-ia-lateral ul {
+  display: grid;
+  gap: 13px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.farmacia-ia-lateral li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #426580;
+  font-size: 11px;
+}
+.farmacia-ia-lateral li svg {
+  color: #0789c4;
+}
+.farmacia-ia-privacidad {
+  display: flex;
+  gap: 7px;
+  margin-top: auto;
+  padding: 10px;
+  border: 1px solid #dfedf3;
+  border-radius: 9px;
+  color: #6e8798;
+  background: #fff;
+  font-size: 9px;
+  line-height: 1.45;
+}
+.farmacia-ia-privacidad svg {
+  flex: none;
+  color: #3c9b7a;
+}
+.farmacia-ia-sala {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.farmacia-ia-sala-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 0 24px;
+  border-bottom: 1px solid #e8eff4;
+}
+.farmacia-ia-sala-cabecera > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #254c68;
+  font-size: 12px;
+}
+.farmacia-ia-sala-cabecera small {
+  margin-left: 5px;
+  color: #91a3b0;
+  font-size: 10px;
+}
+.farmacia-ia-online {
+  display: inline-block;
+}
+.farmacia-ia-canal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6d8799;
+  font-size: 10px;
+}
+.farmacia-ia-canal svg {
+  color: #0789c4;
+}
+.farmacia-ia-conversacion {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+  padding: 24px clamp(18px, 4vw, 52px);
+}
+.farmacia-ia-mensajes {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+  width: min(100%, 840px);
+  margin: 0 auto;
+}
+.farmacia-ia-mensaje {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 83%;
+}
+.farmacia-ia-mensaje.user {
+  justify-self: end;
+}
+.farmacia-ia-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border: 1px solid #d1e9f3;
+  border-radius: 12px;
+  color: #087fc0;
+  background: #f0f9fd;
+}
+.farmacia-ia-emisor {
+  display: grid;
+  gap: 5px;
+  color: #8aa0af;
+  font-size: 9px;
+  font-weight: 750;
+}
+.farmacia-ia-mensaje.user .farmacia-ia-emisor {
+  text-align: right;
+}
+.farmacia-ia-burbuja {
+  padding: 13px 16px;
+  border: 1px solid #e2ebf0;
+  border-radius: 15px 15px 15px 4px;
+  color: #264b67;
+  background: #f7fafc;
+}
+.farmacia-ia-mensaje.user .farmacia-ia-burbuja {
+  border-color: #087fc0;
+  border-radius: 15px 15px 4px 15px;
+  color: #fff;
+  background: linear-gradient(135deg, #087fc0, #0b94c6);
+}
+.farmacia-ia-burbuja p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+.farmacia-ia-burbuja time {
+  display: block;
+  margin-top: 6px;
+  color: #8299a9;
+  font-size: 9px;
+}
+.farmacia-ia-mensaje.user .farmacia-ia-burbuja time {
+  color: #e0f4fc;
+}
+.farmacia-ia-sugerencias {
+  width: min(100%, 840px);
+  margin: auto auto 9px;
+  padding-top: 24px;
+}
+.farmacia-ia-sugerencias > span {
+  display: block;
+  margin: 0 0 11px;
+  color: #738da0;
+  font-size: 10px;
+  font-weight: 800;
+}
+.farmacia-ia-sugerencias > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.farmacia-ia-sugerencias button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #dce9f0;
+  border-radius: 22px;
+  color: #315f7e;
+  background: #fff;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.16s;
+}
+.farmacia-ia-sugerencias button:hover {
+  transform: translateY(-1px);
+  border-color: #87c8e3;
+  background: #f4fbfe;
+}
+.farmacia-ia-compositor {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px 42px;
+  gap: 7px 8px;
+  width: min(calc(100% - 44px), 880px);
+  margin: 0 auto 18px;
+  padding: 11px 12px 10px 16px;
+  border: 1px solid #cddfe9;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 6px 20px #1949670d;
+  transition:
+    border-color 0.16s,
+    box-shadow 0.16s;
+}
+.farmacia-ia-compositor:focus-within {
+  border-color: #70b8d8;
+  box-shadow:
+    0 0 0 3px #087fc014,
+    0 6px 20px #1949670d;
+}
+.farmacia-ia-compositor textarea {
+  width: 100%;
+  min-height: 39px;
+  max-height: 120px;
+  resize: vertical;
+  border: 0;
+  outline: 0;
+  color: #173d60;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.farmacia-ia-compositor > button {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.16s;
+}
+.farmacia-ia-compositor > .farmacia-ia-enviar {
+  color: #fff;
+  background: #087fc0;
+}
+.farmacia-ia-compositor > .farmacia-ia-enviar:hover:not(:disabled) {
+  background: #066da7;
+  transform: translateY(-1px);
+}
+.farmacia-ia-compositor > .farmacia-ia-enviar:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+.farmacia-ia-compositor > .farmacia-ia-microfono {
+  border: 1px solid #d8e8f0;
+  color: #42708e;
+  background: #f8fbfd;
+}
+.farmacia-ia-compositor > .farmacia-ia-microfono:hover {
+  border-color: #8ec9e1;
+  color: #087fc0;
+  background: #f1faff;
+}
+.farmacia-ia-compositor > .farmacia-ia-microfono.escuchando {
+  color: #fff;
+  background: #df5260;
+  box-shadow: 0 0 0 4px #df52601c;
+  animation: fia-pulse 1.3s infinite;
+}
+.farmacia-ia-compositor > small {
+  grid-column: 1/-1;
+  color: #8297a6;
+  font-size: 9px;
+  line-height: 1.5;
+}
+.farmacia-ia-compositor > small:has(+ *) {
+  color: #8297a6;
+}
+@keyframes fia-pulse {
+  50% {
+    box-shadow: 0 0 0 7px #df526010;
+  }
+}
+.farmacia-ia-admin {
+  padding: 25px clamp(18px, 4vw, 45px);
+  overflow: auto;
+}
+.farmacia-ia-admin-intro {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.farmacia-ia-admin-intro h2 {
+  margin: 0 0 4px;
+  color: var(--fia-ink);
+  font-size: 19px;
+}
+.farmacia-ia-admin-intro p {
+  margin: 0;
+  color: var(--fia-muted);
+  font-size: 12px;
+}
+.farmacia-ia-admin-aviso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 12px 14px;
+  border: 1px solid #f1e4c6;
+  border-radius: 9px;
+  color: #795f29;
+  background: #fffbf2;
+  font-size: 11px;
+}
+.farmacia-ia-admin-form {
+  display: grid;
+  gap: 17px;
+  width: min(100%, 920px);
+}
+.farmacia-ia-admin-form > label,
+.farmacia-ia-campos-doble > label {
+  display: grid;
+  gap: 7px;
+  color: #315a75;
+  font-size: 11px;
+  font-weight: 800;
+}
+.farmacia-ia-admin-form input:not([type="checkbox"]),
+.farmacia-ia-admin-form textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #cbdde7;
+  border-radius: 8px;
+  outline: none;
+  color: #173d60;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.farmacia-ia-admin-form input:focus,
+.farmacia-ia-admin-form textarea:focus {
+  border-color: #1595c9;
+  box-shadow: 0 0 0 3px #087fc014;
+}
+.farmacia-ia-admin-form small {
+  color: #7b92a2;
+  font-size: 10px;
+  font-weight: 400;
+}
+.farmacia-ia-campos-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+.farmacia-ia-admin-form fieldset {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #dce8ee;
+  border-radius: 9px;
+}
+.farmacia-ia-admin-form legend {
+  padding: 0 6px;
+  color: #315a75;
+  font-size: 11px;
+  font-weight: 800;
+}
+.farmacia-ia-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px;
+  border-radius: 8px;
+  background: #f8fbfd;
+}
+.farmacia-ia-check input {
+  margin-top: 3px;
+  accent-color: #087fc0;
+}
+.farmacia-ia-check span {
+  display: grid;
+  gap: 4px;
+}
+.farmacia-ia-check strong {
+  color: #294e69;
+  font-size: 11px;
+}
+.farmacia-ia-check small {
+  color: #7890a0;
+  font-size: 10px;
+}
+.farmacia-ia-admin-form footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 3px;
+}
+.farmacia-ia-admin-form footer > span {
+  color: #08745b;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.farmacia-ia-admin-form footer button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #087fc0;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.farmacia-ia .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 850px) {
+  .farmacia-ia-chat {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+  .farmacia-ia-lateral {
+    padding: 22px 13px;
+  }
+  .farmacia-ia-privacidad {
+    font-size: 8px;
+  }
+  .farmacia-ia-sugerencias > div {
+    display: grid;
+  }
+  .farmacia-ia-sugerencias button {
+    justify-content: space-between;
+  }
+}
+@media (max-width: 650px) {
+  .farmacia-ia {
+    height: auto;
+    min-height: calc(100dvh - 120px);
+    padding: 10px;
+    gap: 9px;
+  }
+  .farmacia-ia-cabecera {
+    align-items: flex-start;
+    min-height: auto;
+    padding: 14px;
+  }
+  .farmacia-ia-cabecera:after {
+    right: -180px;
+  }
+  .farmacia-ia-identidad > span {
+    width: 43px;
+    height: 43px;
+  }
+  .farmacia-ia-identidad h1 {
+    font-size: 21px;
+  }
+  .farmacia-ia-identidad small {
+    max-width: 220px;
+    font-size: 10px;
+  }
+  .farmacia-ia-estado {
+    gap: 6px;
+    padding: 7px 8px;
+    font-size: 9px;
+  }
+  .farmacia-ia-subvistas {
+    width: 100%;
+  }
+  .farmacia-ia-subvistas button {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+    padding: 9px 8px;
+  }
+  .farmacia-ia-chat {
+    grid-template-columns: 1fr;
+    min-height: 560px;
+  }
+  .farmacia-ia-lateral {
+    display: none;
+  }
+  .farmacia-ia-sala-cabecera {
+    min-height: 49px;
+    padding: 0 14px;
+  }
+  .farmacia-ia-conversacion {
+    padding: 16px 12px;
+  }
+  .farmacia-ia-mensaje {
+    max-width: 96%;
+  }
+  .farmacia-ia-sugerencias > div {
+    display: grid;
+  }
+  .farmacia-ia-compositor {
+    width: calc(100% - 20px);
+    margin-bottom: 12px;
+    grid-template-columns: minmax(0, 1fr) 38px 38px;
+  }
+  .farmacia-ia-compositor > button {
+    width: 36px;
+    height: 36px;
+  }
+  .farmacia-ia-campos-doble,
+  .farmacia-ia-admin-form fieldset {
+    grid-template-columns: 1fr;
+  }
+  .farmacia-ia-admin-form footer {
+    align-items: flex-start;
+    flex-direction: column-reverse;
+  }
+  .farmacia-ia-admin {
+    padding: 18px 14px;
+  }
+}
+.farmacia-ia-burbuja-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 6px;
+}
+.farmacia-ia-burbuja time {
+  display: block;
+  margin: 0;
+  color: #8299a9;
+  font-size: 9px;
+}
+.farmacia-ia-burbuja-pie button {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 0;
+  border-radius: 7px;
+  color: #59829b;
+  background: transparent;
+  cursor: pointer;
+}
+.farmacia-ia-burbuja-pie button:hover {
+  color: #087fc0;
+  background: #eaf6fc;
+}
+.farmacia-ia-mensaje.user .farmacia-ia-burbuja-pie button {
+  display: none;
+}
+.farmacia-ia-mensaje.user .farmacia-ia-burbuja time {
+  color: #e0f4fc;
+}
+.farmacia-ia-probar-voz {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid #cde5f1;
+  border-radius: 9px;
+  color: #0879b4;
+  background: #f4fbff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.farmacia-ia-probar-voz:hover {
+  border-color: #80c4df;
+  background: #eaf8ff;
+}
+.farmacia-ia-voz-ajustes {
+  grid-template-columns: 1fr !important;
+  gap: 14px !important;
+  background: linear-gradient(120deg, #f8fcff, #fff);
+}
+.farmacia-ia-voz-ajustes > label {
+  display: grid;
+  gap: 7px;
+  color: #315a75;
+  font-size: 11px;
+  font-weight: 800;
+}
+.farmacia-ia-voz-ajustes select {
+  width: 100%;
+  max-width: 560px;
+  padding: 10px 11px;
+  border: 1px solid #cbdde7;
+  border-radius: 8px;
+  color: #173d60;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.farmacia-ia-voz-ajustes small {
+  color: #7b92a2;
+  font-size: 10px;
+  font-weight: 400;
+}
+.farmacia-ia-voz-rangos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  max-width: 650px;
+}
+.farmacia-ia-voz-rangos label {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px;
+  color: #315a75;
+  font-size: 11px;
+  font-weight: 750;
+}
+.farmacia-ia-voz-rangos strong {
+  color: #087fc0;
+}
+.farmacia-ia-voz-rangos input {
+  grid-column: 1/-1;
+  width: 100%;
+  accent-color: #087fc0;
+}
+.farmacia-ia-presencia.pendiente {
+  color: #846523;
+  background: #fff8e9;
+}
+.farmacia-ia-presencia.pendiente i,
+.farmacia-ia-online.pendiente {
+  background: #dba738;
+  box-shadow: 0 0 0 3px #dba73820;
+}
+.farmacia-ia-admin-aviso.conectado {
+  border-color: #cbe8db;
+  color: #236b54;
+  background: #f2fbf6;
+}
+.farmacia-ia-admin-aviso.conectado i {
+  background: #45b58a;
+  box-shadow: 0 0 0 3px #45b58a20;
+}
+.farmacia-ia-pensando {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: max-content;
+  color: #6e8798;
+  font-size: 11px;
+}
+.farmacia-ia-pensando span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0994c6;
+  box-shadow: 0 0 0 4px #0994c61c;
+  animation: fia-pulse 1.2s infinite;
+}
+.farmacia-ia-compositor > small:has(+ *) {
+  color: #8297a6;
+}
+.farmacia-ia-compositor > small {
+  min-height: 14px;
+}
+.farmacia-ia-compositor:has(small:not(:empty)) > small {
+  color: #8297a6;
+}
+.farmacia-ia-compositor > small:first-letter {
+  color: inherit;
+}
+.farmacia-ia-compositor > small {
+  line-height: 1.5;
+}
+.farmacia-ia-enviar:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+.farmacia-ia-probar-voz:disabled {
+  opacity: 0.62;
+  cursor: wait;
+}
+.farmacia-ia-compositor > small.farmacia-ia-error {
+  color: #b33a45;
+}
+.farmacia-ia-sucursales {
+  display: block;
+  position: relative;
+  padding: 26px clamp(18px, 4vw, 42px);
+  overflow: auto;
+}
+.farmacia-ia-sucursales > .farmacia-ia-admin-intro {
+  margin-bottom: 22px;
+}
+.farmacia-ia-sucursal-lista {
+  display: grid;
+  gap: 12px;
+}
+.farmacia-ia-sucursal {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) auto auto;
+  align-items: center;
+  gap: 22px;
+  padding: 17px 19px;
+  border: 1px solid #dce9f0;
+  border-radius: 12px;
+  background: linear-gradient(110deg, #fff, #f9fcfe);
+}
+.farmacia-ia-sucursal-identidad {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.farmacia-ia-sucursal-identidad > span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #cee7f2;
+  border-radius: 12px;
+  color: #087fc0;
+  background: #f1faff;
+}
+.farmacia-ia-sucursal-identidad h3 {
+  margin: 0 0 4px;
+  color: #173d60;
+  font-size: 14px;
+}
+.farmacia-ia-sucursal-identidad small {
+  color: #7890a1;
+  font-size: 10px;
+}
+.farmacia-ia-sucursal-metricas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.farmacia-ia-sucursal-metricas span {
+  padding: 7px 9px;
+  border: 1px solid #e5eef3;
+  border-radius: 8px;
+  color: #617e92;
+  background: #fff;
+  font-size: 10px;
+  white-space: nowrap;
+}
+.farmacia-ia-sucursal-metricas strong {
+  color: #087fc0;
+}
+.farmacia-ia-sucursal > button,
+.farmacia-ia-modal footer > button:not(.farmacia-ia-cancelar) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 13px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #087fc0;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.farmacia-ia-sucursal > button:hover,
+.farmacia-ia-modal footer > button:not(.farmacia-ia-cancelar):hover {
+  background: #066da7;
+}
+.farmacia-ia-admin-vacio,
+.farmacia-ia-admin-error {
+  padding: 16px;
+  border: 1px solid #dce9f0;
+  border-radius: 10px;
+  color: #6c8799;
+  background: #fff;
+  font-size: 12px;
+}
+.farmacia-ia-admin-error {
+  border-color: #efcaca;
+  color: #a33232;
+  background: #fff6f6;
+}
+.farmacia-ia-modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #092b4670;
+  backdrop-filter: blur(4px);
+}
+.farmacia-ia-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(850px, 100%);
+  max-height: calc(100dvh - 40px);
+  border: 1px solid #c9dfea;
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 24px 70px #092b4640;
+  overflow: hidden;
+}
+.farmacia-ia-modal > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 23px;
+  border-bottom: 1px solid #e5eef3;
+}
+.farmacia-ia-modal > header small {
+  color: #087fc0;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+.farmacia-ia-modal > header h2 {
+  margin: 4px 0;
+  color: #173d60;
+  font-size: 21px;
+}
+.farmacia-ia-modal > header p {
+  margin: 0;
+  color: #71899b;
+  font-size: 11px;
+}
+.farmacia-ia-modal > header > button,
+.farmacia-ia-estructura-cabecera > button,
+.farmacia-ia-repisas > div > button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #dce8ee;
+  border-radius: 8px;
+  color: #537189;
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.farmacia-ia-modal-contenido {
+  display: grid;
+  gap: 12px;
+  overflow: auto;
+  padding: 18px 22px;
+}
+.farmacia-ia-almacen-selector {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: 12px;
+  color: #315a75;
+  font-size: 11px;
+  font-weight: 800;
+}
+.farmacia-ia-modal select,
+.farmacia-ia-modal input {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid #cfdfeb;
+  border-radius: 8px;
+  outline: none;
+  color: #284b66;
+  background: #fbfdff;
+  font: inherit;
+  font-size: 11px;
+}
+.farmacia-ia-modal select:focus,
+.farmacia-ia-modal input:focus {
+  border-color: #1595c9;
+  box-shadow: 0 0 0 3px #087fc014;
+}
+.farmacia-ia-estructura {
+  padding: 13px;
+  border: 1px solid #e0ebf1;
+  border-radius: 10px;
+  background: #fbfdfe;
+}
+.farmacia-ia-estructura-cabecera {
+  display: grid;
+  grid-template-columns: 150px 1fr 32px;
+  gap: 8px;
+}
+.farmacia-ia-repisas {
+  display: grid;
+  gap: 7px;
+  margin: 12px 40px 0 158px;
+}
+.farmacia-ia-repisas > strong {
+  color: #6c8799;
+  font-size: 10px;
+}
+.farmacia-ia-repisas > div {
+  display: grid;
+  grid-template-columns: 1fr 32px;
+  gap: 7px;
+}
+.farmacia-ia-repisas > .farmacia-ia-agregar-repisa,
+.farmacia-ia-agregar-estructura button {
+  justify-self: start;
+  padding: 8px 10px;
+  border: 1px solid #cfe3ee;
+  border-radius: 8px;
+  color: #0879b4;
+  background: #f4fbff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.farmacia-ia-agregar-estructura {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.farmacia-ia-modal > footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid #e5eef3;
+  background: #fbfdfe;
+}
+.farmacia-ia-modal > footer > span {
+  flex: 1;
+  color: #34745e;
+  font-size: 10px;
+}
+.farmacia-ia-modal footer > .farmacia-ia-cancelar {
+  padding: 9px 12px;
+  border: 1px solid #d3e1e9;
+  border-radius: 8px;
+  color: #476a81;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.farmacia-ia-modal footer > button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+@media (max-width: 800px) {
+  .farmacia-ia-sucursal {
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+  }
+  .farmacia-ia-sucursal-metricas {
+    grid-column: 1/-1;
+    grid-row: 2;
+  }
+  .farmacia-ia-sucursal > button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .farmacia-ia-repisas {
+    margin-left: 0;
+  }
+}
+@media (max-width: 560px) {
+  .farmacia-ia-sucursales {
+    padding: 18px 12px;
+  }
+  .farmacia-ia-sucursal {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+  .farmacia-ia-sucursal > button {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: start;
+  }
+  .farmacia-ia-sucursal-metricas {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .farmacia-ia-modal-fondo {
+    padding: 8px;
+  }
+  .farmacia-ia-modal {
+    max-height: calc(100dvh - 16px);
+  }
+  .farmacia-ia-modal > header {
+    padding: 15px;
+  }
+  .farmacia-ia-modal-contenido {
+    padding: 12px;
+  }
+  .farmacia-ia-estructura-cabecera {
+    grid-template-columns: 105px 1fr 30px;
+    gap: 5px;
+  }
+  .farmacia-ia-almacen-selector {
+    grid-template-columns: 1fr;
+  }
+  .farmacia-ia-modal > footer {
+    flex-wrap: wrap;
+    padding: 11px;
+  }
+  .farmacia-ia-modal > footer > span {
+    flex-basis: 100%;
+  }
+}
+.farmacia-ia-sucursales {
+  padding: clamp(20px, 3vw, 34px) clamp(18px, 3vw, 36px);
+  background:
+    radial-gradient(ellipse at 100% 0, #edf8ff 0, transparent 38%), #fff;
+}
+.farmacia-ia-sucursales-encabezado {
+  display: flex;
+  align-items: center;
+  min-height: 92px;
+  padding: 18px 20px;
+  border: 1px solid #dcebf3;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #fff 45%, #f1faff);
+  box-shadow: 0 7px 22px #19496708;
+}
+.farmacia-ia-sucursales-encabezado > span {
+  width: 50px;
+  height: 50px;
+  border-color: #cce8f4;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #e6f7ff, #fff);
+}
+.farmacia-ia-sucursales-encabezado > div > small {
+  display: block;
+  margin-bottom: 5px;
+  color: #0787c3;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+.farmacia-ia-sucursales-encabezado h2 {
+  font-size: 21px;
+}
+.farmacia-ia-sucursales-encabezado p {
+  margin-top: 5px;
+}
+.farmacia-ia-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 17px 0 22px;
+}
+.farmacia-ia-resumen-tarjeta {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  min-height: 85px;
+  padding: 15px 17px;
+  border: 1px solid #e1ebf1;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff, #f9fcfe);
+  box-shadow: 0 5px 16px #19496708;
+  overflow: hidden;
+}
+.farmacia-ia-resumen-tarjeta:after {
+  position: absolute;
+  right: -19px;
+  bottom: -34px;
+  width: 82px;
+  height: 82px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.08;
+  content: "";
+}
+.farmacia-ia-resumen-tarjeta small {
+  color: #72899a;
+  font-size: 10px;
+  font-weight: 750;
+}
+.farmacia-ia-resumen-tarjeta strong {
+  color: #173d60;
+  font-size: 25px;
+  line-height: 1;
+}
+.farmacia-ia-resumen-tarjeta.azul {
+  border-top: 2px solid #168fc4;
+}
+.farmacia-ia-resumen-tarjeta.verde {
+  border-top: 2px solid #45b58a;
+}
+.farmacia-ia-resumen-tarjeta.morado {
+  border-top: 2px solid #8d79c5;
+}
+.farmacia-ia-resumen-tarjeta.naranja {
+  border-top: 2px solid #e5a246;
+}
+.farmacia-ia-sucursal-lista {
+  gap: 10px;
+}
+.farmacia-ia-sucursal {
+  position: relative;
+  grid-template-columns: minmax(220px, 1fr) minmax(300px, auto) auto;
+  gap: 18px;
+  padding: 15px 17px;
+  border-color: #e3edf2;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 3px 12px #19496706;
+  transition:
+    border-color 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+.farmacia-ia-sucursal:before {
+  position: absolute;
+  inset: 12px auto 12px 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #1595c9;
+  content: "";
+  opacity: 0;
+  transition: opacity 0.18s;
+}
+.farmacia-ia-sucursal:hover {
+  transform: translateY(-1px);
+  border-color: #b9ddeb;
+  box-shadow: 0 9px 22px #1949670e;
+}
+.farmacia-ia-sucursal:hover:before {
+  opacity: 1;
+}
+.farmacia-ia-sucursal-identidad > span {
+  width: 45px;
+  height: 45px;
+  border-radius: 13px;
+}
+.farmacia-ia-sucursal-identidad h3 {
+  font-size: 14px;
+}
+.farmacia-ia-sucursal-metricas {
+  gap: 6px;
+}
+.farmacia-ia-sucursal-metricas span {
+  padding: 7px 9px;
+  border-color: #eaf0f4;
+  border-radius: 8px;
+  background: #f9fbfc;
+}
+.farmacia-ia-sucursal > button {
+  min-width: 122px;
+  border-radius: 9px;
+  background: linear-gradient(120deg, #087fc0, #0998c5);
+  box-shadow: 0 4px 10px #087fc022;
+}
+.farmacia-ia-sucursal > button svg {
+  transition: transform 0.18s;
+}
+.farmacia-ia-sucursal > button:hover svg {
+  transform: translateX(3px);
+}
+.farmacia-ia-sin-sucursales {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 40px 24px;
+  border-style: dashed;
+  text-align: center;
+  background: linear-gradient(145deg, #fff, #f7fbfe);
+}
+.farmacia-ia-sin-sucursales > span {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid #cee7f2;
+  border-radius: 16px;
+  color: #087fc0;
+  background: #f0f9fd;
+}
+.farmacia-ia-sin-sucursales h3 {
+  margin: 6px 0 0;
+  color: #214a67;
+  font-size: 15px;
+}
+.farmacia-ia-sin-sucursales p {
+  max-width: 460px;
+  margin: 0;
+  color: #70899a;
+  font-size: 11px;
+  line-height: 1.6;
+}
+.farmacia-ia-modal {
+  border-color: #d5e6ef;
+  border-radius: 17px;
+  box-shadow: 0 28px 80px #082b464a;
+}
+.farmacia-ia-modal > header {
+  background: linear-gradient(110deg, #fff, #f5fbfe);
+}
+.farmacia-ia-modal-contenido {
+  background: #fcfdfe;
+}
+.farmacia-ia-estructura {
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 10px #19496706;
+}
+.farmacia-ia-modal > footer {
+  background: #f8fbfd;
+}
+@media (max-width: 900px) {
+  .farmacia-ia-resumen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .farmacia-ia-sucursal {
+    grid-template-columns: minmax(180px, 1fr) auto;
+  }
+  .farmacia-ia-sucursal-metricas {
+    grid-column: 1/-1;
+    grid-row: 2;
+  }
+  .farmacia-ia-sucursal > button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+@media (max-width: 560px) {
+  .farmacia-ia-sucursales {
+    padding: 14px 10px;
+  }
+  .farmacia-ia-sucursales-encabezado {
+    min-height: 76px;
+    padding: 13px;
+  }
+  .farmacia-ia-sucursales-encabezado > span {
+    width: 42px;
+    height: 42px;
+  }
+  .farmacia-ia-sucursales-encabezado h2 {
+    font-size: 17px;
+  }
+  .farmacia-ia-resumen {
+    gap: 8px;
+    margin: 12px 0 16px;
+  }
+  .farmacia-ia-resumen-tarjeta {
+    min-height: 72px;
+    padding: 12px;
+  }
+  .farmacia-ia-resumen-tarjeta strong {
+    font-size: 21px;
+  }
+  .farmacia-ia-sucursal {
+    grid-template-columns: 1fr;
+    padding: 13px;
+  }
+  .farmacia-ia-sucursal > button {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: start;
+  }
+  .farmacia-ia-sucursal-metricas {
+    grid-column: auto;
+    grid-row: auto;
+  }
+}
+.farmacia-ia-inventario {
+  display: block;
+  padding: clamp(18px, 3vw, 32px);
+  overflow: auto;
+  background:
+    radial-gradient(ellipse at 100% 0, #edf8ff 0, transparent 38%), #fff;
+}
+.farmacia-ia-inventario-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 19px 21px;
+  border: 1px solid #dcebf3;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #fff 45%, #f1faff);
+  box-shadow: 0 7px 22px #19496708;
+}
+.farmacia-ia-inventario-encabezado small {
+  color: #0787c3;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+.farmacia-ia-inventario-encabezado h2 {
+  margin: 5px 0;
+  color: #173d60;
+  font-size: 22px;
+}
+.farmacia-ia-inventario-encabezado p {
+  margin: 0;
+  color: #71899b;
+  font-size: 11px;
+}
+.farmacia-ia-inventario-encabezado > button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(120deg, #087fc0, #0998c5);
+  box-shadow: 0 4px 12px #087fc025;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.farmacia-ia-inventario-encabezado > button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 16px #087fc030;
+}
+.farmacia-ia-inventario-encabezado > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.farmacia-ia-inventario-filtros {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.5fr) minmax(140px, 0.7fr) minmax(140px, 0.7fr)
+    auto;
+  align-items: end;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 14px;
+  border: 1px solid #e2edf3;
+  border-radius: 12px;
+  background: #fbfdfe;
+}
+.farmacia-ia-inventario-filtros label {
+  display: grid;
+  gap: 6px;
+  color: #527086;
+  font-size: 10px;
+  font-weight: 800;
+}
+.farmacia-ia-inventario-filtros input {
+  height: 37px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #d7e5ed;
+  border-radius: 8px;
+  outline: 0;
+  color: #244b68;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+}
+.farmacia-ia-inventario-filtros input:focus {
+  border-color: #72bfdd;
+  box-shadow: 0 0 0 3px #087fc014;
+}
+.farmacia-ia-inventario-filtros > button {
+  height: 37px;
+  padding: 0 13px;
+  border: 1px solid #cfe2ec;
+  border-radius: 8px;
+  color: #0879b4;
+  background: #f2faff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-inventario-filtros > button:hover {
+  background: #e6f6fd;
+}
+.farmacia-ia-inventarios-tabla,
+.farmacia-ia-inventario-items {
+  border: 1px solid #e1ebf1;
+  border-radius: 12px;
+  background: #fff;
+  overflow: auto;
+}
+.farmacia-ia-inventarios-tabla table,
+.farmacia-ia-inventario-items table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+}
+.farmacia-ia-inventarios-tabla th,
+.farmacia-ia-inventario-items th {
+  padding: 11px 12px;
+  border-bottom: 1px solid #e5edf2;
+  color: #698397;
+  background: #f7fafc;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.025em;
+}
+.farmacia-ia-inventarios-tabla td,
+.farmacia-ia-inventario-items td {
+  padding: 12px;
+  border-bottom: 1px solid #edf2f5;
+  color: #36566e;
+  font-size: 10px;
+}
+.farmacia-ia-inventarios-tabla tbody tr:hover,
+.farmacia-ia-inventario-items tbody tr:hover {
+  background: #f8fcfe;
+}
+.farmacia-ia-inventarios-tabla td strong,
+.farmacia-ia-inventarios-tabla td small,
+.farmacia-ia-inventario-items td strong,
+.farmacia-ia-inventario-items td small {
+  display: block;
+}
+.farmacia-ia-inventarios-tabla td small,
+.farmacia-ia-inventario-items td small {
+  margin-top: 4px;
+  color: #8196a5;
+  font-size: 9px;
+}
+.farmacia-ia-estado-inventario {
+  display: inline-flex;
+  padding: 5px 8px;
+  border-radius: 18px;
+  font-size: 9px;
+  font-weight: 800;
+}
+.farmacia-ia-estado-inventario.en-curso {
+  color: #8a6421;
+  background: #fff7e5;
+}
+.farmacia-ia-estado-inventario.finalizado {
+  color: #237354;
+  background: #eaf8f0;
+}
+.farmacia-ia-inspeccionar {
+  padding: 7px 9px;
+  border: 1px solid #cde4ef;
+  border-radius: 7px;
+  color: #0879b4;
+  background: #f6fbfe;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-inspeccionar:hover {
+  border-color: #83c8e1;
+  background: #eaf8fd;
+}
+.farmacia-ia-valor-faltante {
+  color: #b34c52 !important;
+  font-weight: 800;
+}
+.farmacia-ia-valor-sobrante {
+  color: #297b62 !important;
+  font-weight: 800;
+}
+.farmacia-ia-tabla-vacia {
+  margin: 0;
+  padding: 28px;
+  color: #7890a0;
+  text-align: center;
+  font-size: 11px;
+}
+.farmacia-ia-inventario-modal {
+  width: min(560px, 100%);
+}
+.farmacia-ia-inventario-modal .farmacia-ia-modal-contenido {
+  min-height: 80px;
+}
+.farmacia-ia-detalle-inventario-modal {
+  width: min(1100px, 100%);
+  max-height: calc(100dvh - 32px);
+}
+.farmacia-ia-inventario-metricas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  padding: 12px 18px;
+  background: #fbfdfe;
+}
+.farmacia-ia-inventario-metricas span {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid #e3edf2;
+  border-radius: 9px;
+  color: #758c9b;
+  background: #fff;
+  font-size: 9px;
+}
+.farmacia-ia-inventario-metricas strong {
+  color: #234a66;
+  font-size: 16px;
+}
+.farmacia-ia-inventario-items {
+  margin: 0 18px 16px;
+  max-height: min(48dvh, 500px);
+  border-radius: 9px;
+}
+.farmacia-ia-inventario-items td input {
+  width: 95px;
+}
+.farmacia-ia-detalle-inventario-modal > footer > span {
+  color: #71899b;
+}
+.farmacia-ia-detalle-inventario-modal
+  > footer
+  > button:not(.farmacia-ia-cancelar) {
+  margin-left: auto;
+}
+@media (max-width: 850px) {
+  .farmacia-ia-inventario-filtros {
+    grid-template-columns: 1fr 1fr;
+  }
+  .farmacia-ia-inventario-filtros label:first-child {
+    grid-column: 1/-1;
+  }
+  .farmacia-ia-inventario-filtros > button {
+    justify-self: start;
+  }
+  .farmacia-ia-inventario-metricas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 560px) {
+  .farmacia-ia-inventario {
+    padding: 12px 9px;
+  }
+  .farmacia-ia-inventario-encabezado {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 15px;
+  }
+  .farmacia-ia-inventario-encabezado h2 {
+    font-size: 19px;
+  }
+  .farmacia-ia-inventario-filtros {
+    grid-template-columns: 1fr;
+    padding: 11px;
+  }
+  .farmacia-ia-inventario-filtros label:first-child {
+    grid-column: auto;
+  }
+  .farmacia-ia-inventario-metricas {
+    gap: 6px;
+    padding: 10px;
+  }
+  .farmacia-ia-inventario-metricas strong {
+    font-size: 14px;
+  }
+  .farmacia-ia-inventario-items {
+    margin: 0 10px 10px;
+  }
+  .farmacia-ia-detalle-inventario-modal > header {
+    padding: 14px;
+  }
+  .farmacia-ia-detalle-inventario-modal > footer > span {
+    flex-basis: 100%;
+  }
+}
+.farmacia-ia-estado-inventario.pendiente {
+  color: #526f87;
+  background: #edf5fa;
+}
+.farmacia-ia-acciones-inventario {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.farmacia-ia-descargar {
+  padding: 7px 9px;
+  border: 1px solid #cfe8dc;
+  border-radius: 7px;
+  color: #237354;
+  background: #f3fbf6;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-descargar:hover:not(:disabled) {
+  background: #e7f7ee;
+}
+.farmacia-ia-descargar:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.farmacia-ia-detalle-inventario-modal
+  > footer
+  > .farmacia-ia-cancelar:not(:disabled) {
+  color: #237354;
+  border-color: #cfe8dc;
+  background: #f3fbf6;
+}
+@media (max-width: 720px) {
+  .farmacia-ia-acciones-inventario {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+.farmacia-ia-detalle-estado-linea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 7px;
+}
+.farmacia-ia-detalle-estado-linea > small {
+  margin: 0 !important;
+}
+.farmacia-ia-detalle-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 18px;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.2;
+}
+.farmacia-ia-detalle-estado > i {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: currentColor;
+}
+.farmacia-ia-detalle-estado.en-curso {
+  color: #946814;
+  background: #fff5df;
+}
+.farmacia-ia-detalle-estado.finalizado {
+  color: #19764f;
+  background: #e8f7ef;
+}
+.farmacia-ia-detalle-estado.pendiente {
+  color: #526f87;
+  background: #edf5fa;
+}
+.farmacia-ia-detalle-estado.cancelado {
+  color: #8b5353;
+  background: #fff0f0;
+}
+.farmacia-ia-estado-inventario.cancelado {
+  color: #8b5353;
+  background: #fff0f0;
+}
 
-.farmacia-ia-inventario-filtros{grid-template-columns:minmax(220px,1.5fr) minmax(140px,.7fr) minmax(140px,.7fr)}.farmacia-ia-inventarios-resultado{padding:10px 14px;border-bottom:1px solid #eaf0f4;color:#758c9b;font-size:10px;font-weight:700}.farmacia-ia-inventarios-tabla:has(.farmacia-ia-inventarios-resultado) table{min-width:980px}@media(max-width:850px){.farmacia-ia-inventario-filtros{grid-template-columns:1fr 1fr}}@media(max-width:560px){.farmacia-ia-inventario-filtros{grid-template-columns:1fr}}
+.farmacia-ia-inventario-filtros {
+  grid-template-columns: minmax(220px, 1.5fr) minmax(140px, 0.7fr) minmax(
+      140px,
+      0.7fr
+    );
+}
+.farmacia-ia-inventarios-resultado {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eaf0f4;
+  color: #758c9b;
+  font-size: 10px;
+  font-weight: 700;
+}
+.farmacia-ia-inventarios-tabla:has(.farmacia-ia-inventarios-resultado) table {
+  min-width: 980px;
+}
+@media (max-width: 850px) {
+  .farmacia-ia-inventario-filtros {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .farmacia-ia-inventario-filtros {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* Refinamiento visual del espacio de conversación de TOMI */
-.farmacia-ia-chat{grid-template-columns:clamp(220px,19vw,270px) minmax(0,1fr);border-radius:18px;box-shadow:0 18px 44px #1949670b}
-.farmacia-ia-panel-modo{padding:30px 22px 20px;background:radial-gradient(ellipse at 50% 0,#e8f7ff 0,transparent 43%),linear-gradient(180deg,#f6fbff,#fff 72%)}
-.farmacia-ia-tomi-avatar{position:relative;width:68px;height:68px;border:1px solid #a9def3;border-radius:22px;background:linear-gradient(145deg,#08a5d5,#0676b5);box-shadow:0 12px 25px #087fc02b,0 0 0 7px #e7f6fc}
-.farmacia-ia-lateral h2{margin-top:17px;font-size:20px;letter-spacing:-.025em}
-.farmacia-ia-lateral>p{font-size:12px}
-.farmacia-ia-presencia{margin-top:12px;padding:7px 11px;border:1px solid #dceff5;background:#f2f9fc;font-size:10px}
-.farmacia-ia-panel-modo .farmacia-ia-lateral-separador{margin:25px 0 20px;background:linear-gradient(90deg,transparent,#dcecf4 15%,#dcecf4 85%,transparent)}
-.farmacia-ia-estado-modo{padding:16px;border-radius:15px;box-shadow:0 6px 20px #1b537309}
-.farmacia-ia-estado-modo-titulo{margin-bottom:15px}
-.farmacia-ia-modo-ayuda{font-size:10px;line-height:1.65}
-.farmacia-ia-panel-nota{padding:11px;border-radius:11px;background:#fbfdfe}
-.farmacia-ia-sala-cabecera{min-height:64px;padding:0 clamp(18px,2.5vw,34px);background:linear-gradient(90deg,#fff,#fbfdff)}
-.farmacia-ia-sala-cabecera>div{gap:10px;font-size:13px}
-.farmacia-ia-online{width:8px;height:8px}
-.farmacia-ia-sala-cabecera small{padding-left:10px;border-left:1px solid #e1ebf1;font-size:11px}
-.farmacia-ia-probar-voz{min-height:38px;padding:0 13px;border-radius:11px}
-.farmacia-ia-conversacion{padding:clamp(24px,4vh,42px) clamp(20px,5vw,68px) 20px;background:radial-gradient(ellipse at 50% 0,#f8fbfd 0,transparent 48%),#fff}
-.farmacia-ia-mensajes{gap:25px;width:min(100%,900px)}
-.farmacia-ia-mensaje{max-width:min(78%,760px);gap:12px}
-.farmacia-ia-avatar{width:36px;height:36px;border-radius:14px;box-shadow:0 3px 8px #087fc010}
-.farmacia-ia-emisor{gap:7px;font-size:10px;letter-spacing:.015em}
-.farmacia-ia-burbuja{padding:16px 19px;border-color:#e2ebf1;border-radius:17px 17px 17px 5px;background:linear-gradient(145deg,#f8fbfd,#f5f9fc);box-shadow:0 5px 16px #19496708}
-.farmacia-ia-burbuja p{font-size:13px;line-height:1.7}
-.farmacia-ia-mensaje.user .farmacia-ia-burbuja{border-color:#0788c2;border-radius:17px 17px 5px 17px;background:linear-gradient(135deg,#0788c2,#079cc5);box-shadow:0 8px 20px #087fc026}
-.farmacia-ia-burbuja-pie{margin-top:9px}
-.farmacia-ia-sugerencias{width:min(100%,900px);padding-top:18px}
-.farmacia-ia-sugerencias>span{margin-bottom:12px;font-size:10px;letter-spacing:.04em}
-.farmacia-ia-sugerencias button{min-height:40px;padding:0 14px;border-color:#e1ebf1;border-radius:13px;background:#fbfdfe;font-size:11px}
-.farmacia-ia-sugerencias button:hover{box-shadow:0 5px 14px #087fc014}
-.farmacia-ia-compositor{width:min(calc(100% - 56px),920px);margin-bottom:20px;padding:13px 14px 11px 18px;border-color:#d5e4ec;border-radius:17px;box-shadow:0 10px 28px #1949670c}
-.farmacia-ia-compositor textarea{min-height:42px;padding-top:8px;font-size:13px}
-.farmacia-ia-compositor textarea::placeholder{color:#899eac}
-.farmacia-ia-compositor>button{width:40px;height:40px;border-radius:13px}
-.farmacia-ia-compositor>.farmacia-ia-microfono{color:#24749d;background:#f5fafc}
-.farmacia-ia-compositor>.farmacia-ia-enviar{background:linear-gradient(135deg,#0787c0,#079bc6);box-shadow:0 4px 10px #087fc024}
-.farmacia-ia-compositor>small{font-size:10px}
-@media(max-width:850px){.farmacia-ia-chat{grid-template-columns:210px minmax(0,1fr)}.farmacia-ia-panel-modo{padding-inline:15px}.farmacia-ia-conversacion{padding-inline:22px}.farmacia-ia-mensaje{max-width:90%}}
-@media(max-width:650px){.farmacia-ia-chat{grid-template-columns:1fr;border-radius:14px}.farmacia-ia-sala-cabecera{min-height:54px;padding-inline:14px}.farmacia-ia-sala-cabecera small{display:none}.farmacia-ia-probar-voz{min-height:34px;padding-inline:9px;font-size:10px}.farmacia-ia-conversacion{padding:18px 13px;background:#fff}.farmacia-ia-mensajes{gap:18px}.farmacia-ia-mensaje{max-width:96%;gap:8px}.farmacia-ia-avatar{width:30px;height:30px;border-radius:11px}.farmacia-ia-burbuja{padding:12px 14px}.farmacia-ia-burbuja p{font-size:12px}.farmacia-ia-sugerencias{padding-top:16px}.farmacia-ia-sugerencias>div{display:flex;overflow-x:auto;padding:0 0 6px}.farmacia-ia-sugerencias button{flex:none}.farmacia-ia-compositor{width:calc(100% - 20px);margin-bottom:12px;padding:9px 10px 9px 13px;border-radius:14px}.farmacia-ia-compositor textarea{font-size:12px}}
+.farmacia-ia-chat {
+  grid-template-columns: clamp(220px, 19vw, 270px) minmax(0, 1fr);
+  border-radius: 18px;
+  box-shadow: 0 18px 44px #1949670b;
+}
+.farmacia-ia-panel-modo {
+  padding: 30px 22px 20px;
+  background:
+    radial-gradient(ellipse at 50% 0, #e8f7ff 0, transparent 43%),
+    linear-gradient(180deg, #f6fbff, #fff 72%);
+}
+.farmacia-ia-tomi-avatar {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  border: 1px solid #a9def3;
+  border-radius: 22px;
+  background: linear-gradient(145deg, #08a5d5, #0676b5);
+  box-shadow:
+    0 12px 25px #087fc02b,
+    0 0 0 7px #e7f6fc;
+}
+.farmacia-ia-lateral h2 {
+  margin-top: 17px;
+  font-size: 20px;
+  letter-spacing: -0.025em;
+}
+.farmacia-ia-lateral > p {
+  font-size: 12px;
+}
+.farmacia-ia-presencia {
+  margin-top: 12px;
+  padding: 7px 11px;
+  border: 1px solid #dceff5;
+  background: #f2f9fc;
+  font-size: 10px;
+}
+.farmacia-ia-panel-modo .farmacia-ia-lateral-separador {
+  margin: 25px 0 20px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    #dcecf4 15%,
+    #dcecf4 85%,
+    transparent
+  );
+}
+.farmacia-ia-estado-modo {
+  padding: 16px;
+  border-radius: 15px;
+  box-shadow: 0 6px 20px #1b537309;
+}
+.farmacia-ia-estado-modo-titulo {
+  margin-bottom: 15px;
+}
+.farmacia-ia-modo-ayuda {
+  font-size: 10px;
+  line-height: 1.65;
+}
+.farmacia-ia-panel-nota {
+  padding: 11px;
+  border-radius: 11px;
+  background: #fbfdfe;
+}
+.farmacia-ia-sala-cabecera {
+  min-height: 64px;
+  padding: 0 clamp(18px, 2.5vw, 34px);
+  background: linear-gradient(90deg, #fff, #fbfdff);
+}
+.farmacia-ia-sala-cabecera > div {
+  gap: 10px;
+  font-size: 13px;
+}
+.farmacia-ia-online {
+  width: 8px;
+  height: 8px;
+}
+.farmacia-ia-sala-cabecera small {
+  padding-left: 10px;
+  border-left: 1px solid #e1ebf1;
+  font-size: 11px;
+}
+.farmacia-ia-probar-voz {
+  min-height: 38px;
+  padding: 0 13px;
+  border-radius: 11px;
+}
+.farmacia-ia-conversacion {
+  padding: clamp(24px, 4vh, 42px) clamp(20px, 5vw, 68px) 20px;
+  background:
+    radial-gradient(ellipse at 50% 0, #f8fbfd 0, transparent 48%), #fff;
+}
+.farmacia-ia-mensajes {
+  gap: 25px;
+  width: min(100%, 900px);
+}
+.farmacia-ia-mensaje {
+  max-width: min(78%, 760px);
+  gap: 12px;
+}
+.farmacia-ia-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 14px;
+  box-shadow: 0 3px 8px #087fc010;
+}
+.farmacia-ia-emisor {
+  gap: 7px;
+  font-size: 10px;
+  letter-spacing: 0.015em;
+}
+.farmacia-ia-burbuja {
+  padding: 16px 19px;
+  border-color: #e2ebf1;
+  border-radius: 17px 17px 17px 5px;
+  background: linear-gradient(145deg, #f8fbfd, #f5f9fc);
+  box-shadow: 0 5px 16px #19496708;
+}
+.farmacia-ia-burbuja p {
+  font-size: 13px;
+  line-height: 1.7;
+}
+.farmacia-ia-mensaje.user .farmacia-ia-burbuja {
+  border-color: #0788c2;
+  border-radius: 17px 17px 5px 17px;
+  background: linear-gradient(135deg, #0788c2, #079cc5);
+  box-shadow: 0 8px 20px #087fc026;
+}
+.farmacia-ia-burbuja-pie {
+  margin-top: 9px;
+}
+.farmacia-ia-sugerencias {
+  width: min(100%, 900px);
+  padding-top: 18px;
+}
+.farmacia-ia-sugerencias > span {
+  margin-bottom: 12px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.farmacia-ia-sugerencias button {
+  min-height: 40px;
+  padding: 0 14px;
+  border-color: #e1ebf1;
+  border-radius: 13px;
+  background: #fbfdfe;
+  font-size: 11px;
+}
+.farmacia-ia-sugerencias button:hover {
+  box-shadow: 0 5px 14px #087fc014;
+}
+.farmacia-ia-compositor {
+  width: min(calc(100% - 56px), 920px);
+  margin-bottom: 20px;
+  padding: 13px 14px 11px 18px;
+  border-color: #d5e4ec;
+  border-radius: 17px;
+  box-shadow: 0 10px 28px #1949670c;
+}
+.farmacia-ia-compositor textarea {
+  min-height: 42px;
+  padding-top: 8px;
+  font-size: 13px;
+}
+.farmacia-ia-compositor textarea::placeholder {
+  color: #899eac;
+}
+.farmacia-ia-compositor > button {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+}
+.farmacia-ia-compositor > .farmacia-ia-microfono {
+  color: #24749d;
+  background: #f5fafc;
+}
+.farmacia-ia-compositor > .farmacia-ia-enviar {
+  background: linear-gradient(135deg, #0787c0, #079bc6);
+  box-shadow: 0 4px 10px #087fc024;
+}
+.farmacia-ia-compositor > small {
+  font-size: 10px;
+}
+@media (max-width: 850px) {
+  .farmacia-ia-chat {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+  .farmacia-ia-panel-modo {
+    padding-inline: 15px;
+  }
+  .farmacia-ia-conversacion {
+    padding-inline: 22px;
+  }
+  .farmacia-ia-mensaje {
+    max-width: 90%;
+  }
+}
+@media (max-width: 650px) {
+  .farmacia-ia-chat {
+    grid-template-columns: 1fr;
+    border-radius: 14px;
+  }
+  .farmacia-ia-sala-cabecera {
+    min-height: 54px;
+    padding-inline: 14px;
+  }
+  .farmacia-ia-sala-cabecera small {
+    display: none;
+  }
+  .farmacia-ia-probar-voz {
+    min-height: 34px;
+    padding-inline: 9px;
+    font-size: 10px;
+  }
+  .farmacia-ia-conversacion {
+    padding: 18px 13px;
+    background: #fff;
+  }
+  .farmacia-ia-mensajes {
+    gap: 18px;
+  }
+  .farmacia-ia-mensaje {
+    max-width: 96%;
+    gap: 8px;
+  }
+  .farmacia-ia-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 11px;
+  }
+  .farmacia-ia-burbuja {
+    padding: 12px 14px;
+  }
+  .farmacia-ia-burbuja p {
+    font-size: 12px;
+  }
+  .farmacia-ia-sugerencias {
+    padding-top: 16px;
+  }
+  .farmacia-ia-sugerencias > div {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 0 6px;
+  }
+  .farmacia-ia-sugerencias button {
+    flex: none;
+  }
+  .farmacia-ia-compositor {
+    width: calc(100% - 20px);
+    margin-bottom: 12px;
+    padding: 9px 10px 9px 13px;
+    border-radius: 14px;
+  }
+  .farmacia-ia-compositor textarea {
+    font-size: 12px;
+  }
+}
 
-.farmacia-ia-panel-modo .farmacia-ia-lateral-separador{margin:20px 0 16px}.farmacia-ia-estado-modo{width:100%;box-sizing:border-box;padding:14px;border:1px solid #dcebf3;border-radius:12px;background:linear-gradient(145deg,#fff,#f7fbfd)}.farmacia-ia-estado-modo.activo{border-color:#bfe5d5;background:linear-gradient(145deg,#f3fcf7,#fff)}.farmacia-ia-estado-modo-titulo{display:flex;align-items:center;gap:8px;margin-bottom:13px;color:#0786bf}.farmacia-ia-estado-modo-titulo h3{margin:0;color:#54748a;font-size:9px;font-weight:900;letter-spacing:.1em}.farmacia-ia-modo-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border-radius:18px;color:#1d7659;background:#e8f7ef;font-size:9px}.farmacia-ia-modo-chip i{width:7px;height:7px;border-radius:50%;background:#39ae83;box-shadow:0 0 0 3px #39ae8320}.farmacia-ia-modo-chip.inactivo{color:#72899a;background:#eef4f7}.farmacia-ia-modo-chip.inactivo i{background:#9aabb5;box-shadow:0 0 0 3px #9aabb520}.farmacia-ia-modo-ubicacion{margin:12px 0;color:#264e69;font-size:12px;font-weight:800}.farmacia-ia-modo-ubicacion small{display:block;margin-top:4px;color:#7991a2;font-size:10px;font-weight:600}.farmacia-ia-modo-progreso{display:flex;justify-content:space-between;gap:8px;margin-top:13px;color:#7790a0;font-size:9px}.farmacia-ia-modo-progreso strong{color:#355b74}.farmacia-ia-modo-barra{height:6px;margin-top:7px;overflow:hidden;border-radius:10px;background:#e6eff3}.farmacia-ia-modo-barra i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#0a88c2,#42b88b);transition:width .25s ease}.farmacia-ia-modo-ayuda{display:block;margin:12px 0 0;color:#748c9c;font-size:9px;line-height:1.55}.farmacia-ia-modo-ayuda b{color:#087fb9}.farmacia-ia-panel-nota{display:flex;gap:7px;margin-top:auto;padding:10px;border:1px solid #dfedf3;border-radius:9px;color:#6e8798;background:#fff;font-size:9px;line-height:1.45}.farmacia-ia-panel-nota svg{flex:none;color:#3c9b7a}.farmacia-ia-descarga-chat{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:8px 11px;border:1px solid #a8dac4;border-radius:8px;color:#1b7659;background:#f1fbf6;font:inherit;font-size:10px;font-weight:800;cursor:pointer}.farmacia-ia-descarga-chat:hover{background:#e4f7ed}@media(max-width:650px){.farmacia-ia-panel-modo{display:flex;align-items:flex-start;padding:16px}.farmacia-ia-panel-modo .farmacia-ia-estado-modo{max-width:420px}.farmacia-ia-panel-modo .farmacia-ia-panel-nota{margin-top:12px}}
+.farmacia-ia-panel-modo .farmacia-ia-lateral-separador {
+  margin: 20px 0 16px;
+}
+.farmacia-ia-estado-modo {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid #dcebf3;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff, #f7fbfd);
+}
+.farmacia-ia-estado-modo.activo {
+  border-color: #bfe5d5;
+  background: linear-gradient(145deg, #f3fcf7, #fff);
+}
+.farmacia-ia-estado-modo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 13px;
+  color: #0786bf;
+}
+.farmacia-ia-estado-modo-titulo h3 {
+  margin: 0;
+  color: #54748a;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+.farmacia-ia-modo-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 9px;
+  border-radius: 18px;
+  color: #1d7659;
+  background: #e8f7ef;
+  font-size: 9px;
+}
+.farmacia-ia-modo-chip i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #39ae83;
+  box-shadow: 0 0 0 3px #39ae8320;
+}
+.farmacia-ia-modo-chip.inactivo {
+  color: #72899a;
+  background: #eef4f7;
+}
+.farmacia-ia-modo-chip.inactivo i {
+  background: #9aabb5;
+  box-shadow: 0 0 0 3px #9aabb520;
+}
+.farmacia-ia-modo-ubicacion {
+  margin: 12px 0;
+  color: #264e69;
+  font-size: 12px;
+  font-weight: 800;
+}
+.farmacia-ia-modo-ubicacion small {
+  display: block;
+  margin-top: 4px;
+  color: #7991a2;
+  font-size: 10px;
+  font-weight: 600;
+}
+.farmacia-ia-modo-progreso {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 13px;
+  color: #7790a0;
+  font-size: 9px;
+}
+.farmacia-ia-modo-progreso strong {
+  color: #355b74;
+}
+.farmacia-ia-modo-barra {
+  height: 6px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e6eff3;
+}
+.farmacia-ia-modo-barra i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0a88c2, #42b88b);
+  transition: width 0.25s ease;
+}
+.farmacia-ia-modo-ayuda {
+  display: block;
+  margin: 12px 0 0;
+  color: #748c9c;
+  font-size: 9px;
+  line-height: 1.55;
+}
+.farmacia-ia-modo-ayuda b {
+  color: #087fb9;
+}
+.farmacia-ia-panel-nota {
+  display: flex;
+  gap: 7px;
+  margin-top: auto;
+  padding: 10px;
+  border: 1px solid #dfedf3;
+  border-radius: 9px;
+  color: #6e8798;
+  background: #fff;
+  font-size: 9px;
+  line-height: 1.45;
+}
+.farmacia-ia-panel-nota svg {
+  flex: none;
+  color: #3c9b7a;
+}
+.farmacia-ia-descarga-chat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+  padding: 8px 11px;
+  border: 1px solid #a8dac4;
+  border-radius: 8px;
+  color: #1b7659;
+  background: #f1fbf6;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-descarga-chat:hover {
+  background: #e4f7ed;
+}
+@media (max-width: 650px) {
+  .farmacia-ia-panel-modo {
+    display: flex;
+    align-items: flex-start;
+    padding: 16px;
+  }
+  .farmacia-ia-panel-modo .farmacia-ia-estado-modo {
+    max-width: 420px;
+  }
+  .farmacia-ia-panel-modo .farmacia-ia-panel-nota {
+    margin-top: 12px;
+  }
+}
 
-.farmacia-ia-sucursales-encabezado{gap:16px}.farmacia-ia-actualizar-sucursales{display:flex;align-items:center;gap:7px;margin-left:auto;padding:9px 12px;border:1px solid #cfe3ed;border-radius:9px;color:#0879b4;background:#f5fbfe;font:inherit;font-size:10px;font-weight:800;white-space:nowrap;cursor:pointer}.farmacia-ia-actualizar-sucursales:hover:not(:disabled){background:#e8f6fc}.farmacia-ia-actualizar-sucursales:disabled{opacity:.6;cursor:wait}.farmacia-ia-sucursal{grid-template-columns:minmax(220px,1fr) minmax(260px,auto) auto}.farmacia-ia-sucursal-metricas{grid-template-columns:repeat(2,minmax(100px,1fr))}.farmacia-ia-sucursal-sin-almacen{margin:0;padding:24px;border:1px dashed #d4e5ed;border-radius:10px;color:#6f8798;background:#f8fbfd;text-align:center;font-size:12px;line-height:1.6}@media(max-width:800px){.farmacia-ia-sucursales-encabezado{flex-wrap:wrap}.farmacia-ia-actualizar-sucursales{margin-left:auto}.farmacia-ia-sucursal{grid-template-columns:1fr auto}.farmacia-ia-sucursal-metricas{grid-column:1/-1;grid-row:2}.farmacia-ia-sucursal>button{grid-column:2;grid-row:1}}@media(max-width:560px){.farmacia-ia-sucursales-encabezado{align-items:flex-start}.farmacia-ia-sucursal{grid-template-columns:1fr}.farmacia-ia-sucursal-metricas{grid-column:auto;grid-row:auto}.farmacia-ia-sucursal>button{grid-column:auto;grid-row:auto;justify-self:start}}
+.farmacia-ia-sucursales-encabezado {
+  gap: 16px;
+}
+.farmacia-ia-actualizar-sucursales {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  padding: 9px 12px;
+  border: 1px solid #cfe3ed;
+  border-radius: 9px;
+  color: #0879b4;
+  background: #f5fbfe;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.farmacia-ia-actualizar-sucursales:hover:not(:disabled) {
+  background: #e8f6fc;
+}
+.farmacia-ia-actualizar-sucursales:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.farmacia-ia-sucursal {
+  grid-template-columns: minmax(220px, 1fr) minmax(260px, auto) auto;
+}
+.farmacia-ia-sucursal-metricas {
+  grid-template-columns: repeat(2, minmax(100px, 1fr));
+}
+.farmacia-ia-sucursal-sin-almacen {
+  margin: 0;
+  padding: 24px;
+  border: 1px dashed #d4e5ed;
+  border-radius: 10px;
+  color: #6f8798;
+  background: #f8fbfd;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 800px) {
+  .farmacia-ia-sucursales-encabezado {
+    flex-wrap: wrap;
+  }
+  .farmacia-ia-actualizar-sucursales {
+    margin-left: auto;
+  }
+  .farmacia-ia-sucursal {
+    grid-template-columns: 1fr auto;
+  }
+  .farmacia-ia-sucursal-metricas {
+    grid-column: 1/-1;
+    grid-row: 2;
+  }
+  .farmacia-ia-sucursal > button {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+@media (max-width: 560px) {
+  .farmacia-ia-sucursales-encabezado {
+    align-items: flex-start;
+  }
+  .farmacia-ia-sucursal {
+    grid-template-columns: 1fr;
+  }
+  .farmacia-ia-sucursal-metricas {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .farmacia-ia-sucursal > button {
+    grid-column: auto;
+    grid-row: auto;
+    justify-self: start;
+  }
+}
 
 /* Vista de detalle de sucursal y organización física */
-.farmacia-ia-sucursal-detalle{display:grid;gap:16px;align-content:start;min-height:100%;padding:22px;background:linear-gradient(145deg,#f8fcff,#fff 48%);box-sizing:border-box}.farmacia-ia-volver-sucursales{justify-self:start;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid #d6e7f0;border-radius:9px;color:#087db8;background:#fff;font:inherit;font-size:11px;font-weight:800;cursor:pointer}.farmacia-ia-volver-sucursales svg{transform:rotate(180deg)}.farmacia-ia-volver-sucursales:hover{background:#eff9fe;border-color:#abd8ea}.farmacia-ia-sucursal-detalle-cabecera{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px;border:1px solid #dcebf3;border-radius:14px;background:linear-gradient(110deg,#fff,#f2faff);box-shadow:0 5px 18px #17486708}.farmacia-ia-sucursal-detalle-cabecera small{color:#0788c3;font-size:9px;font-weight:900;letter-spacing:.13em}.farmacia-ia-sucursal-detalle-cabecera h2{margin:5px 0;color:#173e60;font-size:22px}.farmacia-ia-sucursal-detalle-cabecera p{margin:0;color:#71899b;font-size:11px}.farmacia-ia-sucursal-detalle-cabecera>span{display:grid;width:48px;height:48px;place-items:center;border:1px solid #cce8f4;border-radius:13px;color:#0787c1;background:#f1faff}.farmacia-ia-sucursal-resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.farmacia-ia-sucursal-resumen article{display:grid;gap:8px;padding:14px;border:1px solid #e1ebf1;border-radius:11px;background:#fff}.farmacia-ia-sucursal-resumen small{color:#70889a;font-size:10px;font-weight:700}.farmacia-ia-sucursal-resumen strong{color:#174768;font-size:22px;line-height:1}.farmacia-ia-sucursal-detalle>.farmacia-ia-almacen-selector{max-width:520px}.farmacia-ia-nueva-estructura-acciones{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:14px;border:1px solid #e0ebf1;border-radius:12px;background:#fff}.farmacia-ia-nueva-estructura-acciones>strong{color:#355a73;font-size:12px}.farmacia-ia-nueva-estructura-acciones>div{display:flex;gap:7px;flex-wrap:wrap}.farmacia-ia-nueva-estructura-acciones button,.farmacia-ia-agregar-repisa{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border:1px solid #cfe4ed;border-radius:8px;color:#087bb5;background:#f5fbfe;font:inherit;font-size:10px;font-weight:800;cursor:pointer}.farmacia-ia-nueva-estructura-acciones button:hover,.farmacia-ia-agregar-repisa:hover{background:#e9f7fd;border-color:#a6d8ea}.farmacia-ia-nueva-estructura-form{display:grid;grid-template-columns:minmax(150px,.75fr) minmax(180px,1fr) minmax(180px,1fr);align-items:end;gap:12px;padding:16px;border:1px solid #bfe0ef;border-radius:12px;background:linear-gradient(130deg,#f3faff,#fff)}.farmacia-ia-nueva-estructura-form>div:first-child{grid-column:1/-1}.farmacia-ia-nueva-estructura-form>div:first-child small{color:#0787c1;font-size:9px;font-weight:900;letter-spacing:.1em}.farmacia-ia-nueva-estructura-form h3{margin:4px 0 0;color:#214b69;font-size:15px}.farmacia-ia-nueva-estructura-form>label{display:grid;gap:6px;color:#527086;font-size:10px;font-weight:800}.farmacia-ia-nueva-estructura-form input,.farmacia-ia-nueva-estructura-form select{height:38px;box-sizing:border-box;padding:8px 10px;border:1px solid #d6e5ed;border-radius:8px;outline:0;color:#284c65;background:#fff;font:inherit;font-size:11px}.farmacia-ia-nueva-estructura-form input:focus,.farmacia-ia-nueva-estructura-form select:focus{border-color:#6cbada;box-shadow:0 0 0 3px #087fc014}.farmacia-ia-nueva-estructura-form>p{grid-column:1/-1;margin:0;color:#71899b;font-size:10px}.farmacia-ia-nueva-estructura-form>div:last-child{grid-column:1/-1;display:flex;justify-content:flex-end;gap:8px}.farmacia-ia-nueva-estructura-form>div:last-child>button:last-child,.farmacia-ia-sucursal-detalle-pie>button{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 13px;border:0;border-radius:8px;color:#fff;background:linear-gradient(120deg,#087fc0,#0998c5);font:inherit;font-size:10px;font-weight:800;cursor:pointer}.farmacia-ia-estructuras-lista{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));align-content:start;gap:12px}.farmacia-ia-estructura{overflow:hidden;border:1px solid #e0eaf0;border-radius:12px;background:#fff;box-shadow:0 3px 12px #19496706}.farmacia-ia-estructura>header{display:flex;align-items:center;gap:9px;padding:11px 12px;border-bottom:1px solid #edf2f5;background:#fbfdfe}.farmacia-ia-estructura>header>span{padding:5px 8px;border-radius:20px;color:#087ab3;background:#eaf7fd;font-size:9px;font-weight:850;white-space:nowrap}.farmacia-ia-estructura>header>input{min-width:0;flex:1;padding:7px 9px;border:1px solid #e0eaf0;border-radius:7px;color:#244a66;background:#fff;font:inherit;font-size:11px;font-weight:700}.farmacia-ia-estructura>header>button{width:28px;height:28px;border:1px solid #f0d7d8;border-radius:7px;color:#a64b53;background:#fff;font-size:18px;cursor:pointer}.farmacia-ia-estructura-repisas{display:grid;gap:8px;padding:12px}.farmacia-ia-estructura-repisas>strong{color:#466780;font-size:10px}.farmacia-ia-estructura-repisas>strong small{color:#91a2ad;font-size:9px;font-weight:500}.farmacia-ia-estructura-repisas>label{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:9px;padding:7px 9px;border:1px solid #edf2f5;border-radius:8px;background:#fcfdfe}.farmacia-ia-estructura-repisas>label>span{color:#355a73;font-size:10px;font-weight:750}.farmacia-ia-estructura-repisas>label>span small{display:block;margin-top:3px;color:#91a2ad;font-size:8px;font-weight:600}.farmacia-ia-estructura-repisas>label>input{min-width:0;padding:7px 8px;border:1px solid #e0eaf0;border-radius:6px;color:#355a73;background:#fff;font:inherit;font-size:10px}.farmacia-ia-agregar-repisa{justify-self:start}.farmacia-ia-sucursal-detalle-pie{position:sticky;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px -2px -2px;padding:12px 2px 2px;background:linear-gradient(0deg,#fff 75%,#ffffff00)}.farmacia-ia-sucursal-detalle-pie>span{color:#6f899a;font-size:10px}.farmacia-ia-sucursal-detalle-pie>button:disabled{opacity:.6;cursor:wait}.farmacia-ia-sucursal-sin-almacen{padding:26px;border:1px dashed #cfe3ed;border-radius:12px;color:#678195;background:#f7fbfd;text-align:center;font-size:12px;line-height:1.6}
-@media(max-width:760px){.farmacia-ia-sucursal-detalle{padding:14px}.farmacia-ia-nueva-estructura-form{grid-template-columns:1fr 1fr}.farmacia-ia-nueva-estructura-form>div:first-child,.farmacia-ia-nueva-estructura-form>p,.farmacia-ia-nueva-estructura-form>div:last-child{grid-column:1/-1}.farmacia-ia-sucursal-detalle-cabecera{padding:16px}.farmacia-ia-sucursal-resumen{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:480px){.farmacia-ia-nueva-estructura-form{grid-template-columns:1fr}.farmacia-ia-nueva-estructura-form>div:first-child,.farmacia-ia-nueva-estructura-form>p,.farmacia-ia-nueva-estructura-form>div:last-child{grid-column:auto}.farmacia-ia-sucursal-detalle-pie{align-items:stretch;flex-direction:column}.farmacia-ia-sucursal-detalle-pie>button{align-self:flex-end}}
-.farmacia-ia-modal-overlay{position:fixed;z-index:10000;inset:0;display:grid;place-items:center;padding:20px;background:#102a3b80;backdrop-filter:blur(4px)}.farmacia-ia-modal-estructura{width:min(100%,560px);overflow:hidden;border:1px solid #d7e8f1;border-radius:18px;background:#fff;box-shadow:0 24px 70px #09263b40;animation:farmacia-ia-modal-entrada .18s ease-out}.farmacia-ia-modal-estructura>header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:24px 26px 20px;border-bottom:1px solid #e5eff4;background:linear-gradient(125deg,#f2faff,#fff)}.farmacia-ia-modal-estructura>header small{color:#0787c1;font-size:10px;font-weight:900;letter-spacing:.13em}.farmacia-ia-modal-estructura>header h2{margin:5px 0;color:#173e60;font-size:21px}.farmacia-ia-modal-estructura>header p{margin:0;color:#71899b;font-size:12px;line-height:1.5}.farmacia-ia-modal-estructura>header>button{width:36px;height:36px;flex:none;border:1px solid #d8e7ee;border-radius:10px;color:#527086;background:#fff;font-size:23px;line-height:1;cursor:pointer}.farmacia-ia-modal-estructura>header>button:hover{color:#087fc0;background:#f1faff}.farmacia-ia-modal-estructura-form{display:grid;gap:15px;padding:23px 26px 25px}.farmacia-ia-modal-estructura-form>label{display:grid;gap:7px;color:#355a73;font-size:12px;font-weight:800}.farmacia-ia-modal-estructura-form input,.farmacia-ia-modal-estructura-form select{width:100%;height:44px;box-sizing:border-box;padding:10px 12px;border:1px solid #d5e4ec;border-radius:9px;outline:0;color:#244a66;background:#fff;font:inherit;font-size:13px}.farmacia-ia-modal-estructura-form input:focus,.farmacia-ia-modal-estructura-form select:focus{border-color:#59acd1;box-shadow:0 0 0 3px #0787c01c}.farmacia-ia-modal-estructura-form>p{margin:0;padding:11px 12px;border-radius:9px;color:#5d7c90;background:#f3f9fc;font-size:11px;line-height:1.5}.farmacia-ia-modal-estructura-form>footer{display:flex;justify-content:flex-end;gap:9px;padding-top:4px}.farmacia-ia-modal-estructura-form>footer button{min-height:40px;padding:0 15px;border:1px solid #cfe1eb;border-radius:9px;color:#41647b;background:#fff;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.farmacia-ia-modal-estructura-form>footer button[type=submit]{display:inline-flex;align-items:center;gap:7px;border-color:#0787c0;color:#fff;background:linear-gradient(120deg,#087fc0,#0998c5);box-shadow:0 5px 14px #0787c026}.farmacia-ia-modal-estructura-form>footer button:hover{filter:brightness(.97)}@keyframes farmacia-ia-modal-entrada{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}@media(max-width:520px){.farmacia-ia-modal-overlay{padding:12px}.farmacia-ia-modal-estructura>header{padding:19px 18px 16px}.farmacia-ia-modal-estructura-form{padding:18px}.farmacia-ia-modal-estructura>header h2{font-size:18px}}
-.farmacia-ia-asignacion{display:grid;grid-template-columns:minmax(220px,1.1fr) minmax(220px,1fr) minmax(220px,1fr) auto;align-items:end;gap:12px;padding:17px;border:1px solid #cfe7f2;border-radius:13px;background:linear-gradient(120deg,#f0f9fe,#fff 72%)}.farmacia-ia-asignacion>div:first-child{grid-column:1/-1}.farmacia-ia-asignacion>div:first-child small{color:#0787c1;font-size:9px;font-weight:900;letter-spacing:.12em}.farmacia-ia-asignacion h3{margin:4px 0;color:#214b69;font-size:15px}.farmacia-ia-asignacion p{margin:0;color:#72899a;font-size:11px}.farmacia-ia-asignacion>label{display:grid;gap:6px;color:#527086;font-size:10px;font-weight:800}.farmacia-ia-asignacion select{width:100%;height:40px;box-sizing:border-box;padding:8px 10px;border:1px solid #d6e5ed;border-radius:8px;color:#284c65;background:#fff;font:inherit;font-size:11px}.farmacia-ia-asignacion>button{height:40px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 14px;border:0;border-radius:8px;color:#fff;background:linear-gradient(120deg,#087fc0,#0998c5);font:inherit;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.farmacia-ia-asignacion>button:disabled{opacity:.5;cursor:not-allowed}.farmacia-ia-asignacion-actual{grid-column:2/-1;color:#58819a;font-size:10px}.farmacia-ia-productos-ubicados{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;border:1px solid #e3edf2;border-radius:11px;background:#fbfdfe}.farmacia-ia-productos-ubicados>strong{margin-right:5px;color:#355a73;font-size:11px}.farmacia-ia-productos-ubicados>span{display:grid;gap:3px;padding:7px 10px;border:1px solid #dcebf2;border-radius:8px;color:#355a73;background:#fff;font-size:10px;font-weight:750}.farmacia-ia-productos-ubicados>span small{color:#71899a;font-size:9px;font-weight:500}.farmacia-ia-productos-ubicados>p{margin:0;color:#8095a3;font-size:10px}@media(max-width:800px){.farmacia-ia-asignacion{grid-template-columns:1fr 1fr}.farmacia-ia-asignacion>div:first-child{grid-column:1/-1}.farmacia-ia-asignacion-actual{grid-column:1/-1}}@media(max-width:480px){.farmacia-ia-asignacion{grid-template-columns:1fr}.farmacia-ia-asignacion>div:first-child,.farmacia-ia-asignacion-actual{grid-column:auto}}
+.farmacia-ia-sucursal-detalle {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-height: 100%;
+  padding: 22px;
+  background: linear-gradient(145deg, #f8fcff, #fff 48%);
+  box-sizing: border-box;
+}
+.farmacia-ia-volver-sucursales {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #d6e7f0;
+  border-radius: 9px;
+  color: #087db8;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-volver-sucursales svg {
+  transform: rotate(180deg);
+}
+.farmacia-ia-volver-sucursales:hover {
+  background: #eff9fe;
+  border-color: #abd8ea;
+}
+.farmacia-ia-sucursal-detalle-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border: 1px solid #dcebf3;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #fff, #f2faff);
+  box-shadow: 0 5px 18px #17486708;
+}
+.farmacia-ia-sucursal-detalle-cabecera small {
+  color: #0788c3;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+.farmacia-ia-sucursal-detalle-cabecera h2 {
+  margin: 5px 0;
+  color: #173e60;
+  font-size: 22px;
+}
+.farmacia-ia-sucursal-detalle-cabecera p {
+  margin: 0;
+  color: #71899b;
+  font-size: 11px;
+}
+.farmacia-ia-sucursal-detalle-cabecera > span {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid #cce8f4;
+  border-radius: 13px;
+  color: #0787c1;
+  background: #f1faff;
+}
+.farmacia-ia-sucursal-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+.farmacia-ia-sucursal-resumen article {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid #e1ebf1;
+  border-radius: 11px;
+  background: #fff;
+}
+.farmacia-ia-sucursal-resumen small {
+  color: #70889a;
+  font-size: 10px;
+  font-weight: 700;
+}
+.farmacia-ia-sucursal-resumen strong {
+  color: #174768;
+  font-size: 22px;
+  line-height: 1;
+}
+.farmacia-ia-sucursal-detalle > .farmacia-ia-almacen-selector {
+  max-width: 520px;
+}
+.farmacia-ia-nueva-estructura-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 14px;
+  border: 1px solid #e0ebf1;
+  border-radius: 12px;
+  background: #fff;
+}
+.farmacia-ia-nueva-estructura-acciones > strong {
+  color: #355a73;
+  font-size: 12px;
+}
+.farmacia-ia-nueva-estructura-acciones > div {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.farmacia-ia-nueva-estructura-acciones button,
+.farmacia-ia-agregar-repisa {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border: 1px solid #cfe4ed;
+  border-radius: 8px;
+  color: #087bb5;
+  background: #f5fbfe;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-nueva-estructura-acciones button:hover,
+.farmacia-ia-agregar-repisa:hover {
+  background: #e9f7fd;
+  border-color: #a6d8ea;
+}
+.farmacia-ia-nueva-estructura-form {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.75fr) minmax(180px, 1fr) minmax(
+      180px,
+      1fr
+    );
+  align-items: end;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #bfe0ef;
+  border-radius: 12px;
+  background: linear-gradient(130deg, #f3faff, #fff);
+}
+.farmacia-ia-nueva-estructura-form > div:first-child {
+  grid-column: 1/-1;
+}
+.farmacia-ia-nueva-estructura-form > div:first-child small {
+  color: #0787c1;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+.farmacia-ia-nueva-estructura-form h3 {
+  margin: 4px 0 0;
+  color: #214b69;
+  font-size: 15px;
+}
+.farmacia-ia-nueva-estructura-form > label {
+  display: grid;
+  gap: 6px;
+  color: #527086;
+  font-size: 10px;
+  font-weight: 800;
+}
+.farmacia-ia-nueva-estructura-form input,
+.farmacia-ia-nueva-estructura-form select {
+  height: 38px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #d6e5ed;
+  border-radius: 8px;
+  outline: 0;
+  color: #284c65;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+}
+.farmacia-ia-nueva-estructura-form input:focus,
+.farmacia-ia-nueva-estructura-form select:focus {
+  border-color: #6cbada;
+  box-shadow: 0 0 0 3px #087fc014;
+}
+.farmacia-ia-nueva-estructura-form > p {
+  grid-column: 1/-1;
+  margin: 0;
+  color: #71899b;
+  font-size: 10px;
+}
+.farmacia-ia-nueva-estructura-form > div:last-child {
+  grid-column: 1/-1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.farmacia-ia-nueva-estructura-form > div:last-child > button:last-child,
+.farmacia-ia-sucursal-detalle-pie > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: linear-gradient(120deg, #087fc0, #0998c5);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-estructuras-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 330px), 1fr));
+  align-content: start;
+  gap: 12px;
+}
+.farmacia-ia-estructura {
+  overflow: hidden;
+  border: 1px solid #e0eaf0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px #19496706;
+}
+.farmacia-ia-estructura > header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  border-bottom: 1px solid #edf2f5;
+  background: #fbfdfe;
+}
+.farmacia-ia-estructura > header > span {
+  padding: 5px 8px;
+  border-radius: 20px;
+  color: #087ab3;
+  background: #eaf7fd;
+  font-size: 9px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+.farmacia-ia-estructura > header > input {
+  min-width: 0;
+  flex: 1;
+  padding: 7px 9px;
+  border: 1px solid #e0eaf0;
+  border-radius: 7px;
+  color: #244a66;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+}
+.farmacia-ia-estructura > header > button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #f0d7d8;
+  border-radius: 7px;
+  color: #a64b53;
+  background: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+.farmacia-ia-estructura-repisas {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+.farmacia-ia-estructura-repisas > strong {
+  color: #466780;
+  font-size: 10px;
+}
+.farmacia-ia-estructura-repisas > strong small {
+  color: #91a2ad;
+  font-size: 9px;
+  font-weight: 500;
+}
+.farmacia-ia-estructura-repisas > label {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 9px;
+  border: 1px solid #edf2f5;
+  border-radius: 8px;
+  background: #fcfdfe;
+}
+.farmacia-ia-estructura-repisas > label > span {
+  color: #355a73;
+  font-size: 10px;
+  font-weight: 750;
+}
+.farmacia-ia-estructura-repisas > label > span small {
+  display: block;
+  margin-top: 3px;
+  color: #91a2ad;
+  font-size: 8px;
+  font-weight: 600;
+}
+.farmacia-ia-estructura-repisas > label > input {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #e0eaf0;
+  border-radius: 6px;
+  color: #355a73;
+  background: #fff;
+  font: inherit;
+  font-size: 10px;
+}
+.farmacia-ia-agregar-repisa {
+  justify-self: start;
+}
+.farmacia-ia-sucursal-detalle-pie {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px -2px -2px;
+  padding: 12px 2px 2px;
+  background: linear-gradient(0deg, #fff 75%, #ffffff00);
+}
+.farmacia-ia-sucursal-detalle-pie > span {
+  color: #6f899a;
+  font-size: 10px;
+}
+.farmacia-ia-sucursal-detalle-pie > button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.farmacia-ia-sucursal-sin-almacen {
+  padding: 26px;
+  border: 1px dashed #cfe3ed;
+  border-radius: 12px;
+  color: #678195;
+  background: #f7fbfd;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.6;
+}
+@media (max-width: 760px) {
+  .farmacia-ia-sucursal-detalle {
+    padding: 14px;
+  }
+  .farmacia-ia-nueva-estructura-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .farmacia-ia-nueva-estructura-form > div:first-child,
+  .farmacia-ia-nueva-estructura-form > p,
+  .farmacia-ia-nueva-estructura-form > div:last-child {
+    grid-column: 1/-1;
+  }
+  .farmacia-ia-sucursal-detalle-cabecera {
+    padding: 16px;
+  }
+  .farmacia-ia-sucursal-resumen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 480px) {
+  .farmacia-ia-nueva-estructura-form {
+    grid-template-columns: 1fr;
+  }
+  .farmacia-ia-nueva-estructura-form > div:first-child,
+  .farmacia-ia-nueva-estructura-form > p,
+  .farmacia-ia-nueva-estructura-form > div:last-child {
+    grid-column: auto;
+  }
+  .farmacia-ia-sucursal-detalle-pie {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .farmacia-ia-sucursal-detalle-pie > button {
+    align-self: flex-end;
+  }
+}
+.farmacia-ia-modal-overlay {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #102a3b80;
+  backdrop-filter: blur(4px);
+}
+.farmacia-ia-modal-estructura {
+  width: min(100%, 560px);
+  overflow: hidden;
+  border: 1px solid #d7e8f1;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 24px 70px #09263b40;
+  animation: farmacia-ia-modal-entrada 0.18s ease-out;
+}
+.farmacia-ia-modal-estructura > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 26px 20px;
+  border-bottom: 1px solid #e5eff4;
+  background: linear-gradient(125deg, #f2faff, #fff);
+}
+.farmacia-ia-modal-estructura > header small {
+  color: #0787c1;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+}
+.farmacia-ia-modal-estructura > header h2 {
+  margin: 5px 0;
+  color: #173e60;
+  font-size: 21px;
+}
+.farmacia-ia-modal-estructura > header p {
+  margin: 0;
+  color: #71899b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.farmacia-ia-modal-estructura > header > button {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: 1px solid #d8e7ee;
+  border-radius: 10px;
+  color: #527086;
+  background: #fff;
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+}
+.farmacia-ia-modal-estructura > header > button:hover {
+  color: #087fc0;
+  background: #f1faff;
+}
+.farmacia-ia-modal-estructura-form {
+  display: grid;
+  gap: 15px;
+  padding: 23px 26px 25px;
+}
+.farmacia-ia-modal-estructura-form > label {
+  display: grid;
+  gap: 7px;
+  color: #355a73;
+  font-size: 12px;
+  font-weight: 800;
+}
+.farmacia-ia-modal-estructura-form input,
+.farmacia-ia-modal-estructura-form select {
+  width: 100%;
+  height: 44px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d5e4ec;
+  border-radius: 9px;
+  outline: 0;
+  color: #244a66;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+}
+.farmacia-ia-modal-estructura-form input:focus,
+.farmacia-ia-modal-estructura-form select:focus {
+  border-color: #59acd1;
+  box-shadow: 0 0 0 3px #0787c01c;
+}
+.farmacia-ia-modal-estructura-form > p {
+  margin: 0;
+  padding: 11px 12px;
+  border-radius: 9px;
+  color: #5d7c90;
+  background: #f3f9fc;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.farmacia-ia-modal-estructura-form > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  padding-top: 4px;
+}
+.farmacia-ia-modal-estructura-form > footer button {
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid #cfe1eb;
+  border-radius: 9px;
+  color: #41647b;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-ia-modal-estructura-form > footer button[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-color: #0787c0;
+  color: #fff;
+  background: linear-gradient(120deg, #087fc0, #0998c5);
+  box-shadow: 0 5px 14px #0787c026;
+}
+.farmacia-ia-modal-estructura-form > footer button:hover {
+  filter: brightness(0.97);
+}
+@keyframes farmacia-ia-modal-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@media (max-width: 520px) {
+  .farmacia-ia-modal-overlay {
+    padding: 12px;
+  }
+  .farmacia-ia-modal-estructura > header {
+    padding: 19px 18px 16px;
+  }
+  .farmacia-ia-modal-estructura-form {
+    padding: 18px;
+  }
+  .farmacia-ia-modal-estructura > header h2 {
+    font-size: 18px;
+  }
+}
+.farmacia-ia-asignacion {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1.1fr) minmax(220px, 1fr) minmax(220px, 1fr)
+    auto;
+  align-items: end;
+  gap: 12px;
+  padding: 17px;
+  border: 1px solid #cfe7f2;
+  border-radius: 13px;
+  background: linear-gradient(120deg, #f0f9fe, #fff 72%);
+}
+.farmacia-ia-asignacion > div:first-child {
+  grid-column: 1/-1;
+}
+.farmacia-ia-asignacion > div:first-child small {
+  color: #0787c1;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+.farmacia-ia-asignacion h3 {
+  margin: 4px 0;
+  color: #214b69;
+  font-size: 15px;
+}
+.farmacia-ia-asignacion p {
+  margin: 0;
+  color: #72899a;
+  font-size: 11px;
+}
+.farmacia-ia-asignacion > label {
+  display: grid;
+  gap: 6px;
+  color: #527086;
+  font-size: 10px;
+  font-weight: 800;
+}
+.farmacia-ia-asignacion select {
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid #d6e5ed;
+  border-radius: 8px;
+  color: #284c65;
+  background: #fff;
+  font: inherit;
+  font-size: 11px;
+}
+.farmacia-ia-asignacion > button {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: linear-gradient(120deg, #087fc0, #0998c5);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.farmacia-ia-asignacion > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.farmacia-ia-asignacion-actual {
+  grid-column: 2/-1;
+  color: #58819a;
+  font-size: 10px;
+}
+.farmacia-ia-productos-ubicados {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid #e3edf2;
+  border-radius: 11px;
+  background: #fbfdfe;
+}
+.farmacia-ia-productos-ubicados > strong {
+  margin-right: 5px;
+  color: #355a73;
+  font-size: 11px;
+}
+.farmacia-ia-productos-ubicados > span {
+  display: grid;
+  gap: 3px;
+  padding: 7px 10px;
+  border: 1px solid #dcebf2;
+  border-radius: 8px;
+  color: #355a73;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 750;
+}
+.farmacia-ia-productos-ubicados > span small {
+  color: #71899a;
+  font-size: 9px;
+  font-weight: 500;
+}
+.farmacia-ia-productos-ubicados > p {
+  margin: 0;
+  color: #8095a3;
+  font-size: 10px;
+}
+@media (max-width: 800px) {
+  .farmacia-ia-asignacion {
+    grid-template-columns: 1fr 1fr;
+  }
+  .farmacia-ia-asignacion > div:first-child {
+    grid-column: 1/-1;
+  }
+  .farmacia-ia-asignacion-actual {
+    grid-column: 1/-1;
+  }
+}
+@media (max-width: 480px) {
+  .farmacia-ia-asignacion {
+    grid-template-columns: 1fr;
+  }
+  .farmacia-ia-asignacion > div:first-child,
+  .farmacia-ia-asignacion-actual {
+    grid-column: auto;
+  }
+}
 /* Voz guiada, productos de ejemplo y refinamientos del tema oscuro */
-.farmacia-ia-pruebas-voz{display:flex;align-items:center;gap:8px}.farmacia-ia-probar-voz:disabled{opacity:.65;cursor:wait}
-.farmacia-ia-ejemplos{display:grid;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid #e6eff3}.farmacia-ia-ejemplos>strong{color:#718a99;font-size:9px;letter-spacing:.04em}.farmacia-ia-ejemplos button{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 8px;border:1px solid #e3edf2;border-radius:8px;color:#3b5e74;background:#fff;text-align:left;cursor:pointer}.farmacia-ia-ejemplos button:hover{border-color:#9dd3e8;background:#f3faff}.farmacia-ia-ejemplos button span{overflow:hidden;font-size:9px;text-overflow:ellipsis;white-space:nowrap}.farmacia-ia-ejemplos code{flex:none;color:#087fb9;font-size:9px;font-weight:800}.farmacia-ia-microfono.escuchando{position:relative}.farmacia-ia-microfono.escuchando:after{position:absolute;right:-3px;top:-3px;width:8px;height:8px;border:2px solid #fff;border-radius:50%;background:#df5260;content:""}
-@media(max-width:650px){.farmacia-ia-pruebas-voz{gap:5px}.farmacia-ia-probar-audio{display:none}.farmacia-ia-panel-modo .farmacia-ia-ejemplos{width:100%}}
-.sistema-app[data-theme="dark"] .farmacia-ia-chat,.sistema-app[data-theme="dark"] .farmacia-ia-admin{border-color:#294e69;background:#0b2944;color:#e5f1f8;box-shadow:0 18px 44px #00101c44}
-.sistema-app[data-theme="dark"] .farmacia-ia-panel-modo{border-color:#294e69;background:radial-gradient(ellipse at 50% 0,#103956 0,transparent 43%),linear-gradient(180deg,#0d2e4a,#0a2741 72%)}
-.sistema-app[data-theme="dark"] .farmacia-ia-lateral h2,.sistema-app[data-theme="dark"] .farmacia-ia-sala-cabecera>div,.sistema-app[data-theme="dark"] .farmacia-ia-modo-ubicacion,.sistema-app[data-theme="dark"] .farmacia-ia-modo-progreso strong{color:#e5f1f8}
-.sistema-app[data-theme="dark"] .farmacia-ia-lateral>p,.sistema-app[data-theme="dark"] .farmacia-ia-sala-cabecera small,.sistema-app[data-theme="dark"] .farmacia-ia-modo-progreso,.sistema-app[data-theme="dark"] .farmacia-ia-modo-ayuda{color:#a6bfd0}
-.sistema-app[data-theme="dark"] .farmacia-ia-presencia,.sistema-app[data-theme="dark"] .farmacia-ia-estado-modo,.sistema-app[data-theme="dark"] .farmacia-ia-panel-nota,.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos button{border-color:#315772;color:#c7dce9;background:#10314d}
-.sistema-app[data-theme="dark"] .farmacia-ia-estado-modo.activo{border-color:#2d745e;background:linear-gradient(145deg,#103d3b,#10314d)}
-.sistema-app[data-theme="dark"] .farmacia-ia-estado-modo-titulo h3,.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos>strong{color:#a9c5d8}
-.sistema-app[data-theme="dark"] .farmacia-ia-sala-cabecera,.sistema-app[data-theme="dark"] .farmacia-ia-lateral-separador{border-color:#294e69;background-color:#0c2b46}
-.sistema-app[data-theme="dark"] .farmacia-ia-conversacion{background:radial-gradient(ellipse at 50% 0,#0e304b 0,transparent 48%),#09243d}
-.sistema-app[data-theme="dark"] .farmacia-ia-burbuja{border-color:#31536b;color:#e2eef6;background:linear-gradient(145deg,#12334e,#102c46);box-shadow:none}
-.sistema-app[data-theme="dark"] .farmacia-ia-avatar{border-color:#315b76;color:#67cafa;background:#103653}
-.sistema-app[data-theme="dark"] .farmacia-ia-mensaje.user .farmacia-ia-burbuja{border-color:#087fb9;color:#fff;background:linear-gradient(135deg,#0879b5,#078fb6)}
-.sistema-app[data-theme="dark"] .farmacia-ia-sugerencias>span,.sistema-app[data-theme="dark"] .farmacia-ia-emisor{color:#9bb6c9}
-.sistema-app[data-theme="dark"] .farmacia-ia-sugerencias button{border-color:#31536b;color:#c5dceb;background:#10314d}
-.sistema-app[data-theme="dark"] .farmacia-ia-sugerencias button:hover{border-color:#4585a5;background:#123a58}
-.sistema-app[data-theme="dark"] .farmacia-ia-compositor{border-color:#315672;background:#0d2c47;box-shadow:0 10px 28px #00101c44}
-.sistema-app[data-theme="dark"] .farmacia-ia-compositor textarea{color:#e7f2f8}
-.sistema-app[data-theme="dark"] .farmacia-ia-compositor textarea::placeholder,.sistema-app[data-theme="dark"] .farmacia-ia-compositor>small{color:#9db8cb}
-.sistema-app[data-theme="dark"] .farmacia-ia-compositor>.farmacia-ia-microfono{border-color:#315b76;color:#b9d4e4;background:#103653}
-.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos{border-color:#31536b}
-.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos button:hover{border-color:#4585a5;background:#123a58}
+.farmacia-ia-pruebas-voz {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.farmacia-ia-probar-voz:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.farmacia-ia-ejemplos {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #e6eff3;
+}
+.farmacia-ia-ejemplos > strong {
+  color: #718a99;
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+.farmacia-ia-ejemplos button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 7px 8px;
+  border: 1px solid #e3edf2;
+  border-radius: 8px;
+  color: #3b5e74;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.farmacia-ia-ejemplos button:hover {
+  border-color: #9dd3e8;
+  background: #f3faff;
+}
+.farmacia-ia-ejemplos button span {
+  overflow: hidden;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.farmacia-ia-ejemplos code {
+  flex: none;
+  color: #087fb9;
+  font-size: 9px;
+  font-weight: 800;
+}
+.farmacia-ia-microfono.escuchando {
+  position: relative;
+}
+.farmacia-ia-microfono.escuchando:after {
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #df5260;
+  content: "";
+}
+@media (max-width: 650px) {
+  .farmacia-ia-pruebas-voz {
+    gap: 5px;
+  }
+  .farmacia-ia-probar-audio {
+    display: none;
+  }
+  .farmacia-ia-panel-modo .farmacia-ia-ejemplos {
+    width: 100%;
+  }
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-chat,
+.sistema-app[data-theme="dark"] .farmacia-ia-admin {
+  border-color: #294e69;
+  background: #0b2944;
+  color: #e5f1f8;
+  box-shadow: 0 18px 44px #00101c44;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-panel-modo {
+  border-color: #294e69;
+  background:
+    radial-gradient(ellipse at 50% 0, #103956 0, transparent 43%),
+    linear-gradient(180deg, #0d2e4a, #0a2741 72%);
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-lateral h2,
+.sistema-app[data-theme="dark"] .farmacia-ia-sala-cabecera > div,
+.sistema-app[data-theme="dark"] .farmacia-ia-modo-ubicacion,
+.sistema-app[data-theme="dark"] .farmacia-ia-modo-progreso strong {
+  color: #e5f1f8;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-lateral > p,
+.sistema-app[data-theme="dark"] .farmacia-ia-sala-cabecera small,
+.sistema-app[data-theme="dark"] .farmacia-ia-modo-progreso,
+.sistema-app[data-theme="dark"] .farmacia-ia-modo-ayuda {
+  color: #a6bfd0;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-presencia,
+.sistema-app[data-theme="dark"] .farmacia-ia-estado-modo,
+.sistema-app[data-theme="dark"] .farmacia-ia-panel-nota,
+.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos button {
+  border-color: #315772;
+  color: #c7dce9;
+  background: #10314d;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-estado-modo.activo {
+  border-color: #2d745e;
+  background: linear-gradient(145deg, #103d3b, #10314d);
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-estado-modo-titulo h3,
+.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos > strong {
+  color: #a9c5d8;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-sala-cabecera,
+.sistema-app[data-theme="dark"] .farmacia-ia-lateral-separador {
+  border-color: #294e69;
+  background-color: #0c2b46;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-conversacion {
+  background:
+    radial-gradient(ellipse at 50% 0, #0e304b 0, transparent 48%), #09243d;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-burbuja {
+  border-color: #31536b;
+  color: #e2eef6;
+  background: linear-gradient(145deg, #12334e, #102c46);
+  box-shadow: none;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-avatar {
+  border-color: #315b76;
+  color: #67cafa;
+  background: #103653;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-mensaje.user .farmacia-ia-burbuja {
+  border-color: #087fb9;
+  color: #fff;
+  background: linear-gradient(135deg, #0879b5, #078fb6);
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-sugerencias > span,
+.sistema-app[data-theme="dark"] .farmacia-ia-emisor {
+  color: #9bb6c9;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-sugerencias button {
+  border-color: #31536b;
+  color: #c5dceb;
+  background: #10314d;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-sugerencias button:hover {
+  border-color: #4585a5;
+  background: #123a58;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-compositor {
+  border-color: #315672;
+  background: #0d2c47;
+  box-shadow: 0 10px 28px #00101c44;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-compositor textarea {
+  color: #e7f2f8;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-compositor textarea::placeholder,
+.sistema-app[data-theme="dark"] .farmacia-ia-compositor > small {
+  color: #9db8cb;
+}
+.sistema-app[data-theme="dark"]
+  .farmacia-ia-compositor
+  > .farmacia-ia-microfono {
+  border-color: #315b76;
+  color: #b9d4e4;
+  background: #103653;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos {
+  border-color: #31536b;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia-ejemplos button:hover {
+  border-color: #4585a5;
+  background: #123a58;
+}

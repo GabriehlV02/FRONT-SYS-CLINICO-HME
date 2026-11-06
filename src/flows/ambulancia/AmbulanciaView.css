@@ -1,1 +1,393 @@
-.ambulancia-vista{max-width:1400px;margin:auto;color:#193e62}.ambulancia-cabecera{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:22px}.ambulancia-cabecera>div>span,.ambulancia-panel header>div>span{font-size:10px;font-weight:900;letter-spacing:.11em;color:#087bb6}.ambulancia-cabecera h2,.ambulancia-panel h3{margin:6px 0;color:#173e61}.ambulancia-cabecera h2{font-size:28px}.ambulancia-cabecera p{margin:0;color:#668096;font-size:13px}.ambulancia-km{display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;min-width:200px;padding:13px 16px;border:1px solid #cfe2ee;border-radius:12px;background:#fff}.ambulancia-km svg{grid-row:span 2;color:#087dbb}.ambulancia-km span{font-size:10px;color:#69859a}.ambulancia-km strong{font-size:15px}.ambulancia-nav{display:flex;gap:8px;margin-bottom:18px;padding:6px;border:1px solid #d5e5ef;border-radius:12px;background:#fff}.ambulancia-nav button{display:flex;align-items:center;gap:8px;padding:10px 14px;border:0;border-radius:8px;color:#52718a;background:transparent;font:700 12px inherit}.ambulancia-nav button.activo{color:#fff;background:#087fbd}.ambulancia-aviso{display:flex;align-items:center;gap:9px;margin:0 0 16px;padding:11px 14px;border:1px solid #b9dfcf;border-radius:9px;color:#24684d;background:#f2fcf6;font-size:12px}.ambulancia-aviso button{margin-left:auto;border:0;color:inherit;background:none;font-size:18px}.ambulancia-grid,.ambulancia-unidad{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(330px,.8fr);gap:18px}.ambulancia-unidad{grid-template-columns:1.15fr .85fr}.ambulancia-panel{padding:20px;border:1px solid #d6e5ef;border-radius:14px;background:#fff;box-shadow:0 6px 18px #2255740b}.ambulancia-panel>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}.ambulancia-panel h3{font-size:18px}.ambulancia-salidas>header>strong{display:grid;place-items:center;min-width:32px;height:32px;border-radius:50%;color:#0877ae;background:#e8f6fc}.ambulancia-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.ambulancia-form label{display:grid;gap:6px;color:#42657c;font-size:11px;font-weight:700}.ambulancia-form label.doble{grid-column:span 2}.ambulancia-form :is(input,select){width:100%;height:40px;padding:0 10px;border:1px solid #c9dce8;border-radius:7px;color:#254b67;background:#fff;font:400 13px inherit}.ambulancia-form footer{grid-column:span 2;margin-top:5px}.ambulancia-primario,.ambulancia-secundario{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 14px;border-radius:7px;font:700 12px inherit}.ambulancia-primario{border:1px solid #087fbd;color:#fff;background:#087fbd}.ambulancia-secundario{align-self:end;border:1px solid #bdd6e5;color:#276485;background:#f7fbfe}.ambulancia-salidas article{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;border-top:1px solid #e8f0f5}.ambulancia-salidas article div{display:grid;gap:4px;min-width:0}.ambulancia-salidas article strong{font-size:13px}.ambulancia-salidas article small,.ambulancia-salidas article em{overflow:hidden;color:#668197;font-size:11px;text-overflow:ellipsis;white-space:nowrap}.ambulancia-salidas article em{font-style:normal;color:#087db8}.ambulancia-salidas select{height:33px;border:1px solid #c8dce8;border-radius:6px;color:#256082;background:#fff;font-size:11px}.ambulancia-vacio{margin:12px 0;color:#6f899c;font-size:12px;line-height:1.55}.ambulancia-panel-busqueda label{display:flex;align-items:center;gap:7px;width:min(330px,100%);height:39px;padding:0 10px;border:1px solid #cbdfe9;border-radius:8px;color:#5e8298}.ambulancia-panel-busqueda input{width:100%;border:0;outline:0;font-size:12px}.ambulancia-tabla{overflow:auto}.ambulancia-fila{display:grid;grid-template-columns:100px minmax(170px,1.2fr) minmax(210px,1.5fr) minmax(140px,1fr) 100px;gap:12px;align-items:center;min-width:760px;padding:13px 8px;border-top:1px solid #e5eff4;color:#45677e;font-size:12px}.ambulancia-fila.encabezado{border-top:0;color:#7491a4;font-size:10px;font-weight:800;text-transform:uppercase}.ambulancia-fila strong,.ambulancia-fila small{display:block}.ambulancia-fila small{margin-top:3px;color:#7490a2;font-size:10px}.estado{justify-self:start;padding:5px 8px;border-radius:12px;font-size:10px;font-weight:800}.estado.programado{color:#916016;background:#fff4dc}.estado.en-curso{color:#0571ad;background:#e7f6fc}.estado.finalizado{color:#25714f;background:#e9f8ef}.estado.cancelado{color:#9d4d4d;background:#fff0f0}.ambulancia-insumos{display:grid;gap:0;margin-bottom:17px}.ambulancia-insumos article{display:grid;grid-template-columns:1fr auto auto;gap:13px;align-items:center;padding:11px 0;border-top:1px solid #e7eff4}.ambulancia-insumos strong,.ambulancia-insumos small{display:block}.ambulancia-insumos strong{font-size:12px}.ambulancia-insumos small,.ambulancia-insumos span{font-size:10px;color:#718b9e}.ambulancia-insumos b{font-size:12px;color:#247353}.ambulancia-insumos b.bajo,.ambulancia-panel header strong.alerta{color:#af521f}.ambulancia-form.compacto{grid-template-columns:repeat(3,minmax(0,1fr));padding-top:15px;border-top:1px solid #e5eef4}.ambulancia-cargas{margin-top:17px}.ambulancia-cargas article{display:grid;gap:4px;padding:11px 0;border-top:1px solid #e6eff4}.ambulancia-cargas strong{font-size:12px}.ambulancia-cargas span,.ambulancia-cargas small{font-size:11px;color:#5d7e94}.ambulancia-cargas small{color:#849baa}@media(max-width:900px){.ambulancia-grid,.ambulancia-unidad{grid-template-columns:1fr}.ambulancia-form.compacto{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.ambulancia-cabecera{align-items:flex-start;flex-direction:column}.ambulancia-nav{overflow:auto}.ambulancia-nav button{white-space:nowrap}.ambulancia-form,.ambulancia-form.compacto{grid-template-columns:1fr}.ambulancia-form label.doble,.ambulancia-form footer{grid-column:auto}.ambulancia-panel-busqueda{flex-direction:column}.ambulancia-insumos article{grid-template-columns:1fr auto}.ambulancia-insumos span{grid-column:1/-1}}
+.ambulancia-vista {
+  max-width: 1400px;
+  margin: auto;
+  color: #193e62;
+}
+.ambulancia-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+.ambulancia-cabecera > div > span,
+.ambulancia-panel header > div > span {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  color: #087bb6;
+}
+.ambulancia-cabecera h2,
+.ambulancia-panel h3 {
+  margin: 6px 0;
+  color: #173e61;
+}
+.ambulancia-cabecera h2 {
+  font-size: 28px;
+}
+.ambulancia-cabecera p {
+  margin: 0;
+  color: #668096;
+  font-size: 13px;
+}
+.ambulancia-km {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  align-items: center;
+  min-width: 200px;
+  padding: 13px 16px;
+  border: 1px solid #cfe2ee;
+  border-radius: 12px;
+  background: #fff;
+}
+.ambulancia-km svg {
+  grid-row: span 2;
+  color: #087dbb;
+}
+.ambulancia-km span {
+  font-size: 10px;
+  color: #69859a;
+}
+.ambulancia-km strong {
+  font-size: 15px;
+}
+.ambulancia-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 6px;
+  border: 1px solid #d5e5ef;
+  border-radius: 12px;
+  background: #fff;
+}
+.ambulancia-nav button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  color: #52718a;
+  background: transparent;
+  font: 700 12px inherit;
+}
+.ambulancia-nav button.activo {
+  color: #fff;
+  background: #087fbd;
+}
+.ambulancia-aviso {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 16px;
+  padding: 11px 14px;
+  border: 1px solid #b9dfcf;
+  border-radius: 9px;
+  color: #24684d;
+  background: #f2fcf6;
+  font-size: 12px;
+}
+.ambulancia-aviso button {
+  margin-left: auto;
+  border: 0;
+  color: inherit;
+  background: none;
+  font-size: 18px;
+}
+.ambulancia-grid,
+.ambulancia-unidad {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(330px, 0.8fr);
+  gap: 18px;
+}
+.ambulancia-unidad {
+  grid-template-columns: 1.15fr 0.85fr;
+}
+.ambulancia-panel {
+  padding: 20px;
+  border: 1px solid #d6e5ef;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 18px #2255740b;
+}
+.ambulancia-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.ambulancia-panel h3 {
+  font-size: 18px;
+}
+.ambulancia-salidas > header > strong {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #0877ae;
+  background: #e8f6fc;
+}
+.ambulancia-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+.ambulancia-form label {
+  display: grid;
+  gap: 6px;
+  color: #42657c;
+  font-size: 11px;
+  font-weight: 700;
+}
+.ambulancia-form label.doble {
+  grid-column: span 2;
+}
+.ambulancia-form :is(input, select) {
+  width: 100%;
+  height: 40px;
+  padding: 0 10px;
+  border: 1px solid #c9dce8;
+  border-radius: 7px;
+  color: #254b67;
+  background: #fff;
+  font: 400 13px inherit;
+}
+.ambulancia-form footer {
+  grid-column: span 2;
+  margin-top: 5px;
+}
+.ambulancia-primario,
+.ambulancia-secundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 7px;
+  font: 700 12px inherit;
+}
+.ambulancia-primario {
+  border: 1px solid #087fbd;
+  color: #fff;
+  background: #087fbd;
+}
+.ambulancia-secundario {
+  align-self: end;
+  border: 1px solid #bdd6e5;
+  color: #276485;
+  background: #f7fbfe;
+}
+.ambulancia-salidas article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid #e8f0f5;
+}
+.ambulancia-salidas article div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.ambulancia-salidas article strong {
+  font-size: 13px;
+}
+.ambulancia-salidas article small,
+.ambulancia-salidas article em {
+  overflow: hidden;
+  color: #668197;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ambulancia-salidas article em {
+  font-style: normal;
+  color: #087db8;
+}
+.ambulancia-salidas select {
+  height: 33px;
+  border: 1px solid #c8dce8;
+  border-radius: 6px;
+  color: #256082;
+  background: #fff;
+  font-size: 11px;
+}
+.ambulancia-vacio {
+  margin: 12px 0;
+  color: #6f899c;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.ambulancia-panel-busqueda label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: min(330px, 100%);
+  height: 39px;
+  padding: 0 10px;
+  border: 1px solid #cbdfe9;
+  border-radius: 8px;
+  color: #5e8298;
+}
+.ambulancia-panel-busqueda input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  font-size: 12px;
+}
+.ambulancia-tabla {
+  overflow: auto;
+}
+.ambulancia-fila {
+  display: grid;
+  grid-template-columns:
+    100px minmax(170px, 1.2fr) minmax(210px, 1.5fr) minmax(140px, 1fr)
+    100px;
+  gap: 12px;
+  align-items: center;
+  min-width: 760px;
+  padding: 13px 8px;
+  border-top: 1px solid #e5eff4;
+  color: #45677e;
+  font-size: 12px;
+}
+.ambulancia-fila.encabezado {
+  border-top: 0;
+  color: #7491a4;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.ambulancia-fila strong,
+.ambulancia-fila small {
+  display: block;
+}
+.ambulancia-fila small {
+  margin-top: 3px;
+  color: #7490a2;
+  font-size: 10px;
+}
+.estado {
+  justify-self: start;
+  padding: 5px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 800;
+}
+.estado.programado {
+  color: #916016;
+  background: #fff4dc;
+}
+.estado.en-curso {
+  color: #0571ad;
+  background: #e7f6fc;
+}
+.estado.finalizado {
+  color: #25714f;
+  background: #e9f8ef;
+}
+.estado.cancelado {
+  color: #9d4d4d;
+  background: #fff0f0;
+}
+.ambulancia-insumos {
+  display: grid;
+  gap: 0;
+  margin-bottom: 17px;
+}
+.ambulancia-insumos article {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 13px;
+  align-items: center;
+  padding: 11px 0;
+  border-top: 1px solid #e7eff4;
+}
+.ambulancia-insumos strong,
+.ambulancia-insumos small {
+  display: block;
+}
+.ambulancia-insumos strong {
+  font-size: 12px;
+}
+.ambulancia-insumos small,
+.ambulancia-insumos span {
+  font-size: 10px;
+  color: #718b9e;
+}
+.ambulancia-insumos b {
+  font-size: 12px;
+  color: #247353;
+}
+.ambulancia-insumos b.bajo,
+.ambulancia-panel header strong.alerta {
+  color: #af521f;
+}
+.ambulancia-form.compacto {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 15px;
+  border-top: 1px solid #e5eef4;
+}
+.ambulancia-cargas {
+  margin-top: 17px;
+}
+.ambulancia-cargas article {
+  display: grid;
+  gap: 4px;
+  padding: 11px 0;
+  border-top: 1px solid #e6eff4;
+}
+.ambulancia-cargas strong {
+  font-size: 12px;
+}
+.ambulancia-cargas span,
+.ambulancia-cargas small {
+  font-size: 11px;
+  color: #5d7e94;
+}
+.ambulancia-cargas small {
+  color: #849baa;
+}
+@media (max-width: 900px) {
+  .ambulancia-grid,
+  .ambulancia-unidad {
+    grid-template-columns: 1fr;
+  }
+  .ambulancia-form.compacto {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 620px) {
+  .ambulancia-cabecera {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ambulancia-nav {
+    overflow: auto;
+  }
+  .ambulancia-nav button {
+    white-space: nowrap;
+  }
+  .ambulancia-form,
+  .ambulancia-form.compacto {
+    grid-template-columns: 1fr;
+  }
+  .ambulancia-form label.doble,
+  .ambulancia-form footer {
+    grid-column: auto;
+  }
+  .ambulancia-panel-busqueda {
+    flex-direction: column;
+  }
+  .ambulancia-insumos article {
+    grid-template-columns: 1fr auto;
+  }
+  .ambulancia-insumos span {
+    grid-column: 1/-1;
+  }
+}

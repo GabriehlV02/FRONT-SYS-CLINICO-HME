@@ -1,16 +1,34 @@
 export type Permiso =
-  | 'proveedores.ver' | 'proveedores.editar'
-  | 'catalogos.ver' | 'catalogos.editar'
-  | 'cotizaciones.ver' | 'cotizaciones.editar'
-  | 'usuarios.ver' | 'usuarios.editar'
-  | 'proveedores.listado' | 'proveedores.nuevo' | 'proveedores.modificar' | 'proveedores.catalogos'
-  | 'catalogos.productos' | 'catalogos.nuevo'
-  | 'cotizaciones.nueva' | 'cotizaciones.comprar' | 'cotizaciones.historial'
-  | 'usuarios.acceder' | 'usuarios.listado' | 'usuarios.crear' | 'usuarios.roles'
-  | 'pedidos.ver' | 'pedidos.editar'
-  | 'configuracion.tipos' | 'configuracion.marcas' | 'configuracion.almacenes'
-  | 'almacenes.ver' | 'almacenes.movimientos'
-  | 'clinica.enfermeria' | 'clinica.medico';
+  | "proveedores.ver"
+  | "proveedores.editar"
+  | "catalogos.ver"
+  | "catalogos.editar"
+  | "cotizaciones.ver"
+  | "cotizaciones.editar"
+  | "usuarios.ver"
+  | "usuarios.editar"
+  | "proveedores.listado"
+  | "proveedores.nuevo"
+  | "proveedores.modificar"
+  | "proveedores.catalogos"
+  | "catalogos.productos"
+  | "catalogos.nuevo"
+  | "cotizaciones.nueva"
+  | "cotizaciones.comprar"
+  | "cotizaciones.historial"
+  | "usuarios.acceder"
+  | "usuarios.listado"
+  | "usuarios.crear"
+  | "usuarios.roles"
+  | "pedidos.ver"
+  | "pedidos.editar"
+  | "configuracion.tipos"
+  | "configuracion.marcas"
+  | "configuracion.almacenes"
+  | "almacenes.ver"
+  | "almacenes.movimientos"
+  | "clinica.enfermeria"
+  | "clinica.medico";
 
 export type Sesion = {
   token: string;
@@ -27,27 +45,75 @@ export type Sesion = {
     primerAcceso: string;
     ultimoAcceso: string;
     usuarios: string[];
-    estado: 'activo' | 'revocado';
+    estado: "activo" | "revocado";
   };
-    usuario: { id?: number|string; usuario?: string; nombre: string; apellidos?: string; correo?: string; ci?: string; telefono?: string; rol: string; permisos: Permiso[]; tipoInicio?:'ventas'|'administracion'|'almacenes'|'admin_sistema'|'atencion_clinica';perfilAtencion?:'medico'|'enfermera'|'consultorio'|'internacion'|'quirofano'|'imagenologia'|'anestesiologo';todosAlmacenes?:boolean;accesosAlmacenes?:{almacenId:string;acciones:('ver'|'editar'|'movimientos'|'traspasos')[]}[] };
+  usuario: {
+    id?: number | string;
+    usuario?: string;
+    nombre: string;
+    apellidos?: string;
+    correo?: string;
+    ci?: string;
+    telefono?: string;
+    rol: string;
+    permisos: Permiso[];
+    tipoInicio?:
+      | "ventas"
+      | "administracion"
+      | "almacenes"
+      | "admin_sistema"
+      | "atencion_clinica";
+    perfilAtencion?:
+      | "medico"
+      | "enfermera"
+      | "consultorio"
+      | "internacion"
+      | "quirofano"
+      | "imagenologia"
+      | "anestesiologo";
+    todosAlmacenes?: boolean;
+    accesosAlmacenes?: {
+      almacenId: string;
+      acciones: ("ver" | "editar" | "movimientos" | "traspasos")[];
+    }[];
+  };
 };
 
 export const TODOS_LOS_PERMISOS: Permiso[] = [
-  'proveedores.ver', 'proveedores.editar', 'catalogos.ver', 'catalogos.editar',
-  'cotizaciones.ver', 'cotizaciones.editar', 'usuarios.ver', 'usuarios.editar', 'usuarios.acceder'
+  "proveedores.ver",
+  "proveedores.editar",
+  "catalogos.ver",
+  "catalogos.editar",
+  "cotizaciones.ver",
+  "cotizaciones.editar",
+  "usuarios.ver",
+  "usuarios.editar",
+  "usuarios.acceder",
 ];
 
 export const leerSesion = (): Sesion | null => {
-  const guardada = sessionStorage.getItem('pulso_session') || localStorage.getItem('pulso_session');
+  const guardada =
+    sessionStorage.getItem("pulso_session") ||
+    localStorage.getItem("pulso_session");
   if (!guardada) return null;
   try {
     const parsed = JSON.parse(guardada) as Partial<Sesion>;
-    if (parsed.token === 'frontend-demo-local') throw new Error('Sesión demo no válida');
-    if (typeof parsed.token !== 'string' || !parsed.token || typeof parsed.expiresAt !== 'number' || parsed.expiresAt <= Date.now() || !parsed.usuario || typeof parsed.usuario.nombre !== 'string' || !Array.isArray(parsed.usuario.permisos)) throw new Error('Sesión inválida');
+    if (parsed.token === "frontend-demo-local")
+      throw new Error("Sesión demo no válida");
+    if (
+      typeof parsed.token !== "string" ||
+      !parsed.token ||
+      typeof parsed.expiresAt !== "number" ||
+      parsed.expiresAt <= Date.now() ||
+      !parsed.usuario ||
+      typeof parsed.usuario.nombre !== "string" ||
+      !Array.isArray(parsed.usuario.permisos)
+    )
+      throw new Error("Sesión inválida");
     return parsed as Sesion;
   } catch {
-    localStorage.removeItem('pulso_session');
-    sessionStorage.removeItem('pulso_session');
+    localStorage.removeItem("pulso_session");
+    sessionStorage.removeItem("pulso_session");
     return null;
   }
 };

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { usePacientes } from '../pacientes/usePacientes';
-import { pacienteParaVista } from '../pacientes/pacientesApi';
+import { usePacientes } from "../pacientes/usePacientes";
+import { pacienteParaVista } from "../pacientes/pacientesApi";
 import Icon from "../../componentes/Icono";
 import { notificar } from "../../componentes/Notificaciones";
 import {
@@ -89,7 +89,7 @@ export default function VistaBibliotecaImagenes() {
       setModalCarga(false);
       setForm(inicial);
       setArchivo(null);
-      setError('');
+      setError("");
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "No se pudo cargar el estudio.",

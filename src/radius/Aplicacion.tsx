@@ -1,8 +1,14 @@
-import React, { Suspense, lazy, useEffect, useState, useSyncExternalStore } from "react";
+import React, {
+  Suspense,
+  lazy,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
-import { usePacientes } from './vistas/pacientes/usePacientes';
+import { usePacientes } from "./vistas/pacientes/usePacientes";
 import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import { leerSesion, type Sesion } from "./types/sesion";
@@ -19,104 +25,385 @@ import "./vistas/visor/PerfilAcceso.css";
 import "./vistas/visor/SidebarHover.css";
 import "./vistas/visor/NotificacionesTopbar.css";
 
-import type { CitaConfirmada } from '../flows/consultorio/AgendaAmbulatoriaView';
-import type { SignoVitalConfig } from '../flows/triaje/ConfiguracionSignosVitalesView';
-import { HorizontalSubvistaNav } from '../ui/components/HorizontalSubvistaNav';
-import { InstrumentistaPreparacionView } from '../flows/quirofano/InstrumentistaPreparacionView';
-import { CirculanteAsistenciaView } from '../flows/quirofano/CirculanteAsistenciaView';
-import { AlmacenQuirofanoView } from '../flows/quirofano/AlmacenQuirofanoView';
-import { MedicoQuirofanoView } from '../flows/quirofano/MedicoQuirofanoView';
-import { buscarAsignacionQuirofano, normalizarNombre } from '../flows/quirofano/asignacionesQuirofano';
-import { leerInternaciones, suscribirInternaciones } from '../flows/internacion/registroInternaciones';
-import '../flows/quirofano/EnfermeriaQuirofano.css';
-import './vistas/visor-tomografias/SubvistasTomografias.css';
+import type { CitaConfirmada } from "../flows/consultorio/AgendaAmbulatoriaView";
+import type { SignoVitalConfig } from "../flows/triaje/ConfiguracionSignosVitalesView";
+import { HorizontalSubvistaNav } from "../ui/components/HorizontalSubvistaNav";
+import { InstrumentistaPreparacionView } from "../flows/quirofano/InstrumentistaPreparacionView";
+import { CirculanteAsistenciaView } from "../flows/quirofano/CirculanteAsistenciaView";
+import { AlmacenQuirofanoView } from "../flows/quirofano/AlmacenQuirofanoView";
+import { MedicoQuirofanoView } from "../flows/quirofano/MedicoQuirofanoView";
+import {
+  buscarAsignacionQuirofano,
+  normalizarNombre,
+} from "../flows/quirofano/asignacionesQuirofano";
+import {
+  leerInternaciones,
+  suscribirInternaciones,
+} from "../flows/internacion/registroInternaciones";
+import "../flows/quirofano/EnfermeriaQuirofano.css";
+import "./vistas/visor-tomografias/SubvistasTomografias.css";
 
 // Cada flujo se descarga solo cuando se abre. Al desmontarse también desaparecen
 // sus efectos, temporizadores y listeners, sin conservar pantallas ocultas.
-const RecepcionView = lazy(() => import('../flows/recepcion/RecepcionView').then(m => ({ default: m.RecepcionView })));
-const CitasRecepcionView = lazy(() => import('../flows/recepcion/subvistas/CitasRecepcionView').then(m => ({ default: m.CitasRecepcionView })));
-const CronogramaEstudiosView = lazy(() => import('../flows/recepcion/subvistas/CronogramaEstudiosView').then(m => ({ default: m.CronogramaEstudiosView })));
-const AgendaImagenologiaView = lazy(() => import('./vistas/AgendaImagenologiaView'));
-const FarmaciaView = lazy(() => import('../flows/farmacia/FarmaciaView').then(m => ({ default: m.FarmaciaView })));
-const AdministracionFarmaciaView = lazy(() => import('../flows/farmacia/AdministracionFarmaciaView').then(m => ({ default: m.AdministracionFarmaciaView })));
-const AsistenteFarmaciaView = lazy(() => import('../flows/farmacia/AsistenteFarmaciaView').then(m => ({ default: m.AsistenteFarmaciaView })));
-const ConsultorioView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.ConsultorioView })));
-const HistoriasClinicasView = lazy(() => import('../flows/consultorio/ConsultorioView').then(m => ({ default: m.HistoriasClinicasView })));
-const LaboratorioView = lazy(() => import('../flows/laboratorio/LaboratorioView').then(m => ({ default: m.LaboratorioView })));
-const ConfiguracionLaboratorioView = lazy(() => import('../flows/laboratorio/ConfiguracionLaboratorioView').then(m => ({ default: m.ConfiguracionLaboratorioView })));
-const LaboratorioAlmacenView = lazy(() => import('../flows/laboratorio/LaboratorioAlmacenView').then(m => ({ default: m.LaboratorioAlmacenView })));
-const SignosVitalesView = lazy(() => import('../flows/triaje/SignosVitalesView').then(m => ({ default: m.SignosVitalesView })));
-const RegistroUsoTriajeView = lazy(() => import('../flows/triaje/RegistroUsoTriajeView').then(m => ({ default: m.RegistroUsoTriajeView })));
-const UsoItemsAmbulatorioView = lazy(() => import('../flows/triaje/UsoItemsAmbulatorioView').then(m => ({ default: m.UsoItemsAmbulatorioView })));
-const ConfiguracionSignosVitalesView = lazy(() => import('../flows/triaje/ConfiguracionSignosVitalesView').then(m => ({ default: m.ConfiguracionSignosVitalesView })));
-const TriajeEmergenciasView = lazy(() => import('../flows/emergencias/TriajeEmergenciasView').then(m => ({ default: m.TriajeEmergenciasView })));
-const AtencionMedicaEmergenciasView = lazy(() => import('../flows/emergencias/AtencionMedicaEmergenciasView').then(m => ({ default: m.AtencionMedicaEmergenciasView })));
-const EnfermeraInternacionView = lazy(() => import('../flows/internacion/EnfermeraInternacionView').then(m => ({ default: m.EnfermeraInternacionView })));
-const MedicoInternacionView = lazy(() => import('../flows/internacion/MedicoInternacionView').then(m => ({ default: m.MedicoInternacionView })));
-const TerapiaIntensivaView = lazy(() => import('../flows/internacion/TerapiaIntensivaView').then(m => ({ default: m.TerapiaIntensivaView })));
-const RegistroEnfermeriaTerapiaView = lazy(() => import('../flows/internacion/RegistroEnfermeriaTerapiaView').then(m => ({ default: m.RegistroEnfermeriaTerapiaView })));
-const AmbulanciaView = lazy(() => import('../flows/ambulancia/AmbulanciaView').then(m => ({ default: m.AmbulanciaView })));
-const FarmaciaInternacionView = lazy(() => import('../flows/internacion/FarmaciaInternacionView').then(m => ({ default: m.FarmaciaInternacionView })));
-const CocinaVentasView = lazy(() => import('../flows/cocina/CocinaVentasView').then(m => ({ default: m.CocinaVentasView })));
-const CocinaInternacionView = lazy(() => import('../flows/cocina/CocinaInternacionView').then(m => ({ default: m.CocinaInternacionView })));
-const CocinaAdministracionView = lazy(() => import('../flows/cocina/CocinaAdministracionView').then(m => ({ default: m.CocinaAdministracionView })));
-const CuentaQuirofanoView = lazy(() => import('../flows/quirofano/CuentaQuirofanoView').then(m => ({ default: m.CuentaQuirofanoView })));
-const EsterilizacionView = lazy(() => import('../flows/quirofano/EsterilizacionView').then(m => ({ default: m.EsterilizacionView })));
-const AnestesiologiaView = lazy(() => import('../flows/quirofano/AnestesiologiaView').then(m => ({ default: m.AnestesiologiaView })));
-const VistaPacientes = lazy(() => import('./vistas/pacientes/VistaPacientes'));
-const VistaEstudiosCobrados = lazy(() => import('./vistas/VistaEstudiosCobrados'));
-const VistaRayosX = lazy(() => import('./vistas/visor-rayos-x/VistaRayosX'));
-const VisorEcografias = lazy(() => import('./vistas/visor-ecografias/VisorEcografias'));
-const VistaBaseDatosOrthanc = lazy(() => import('./vistas/base-datos/VistaBaseDatosOrthanc'));
-const VistaConfiguracion = lazy(() => import('./vistas/configuracion/VistaConfiguracion'));
-const VistaAuditorias = lazy(() => import('./vistas/auditorias/VistaAuditorias'));
-const VistaInformes = lazy(() => import('./vistas/clinica/Complementos').then(m => ({ default: m.VistaInformes })));
+const RecepcionView = lazy(() =>
+  import("../flows/recepcion/RecepcionView").then((m) => ({
+    default: m.RecepcionView,
+  })),
+);
+const CitasRecepcionView = lazy(() =>
+  import("../flows/recepcion/subvistas/CitasRecepcionView").then((m) => ({
+    default: m.CitasRecepcionView,
+  })),
+);
+const CronogramaEstudiosView = lazy(() =>
+  import("../flows/recepcion/subvistas/CronogramaEstudiosView").then((m) => ({
+    default: m.CronogramaEstudiosView,
+  })),
+);
+const AgendaImagenologiaView = lazy(
+  () => import("./vistas/AgendaImagenologiaView"),
+);
+const FarmaciaView = lazy(() =>
+  import("../flows/farmacia/FarmaciaView").then((m) => ({
+    default: m.FarmaciaView,
+  })),
+);
+const AdministracionFarmaciaView = lazy(() =>
+  import("../flows/farmacia/AdministracionFarmaciaView").then((m) => ({
+    default: m.AdministracionFarmaciaView,
+  })),
+);
+const AsistenteFarmaciaView = lazy(() =>
+  import("../flows/farmacia/AsistenteFarmaciaView").then((m) => ({
+    default: m.AsistenteFarmaciaView,
+  })),
+);
+const ConsultorioView = lazy(() =>
+  import("../flows/consultorio/ConsultorioView").then((m) => ({
+    default: m.ConsultorioView,
+  })),
+);
+const HistoriasClinicasView = lazy(() =>
+  import("../flows/consultorio/ConsultorioView").then((m) => ({
+    default: m.HistoriasClinicasView,
+  })),
+);
+const LaboratorioView = lazy(() =>
+  import("../flows/laboratorio/LaboratorioView").then((m) => ({
+    default: m.LaboratorioView,
+  })),
+);
+const ConfiguracionLaboratorioView = lazy(() =>
+  import("../flows/laboratorio/ConfiguracionLaboratorioView").then((m) => ({
+    default: m.ConfiguracionLaboratorioView,
+  })),
+);
+const LaboratorioAlmacenView = lazy(() =>
+  import("../flows/laboratorio/LaboratorioAlmacenView").then((m) => ({
+    default: m.LaboratorioAlmacenView,
+  })),
+);
+const SignosVitalesView = lazy(() =>
+  import("../flows/triaje/SignosVitalesView").then((m) => ({
+    default: m.SignosVitalesView,
+  })),
+);
+const RegistroUsoTriajeView = lazy(() =>
+  import("../flows/triaje/RegistroUsoTriajeView").then((m) => ({
+    default: m.RegistroUsoTriajeView,
+  })),
+);
+const UsoItemsAmbulatorioView = lazy(() =>
+  import("../flows/triaje/UsoItemsAmbulatorioView").then((m) => ({
+    default: m.UsoItemsAmbulatorioView,
+  })),
+);
+const ConfiguracionSignosVitalesView = lazy(() =>
+  import("../flows/triaje/ConfiguracionSignosVitalesView").then((m) => ({
+    default: m.ConfiguracionSignosVitalesView,
+  })),
+);
+const TriajeEmergenciasView = lazy(() =>
+  import("../flows/emergencias/TriajeEmergenciasView").then((m) => ({
+    default: m.TriajeEmergenciasView,
+  })),
+);
+const AtencionMedicaEmergenciasView = lazy(() =>
+  import("../flows/emergencias/AtencionMedicaEmergenciasView").then((m) => ({
+    default: m.AtencionMedicaEmergenciasView,
+  })),
+);
+const EnfermeraInternacionView = lazy(() =>
+  import("../flows/internacion/EnfermeraInternacionView").then((m) => ({
+    default: m.EnfermeraInternacionView,
+  })),
+);
+const MedicoInternacionView = lazy(() =>
+  import("../flows/internacion/MedicoInternacionView").then((m) => ({
+    default: m.MedicoInternacionView,
+  })),
+);
+const TerapiaIntensivaView = lazy(() =>
+  import("../flows/internacion/TerapiaIntensivaView").then((m) => ({
+    default: m.TerapiaIntensivaView,
+  })),
+);
+const RegistroEnfermeriaTerapiaView = lazy(() =>
+  import("../flows/internacion/RegistroEnfermeriaTerapiaView").then((m) => ({
+    default: m.RegistroEnfermeriaTerapiaView,
+  })),
+);
+const AmbulanciaView = lazy(() =>
+  import("../flows/ambulancia/AmbulanciaView").then((m) => ({
+    default: m.AmbulanciaView,
+  })),
+);
+const FarmaciaInternacionView = lazy(() =>
+  import("../flows/internacion/FarmaciaInternacionView").then((m) => ({
+    default: m.FarmaciaInternacionView,
+  })),
+);
+const CocinaVentasView = lazy(() =>
+  import("../flows/cocina/CocinaVentasView").then((m) => ({
+    default: m.CocinaVentasView,
+  })),
+);
+const CocinaInternacionView = lazy(() =>
+  import("../flows/cocina/CocinaInternacionView").then((m) => ({
+    default: m.CocinaInternacionView,
+  })),
+);
+const CocinaAdministracionView = lazy(() =>
+  import("../flows/cocina/CocinaAdministracionView").then((m) => ({
+    default: m.CocinaAdministracionView,
+  })),
+);
+const CuentaQuirofanoView = lazy(() =>
+  import("../flows/quirofano/CuentaQuirofanoView").then((m) => ({
+    default: m.CuentaQuirofanoView,
+  })),
+);
+const EsterilizacionView = lazy(() =>
+  import("../flows/quirofano/EsterilizacionView").then((m) => ({
+    default: m.EsterilizacionView,
+  })),
+);
+const AnestesiologiaView = lazy(() =>
+  import("../flows/quirofano/AnestesiologiaView").then((m) => ({
+    default: m.AnestesiologiaView,
+  })),
+);
+const VistaPacientes = lazy(() => import("./vistas/pacientes/VistaPacientes"));
+const VistaEstudiosCobrados = lazy(
+  () => import("./vistas/VistaEstudiosCobrados"),
+);
+const VistaRayosX = lazy(() => import("./vistas/visor-rayos-x/VistaRayosX"));
+const VisorEcografias = lazy(
+  () => import("./vistas/visor-ecografias/VisorEcografias"),
+);
+const VistaBaseDatosOrthanc = lazy(
+  () => import("./vistas/base-datos/VistaBaseDatosOrthanc"),
+);
+const VistaConfiguracion = lazy(
+  () => import("./vistas/configuracion/VistaConfiguracion"),
+);
+const VistaAuditorias = lazy(
+  () => import("./vistas/auditorias/VistaAuditorias"),
+);
+const VistaInformes = lazy(() =>
+  import("./vistas/clinica/Complementos").then((m) => ({
+    default: m.VistaInformes,
+  })),
+);
 
 const signosVitalesIniciales: SignoVitalConfig[] = [
-  ['temperatura', 'Temperatura', 'Grados Celsius', '°C', 'Número decimal'],
-  ['glicemia', 'Glicemia capilar', 'Miligramos por decilitro', 'mg/dL', 'Número entero'],
-  ['frecuenciaCardiaca', 'Frecuencia cardíaca', 'Pulsaciones por minuto', 'P/min', 'Número entero'],
-  ['frecuenciaRespiratoria', 'Frecuencia respiratoria', 'Respiraciones por minuto', 'Res/min', 'Número entero'],
-  ['presionSistolica', 'Presión sistólica', 'Milímetros de mercurio', 'mmHg', 'Número entero'],
-  ['presionDiastolica', 'Presión diastólica', 'Milímetros de mercurio', 'mmHg', 'Número entero'],
-  ['saturacionAmbiente', 'Saturación ambiente', 'Porcentaje', '%', 'Número entero'],
-  ['oxigeno', 'Oxígeno', 'Litros', 'L', 'Número decimal'],
-  ['saturacionOxigeno', 'Saturación con oxígeno', 'Porcentaje', '%', 'Número entero'],
-  ['perimetroCintura', 'Perímetro de cintura', 'Centímetros', 'cm', 'Número decimal'],
-  ['perimetroCadera', 'Perímetro de cadera', 'Centímetros', 'cm', 'Número decimal'],
-  ['peso', 'Peso', 'Kilogramos', 'kg', 'Número decimal'],
-  ['estatura', 'Estatura', 'Centímetros', 'cm', 'Número decimal'],
-  ['imc', 'IMC', 'Índice de masa corporal', 'kg/m²', 'Número decimal'],
-].map(([id, nombre, unidad, abreviatura, tipo]) => ({ id, nombre, unidad, abreviatura, tipo: tipo as SignoVitalConfig['tipo'] }));
+  ["temperatura", "Temperatura", "Grados Celsius", "°C", "Número decimal"],
+  [
+    "glicemia",
+    "Glicemia capilar",
+    "Miligramos por decilitro",
+    "mg/dL",
+    "Número entero",
+  ],
+  [
+    "frecuenciaCardiaca",
+    "Frecuencia cardíaca",
+    "Pulsaciones por minuto",
+    "P/min",
+    "Número entero",
+  ],
+  [
+    "frecuenciaRespiratoria",
+    "Frecuencia respiratoria",
+    "Respiraciones por minuto",
+    "Res/min",
+    "Número entero",
+  ],
+  [
+    "presionSistolica",
+    "Presión sistólica",
+    "Milímetros de mercurio",
+    "mmHg",
+    "Número entero",
+  ],
+  [
+    "presionDiastolica",
+    "Presión diastólica",
+    "Milímetros de mercurio",
+    "mmHg",
+    "Número entero",
+  ],
+  [
+    "saturacionAmbiente",
+    "Saturación ambiente",
+    "Porcentaje",
+    "%",
+    "Número entero",
+  ],
+  ["oxigeno", "Oxígeno", "Litros", "L", "Número decimal"],
+  [
+    "saturacionOxigeno",
+    "Saturación con oxígeno",
+    "Porcentaje",
+    "%",
+    "Número entero",
+  ],
+  [
+    "perimetroCintura",
+    "Perímetro de cintura",
+    "Centímetros",
+    "cm",
+    "Número decimal",
+  ],
+  [
+    "perimetroCadera",
+    "Perímetro de cadera",
+    "Centímetros",
+    "cm",
+    "Número decimal",
+  ],
+  ["peso", "Peso", "Kilogramos", "kg", "Número decimal"],
+  ["estatura", "Estatura", "Centímetros", "cm", "Número decimal"],
+  ["imc", "IMC", "Índice de masa corporal", "kg/m²", "Número decimal"],
+].map(([id, nombre, unidad, abreviatura, tipo]) => ({
+  id,
+  nombre,
+  unidad,
+  abreviatura,
+  tipo: tipo as SignoVitalConfig["tipo"],
+}));
 
 type Modulo = { id: string; nombre: string; icono: IconName; grupo: string };
-type SubvistaImagenologia = "pacientes" | "radiografias" | "tomografias" | "ecografias" | "ecocardiogramas" | "informes" | "visor";
+type SubvistaImagenologia =
+  | "pacientes"
+  | "radiografias"
+  | "tomografias"
+  | "ecografias"
+  | "ecocardiogramas"
+  | "informes"
+  | "visor";
 type SubvistaModalidad = "pacientes" | "estudios" | "visor";
 type RolEnfermeriaQuirofano = "instrumentista" | "circulante" | "almacen";
 type SubvistaAlmacenQuirofano = "quirofano-1" | "quirofano-2";
-type SubvistaRecepcion = "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
+type SubvistaRecepcion =
+  "caja" | "citas" | "cuentas" | "comprobantes" | "reportes";
 type SubvistaPacientes = "pacientes" | "historias" | "estudios";
 type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
 type SubvistaAtencionAgenda = "pacientes" | "cronograma";
-type SubvistaTriajeAmbulatorio = "signos-vitales" | "agenda" | "registro-uso" | "uso-items" | "configuracion";
+type SubvistaTriajeAmbulatorio =
+  "signos-vitales" | "agenda" | "registro-uso" | "uso-items" | "configuracion";
 type SubvistaMedicoInternacion = "internados" | "altas";
 type SubvistaEnfermeraInternacion = "internados" | "altas";
 type TemaSistema = "light" | "dark";
-type CirugiaProgramada = { id: string; hora: string; sala: string; paciente: string; procedimiento: string; cirujano: string; estado: string; historia: string; ci: string; edad: string; diagnostico: string; anestesiologo: string; ayudante: string; instrumentista: string; circulante: string };
+type CirugiaProgramada = {
+  id: string;
+  hora: string;
+  sala: string;
+  paciente: string;
+  procedimiento: string;
+  cirujano: string;
+  estado: string;
+  historia: string;
+  ci: string;
+  edad: string;
+  diagnostico: string;
+  anestesiologo: string;
+  ayudante: string;
+  instrumentista: string;
+  circulante: string;
+};
 
-const claveUbicacion = 'clinico_ubicacion_activa_v1';
+const claveUbicacion = "clinico_ubicacion_activa_v1";
 const leerUbicacion = (): Record<string, string> => {
-  try { return JSON.parse(localStorage.getItem(claveUbicacion) || '{}') as Record<string, string>; }
-  catch { return {}; }
+  try {
+    return JSON.parse(localStorage.getItem(claveUbicacion) || "{}") as Record<
+      string,
+      string
+    >;
+  } catch {
+    return {};
+  }
 };
 
 const cirugiasProgramadas: CirugiaProgramada[] = [
-  { id: 'cir-hernia', hora: '08:00', sala: 'Quirófano 01', paciente: 'María Fernanda López García', procedimiento: 'Hernioplastía inguinal', cirujano: 'Dr. Luis Esteban Escobar Rocha', estado: 'En preparación', historia: 'HC-004821', ci: '6894521 LP', edad: '42 años', diagnostico: 'Hernia inguinal derecha', anestesiologo: 'Dra. Valeria Rojas Pardo', ayudante: 'Dr. Marco Antonio Vargas', instrumentista: 'Lic. Elena Morales', circulante: 'Lic. Patricia Flores' },
-  { id: 'cir-colecistectomia', hora: '10:00', sala: 'Quirófano 02', paciente: 'Carlos Alberto Mendoza Rojas', procedimiento: 'Colecistectomía laparoscópica', cirujano: 'Dra. Ana Sofía Quispe Vargas', estado: 'Programada', historia: 'HC-008214', ci: '7459823 LP', edad: '55 años', diagnostico: 'Colelitiasis sintomática', anestesiologo: 'Dr. Ricardo Paredes', ayudante: 'Dra. Luisa Fernández', instrumentista: 'Lic. Andrea Soria', circulante: 'Lic. Miguel Álvarez' },
-  { id: 'cir-artroscopia', hora: '13:30', sala: 'Quirófano 01', paciente: 'Jorge Luis Torrez Flores', procedimiento: 'Artroscopia de rodilla', cirujano: 'Dr. Diego Andrés Salazar Cruz', estado: 'Programada', historia: 'HC-006407', ci: '5321687 LP', edad: '36 años', diagnostico: 'Lesión de menisco medial', anestesiologo: 'Dra. Camila Ríos', ayudante: 'Dr. Pablo Medina', instrumentista: 'Lic. Sofía Aguilar', circulante: 'Lic. Daniela Cruz' },
+  {
+    id: "cir-hernia",
+    hora: "08:00",
+    sala: "Quirófano 01",
+    paciente: "María Fernanda López García",
+    procedimiento: "Hernioplastía inguinal",
+    cirujano: "Dr. Luis Esteban Escobar Rocha",
+    estado: "En preparación",
+    historia: "HC-004821",
+    ci: "6894521 LP",
+    edad: "42 años",
+    diagnostico: "Hernia inguinal derecha",
+    anestesiologo: "Dra. Valeria Rojas Pardo",
+    ayudante: "Dr. Marco Antonio Vargas",
+    instrumentista: "Lic. Elena Morales",
+    circulante: "Lic. Patricia Flores",
+  },
+  {
+    id: "cir-colecistectomia",
+    hora: "10:00",
+    sala: "Quirófano 02",
+    paciente: "Carlos Alberto Mendoza Rojas",
+    procedimiento: "Colecistectomía laparoscópica",
+    cirujano: "Dra. Ana Sofía Quispe Vargas",
+    estado: "Programada",
+    historia: "HC-008214",
+    ci: "7459823 LP",
+    edad: "55 años",
+    diagnostico: "Colelitiasis sintomática",
+    anestesiologo: "Dr. Ricardo Paredes",
+    ayudante: "Dra. Luisa Fernández",
+    instrumentista: "Lic. Andrea Soria",
+    circulante: "Lic. Miguel Álvarez",
+  },
+  {
+    id: "cir-artroscopia",
+    hora: "13:30",
+    sala: "Quirófano 01",
+    paciente: "Jorge Luis Torrez Flores",
+    procedimiento: "Artroscopia de rodilla",
+    cirujano: "Dr. Diego Andrés Salazar Cruz",
+    estado: "Programada",
+    historia: "HC-006407",
+    ci: "5321687 LP",
+    edad: "36 años",
+    diagnostico: "Lesión de menisco medial",
+    anestesiologo: "Dra. Camila Ríos",
+    ayudante: "Dr. Pablo Medina",
+    instrumentista: "Lic. Sofía Aguilar",
+    circulante: "Lic. Daniela Cruz",
+  },
 ];
 
-const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: IconName }[] = [
+const subvistasImagenologia: {
+  id: SubvistaImagenologia;
+  nombre: string;
+  icono: IconName;
+}[] = [
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
   { id: "radiografias", nombre: "Radiografías", icono: "image" },
   { id: "tomografias", nombre: "Tomografías", icono: "package" },
@@ -124,49 +411,268 @@ const subvistasImagenologia: { id: SubvistaImagenologia; nombre: string; icono: 
   { id: "ecocardiogramas", nombre: "Ecocardiogramas", icono: "audit" },
   { id: "informes", nombre: "Informes médicos", icono: "audit" },
 ];
-const subvistasModalidad: { id: SubvistaModalidad; nombre: string; icono: IconName }[] = [
+const subvistasModalidad: {
+  id: SubvistaModalidad;
+  nombre: string;
+  icono: IconName;
+}[] = [
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
   { id: "estudios", nombre: "Estudios", icono: "image" },
   { id: "visor", nombre: "Visor", icono: "eye" },
 ];
-const subvistasPacientes: { id: SubvistaPacientes; nombre: string; icono: IconName }[] = [
+const subvistasPacientes: {
+  id: SubvistaPacientes;
+  nombre: string;
+  icono: IconName;
+}[] = [
   { id: "pacientes", nombre: "Pacientes", icono: "patient" },
   { id: "historias", nombre: "Historias clínicas", icono: "fileText" },
   { id: "estudios", nombre: "Estudios del paciente", icono: "image" },
 ];
 
+// Muestra visual de la cola. Nunca se guarda ni participa en los flujos clínicos.
+const ejemplosConsultorioCola: CitaConfirmada[] = [
+  {
+    id: "COLA-DEMO-C1",
+    paciente: "Gabriela Rojas Méndez",
+    ci: "6548123",
+    doctor: "Dra. Valeria Quiroga",
+    especialidad: "Medicina familiar",
+    fecha: "2026-11-06",
+    hora: "09:30",
+  },
+  {
+    id: "COLA-DEMO-C2",
+    paciente: "Diego Fernández Lima",
+    ci: "7836142",
+    doctor: "Dr. Daniel Siles",
+    especialidad: "Medicina interna",
+    fecha: "2026-11-06",
+    hora: "10:15",
+  },
+];
+const ejemplosInternacionCola = [
+  {
+    id: "COLA-DEMO-I1",
+    paciente: "Luis Esteban Escobar Rocha",
+    sala: "108",
+    cama: "B",
+    horaIngreso: "09:20",
+  },
+  {
+    id: "COLA-DEMO-I2",
+    paciente: "Mariana Flores Cárdenas",
+    sala: "204",
+    cama: "A",
+    horaIngreso: "11:40",
+  },
+];
+const ejemplosEmergenciasCola = [
+  {
+    id: "COLA-DEMO-E1",
+    paciente: "Ana Lucía Pérez Salinas",
+    detalle: "Cubículo 2 · Prioridad II",
+    hora: "08:45",
+  },
+  {
+    id: "COLA-DEMO-E2",
+    paciente: "Jorge Luis Condori",
+    detalle: "Cubículo 4 · Prioridad III",
+    hora: "10:05",
+  },
+];
+const ejemplosTerapiaCola = [
+  {
+    id: "COLA-DEMO-U1",
+    paciente: "Carmen Villca Apaza",
+    detalle: "UCI · Cama 3",
+    hora: "07:30",
+  },
+  {
+    id: "COLA-DEMO-U2",
+    paciente: "Roberto Salazar Flores",
+    detalle: "UCI · Cama 5",
+    hora: "12:10",
+  },
+];
+
 const modulos: Modulo[] = [
-  { id: 'recepcion', nombre: 'Recepción', icono: 'receptionDesk', grupo: 'ATENCIÓN CLÍNICA' },
-  { id: 'pacientes', nombre: 'Pacientes', icono: 'users', grupo: 'ATENCIÓN CLÍNICA' },
-  { id: 'atencion-medica', nombre: 'Consultorio médico', icono: 'stethoscope', grupo: 'ATENCIÓN AMBULATORIA' },
-  { id: 'triaje-ambulatorio', nombre: 'Triaje y signos vitales', icono: 'heartbeat', grupo: 'ATENCIÓN AMBULATORIA' },
-  { id: 'triaje-emergencias', nombre: 'Triaje emergencias', icono: 'ambulance', grupo: 'EMERGENCIAS' },
-  { id: 'atencion-urgencias', nombre: 'Atención médica emergencias', icono: 'userMedical', grupo: 'EMERGENCIAS' },
-  { id: 'enfermera-internacion', nombre: 'Enfermera internación', icono: 'clipboardMedical', grupo: 'INTERNACIÓN' },
-  { id: 'medico-internacion', nombre: 'Médico internación', icono: 'bed', grupo: 'INTERNACIÓN' },
-  { id: 'enfermera-terapia-intensiva', nombre: 'Enfermera terapia intensiva', icono: 'monitorVitals', grupo: 'TERAPIA INTENSIVA' },
-  { id: 'medico-terapia-intensiva', nombre: 'Médico terapia intensiva', icono: 'userMedical', grupo: 'TERAPIA INTENSIVA' },
-  { id: 'ambulancia', nombre: 'Ambulancia', icono: 'ambulance', grupo: 'AMBULANCIA' },
-  { id: 'enfermera-quirofano', nombre: 'Enfermera quirófano', icono: 'clipboardMedical', grupo: 'QUIRÓFANO' },
-  { id: 'medico-quirofano', nombre: 'Médico quirófano', icono: 'surgery', grupo: 'QUIRÓFANO' },
-  { id: 'anestesiologia-quirofano', nombre: 'Anestesiología', icono: 'syringe', grupo: 'QUIRÓFANO' },
-  { id: 'cuenta-quirofano', nombre: 'Registro de cirugías', icono: 'calendar', grupo: 'QUIRÓFANO' },
-  { id: 'central-esterilizacion', nombre: 'Inventario de material', icono: 'package', grupo: 'ESTERILIZACIÓN' },
-  { id: 'recepcion-material-sucio', nombre: 'Central de esterilización', icono: 'dirtyTray', grupo: 'ESTERILIZACIÓN' },
-  { id: 'entrega-material-esteril', nombre: 'Administración de esterilización', icono: 'shieldCheck', grupo: 'ESTERILIZACIÓN' },
-  { id: 'laboratorio-ambulatorios', nombre: 'Ambulatorios', icono: 'labOutpatient', grupo: 'LABORATORIO' },
-  { id: 'laboratorio-internados', nombre: 'Internados', icono: 'labInpatient', grupo: 'LABORATORIO' },
-  { id: 'laboratorio-almacen', nombre: 'Laboratorio almacén', icono: 'package', grupo: 'LABORATORIO' },
-  { id: 'laboratorio-configuracion', nombre: 'Tipos de laboratorio', icono: 'settings', grupo: 'LABORATORIO' },
-  { id: "imagenologia", nombre: "Imagenología", icono: "image", grupo: "IMAGENOLOGÍA" },
-  { id: "atencion-agenda", nombre: "Atención / Agenda", icono: "calendar", grupo: "IMAGENOLOGÍA" },
-  { id: "farmacia", nombre: "Farmacia", icono: 'pill', grupo: "FARMACIA" },
-  { id: "farmacia-internacion", nombre: "Internación", icono: 'bed', grupo: "FARMACIA" },
-  { id: "farmacia-movimientos", nombre: "Administración Farmacia", icono: 'audit', grupo: "FARMACIA" },
-  { id: "farmacia-ia", nombre: "IA de farmacia", icono: 'sparkles', grupo: "FARMACIA" },
+  {
+    id: "recepcion",
+    nombre: "Recepción",
+    icono: "receptionDesk",
+    grupo: "ATENCIÓN CLÍNICA",
+  },
+  {
+    id: "pacientes",
+    nombre: "Pacientes",
+    icono: "users",
+    grupo: "ATENCIÓN CLÍNICA",
+  },
+  {
+    id: "atencion-medica",
+    nombre: "Consultorio médico",
+    icono: "stethoscope",
+    grupo: "ATENCIÓN AMBULATORIA",
+  },
+  {
+    id: "triaje-ambulatorio",
+    nombre: "Triaje y signos vitales",
+    icono: "heartbeat",
+    grupo: "ATENCIÓN AMBULATORIA",
+  },
+  {
+    id: "triaje-emergencias",
+    nombre: "Triaje emergencias",
+    icono: "ambulance",
+    grupo: "EMERGENCIAS",
+  },
+  {
+    id: "atencion-urgencias",
+    nombre: "Atención médica emergencias",
+    icono: "userMedical",
+    grupo: "EMERGENCIAS",
+  },
+  {
+    id: "enfermera-internacion",
+    nombre: "Enfermera internación",
+    icono: "clipboardMedical",
+    grupo: "INTERNACIÓN",
+  },
+  {
+    id: "medico-internacion",
+    nombre: "Médico internación",
+    icono: "bed",
+    grupo: "INTERNACIÓN",
+  },
+  {
+    id: "enfermera-terapia-intensiva",
+    nombre: "Enfermera terapia intensiva",
+    icono: "monitorVitals",
+    grupo: "TERAPIA INTENSIVA",
+  },
+  {
+    id: "medico-terapia-intensiva",
+    nombre: "Médico terapia intensiva",
+    icono: "userMedical",
+    grupo: "TERAPIA INTENSIVA",
+  },
+  {
+    id: "ambulancia",
+    nombre: "Ambulancia",
+    icono: "ambulance",
+    grupo: "AMBULANCIA",
+  },
+  {
+    id: "enfermera-quirofano",
+    nombre: "Enfermera quirófano",
+    icono: "clipboardMedical",
+    grupo: "QUIRÓFANO",
+  },
+  {
+    id: "medico-quirofano",
+    nombre: "Médico quirófano",
+    icono: "surgery",
+    grupo: "QUIRÓFANO",
+  },
+  {
+    id: "anestesiologia-quirofano",
+    nombre: "Anestesiología",
+    icono: "syringe",
+    grupo: "QUIRÓFANO",
+  },
+  {
+    id: "cuenta-quirofano",
+    nombre: "Registro de cirugías",
+    icono: "calendar",
+    grupo: "QUIRÓFANO",
+  },
+  {
+    id: "central-esterilizacion",
+    nombre: "Inventario de material",
+    icono: "package",
+    grupo: "ESTERILIZACIÓN",
+  },
+  {
+    id: "recepcion-material-sucio",
+    nombre: "Central de esterilización",
+    icono: "dirtyTray",
+    grupo: "ESTERILIZACIÓN",
+  },
+  {
+    id: "entrega-material-esteril",
+    nombre: "Administración de esterilización",
+    icono: "shieldCheck",
+    grupo: "ESTERILIZACIÓN",
+  },
+  {
+    id: "laboratorio-ambulatorios",
+    nombre: "Ambulatorios",
+    icono: "labOutpatient",
+    grupo: "LABORATORIO",
+  },
+  {
+    id: "laboratorio-internados",
+    nombre: "Internados",
+    icono: "labInpatient",
+    grupo: "LABORATORIO",
+  },
+  {
+    id: "laboratorio-almacen",
+    nombre: "Laboratorio almacén",
+    icono: "package",
+    grupo: "LABORATORIO",
+  },
+  {
+    id: "laboratorio-configuracion",
+    nombre: "Tipos de laboratorio",
+    icono: "settings",
+    grupo: "LABORATORIO",
+  },
+  {
+    id: "imagenologia",
+    nombre: "Imagenología",
+    icono: "image",
+    grupo: "IMAGENOLOGÍA",
+  },
+  {
+    id: "atencion-agenda",
+    nombre: "Atención / Agenda",
+    icono: "calendar",
+    grupo: "IMAGENOLOGÍA",
+  },
+  { id: "farmacia", nombre: "Farmacia", icono: "pill", grupo: "FARMACIA" },
+  {
+    id: "farmacia-internacion",
+    nombre: "Internación",
+    icono: "bed",
+    grupo: "FARMACIA",
+  },
+  {
+    id: "farmacia-movimientos",
+    nombre: "Administración Farmacia",
+    icono: "audit",
+    grupo: "FARMACIA",
+  },
+  {
+    id: "farmacia-ia",
+    nombre: "IA de farmacia",
+    icono: "sparkles",
+    grupo: "FARMACIA",
+  },
   { id: "cocina", nombre: "Cocina", icono: "utensils", grupo: "COCINA" },
-  { id: "cocina-internacion", nombre: "Cocina Internación", icono: 'bed', grupo: "COCINA" },
-  { id: "cocina-administracion", nombre: "Control de Cocina", icono: "warehouse", grupo: "COCINA" },
+  {
+    id: "cocina-internacion",
+    nombre: "Cocina Internación",
+    icono: "bed",
+    grupo: "COCINA",
+  },
+  {
+    id: "cocina-administracion",
+    nombre: "Control de Cocina",
+    icono: "warehouse",
+    grupo: "COCINA",
+  },
   { id: "almacen", nombre: "Almacén", icono: "warehouse", grupo: "ALMACÉN" },
   { id: "dispensar", nombre: "Dispensar", icono: "pill", grupo: "ALMACÉN" },
   {
@@ -183,16 +689,64 @@ const modulos: Modulo[] = [
   },
 ];
 
-function TablaSubvistaPaciente({ vista }: { vista: 'historias' | 'estudios' }) {
-  const esEstudios = vista === 'estudios';
-  return <section className="usuarios-vista pacientes-vista tabla-subvista-paciente" aria-label={esEstudios ? 'Estudios del paciente' : 'Historias clínicas'}>
-    <div className="usuarios-paginacion"><small>0 resultados</small><div><button disabled aria-label="Página anterior"><Icon name="chevronLeft" size={16} /></button><span>Página <strong>1</strong> de 1</span><button disabled aria-label="Página siguiente"><Icon name="chevronRight" size={16} /></button></div></div>
-    <div className="usuarios-tabla pacientes-tabla tabla-subvista-vacia">
-      <div className="usuarios-fila usuarios-columnas"><span>Paciente</span><span>Documento</span><span>Edad / sexo</span><span>Celular</span><span>{esEstudios ? 'Estudios' : 'Historia clínica'}</span><span>Acciones</span></div>
-      <div className="usuarios-mensaje"><span><Icon name={esEstudios ? 'image' : 'fileText'} size={25} /></span><strong>No hay pacientes para mostrar</strong><small>{esEstudios ? 'Los estudios del paciente aparecerán aquí.' : 'Las historias clínicas aparecerán aquí.'}</small></div>
-    </div>
-    <div className="usuarios-paginacion"><small>0 resultados</small><div><button disabled aria-label="Página anterior"><Icon name="chevronLeft" size={16} /></button><span>Página <strong>1</strong> de 1</span><button disabled aria-label="Página siguiente"><Icon name="chevronRight" size={16} /></button></div></div>
-  </section>;
+function TablaSubvistaPaciente({ vista }: { vista: "historias" | "estudios" }) {
+  const esEstudios = vista === "estudios";
+  return (
+    <section
+      className="usuarios-vista pacientes-vista tabla-subvista-paciente"
+      aria-label={esEstudios ? "Estudios del paciente" : "Historias clínicas"}
+    >
+      <div className="usuarios-paginacion">
+        <small>0 resultados</small>
+        <div>
+          <button disabled aria-label="Página anterior">
+            <Icon name="chevronLeft" size={16} />
+          </button>
+          <span>
+            Página <strong>1</strong> de 1
+          </span>
+          <button disabled aria-label="Página siguiente">
+            <Icon name="chevronRight" size={16} />
+          </button>
+        </div>
+      </div>
+      <div className="usuarios-tabla pacientes-tabla tabla-subvista-vacia">
+        <div className="usuarios-fila usuarios-columnas">
+          <span>Paciente</span>
+          <span>Documento</span>
+          <span>Edad / sexo</span>
+          <span>Celular</span>
+          <span>{esEstudios ? "Estudios" : "Historia clínica"}</span>
+          <span>Acciones</span>
+        </div>
+        <div className="usuarios-mensaje">
+          <span>
+            <Icon name={esEstudios ? "image" : "fileText"} size={25} />
+          </span>
+          <strong>No hay pacientes para mostrar</strong>
+          <small>
+            {esEstudios
+              ? "Los estudios del paciente aparecerán aquí."
+              : "Las historias clínicas aparecerán aquí."}
+          </small>
+        </div>
+      </div>
+      <div className="usuarios-paginacion">
+        <small>0 resultados</small>
+        <div>
+          <button disabled aria-label="Página anterior">
+            <Icon name="chevronLeft" size={16} />
+          </button>
+          <span>
+            Página <strong>1</strong> de 1
+          </span>
+          <button disabled aria-label="Página siguiente">
+            <Icon name="chevronRight" size={16} />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export default function Aplicacion() {
@@ -200,191 +754,449 @@ export default function Aplicacion() {
   const ubicacionInicial = leerUbicacion();
   useEffect(() => {
     // Durante el desarrollo exclusivo de frontend, Triaje usa la configuración local.
-    setSignosVitalesConfigurados([]); setEstadoSignos('listo'); return;
+    setSignosVitalesConfigurados([]);
+    setEstadoSignos("listo");
+    return;
     if (!sesion?.token) return;
     const controller = new AbortController();
-    apiFetch('/api/session', { signal: controller.signal }).then(async r => {
-      if (!r.ok) return;
-      const datos = await r.json() as { usuario: Sesion['usuario'] };
-      setSesion(actual => actual ? { ...actual, usuario: datos.usuario } : null);
-    }).catch(() => undefined);
+    apiFetch("/api/session", { signal: controller.signal })
+      .then(async (r) => {
+        if (!r.ok) return;
+        const datos = (await r.json()) as { usuario: Sesion["usuario"] };
+        setSesion((actual) =>
+          actual ? { ...actual, usuario: datos.usuario } : null,
+        );
+      })
+      .catch(() => undefined);
     return () => controller.abort();
   }, [sesion?.token]);
-  const [modulo, setModulo] = useState(ubicacionInicial.modulo === 'pruebas-camara-quirofano' ? 'recepcion' : ubicacionInicial.modulo || "");
-  const [subvistaImagenologia, setSubvistaImagenologia] = useState<SubvistaImagenologia>((ubicacionInicial.subvistaImagenologia as SubvistaImagenologia) || "pacientes");
-  const [visorModalidad, setVisorModalidad] = useState<"Tomografía" | null>(null);
-  const [subvistaModalidad, setSubvistaModalidad] = useState<SubvistaModalidad>((ubicacionInicial.subvistaModalidad as SubvistaModalidad) || "pacientes");
-  const [rolEnfermeriaQuirofano, setRolEnfermeriaQuirofano] = useState<RolEnfermeriaQuirofano>("instrumentista");
-  const [subvistaAlmacenQuirofano, setSubvistaAlmacenQuirofano] = useState<SubvistaAlmacenQuirofano>("quirofano-1");
-  const [cirugiaInstrumentista, setCirugiaInstrumentista] = useState<string | null>(null);
-  const [fechaDesdeCirugias, setFechaDesdeCirugias] = useState('');
-  const [fechaHastaCirugias, setFechaHastaCirugias] = useState('');
-  const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>((ubicacionInicial.subvistaRecepcion as SubvistaRecepcion) || "caja");
-  const [subvistaPacientes, setSubvistaPacientes] = useState<SubvistaPacientes>((ubicacionInicial.subvistaPacientes as SubvistaPacientes) || "pacientes");
-  const [subvistaConfiguracion, setSubvistaConfiguracion] = useState<SubvistaConfiguracion>((ubicacionInicial.subvistaConfiguracion as SubvistaConfiguracion) || "usuario");
-  const [subvistaAtencionAgenda, setSubvistaAtencionAgenda] = useState<SubvistaAtencionAgenda>((ubicacionInicial.subvistaAtencionAgenda as SubvistaAtencionAgenda) || "pacientes");
-  const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] = useState<SubvistaTriajeAmbulatorio>((ubicacionInicial.subvistaTriajeAmbulatorio as SubvistaTriajeAmbulatorio) || "signos-vitales");
-  const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] = useState<SubvistaMedicoInternacion>((ubicacionInicial.subvistaMedicoInternacion as SubvistaMedicoInternacion) || "internados");
-  const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] = useState<SubvistaEnfermeraInternacion>((ubicacionInicial.subvistaEnfermeraInternacion as SubvistaEnfermeraInternacion) || "internados");
-  const [subvistaTerapia, setSubvistaTerapia] = useState<'registro-enfermeria' | 'monitorizacion' | 'registros'>((ubicacionInicial.subvistaTerapia as 'registro-enfermeria' | 'monitorizacion' | 'registros') || 'registro-enfermeria');
+  const [modulo, setModulo] = useState(
+    ubicacionInicial.modulo === "pruebas-camara-quirofano"
+      ? "recepcion"
+      : ubicacionInicial.modulo || "",
+  );
+  const [subvistaImagenologia, setSubvistaImagenologia] =
+    useState<SubvistaImagenologia>(
+      (ubicacionInicial.subvistaImagenologia as SubvistaImagenologia) ||
+        "pacientes",
+    );
+  const [visorModalidad, setVisorModalidad] = useState<"Tomografía" | null>(
+    null,
+  );
+  const [subvistaModalidad, setSubvistaModalidad] = useState<SubvistaModalidad>(
+    (ubicacionInicial.subvistaModalidad as SubvistaModalidad) || "pacientes",
+  );
+  const [rolEnfermeriaQuirofano, setRolEnfermeriaQuirofano] =
+    useState<RolEnfermeriaQuirofano>("instrumentista");
+  const [subvistaAlmacenQuirofano, setSubvistaAlmacenQuirofano] =
+    useState<SubvistaAlmacenQuirofano>("quirofano-1");
+  const [cirugiaInstrumentista, setCirugiaInstrumentista] = useState<
+    string | null
+  >(null);
+  const [fechaDesdeCirugias, setFechaDesdeCirugias] = useState("");
+  const [fechaHastaCirugias, setFechaHastaCirugias] = useState("");
+  const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>(
+    (ubicacionInicial.subvistaRecepcion as SubvistaRecepcion) || "caja",
+  );
+  const [subvistaPacientes, setSubvistaPacientes] = useState<SubvistaPacientes>(
+    (ubicacionInicial.subvistaPacientes as SubvistaPacientes) || "pacientes",
+  );
+  const [subvistaConfiguracion, setSubvistaConfiguracion] =
+    useState<SubvistaConfiguracion>(
+      (ubicacionInicial.subvistaConfiguracion as SubvistaConfiguracion) ||
+        "usuario",
+    );
+  const [subvistaAtencionAgenda, setSubvistaAtencionAgenda] =
+    useState<SubvistaAtencionAgenda>(
+      (ubicacionInicial.subvistaAtencionAgenda as SubvistaAtencionAgenda) ||
+        "pacientes",
+    );
+  const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] =
+    useState<SubvistaTriajeAmbulatorio>(
+      (ubicacionInicial.subvistaTriajeAmbulatorio as SubvistaTriajeAmbulatorio) ||
+        "signos-vitales",
+    );
+  const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] =
+    useState<SubvistaMedicoInternacion>(
+      (ubicacionInicial.subvistaMedicoInternacion as SubvistaMedicoInternacion) ||
+        "internados",
+    );
+  const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] =
+    useState<SubvistaEnfermeraInternacion>(
+      (ubicacionInicial.subvistaEnfermeraInternacion as SubvistaEnfermeraInternacion) ||
+        "internados",
+    );
+  const [subvistaTerapia, setSubvistaTerapia] = useState<
+    "registro-enfermeria" | "monitorizacion" | "registros"
+  >(
+    (ubicacionInicial.subvistaTerapia as
+      "registro-enfermeria" | "monitorizacion" | "registros") ||
+      "registro-enfermeria",
+  );
   useEffect(() => {
-    localStorage.setItem(claveUbicacion, JSON.stringify({ modulo, subvistaImagenologia, subvistaModalidad, subvistaRecepcion, subvistaPacientes, subvistaConfiguracion, subvistaAtencionAgenda, subvistaTriajeAmbulatorio, subvistaMedicoInternacion, subvistaEnfermeraInternacion, subvistaTerapia }));
-  }, [modulo, subvistaImagenologia, subvistaModalidad, subvistaRecepcion, subvistaPacientes, subvistaConfiguracion, subvistaAtencionAgenda, subvistaTriajeAmbulatorio, subvistaMedicoInternacion, subvistaEnfermeraInternacion, subvistaTerapia]);
+    localStorage.setItem(
+      claveUbicacion,
+      JSON.stringify({
+        modulo,
+        subvistaImagenologia,
+        subvistaModalidad,
+        subvistaRecepcion,
+        subvistaPacientes,
+        subvistaConfiguracion,
+        subvistaAtencionAgenda,
+        subvistaTriajeAmbulatorio,
+        subvistaMedicoInternacion,
+        subvistaEnfermeraInternacion,
+        subvistaTerapia,
+      }),
+    );
+  }, [
+    modulo,
+    subvistaImagenologia,
+    subvistaModalidad,
+    subvistaRecepcion,
+    subvistaPacientes,
+    subvistaConfiguracion,
+    subvistaAtencionAgenda,
+    subvistaTriajeAmbulatorio,
+    subvistaMedicoInternacion,
+    subvistaEnfermeraInternacion,
+    subvistaTerapia,
+  ]);
   const [versionAsignaciones, setVersionAsignaciones] = useState(0);
   useEffect(() => {
-    const actualizar = () => setVersionAsignaciones(version => version + 1);
-    window.addEventListener('hme:quirofano:asignaciones-actualizadas', actualizar);
-    window.addEventListener('storage', actualizar);
-    return () => { window.removeEventListener('hme:quirofano:asignaciones-actualizadas', actualizar); window.removeEventListener('storage', actualizar); };
+    const actualizar = () => setVersionAsignaciones((version) => version + 1);
+    window.addEventListener(
+      "hme:quirofano:asignaciones-actualizadas",
+      actualizar,
+    );
+    window.addEventListener("storage", actualizar);
+    return () => {
+      window.removeEventListener(
+        "hme:quirofano:asignaciones-actualizadas",
+        actualizar,
+      );
+      window.removeEventListener("storage", actualizar);
+    };
   }, []);
-  const esAdministrador = /administrador|admin/i.test(sesion?.usuario.rol ?? '');
-  const nombreSesion = normalizarNombre([sesion?.usuario.nombre, sesion?.usuario.apellidos].filter(Boolean).join(' '));
-  const cirugiasVisiblesEnfermeria = cirugiasProgramadas.filter(cirugia => {
+  const esAdministrador = /administrador|admin/i.test(
+    sesion?.usuario.rol ?? "",
+  );
+  const nombreSesion = normalizarNombre(
+    [sesion?.usuario.nombre, sesion?.usuario.apellidos]
+      .filter(Boolean)
+      .join(" "),
+  );
+  const cirugiasVisiblesEnfermeria = cirugiasProgramadas.filter((cirugia) => {
     if (esAdministrador) return true;
-    if (rolEnfermeriaQuirofano === 'almacen') return true;
+    if (rolEnfermeriaQuirofano === "almacen") return true;
     const asignacion = buscarAsignacionQuirofano(cirugia);
-    const responsable = rolEnfermeriaQuirofano === 'instrumentista' ? (asignacion?.instrumentista || cirugia.instrumentista) : (asignacion?.circulante || cirugia.circulante);
-    return Boolean(nombreSesion && normalizarNombre(responsable) === nombreSesion);
+    const responsable =
+      rolEnfermeriaQuirofano === "instrumentista"
+        ? asignacion?.instrumentista || cirugia.instrumentista
+        : asignacion?.circulante || cirugia.circulante;
+    return Boolean(
+      nombreSesion && normalizarNombre(responsable) === nombreSesion,
+    );
   });
   void versionAsignaciones;
-  const cirugiaSeleccionadaReal = cirugiasVisiblesEnfermeria.find((cirugia) => cirugia.id === cirugiaInstrumentista) ?? null;
-  const cirugiaSeleccionadaBase = cirugiaSeleccionadaReal ?? cirugiasVisiblesEnfermeria[0];
-  const asignacionSeleccionada = cirugiaSeleccionadaBase ? buscarAsignacionQuirofano(cirugiaSeleccionadaBase) : undefined;
-  const cirugiaSeleccionada = cirugiaSeleccionadaBase ? { ...cirugiaSeleccionadaBase, instrumentista: asignacionSeleccionada?.instrumentista || cirugiaSeleccionadaBase.instrumentista, circulante: asignacionSeleccionada?.circulante || cirugiaSeleccionadaBase.circulante } : cirugiaSeleccionadaBase;
-  const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState<SignoVitalConfig[]>([]);
-  const [estadoSignos, setEstadoSignos] = useState<'cargando' | 'listo' | 'error'>('cargando');
+  const cirugiaSeleccionadaReal =
+    cirugiasVisiblesEnfermeria.find(
+      (cirugia) => cirugia.id === cirugiaInstrumentista,
+    ) ?? null;
+  const cirugiaSeleccionadaBase =
+    cirugiaSeleccionadaReal ?? cirugiasVisiblesEnfermeria[0];
+  const asignacionSeleccionada = cirugiaSeleccionadaBase
+    ? buscarAsignacionQuirofano(cirugiaSeleccionadaBase)
+    : undefined;
+  const cirugiaSeleccionada = cirugiaSeleccionadaBase
+    ? {
+        ...cirugiaSeleccionadaBase,
+        instrumentista:
+          asignacionSeleccionada?.instrumentista ||
+          cirugiaSeleccionadaBase.instrumentista,
+        circulante:
+          asignacionSeleccionada?.circulante ||
+          cirugiaSeleccionadaBase.circulante,
+      }
+    : cirugiaSeleccionadaBase;
+  const [signosVitalesConfigurados, setSignosVitalesConfigurados] = useState<
+    SignoVitalConfig[]
+  >([]);
+  const [estadoSignos, setEstadoSignos] = useState<
+    "cargando" | "listo" | "error"
+  >("cargando");
   const [versionSignos, setVersionSignos] = useState(0);
   useEffect(() => {
     if (!sesion?.token) return;
     const controller = new AbortController();
-    setEstadoSignos('cargando');
-    apiFetch('/api/v1/configuracion/signos-vitales', { signal: controller.signal })
-      .then(async respuesta => {
-        if (!respuesta.ok) throw new Error('No se pudo cargar la configuración de signos vitales.');
-        const datos = await respuesta.json() as { data: SignoVitalConfig[] };
+    setEstadoSignos("cargando");
+    apiFetch("/api/v1/configuracion/signos-vitales", {
+      signal: controller.signal,
+    })
+      .then(async (respuesta) => {
+        if (!respuesta.ok)
+          throw new Error(
+            "No se pudo cargar la configuración de signos vitales.",
+          );
+        const datos = (await respuesta.json()) as { data: SignoVitalConfig[] };
         setSignosVitalesConfigurados(datos.data);
-        setEstadoSignos('listo');
+        setEstadoSignos("listo");
       })
-      .catch(() => { if (!controller.signal.aborted) setEstadoSignos('error'); });
+      .catch(() => {
+        if (!controller.signal.aborted) setEstadoSignos("error");
+      });
     return () => controller.abort();
   }, [sesion?.token, versionSignos]);
   const actualizarSignosVitales = async (siguientes: SignoVitalConfig[]) => {
-    const agregado = siguientes.find(signo => !signosVitalesConfigurados.some(actual => actual.id === signo.id));
-    const eliminado = signosVitalesConfigurados.find(signo => !siguientes.some(actual => actual.id === signo.id));
-    const modificado = siguientes.find(signo => {
-      const anterior = signosVitalesConfigurados.find(actual => actual.id === signo.id);
+    const agregado = siguientes.find(
+      (signo) =>
+        !signosVitalesConfigurados.some((actual) => actual.id === signo.id),
+    );
+    const eliminado = signosVitalesConfigurados.find(
+      (signo) => !siguientes.some((actual) => actual.id === signo.id),
+    );
+    const modificado = siguientes.find((signo) => {
+      const anterior = signosVitalesConfigurados.find(
+        (actual) => actual.id === signo.id,
+      );
       return anterior && JSON.stringify(anterior) !== JSON.stringify(signo);
     });
     const signo = agregado || eliminado || modificado;
     if (!signo) return;
-    const metodo = agregado ? 'POST' : eliminado ? 'DELETE' : 'PUT';
-    const respuesta = await apiFetch('/api/v1/configuracion/signos-vitales' + (agregado ? '' : '/' + encodeURIComponent(signo.id)), {
-      method: metodo,
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      ...(eliminado ? {} : { body: JSON.stringify(signo) }),
-    });
+    const metodo = agregado ? "POST" : eliminado ? "DELETE" : "PUT";
+    const respuesta = await apiFetch(
+      "/api/v1/configuracion/signos-vitales" +
+        (agregado ? "" : "/" + encodeURIComponent(signo.id)),
+      {
+        method: metodo,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        ...(eliminado ? {} : { body: JSON.stringify(signo) }),
+      },
+    );
     if (!respuesta.ok) {
-      const detalle = await respuesta.json().catch(() => ({})) as { message?: string };
-      throw new Error(detalle.message || 'No se pudo guardar el cambio. Inténtalo nuevamente.');
+      const detalle = (await respuesta.json().catch(() => ({}))) as {
+        message?: string;
+      };
+      throw new Error(
+        detalle.message ||
+          "No se pudo guardar el cambio. Inténtalo nuevamente.",
+      );
     }
     if (eliminado) {
-      setSignosVitalesConfigurados(actuales => actuales.filter(actual => actual.id !== eliminado.id));
+      setSignosVitalesConfigurados((actuales) =>
+        actuales.filter((actual) => actual.id !== eliminado.id),
+      );
     } else {
-      const { data } = await respuesta.json() as { data: SignoVitalConfig };
-      setSignosVitalesConfigurados(actuales => agregado ? [...actuales, data] : actuales.map(actual => actual.id === data.id ? data : actual));
+      const { data } = (await respuesta.json()) as { data: SignoVitalConfig };
+      setSignosVitalesConfigurados((actuales) =>
+        agregado
+          ? [...actuales, data]
+          : actuales.map((actual) => (actual.id === data.id ? data : actual)),
+      );
     }
   };
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
+  const [abrirFormularioQuirofano, setAbrirFormularioQuirofano] =
+    useState(false);
+  useEffect(() => {
+    if (modulo !== "cuenta-quirofano") setAbrirFormularioQuirofano(false);
+  }, [modulo]);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
-  const [pacienteColaAtencion, setPacienteColaAtencion] = useState<CitaConfirmada | null>(null);
-  const [citasColaAtencion, setCitasColaAtencion] = useState<CitaConfirmada[]>([]);
+  const [pacienteColaAtencion, setPacienteColaAtencion] =
+    useState<CitaConfirmada | null>(null);
+  const [citasColaAtencion, setCitasColaAtencion] = useState<CitaConfirmada[]>(
+    [],
+  );
   const [cargandoColaAtencion, setCargandoColaAtencion] = useState(false);
-  const [errorColaAtencion, setErrorColaAtencion] = useState('');
-  const [conteosImagenologia, setConteosImagenologia] = useState({ pacientes: 0, informes: 0, estudios: 0, radiografias: 0, tomografias: 0, ecografias: 0, ecocardiogramas: 0 });
-  const conteoModalidadActual = ({ radiografias: conteosImagenologia.radiografias, tomografias: conteosImagenologia.tomografias, ecografias: conteosImagenologia.ecografias, ecocardiogramas: conteosImagenologia.ecocardiogramas } as Partial<Record<SubvistaImagenologia, number>>)[subvistaImagenologia] || 0;
+  const [errorColaAtencion, setErrorColaAtencion] = useState("");
+  const [conteosImagenologia, setConteosImagenologia] = useState({
+    pacientes: 0,
+    informes: 0,
+    estudios: 0,
+    radiografias: 0,
+    tomografias: 0,
+    ecografias: 0,
+    ecocardiogramas: 0,
+  });
+  const conteoModalidadActual =
+    (
+      {
+        radiografias: conteosImagenologia.radiografias,
+        tomografias: conteosImagenologia.tomografias,
+        ecografias: conteosImagenologia.ecografias,
+        ecocardiogramas: conteosImagenologia.ecocardiogramas,
+      } as Partial<Record<SubvistaImagenologia, number>>
+    )[subvistaImagenologia] || 0;
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [busqueda, setBusqueda] = useState('');
+  const [busqueda, setBusqueda] = useState("");
   const [verAvisos, setVerAvisos] = useState(false);
-  const [tema, setTema] = useState<TemaSistema>(() => localStorage.getItem("pulso_theme") === "dark" ? "dark" : "light");
-  const [avisos, setAvisos] = useState<{titulo: string; mensaje: string}[]>([]);
-  const esMedico = sesion?.usuario.perfilAtencion === 'medico'
-    || /m[eé]dico/i.test(sesion?.usuario.rol ?? '')
-    || /administrador|admin/i.test(sesion?.usuario.rol ?? '')
-    || sesion?.usuario.permisos.some((permiso) => /medico|consulta/.test(permiso));
-  const internacionesActivas = useSyncExternalStore(suscribirInternaciones, leerInternaciones, leerInternaciones);
-  const internacionesColaAtencion = internacionesActivas.filter((internacion) => internacion.estado === 'confirmada'
-    && (esAdministrador || normalizarNombre(internacion.medico) === nombreSesion));
+  const [tema, setTema] = useState<TemaSistema>(() =>
+    localStorage.getItem("pulso_theme") === "dark" ? "dark" : "light",
+  );
+  const [avisos, setAvisos] = useState<{ titulo: string; mensaje: string }[]>(
+    [],
+  );
+  const esMedico =
+    sesion?.usuario.perfilAtencion === "medico" ||
+    /m[eé]dico/i.test(sesion?.usuario.rol ?? "") ||
+    /administrador|admin/i.test(sesion?.usuario.rol ?? "") ||
+    sesion?.usuario.permisos.some((permiso) => /medico|consulta/.test(permiso));
+  const internacionesActivas = useSyncExternalStore(
+    suscribirInternaciones,
+    leerInternaciones,
+    leerInternaciones,
+  );
+  const internacionesColaAtencion = internacionesActivas.filter(
+    (internacion) =>
+      internacion.estado === "confirmada" &&
+      (esAdministrador ||
+        normalizarNombre(internacion.medico) === nombreSesion),
+  );
+  const citasVisiblesCola =
+    !errorColaAtencion && citasColaAtencion.length
+      ? citasColaAtencion
+      : ejemplosConsultorioCola;
+  const internacionesVisiblesCola = internacionesColaAtencion.length
+    ? internacionesColaAtencion
+    : ejemplosInternacionCola;
   useEffect(() => {
     if (!colaAtencionAbierta) return;
     const controller = new AbortController();
     setCargandoColaAtencion(true);
-    setErrorColaAtencion('');
-    void apiFetch('/api/citas', { signal: controller.signal }).then(async (respuesta) => {
-      if (!respuesta.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
-      const citas = await respuesta.json() as Array<CitaConfirmada & { estado: string }>;
-      if (!controller.signal.aborted) {
-        const hoy = new Date().toLocaleDateString('en-CA');
-        setCitasColaAtencion(citas.filter(cita => cita.estado === 'confirmada' && cita.fecha === hoy));
-      }
-    }).catch((causa: Error) => {
-      if (!controller.signal.aborted) setErrorColaAtencion(causa.message);
-    }).finally(() => {
-      if (!controller.signal.aborted) setCargandoColaAtencion(false);
-    });
+    setErrorColaAtencion("");
+    void apiFetch("/api/citas", { signal: controller.signal })
+      .then(async (respuesta) => {
+        if (!respuesta.ok)
+          throw new Error("No se pudo consultar la agenda de pacientes.");
+        const citas = (await respuesta.json()) as Array<
+          CitaConfirmada & { estado: string }
+        >;
+        if (!controller.signal.aborted) {
+          const hoy = new Date().toLocaleDateString("en-CA");
+          setCitasColaAtencion(
+            citas.filter(
+              (cita) => cita.estado === "confirmada" && cita.fecha === hoy,
+            ),
+          );
+        }
+      })
+      .catch((causa: Error) => {
+        if (!controller.signal.aborted) setErrorColaAtencion(causa.message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCargandoColaAtencion(false);
+      });
     return () => controller.abort();
   }, [colaAtencionAbierta]);
   const modulosVisibles = modulos.filter((item) => {
     const perfil = sesion?.usuario.perfilAtencion;
-    if (perfil === 'enfermera') return ['triaje-ambulatorio', 'triaje-emergencias', 'enfermera-internacion', 'farmacia-internacion', 'enfermera-quirofano'].includes(item.id);
-    if (perfil === 'medico') return ['pacientes', 'atencion-medica', 'atencion-urgencias', 'medico-internacion'].includes(item.id);
-    if (perfil === 'quirofano') return ['enfermera-quirofano', 'medico-quirofano', 'central-esterilizacion', 'recepcion-material-sucio', 'entrega-material-esteril'].includes(item.id);
+    if (perfil === "enfermera")
+      return [
+        "triaje-ambulatorio",
+        "triaje-emergencias",
+        "enfermera-internacion",
+        "farmacia-internacion",
+        "enfermera-quirofano",
+      ].includes(item.id);
+    if (perfil === "medico")
+      return [
+        "pacientes",
+        "atencion-medica",
+        "atencion-urgencias",
+        "medico-internacion",
+      ].includes(item.id);
+    if (perfil === "quirofano")
+      return [
+        "enfermera-quirofano",
+        "medico-quirofano",
+        "central-esterilizacion",
+        "recepcion-material-sucio",
+        "entrega-material-esteril",
+      ].includes(item.id);
     return true;
   });
   useEffect(() => {
     document.documentElement.dataset.theme = tema;
     localStorage.setItem("pulso_theme", tema);
     document.documentElement.classList.add("tema-cambiando");
-    const finTransicion = window.setTimeout(() => document.documentElement.classList.remove("tema-cambiando"), 280);
+    const finTransicion = window.setTimeout(
+      () => document.documentElement.classList.remove("tema-cambiando"),
+      280,
+    );
     return () => window.clearTimeout(finTransicion);
   }, [tema]);
   useEffect(() => {
-    const recibir = (event: Event) => setAvisos(actuales => [(event as CustomEvent).detail, ...actuales].slice(0, 20));
-    window.addEventListener('radiuus:notificacion', recibir);
-    return () => window.removeEventListener('radiuus:notificacion', recibir);
+    const recibir = (event: Event) =>
+      setAvisos((actuales) =>
+        [(event as CustomEvent).detail, ...actuales].slice(0, 20),
+      );
+    window.addEventListener("radiuus:notificacion", recibir);
+    return () => window.removeEventListener("radiuus:notificacion", recibir);
   }, []);
   useEffect(() => {
     if (!menuAbierto) return;
     const antes = document.activeElement as HTMLElement | null;
-    const sidebar = document.querySelector<HTMLElement>('.sistema-sidebar');
-    const botones = () => Array.from(sidebar?.querySelectorAll<HTMLButtonElement>('button') || []).filter(b => b.getClientRects().length > 0);
+    const sidebar = document.querySelector<HTMLElement>(".sistema-sidebar");
+    const botones = () =>
+      Array.from(
+        sidebar?.querySelectorAll<HTMLButtonElement>("button") || [],
+      ).filter((b) => b.getClientRects().length > 0);
     botones()[0]?.focus();
     const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     const teclado = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuAbierto(false);
-      if (e.key === 'Tab') { const lista = botones(), primero = lista[0], ultimo = lista[lista.length - 1]; if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo?.focus(); } else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero?.focus(); } }
+      if (e.key === "Escape") setMenuAbierto(false);
+      if (e.key === "Tab") {
+        const lista = botones(),
+          primero = lista[0],
+          ultimo = lista[lista.length - 1];
+        if (e.shiftKey && document.activeElement === primero) {
+          e.preventDefault();
+          ultimo?.focus();
+        } else if (!e.shiftKey && document.activeElement === ultimo) {
+          e.preventDefault();
+          primero?.focus();
+        }
+      }
     };
-    window.addEventListener('keydown', teclado);
-    return () => { document.body.style.overflow = overflow; window.removeEventListener('keydown', teclado); antes?.focus(); };
+    window.addEventListener("keydown", teclado);
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener("keydown", teclado);
+      antes?.focus();
+    };
   }, [menuAbierto]);
   const [sidebarReplegado, setSidebarReplegado] = useState(
     () => localStorage.getItem("pulso_sidebar_replegado") === "1",
   );
-  const [sidebarCerradoPorSeleccion, setSidebarCerradoPorSeleccion] = useState(false);
-  const [modoRevision, setModoRevision] = useState(() => localStorage.getItem('clinico_modo_revision') === '1');
+  const [sidebarCerradoPorSeleccion, setSidebarCerradoPorSeleccion] =
+    useState(false);
+  const [modoRevision, setModoRevision] = useState(
+    () => localStorage.getItem("clinico_modo_revision") === "1",
+  );
   useEffect(() => {
-    const cambiar = (evento: Event) => { const activo = Boolean((evento as CustomEvent<boolean>).detail); localStorage.setItem('clinico_modo_revision', activo ? '1' : '0'); setModoRevision(activo); };
-    window.addEventListener('clinico:modo-revision', cambiar);
-    return () => window.removeEventListener('clinico:modo-revision', cambiar);
+    const cambiar = (evento: Event) => {
+      const activo = Boolean((evento as CustomEvent<boolean>).detail);
+      localStorage.setItem("clinico_modo_revision", activo ? "1" : "0");
+      setModoRevision(activo);
+    };
+    window.addEventListener("clinico:modo-revision", cambiar);
+    return () => window.removeEventListener("clinico:modo-revision", cambiar);
   }, []);
   useEffect(() => {
-    const replegar = () => setSidebarReplegado((actual) => {
-      if (actual) return actual;
-      localStorage.setItem("pulso_sidebar_replegado", "1");
-      return true;
-    });
+    const replegar = () =>
+      setSidebarReplegado((actual) => {
+        if (actual) return actual;
+        localStorage.setItem("pulso_sidebar_replegado", "1");
+        return true;
+      });
     window.addEventListener("clinico:replegar-sidebar", replegar);
-    return () => window.removeEventListener("clinico:replegar-sidebar", replegar);
+    return () =>
+      window.removeEventListener("clinico:replegar-sidebar", replegar);
   }, []);
   useEffect(() => {
     const expirar = () => setSesion(null);
@@ -399,15 +1211,20 @@ export default function Aplicacion() {
     if (!sesion || modulo !== "imagenologia") return;
     const actualizarLocales = () => {
       const estudios = obtenerEstudios();
-      const pacientesPorModalidad = (categoria: string) => new Set(estudios.filter(estudio => estudio.categoria === categoria).map(estudio => estudio.pacienteId)).size;
+      const pacientesPorModalidad = (categoria: string) =>
+        new Set(
+          estudios
+            .filter((estudio) => estudio.categoria === categoria)
+            .map((estudio) => estudio.pacienteId),
+        ).size;
       setConteosImagenologia({
         pacientes: fichasPacientes.length,
         informes: Object.keys(obtenerInformes()).length,
         estudios: obtenerSolicitudesImagenologia().length,
-        radiografias: pacientesPorModalidad('Radiografía'),
-        tomografias: pacientesPorModalidad('Tomografía'),
-        ecografias: pacientesPorModalidad('Ecografía'),
-        ecocardiogramas: pacientesPorModalidad('Ecocardiograma'),
+        radiografias: pacientesPorModalidad("Radiografía"),
+        tomografias: pacientesPorModalidad("Tomografía"),
+        ecografias: pacientesPorModalidad("Ecografía"),
+        ecocardiogramas: pacientesPorModalidad("Ecocardiograma"),
       });
     };
     actualizarLocales();
@@ -440,70 +1257,91 @@ export default function Aplicacion() {
         setSubvistaImagenologia("tomografias");
         setSubvistaModalidad("visor");
         setVisorModalidad("Tomografía");
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
-      } else if (["visor-radiografias", "visor-ecografias", "visor-ecocardiogramas"].includes(id)) {
-        const subvista = id.replace("visor-", "") as "radiografias" | "ecografias" | "ecocardiogramas";
+      } else if (
+        [
+          "visor-radiografias",
+          "visor-ecografias",
+          "visor-ecocardiogramas",
+        ].includes(id)
+      ) {
+        const subvista = id.replace("visor-", "") as
+          "radiografias" | "ecografias" | "ecocardiogramas";
         setModulo("imagenologia");
         setSubvistaImagenologia(subvista);
         setSubvistaModalidad("visor");
         setVisorModalidad(null);
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
       } else if (id === "visor") {
         setModulo("imagenologia");
         setSubvistaImagenologia("radiografias");
         setSubvistaModalidad("visor");
         setVisorModalidad(null);
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
-      } else if (subvistasImagenologia.some(vista => vista.id === id)) {
+      } else if (subvistasImagenologia.some((vista) => vista.id === id)) {
         setModulo("imagenologia");
         setSubvistaImagenologia(id as SubvistaImagenologia);
         setVisorModalidad(null);
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
       } else if (id === "estudios") {
         setModulo("imagenologia");
         setSubvistaImagenologia("radiografias");
         setSubvistaModalidad("estudios");
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
       } else if (id === "base-datos") {
         setModulo("imagenologia");
         setSubvistaImagenologia("radiografias");
         setSubvistaModalidad("estudios");
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
-      } else if (["caja", "citas", "cuentas", "comprobantes", "reportes"].includes(id)) {
+      } else if (
+        ["caja", "citas", "cuentas", "comprobantes", "reportes"].includes(id)
+      ) {
         setModulo("recepcion");
         setSubvistaRecepcion(id as SubvistaRecepcion);
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
       } else if (id === "usuarios" || id === "roles") {
         setModulo("configuracion");
         setSubvistaConfiguracion("usuarios");
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
-      } else if (modulos.some(m => m.id === id)) {
+      } else if (modulos.some((m) => m.id === id)) {
         setModulo(id);
-        setBusqueda('');
+        setBusqueda("");
         setMenuAbierto(false);
       }
     };
     window.addEventListener("radiuus:navegar", navegar);
     return () => window.removeEventListener("radiuus:navegar", navegar);
   }, []);
-  if (!sesion) return <><CentroNotificaciones /><VistaInicioSesion onLogin={setSesion} /></>;
+  if (!sesion)
+    return (
+      <>
+        <CentroNotificaciones />
+        <VistaInicioSesion onLogin={setSesion} />
+      </>
+    );
   const moduloActual = modulos.find((item) => item.id === modulo);
-  const subvistaActual = subvistasImagenologia.find((item) => item.id === subvistaImagenologia) ?? subvistasImagenologia[0];
+  const subvistaActual =
+    subvistasImagenologia.find((item) => item.id === subvistaImagenologia) ??
+    subvistasImagenologia[0];
   const actual = moduloActual;
   const opcionesBusqueda = [...modulos, ...subvistasImagenologia];
-  const textoBusqueda = busqueda.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const textoBusqueda = busqueda
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
   const cerrarSesion = async () => {
     const salir = await confirmar({
       titulo: "Cerrar sesión",
-      mensaje: "¿Estás seguro de que quieres cerrar sesión del sistema clínico?",
+      mensaje:
+        "¿Estás seguro de que quieres cerrar sesión del sistema clínico?",
       textoConfirmar: "Sí, cerrar sesión",
       detalle: "Necesitaras iniciar sesion nuevamente para volver a ingresar.",
       variante: "salida",
@@ -519,8 +1357,8 @@ export default function Aplicacion() {
     setMenuAbierto(false);
     setAvisos([]);
     setVerAvisos(false);
-    setBusqueda('');
-    setModulo('');
+    setBusqueda("");
+    setModulo("");
   };
   const alternarSidebar = () =>
     setSidebarReplegado((valor) => {
@@ -528,22 +1366,46 @@ export default function Aplicacion() {
       localStorage.setItem("pulso_sidebar_replegado", siguiente ? "1" : "0");
       return siguiente;
     });
-  const replegarSidebarAlInteractuar = () => window.dispatchEvent(new Event('clinico:replegar-sidebar'));
+  const replegarSidebarAlInteractuar = () =>
+    window.dispatchEvent(new Event("clinico:replegar-sidebar"));
   return (
     <main
       className={`sistema-app ${sidebarReplegado ? "sidebar-replegado" : ""} ${modoRevision ? "modo-revision" : ""}`}
       data-theme={tema}
     >
       <CentroNotificaciones />
-      {modoRevision && <aside className="modo-revision-bloqueo" role="alert"><Icon name="settings" size={22}/><div><strong>Sistema en modo revisión</strong><small>Las acciones están bloqueadas.</small></div><button type="button" onClick={() => window.dispatchEvent(new CustomEvent('clinico:modo-revision', { detail: false }))}>Reactivar sistema</button></aside>}
+      {modoRevision && (
+        <aside className="modo-revision-bloqueo" role="alert">
+          <Icon name="settings" size={22} />
+          <div>
+            <strong>Sistema en modo revisión</strong>
+            <small>Las acciones están bloqueadas.</small>
+          </div>
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(
+                new CustomEvent("clinico:modo-revision", { detail: false }),
+              )
+            }
+          >
+            Reactivar sistema
+          </button>
+        </aside>
+      )}
       <aside
         className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""}`}
         onMouseLeave={() => setSidebarCerradoPorSeleccion(false)}
-        onKeyDown={(evento) => { if (evento.key === 'Tab') setSidebarCerradoPorSeleccion(false); }}
+        onKeyDown={(evento) => {
+          if (evento.key === "Tab") setSidebarCerradoPorSeleccion(false);
+        }}
       >
         <div className="sistema-marca">
           <span className="marca-icono">
-            <img src="/logo-hospital-original.png" alt="Logo Hospital Maria Esperanza" />
+            <img
+              src="/logo-hospital-original.png"
+              alt="Logo Hospital Maria Esperanza"
+            />
           </span>
           <span className="marca-texto">
             <strong>Hospital Maria Esperanza</strong>
@@ -558,50 +1420,65 @@ export default function Aplicacion() {
           </button>
         </div>
         <nav className="sistema-nav" aria-label="Módulos del sistema">
-          {[...new Set(modulosVisibles.map((item) => item.grupo))].map((grupo) => (
-            <section key={grupo}>
-              <p>{grupo}</p>
-              {modulosVisibles
-                .filter((item) => item.grupo === grupo)
-                .map((item) => (
-                  <React.Fragment key={item.id}>
-                  <button
-                    title={sidebarReplegado ? item.nombre : undefined}
-                    aria-label={item.nombre}
-                    aria-current={modulo === item.id ? "page" : undefined}
-                    key={item.id}
-                    className={`nav-modulo nav-${item.id}${modulo === item.id ? " activo" : ""}`}
-                    onClick={(evento) => {
-                      setModulo(item.id);
-                      if (item.id === "imagenologia") setSubvistaImagenologia("pacientes");
-                      if (item.id === "atencion-agenda") setSubvistaAtencionAgenda("pacientes");
-                      if (item.id === "recepcion") setSubvistaRecepcion("caja");
-                      if (item.id === "pacientes") setSubvistaPacientes("pacientes");
-                      if (item.id === "configuracion") setSubvistaConfiguracion("usuario");
-                      if (item.id === "triaje-ambulatorio") setSubvistaTriajeAmbulatorio("signos-vitales");
-                      setMenuAbierto(false);
-                      if (window.matchMedia('(min-width: 761px)').matches) {
-                        localStorage.setItem("pulso_sidebar_replegado", "1");
-                        setSidebarReplegado(true);
-                        setSidebarCerradoPorSeleccion(true);
-                        if (evento.detail > 0) evento.currentTarget.blur();
-                      }
-                    }}
-                  >
-                    <span className="nav-icono line-nav-icono">
-                      <Icon name={item.icono} size={20} className="sidebar-line-icon" />
-                    </span>
-                    <span className="nav-texto">{item.nombre}</span>
-                    <Icon
-                      className="nav-indicador"
-                      name="chevronRight"
-                      size={14}
-                    />
-                  </button>
-                  </React.Fragment>
-                ))}
-            </section>
-          ))}
+          {[...new Set(modulosVisibles.map((item) => item.grupo))].map(
+            (grupo) => (
+              <section key={grupo}>
+                <p>{grupo}</p>
+                {modulosVisibles
+                  .filter((item) => item.grupo === grupo)
+                  .map((item) => (
+                    <React.Fragment key={item.id}>
+                      <button
+                        title={sidebarReplegado ? item.nombre : undefined}
+                        aria-label={item.nombre}
+                        aria-current={modulo === item.id ? "page" : undefined}
+                        key={item.id}
+                        className={`nav-modulo nav-${item.id}${modulo === item.id ? " activo" : ""}`}
+                        onClick={(evento) => {
+                          setModulo(item.id);
+                          if (item.id === "imagenologia")
+                            setSubvistaImagenologia("pacientes");
+                          if (item.id === "atencion-agenda")
+                            setSubvistaAtencionAgenda("pacientes");
+                          if (item.id === "recepcion")
+                            setSubvistaRecepcion("caja");
+                          if (item.id === "pacientes")
+                            setSubvistaPacientes("pacientes");
+                          if (item.id === "configuracion")
+                            setSubvistaConfiguracion("usuario");
+                          if (item.id === "triaje-ambulatorio")
+                            setSubvistaTriajeAmbulatorio("signos-vitales");
+                          setMenuAbierto(false);
+                          if (window.matchMedia("(min-width: 761px)").matches) {
+                            localStorage.setItem(
+                              "pulso_sidebar_replegado",
+                              "1",
+                            );
+                            setSidebarReplegado(true);
+                            setSidebarCerradoPorSeleccion(true);
+                            if (evento.detail > 0) evento.currentTarget.blur();
+                          }
+                        }}
+                      >
+                        <span className="nav-icono line-nav-icono">
+                          <Icon
+                            name={item.icono}
+                            size={20}
+                            className="sidebar-line-icon"
+                          />
+                        </span>
+                        <span className="nav-texto">{item.nombre}</span>
+                        <Icon
+                          className="nav-indicador"
+                          name="chevronRight"
+                          size={14}
+                        />
+                      </button>
+                    </React.Fragment>
+                  ))}
+              </section>
+            ),
+          )}
         </nav>
         <button
           className="boton-salir"
@@ -626,8 +1503,16 @@ export default function Aplicacion() {
           <button
             className="desplegar-sidebar-escritorio"
             onClick={alternarSidebar}
-            aria-label={sidebarReplegado ? "Desplegar menú lateral" : "Replegar menú lateral"}
-            title={sidebarReplegado ? "Desplegar menú lateral" : "Replegar menú lateral"}
+            aria-label={
+              sidebarReplegado
+                ? "Desplegar menú lateral"
+                : "Replegar menú lateral"
+            }
+            title={
+              sidebarReplegado
+                ? "Desplegar menú lateral"
+                : "Replegar menú lateral"
+            }
             aria-expanded={!sidebarReplegado}
           >
             <Icon name="menu" size={20} />
@@ -639,23 +1524,124 @@ export default function Aplicacion() {
           >
             <Icon name="menu" />
           </button>
-          {actual && <><span className="topbar-icono">
-            <Icon name={actual.icono} size={20} />
-          </span>
-          <div className="topbar-titulo">
-            <h1>{actual.nombre}</h1>
-          </div></>}
+          {actual && (
+            <>
+              <span className="topbar-icono">
+                <Icon name={actual.icono} size={20} />
+              </span>
+              <div className="topbar-titulo">
+                <h1>{actual.nombre}</h1>
+              </div>
+            </>
+          )}
           <label className="busqueda-global">
             <Icon name="search" size={18} />
-            <input aria-label="Buscar módulo" placeholder="Buscar un módulo" value={busqueda} onChange={e => setBusqueda(e.target.value)} onKeyDown={e => { if (e.key === 'Escape') setBusqueda(''); }}/>
-            {busqueda.trim() && <div className="pulso-resultados">{opcionesBusqueda.filter(m => m.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(textoBusqueda)).map(m => <button type="button" key={m.id} onClick={() => { if (subvistasImagenologia.some(vista => vista.id === m.id)) { setModulo("imagenologia"); setSubvistaImagenologia(m.id as SubvistaImagenologia); } else setModulo(m.id); setBusqueda(''); }}>{m.nombre}</button>)}{!opcionesBusqueda.some(m => m.nombre.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().includes(textoBusqueda)) && <p>No se encontraron módulos.</p>}</div>}
+            <input
+              aria-label="Buscar módulo"
+              placeholder="Buscar un módulo"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setBusqueda("");
+              }}
+            />
+            {busqueda.trim() && (
+              <div className="pulso-resultados">
+                {opcionesBusqueda
+                  .filter((m) =>
+                    m.nombre
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .toLowerCase()
+                      .includes(textoBusqueda),
+                  )
+                  .map((m) => (
+                    <button
+                      type="button"
+                      key={m.id}
+                      onClick={() => {
+                        if (
+                          subvistasImagenologia.some(
+                            (vista) => vista.id === m.id,
+                          )
+                        ) {
+                          setModulo("imagenologia");
+                          setSubvistaImagenologia(m.id as SubvistaImagenologia);
+                        } else setModulo(m.id);
+                        setBusqueda("");
+                      }}
+                    >
+                      {m.nombre}
+                    </button>
+                  ))}
+                {!opcionesBusqueda.some((m) =>
+                  m.nombre
+                    .normalize("NFD")
+                    .replace(/[\u0300-\u036f]/g, "")
+                    .toLowerCase()
+                    .includes(textoBusqueda),
+                ) && <p>No se encontraron módulos.</p>}
+              </div>
+            )}
           </label>
-          <div className="topbar-notificaciones"><button className="topbar-boton" aria-label="Notificaciones" aria-expanded={verAvisos} onClick={() => setVerAvisos(!verAvisos)}>
-            <Icon name="bell" size={20} />
-          </button>
-          {verAvisos && <section className="pulso-avisos" aria-label="Notificaciones recientes"><header><h2>Notificaciones</h2><button type="button" onClick={() => setVerAvisos(false)} aria-label="Cerrar notificaciones">×</button></header>{avisos.length ? avisos.map((a, i) => <article key={i}><strong>{a.titulo}</strong><p>{a.mensaje}</p></article>) : <div className="pulso-avisos-vacio"><Icon name="bell" size={22} /><p>No hay notificaciones en esta sesión.</p></div>}</section>}</div>
-          {esMedico && <button className="cola-atencion-rapida" type="button" onClick={() => setColaAtencionAbierta(true)}><Icon name="userCheck" size={17} /> Cola de atención</button>}
-          <button className="perfil" type="button" onClick={() => { setModulo("configuracion"); setSubvistaConfiguracion("usuario"); }} aria-label="Abrir Mi usuario">
+          <div className="topbar-notificaciones">
+            <button
+              className="topbar-boton"
+              aria-label="Notificaciones"
+              aria-expanded={verAvisos}
+              onClick={() => setVerAvisos(!verAvisos)}
+            >
+              <Icon name="bell" size={20} />
+            </button>
+            {verAvisos && (
+              <section
+                className="pulso-avisos"
+                aria-label="Notificaciones recientes"
+              >
+                <header>
+                  <h2>Notificaciones</h2>
+                  <button
+                    type="button"
+                    onClick={() => setVerAvisos(false)}
+                    aria-label="Cerrar notificaciones"
+                  >
+                    ×
+                  </button>
+                </header>
+                {avisos.length ? (
+                  avisos.map((a, i) => (
+                    <article key={i}>
+                      <strong>{a.titulo}</strong>
+                      <p>{a.mensaje}</p>
+                    </article>
+                  ))
+                ) : (
+                  <div className="pulso-avisos-vacio">
+                    <Icon name="bell" size={22} />
+                    <p>No hay notificaciones en esta sesión.</p>
+                  </div>
+                )}
+              </section>
+            )}
+          </div>
+          {esMedico && (
+            <button
+              className="cola-atencion-rapida"
+              type="button"
+              onClick={() => setColaAtencionAbierta(true)}
+            >
+              <Icon name="userCheck" size={17} /> Cola de atención
+            </button>
+          )}
+          <button
+            className="perfil"
+            type="button"
+            onClick={() => {
+              setModulo("configuracion");
+              setSubvistaConfiguracion("usuario");
+            }}
+            aria-label="Abrir Mi usuario"
+          >
             <span className="perfil-avatar">
               <Icon name="users" size={21} />
             </span>
@@ -675,191 +1661,1117 @@ export default function Aplicacion() {
             <Icon name="logout" size={20} />
           </button>
         </header>
-        {colaAtencionAbierta && <div className="cola-atencion-modal" role="dialog" aria-modal="true" aria-label="Cola de atención">
-          <button className="cola-atencion-fondo" type="button" aria-label="Cerrar cola de atención" onClick={() => setColaAtencionAbierta(false)} />
-          <aside className="cola-atencion-panel">
-            <header><div><p>CONSULTORIO MÉDICO</p><h2>Cola de atención</h2><small>Pacientes confirmados pendientes de atención.</small></div><button type="button" aria-label="Cerrar" onClick={() => setColaAtencionAbierta(false)}>×</button></header>
-            <div className="cola-atencion-lista">
-              {cargandoColaAtencion && <p className="cola-atencion-estado">Cargando agenda…</p>}
-              {!cargandoColaAtencion && errorColaAtencion && <p className="cola-atencion-estado" role="alert">{errorColaAtencion}</p>}
-              {!cargandoColaAtencion && !errorColaAtencion && !citasColaAtencion.length && <p className="cola-atencion-estado">No tienes pacientes confirmados para atender hoy.</p>}
-              {!cargandoColaAtencion && !errorColaAtencion && citasColaAtencion.map((cita, indice) => <article key={cita.id}>
-                <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Por atender</b><strong>{cita.paciente}</strong><small>{cita.especialidad || 'Consulta ambulatoria'}</small></div><time>{cita.hora}</time><button type="button" onClick={() => { setPacienteColaAtencion(cita); setColaAtencionAbierta(false); setModulo('atencion-medica'); setColaAtencionVersion((actual) => actual + 1); }}>Atender paciente</button>
-              </article>)}
-              <section className="cola-atencion-internados" aria-label="Pacientes internados">
-                <header><p>PACIENTES INTERNADOS</p><small>Pacientes actualmente a tu cargo.</small></header>
-                {internacionesColaAtencion.length ? internacionesColaAtencion.map((internacion, indice) => <article key={internacion.id}>
-                  <span className="cola-atencion-numero">{indice + 1}</span><div className="cola-atencion-datos"><b>Internado</b><strong>{internacion.paciente}</strong><small>Sala {internacion.sala || '—'} · Cama {internacion.cama || '—'}</small></div><time>{internacion.horaIngreso || '—'}</time><button type="button" onClick={() => { setColaAtencionAbierta(false); setModulo('medico-internacion'); }}>Ver internación</button>
-                </article>) : <p className="cola-atencion-estado">No hay pacientes internados asignados actualmente.</p>}
-              </section>
-            </div>
-          </aside>
-        </div>}
-        <div className={`area-trabajo ${modulo === "imagenologia" && subvistaModalidad === "visor" ? "area-trabajo-visor" : ""}`} onPointerDownCapture={replegarSidebarAlInteractuar} onFocusCapture={replegarSidebarAlInteractuar}>
-          <Suspense fallback={<div className="modulo-vacio" role="status"><span><Icon name="patient" size={28} /></span><p>CARGANDO</p><h2>Preparando flujo…</h2><small>Activando únicamente los recursos de esta área.</small></div>}>
-          {modulo === "imagenologia" && (
-            <nav className="imagenologia-subvistas" aria-label="Subvistas de Imagenología">
-              {subvistasImagenologia.map(vista => (
-                <button key={vista.id} className={subvistaImagenologia === vista.id ? "activo" : ""} onClick={() => { setSubvistaImagenologia(vista.id); if (["radiografias", "tomografias", "ecografias", "ecocardiogramas"].includes(vista.id)) setSubvistaModalidad("pacientes"); }}>
-                  <span><Icon name={vista.icono} size={16} /></span>
-                  {vista.nombre}
-                  <b>{vista.id === "pacientes" ? conteosImagenologia.pacientes : vista.id === "informes" ? conteosImagenologia.informes : vista.id === "radiografias" ? conteosImagenologia.radiografias : vista.id === "tomografias" ? conteosImagenologia.tomografias : vista.id === "ecografias" ? conteosImagenologia.ecografias : vista.id === "ecocardiogramas" ? conteosImagenologia.ecocardiogramas : conteosImagenologia.estudios}</b>
-                </button>
-              ))}
-            </nav>
-          )}
-          {modulo === "imagenologia" && ["radiografias", "tomografias", "ecografias", "ecocardiogramas"].includes(subvistaImagenologia) && (
-            <nav className="imagenologia-subvistas imagenologia-subsubvistas" aria-label={`Subvistas de ${subvistaActual.nombre}`}>
-              {subvistasModalidad.map(vista => (
-                <button key={vista.id} className={subvistaModalidad === vista.id ? "activo" : ""} onClick={() => setSubvistaModalidad(vista.id)}>
-                  <span><Icon name={vista.icono} size={16} /></span>{vista.nombre}
-                  <b>{conteoModalidadActual}</b>
-                </button>
-              ))}
-            </nav>
-          )}
-          {modulo === "pacientes" && (
-            <nav className="pacientes-subvistas" aria-label="Subvistas de Pacientes">
-              {subvistasPacientes.map(vista => (
+        {colaAtencionAbierta && (
+          <div
+            className="cola-atencion-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Cola de atención"
+          >
+            <button
+              className="cola-atencion-fondo"
+              type="button"
+              aria-label="Cerrar cola de atención"
+              onClick={() => setColaAtencionAbierta(false)}
+            />
+            <aside className="cola-atencion-panel">
+              <header>
+                <div>
+                  <p>CONSULTORIO MÉDICO</p>
+                  <h2>Cola de atención</h2>
+                  <small>Pacientes confirmados pendientes de atención.</small>
+                </div>
                 <button
-                  key={vista.id}
-                  className={subvistaPacientes === vista.id ? "activo" : ""}
-                  onClick={() => setSubvistaPacientes(vista.id)}
+                  type="button"
+                  aria-label="Cerrar"
+                  onClick={() => setColaAtencionAbierta(false)}
                 >
-                  <Icon className="pacientes-subvista-icono" name={vista.icono} size={17} />
-                  <i className="pacientes-subvista-texto"><strong>{vista.nombre}</strong><small>{vista.id === 'pacientes' ? 'Registro y búsqueda' : vista.id === 'historias' ? 'Expediente clínico' : 'Resultados médicos'}</small></i>
+                  ×
                 </button>
-              ))}
-            </nav>
-          )}
-          {modulo === 'atencion-agenda' && <section className="triaje-ambulatorio-vista"><HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Atención y agenda"><button type="button" className={subvistaAtencionAgenda === 'pacientes' ? 'activo' : ''} onClick={() => setSubvistaAtencionAgenda('pacientes')}><span><Icon name="patient" size={17}/></span><strong>Pacientes agendados</strong><small>Estudios y atenciones pendientes.</small></button><button type="button" className={subvistaAtencionAgenda === 'cronograma' ? 'activo' : ''} onClick={() => setSubvistaAtencionAgenda('cronograma')}><span><Icon name="calendar" size={17}/></span><strong>Cronograma semanal</strong><small>Agenda por día y horario.</small></button></HorizontalSubvistaNav></section>}
-          {modulo === 'recepcion' ? <RecepcionView key={subvistaRecepcion} initialSubview={subvistaRecepcion} onAbrirModulo={setModulo}/> : modulo === 'atencion-agenda' ? (subvistaAtencionAgenda === 'pacientes' ? <AgendaImagenologiaView /> : <CronogramaEstudiosView />) : modulo === 'farmacia' ? <FarmaciaView /> : modulo === 'farmacia-movimientos' || modulo === 'almacen' ? <AdministracionFarmaciaView /> : modulo === 'dispensar' ? <FarmaciaView /> : modulo === 'cocina' ? <CocinaVentasView /> : modulo === 'cocina-internacion' ? <CocinaInternacionView /> : modulo === 'cocina-administracion' ? <CocinaAdministracionView /> : modulo === 'pacientes' ? (subvistaPacientes === 'pacientes' ? <VistaPacientes modoClinico /> : subvistaPacientes === 'historias' ? <HistoriasClinicasView /> : <TablaSubvistaPaciente vista="estudios" />) : modulo === 'laboratorio-almacen' ? <LaboratorioAlmacenView /> : ['laboratorio-ambulatorios', 'laboratorio-internados', 'laboratorio-configuracion'].includes(modulo) ? (
-            modulo === 'laboratorio-configuracion' ? <ConfiguracionLaboratorioView /> : <LaboratorioView key={modulo} origen={modulo === 'laboratorio-internados' ? 'internacion' : 'ambulatorio'} />
-          ) : modulo === 'atencion-medica' ? (
-            <ConsultorioView key={colaAtencionVersion} medico={sesion.usuario.nombre} initialSubview="consulta" initialPatient={pacienteColaAtencion} signos={signosVitalesConfigurados} estadoSignos={estadoSignos} />
-          ) : modulo === 'triaje-ambulatorio' ? (
-            <section className="triaje-ambulatorio-vista">
-              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de Triaje ambulatorio">
-                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'signos-vitales' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('signos-vitales')}><span><Icon name="patient" size={17} /></span><strong>Signos vitales</strong></button>
-                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'agenda' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'agenda' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('agenda')}><span><Icon name="calendar" size={17} /></span><strong>Agenda</strong></button>
-                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'registro-uso' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'registro-uso' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('registro-uso')}><span><Icon name="audit" size={17} /></span><strong>Registro de atención</strong></button>
-                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'uso-items' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'uso-items' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('uso-items')}><span><Icon name="package" size={17} /></span><strong>Uso de ítems</strong></button>
-                <button type="button" aria-current={subvistaTriajeAmbulatorio === 'configuracion' ? 'page' : undefined} className={subvistaTriajeAmbulatorio === 'configuracion' ? 'activo' : ''} onClick={() => setSubvistaTriajeAmbulatorio('configuracion')}><span><Icon name="settings" size={17} /></span><strong>Configuración</strong></button>
-              </HorizontalSubvistaNav>
-              {subvistaTriajeAmbulatorio === 'signos-vitales' && estadoSignos === 'listo' && <SignosVitalesView camposConfigurados={signosVitalesConfigurados} />}
-              {subvistaTriajeAmbulatorio === 'agenda' && <CitasRecepcionView />}
-              {subvistaTriajeAmbulatorio === 'registro-uso' && <RegistroUsoTriajeView />}
-              {subvistaTriajeAmbulatorio === 'uso-items' && <UsoItemsAmbulatorioView />}
-              {subvistaTriajeAmbulatorio === 'configuracion' && estadoSignos === 'listo' && <ConfiguracionSignosVitalesView signos={signosVitalesConfigurados} onChange={actualizarSignosVitales} />}
-              {(subvistaTriajeAmbulatorio === 'signos-vitales' || subvistaTriajeAmbulatorio === 'configuracion') && estadoSignos === 'cargando' && <p>Cargando configuración de signos vitales...</p>}
-              {(subvistaTriajeAmbulatorio === 'signos-vitales' || subvistaTriajeAmbulatorio === 'configuracion') && estadoSignos === 'error' && <div role="alert"><p>No se pudo cargar la configuración de signos vitales.</p><button type="button" onClick={() => setVersionSignos(version => version + 1)}>Reintentar</button></div>}
-            </section>
-          ) : modulo === 'triaje-emergencias' ? (
-            <TriajeEmergenciasView />
-          ) : modulo === 'atencion-urgencias' ? (
-            <AtencionMedicaEmergenciasView />
-          ) : modulo === 'enfermera-terapia-intensiva' ? (
-            <section className="triaje-ambulatorio-vista">
-              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de terapia intensiva">
-                <button type="button" aria-current={subvistaTerapia === 'registro-enfermeria' ? 'page' : undefined} className={subvistaTerapia === 'registro-enfermeria' ? 'activo' : ''} onClick={() => setSubvistaTerapia('registro-enfermeria')}><span><Icon name="audit" size={17}/></span><strong>Registro de enfermería</strong><small>Registro y seguimiento de cuidados de enfermería.</small></button>
-                <button type="button" aria-current={subvistaTerapia === 'monitorizacion' ? 'page' : undefined} className={subvistaTerapia === 'monitorizacion' ? 'activo' : ''} onClick={() => setSubvistaTerapia('monitorizacion')}><span><Icon name="patient" size={17}/></span><strong>Monitorización</strong><small>Seguimiento de pacientes en terapia intensiva.</small></button>
-                <button type="button" aria-current={subvistaTerapia === 'registros' ? 'page' : undefined} className={subvistaTerapia === 'registros' ? 'activo' : ''} onClick={() => setSubvistaTerapia('registros')}><span><Icon name="audit" size={17}/></span><strong>Registros</strong><small>Registros de enfermería de terapia intensiva.</small></button>
-              </HorizontalSubvistaNav>
-              {subvistaTerapia === 'registro-enfermeria' ? <RegistroEnfermeriaTerapiaView /> : subvistaTerapia === 'monitorizacion' ? <TerapiaIntensivaView /> : <section className="em-panel" aria-labelledby="terapia-subvista-titulo"><header className="em-panel-titulo"><h2 id="terapia-subvista-titulo">Registros</h2></header><p className="em-vacio">Aún no hay registros de enfermería.</p></section>}
-            </section>
-          ) : modulo === 'ambulancia' ? (
-            <AmbulanciaView />
-          ) : modulo === 'enfermera-internacion' ? (
-            <section className="triaje-ambulatorio-vista">
-              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de internación">
-                <button type="button" aria-current={subvistaEnfermeraInternacion === 'internados' ? 'page' : undefined} className={subvistaEnfermeraInternacion === 'internados' ? 'activo' : ''} onClick={() => setSubvistaEnfermeraInternacion('internados')}><span><Icon name="patient" size={17}/></span><strong>Pacientes internados</strong><small>Pacientes activos por sala y cama.</small></button>
-                <button type="button" aria-current={subvistaEnfermeraInternacion === 'altas' ? 'page' : undefined} className={subvistaEnfermeraInternacion === 'altas' ? 'activo' : ''} onClick={() => setSubvistaEnfermeraInternacion('altas')}><span><Icon name="check" size={17}/></span><strong>Pacientes dados de alta</strong><small>Historial de internaciones finalizadas.</small></button>
-              </HorizontalSubvistaNav>
-              <EnfermeraInternacionView subvista={subvistaEnfermeraInternacion} />
-            </section>
-          ) : modulo === 'farmacia-internacion' ? (
-            <FarmaciaInternacionView enfermera={sesion.usuario.nombre} />
-          ) : modulo === 'medico-internacion' ? (
-            <section className="triaje-ambulatorio-vista">
-              <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de médico de internación">
-                <button type="button" aria-current={subvistaMedicoInternacion === 'internados' ? 'page' : undefined} className={subvistaMedicoInternacion === 'internados' ? 'activo' : ''} onClick={() => setSubvistaMedicoInternacion('internados')}><span><Icon name="patient" size={17}/></span><strong>Pacientes internados</strong><small>Pacientes activos por sala y cama.</small></button>
-                <button type="button" aria-current={subvistaMedicoInternacion === 'altas' ? 'page' : undefined} className={subvistaMedicoInternacion === 'altas' ? 'activo' : ''} onClick={() => setSubvistaMedicoInternacion('altas')}><span><Icon name="check" size={17}/></span><strong>Pacientes dados de alta</strong><small>Historial de internaciones finalizadas.</small></button>
-              </HorizontalSubvistaNav>
-              <MedicoInternacionView subvista={subvistaMedicoInternacion}/>
-            </section>
-          ) : modulo === 'enfermera-quirofano' ? (
-            <section className="enfermeria-quirofano-vista">
-    <nav className="enfermeria-q-subvistas recepcion-subvistas" aria-label="Funciones de enfermería de quirófano">
-      <button type="button" className={rolEnfermeriaQuirofano === 'instrumentista' ? 'activo' : ''} onClick={() => { setRolEnfermeriaQuirofano('instrumentista'); setCirugiaInstrumentista(null); }}><span><Icon name="patient" size={17}/></span><strong>Enfermera instrumentista</strong></button>
-      <button type="button" className={rolEnfermeriaQuirofano === 'circulante' ? 'activo' : ''} onClick={() => { setRolEnfermeriaQuirofano('circulante'); setCirugiaInstrumentista(null); }}><span><Icon name="userCheck" size={17}/></span><strong>Enfermera circulante</strong></button>
-      <button type="button" className={rolEnfermeriaQuirofano === 'almacen' ? 'activo' : ''} onClick={() => setRolEnfermeriaQuirofano('almacen')}><span><Icon name="package" size={17}/></span><strong>Almacén quirófano</strong></button>
+              </header>
+              <div className="cola-atencion-lista">
+                {cargandoColaAtencion && (
+                  <p className="cola-atencion-estado">Cargando agenda…</p>
+                )}
+                {!cargandoColaAtencion && !citasVisiblesCola.length && (
+                  <p className="cola-atencion-estado">
+                    No tienes pacientes confirmados para atender hoy.
+                  </p>
+                )}
+                {!cargandoColaAtencion &&
+                  citasVisiblesCola.map((cita, indice) => (
+                    <article key={cita.id}>
+                      <span className="cola-atencion-numero">{indice + 1}</span>
+                      <div className="cola-atencion-datos">
+                        <b>Por atender</b>
+                        <strong>{cita.paciente}</strong>
+                        <small>
+                          {cita.especialidad || "Consulta ambulatoria"}
+                        </small>
+                      </div>
+                      <time>{cita.hora}</time>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPacienteColaAtencion(cita);
+                          setColaAtencionAbierta(false);
+                          setModulo("atencion-medica");
+                          setColaAtencionVersion((actual) => actual + 1);
+                        }}
+                      >
+                        Atender paciente
+                      </button>
+                    </article>
+                  ))}
+                <section
+                  className="cola-atencion-internados"
+                  aria-label="Pacientes internados"
+                >
+                  <header>
+                    <p>PACIENTES INTERNADOS</p>
+                    <small>Pacientes actualmente a tu cargo.</small>
+                  </header>
+                  {internacionesVisiblesCola.length ? (
+                    internacionesVisiblesCola.map((internacion, indice) => (
+                      <article key={internacion.id}>
+                        <span className="cola-atencion-numero">
+                          {indice + 1}
+                        </span>
+                        <div className="cola-atencion-datos">
+                          <b>Internado</b>
+                          <strong>{internacion.paciente}</strong>
+                          <small>
+                            Sala {internacion.sala || "—"} · Cama{" "}
+                            {internacion.cama || "—"}
+                          </small>
+                        </div>
+                        <time>{internacion.horaIngreso || "—"}</time>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setColaAtencionAbierta(false);
+                            setModulo("medico-internacion");
+                          }}
+                        >
+                          Ver internación
+                        </button>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="cola-atencion-estado">
+                      No hay pacientes internados asignados actualmente.
+                    </p>
+                  )}
+                </section>
+                <section
+                  className="cola-atencion-internados cola-atencion-seccion cola-atencion-emergencias"
+                  aria-label="Pacientes de emergencias"
+                >
+                  <header>
+                    <p>EMERGENCIAS</p>
+                    <small>Atenciones activas en cubículos.</small>
+                  </header>
+                  {ejemplosEmergenciasCola.map((paciente, indice) => (
+                    <article key={paciente.id}>
+                      <span className="cola-atencion-numero">{indice + 1}</span>
+                      <div className="cola-atencion-datos">
+                        <b>En atención</b>
+                        <strong>{paciente.paciente}</strong>
+                        <small>{paciente.detalle}</small>
+                      </div>
+                      <time>{paciente.hora}</time>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setColaAtencionAbierta(false);
+                          setModulo("atencion-urgencias");
+                        }}
+                      >
+                        Ver emergencia
+                      </button>
+                    </article>
+                  ))}
+                </section>
+                <section
+                  className="cola-atencion-internados cola-atencion-seccion cola-atencion-terapia"
+                  aria-label="Pacientes de terapia intensiva"
+                >
+                  <header>
+                    <p>TERAPIA INTENSIVA</p>
+                    <small>
+                      Pacientes que requieren seguimiento prioritario.
+                    </small>
+                  </header>
+                  {ejemplosTerapiaCola.map((paciente, indice) => (
+                    <article key={paciente.id}>
+                      <span className="cola-atencion-numero">{indice + 1}</span>
+                      <div className="cola-atencion-datos">
+                        <b>UCI</b>
+                        <strong>{paciente.paciente}</strong>
+                        <small>{paciente.detalle}</small>
+                      </div>
+                      <time>{paciente.hora}</time>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setColaAtencionAbierta(false);
+                          setModulo("enfermera-terapia-intensiva");
+                        }}
+                      >
+                        Ver terapia
+                      </button>
+                    </article>
+                  ))}
+                </section>
+              </div>
+            </aside>
+          </div>
+        )}
+        <div
+          className={`area-trabajo ${modulo === "imagenologia" && subvistaModalidad === "visor" ? "area-trabajo-visor" : ""}`}
+          onPointerDownCapture={replegarSidebarAlInteractuar}
+          onFocusCapture={replegarSidebarAlInteractuar}
+        >
+          <Suspense
+            fallback={
+              <div className="modulo-vacio" role="status">
+                <span>
+                  <Icon name="patient" size={28} />
+                </span>
+                <p>CARGANDO</p>
+                <h2>Preparando flujo…</h2>
+                <small>Activando únicamente los recursos de esta área.</small>
+              </div>
+            }
+          >
+            {modulo === "imagenologia" && (
+              <nav
+                className="imagenologia-subvistas"
+                aria-label="Subvistas de Imagenología"
+              >
+                {subvistasImagenologia.map((vista) => (
+                  <button
+                    key={vista.id}
+                    className={
+                      subvistaImagenologia === vista.id ? "activo" : ""
+                    }
+                    onClick={() => {
+                      setSubvistaImagenologia(vista.id);
+                      if (
+                        [
+                          "radiografias",
+                          "tomografias",
+                          "ecografias",
+                          "ecocardiogramas",
+                        ].includes(vista.id)
+                      )
+                        setSubvistaModalidad("pacientes");
+                    }}
+                  >
+                    <span>
+                      <Icon name={vista.icono} size={16} />
+                    </span>
+                    {vista.nombre}
+                    <b>
+                      {vista.id === "pacientes"
+                        ? conteosImagenologia.pacientes
+                        : vista.id === "informes"
+                          ? conteosImagenologia.informes
+                          : vista.id === "radiografias"
+                            ? conteosImagenologia.radiografias
+                            : vista.id === "tomografias"
+                              ? conteosImagenologia.tomografias
+                              : vista.id === "ecografias"
+                                ? conteosImagenologia.ecografias
+                                : vista.id === "ecocardiogramas"
+                                  ? conteosImagenologia.ecocardiogramas
+                                  : conteosImagenologia.estudios}
+                    </b>
+                  </button>
+                ))}
               </nav>
-              <section className="enfermeria-q-panel">
-                {(['instrumentista', 'circulante'] as RolEnfermeriaQuirofano[]).includes(rolEnfermeriaQuirofano) ? (cirugiaSeleccionadaReal ? (rolEnfermeriaQuirofano === 'instrumentista' ? <InstrumentistaPreparacionView cirugia={cirugiaSeleccionada} onVolver={() => setCirugiaInstrumentista(null)} /> : <CirculanteAsistenciaView cirugia={cirugiaSeleccionada} onVolver={() => setCirugiaInstrumentista(null)} />) : Date.now() < 0 && cirugiaSeleccionada ? <div className="instrumentista-tablero">
-                  <div className="instrumentista-contexto"><button type="button" onClick={() => setCirugiaInstrumentista(null)}><Icon name="chevronLeft" size={16} /> Cirugías programadas</button><div><span>{cirugiaSeleccionada.sala} · {cirugiaSeleccionada.hora}</span><h3>{cirugiaSeleccionada.procedimiento}</h3><small>{cirugiaSeleccionada.paciente} · {cirugiaSeleccionada.cirujano}</small></div></div>
-                  <div className="instrumentista-indicadores" aria-label="Resumen de actividad de la cirugía seleccionada"><div><span><Icon name="package" size={18} /></span><strong>18</strong><small>Instrumentos dispensados</small></div><div><span><Icon name="check" size={18} /></span><strong>3</strong><small>Conteos verificados</small></div><div><span><Icon name="patient" size={18} /></span><strong>1</strong><small>Cirugía seleccionada</small></div><div><span><Icon name="audit" size={18} /></span><strong>0</strong><small>Observaciones pendientes</small></div></div>
-                  <div className="instrumentista-listado"><div className="instrumentista-tabla" role="table" aria-label="Material dispensado para la cirugía seleccionada"><div className="instrumentista-fila instrumentista-columnas" role="row"><span>Instrumental / kit</span><span>Procedimiento</span><span>Hora</span><span>Estado</span></div><div className="instrumentista-fila" role="row"><span><strong>Kit de cirugía general</strong><small>KIT-CG-021 · 24 piezas</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>08:15</span><span><b className="estado-dispensado">Dispensado</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Pinza Backhaus</strong><small>INST-004 · Serie BAC-004</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>08:18</span><span><b className="estado-en-uso">En uso</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Set de laparotomía</strong><small>KIT-LAP-008 · 36 piezas</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>10:05</span><span><b className="estado-dispensado">Dispensado</b></span></div><div className="instrumentista-fila" role="row"><span><strong>Gasas estériles 10 × 10</strong><small>INS-GAS-110 · 4 paquetes</small></span><span>{cirugiaSeleccionada.procedimiento}</span><span>10:12</span><span><b className="estado-verificado">Conteo verificado</b></span></div></div></div>
-                </div> : <div className="instrumentista-agenda"><div className="instrumentista-agenda-filtros"><label>Desde<input type="date" value={fechaDesdeCirugias} onChange={event => setFechaDesdeCirugias(event.target.value)} /></label><label>Hasta<input type="date" value={fechaHastaCirugias} min={fechaDesdeCirugias || undefined} onChange={event => setFechaHastaCirugias(event.target.value)} /></label><button type="button" onClick={() => setModulo('cuenta-quirofano')}><Icon name="calendar" size={16} /> Agendar cirugía</button></div><div className="instrumentista-cirugias">{cirugiasVisiblesEnfermeria.length ? <><div className="instrumentista-cirugias-cabecera" aria-hidden="true"><span /><span>TIPO DE CIRUGÍA</span><span>PACIENTE</span><span>QUIRÓFANO / CIRUJANO</span><span /></div>{cirugiasVisiblesEnfermeria.map((cirugia) => <button type="button" className="instrumentista-cirugia" key={cirugia.id} onClick={() => setCirugiaInstrumentista(cirugia.id)}><time>{cirugia.hora}</time><div className="instrumentista-procedimiento"><strong>{cirugia.procedimiento}</strong></div><div className="instrumentista-paciente"><strong>{cirugia.paciente}</strong></div><div className="instrumentista-sala"><strong>{cirugia.sala}</strong><span>{cirugia.cirujano}</span></div><b>Revisar<Icon name="chevronRight" size={16} /></b></button>)}</> : <div className="instrumentista-agenda-vacia"><Icon name="calendar" size={28}/><strong>No tienes cirugías asignadas</strong><small>Cuando seas asignada como instrumentista o circulante, la cirugía aparecerá aquí.</small></div>}</div></div>) :
-                  rolEnfermeriaQuirofano === 'circulante' ? <><p>ASISTENCIA CIRCULANTE</p><h3>Enfermera circulante</h3><small>Verificación de sala y paciente, coordinación de insumos, apoyo al equipo y registro del procedimiento.</small></> :
-                  <AlmacenQuirofanoView />}
+            )}
+            {modulo === "imagenologia" &&
+              [
+                "radiografias",
+                "tomografias",
+                "ecografias",
+                "ecocardiogramas",
+              ].includes(subvistaImagenologia) && (
+                <nav
+                  className="imagenologia-subvistas imagenologia-subsubvistas"
+                  aria-label={`Subvistas de ${subvistaActual.nombre}`}
+                >
+                  {subvistasModalidad.map((vista) => (
+                    <button
+                      key={vista.id}
+                      className={subvistaModalidad === vista.id ? "activo" : ""}
+                      onClick={() => setSubvistaModalidad(vista.id)}
+                    >
+                      <span>
+                        <Icon name={vista.icono} size={16} />
+                      </span>
+                      {vista.nombre}
+                      <b>{conteoModalidadActual}</b>
+                    </button>
+                  ))}
+                </nav>
+              )}
+            {modulo === "pacientes" && (
+              <nav
+                className="pacientes-subvistas"
+                aria-label="Subvistas de Pacientes"
+              >
+                {subvistasPacientes.map((vista) => (
+                  <button
+                    key={vista.id}
+                    className={subvistaPacientes === vista.id ? "activo" : ""}
+                    onClick={() => setSubvistaPacientes(vista.id)}
+                  >
+                    <Icon
+                      className="pacientes-subvista-icono"
+                      name={vista.icono}
+                      size={17}
+                    />
+                    <i className="pacientes-subvista-texto">
+                      <strong>{vista.nombre}</strong>
+                      <small>
+                        {vista.id === "pacientes"
+                          ? "Registro y búsqueda"
+                          : vista.id === "historias"
+                            ? "Expediente clínico"
+                            : "Resultados médicos"}
+                      </small>
+                    </i>
+                  </button>
+                ))}
+              </nav>
+            )}
+            {modulo === "atencion-agenda" && (
+              <section className="triaje-ambulatorio-vista">
+                <HorizontalSubvistaNav
+                  className="recepcion-subvistas"
+                  ariaLabel="Atención y agenda"
+                >
+                  <button
+                    type="button"
+                    className={
+                      subvistaAtencionAgenda === "pacientes" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaAtencionAgenda("pacientes")}
+                  >
+                    <span>
+                      <Icon name="patient" size={17} />
+                    </span>
+                    <strong>Pacientes agendados</strong>
+                    <small>Estudios y atenciones pendientes.</small>
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      subvistaAtencionAgenda === "cronograma" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaAtencionAgenda("cronograma")}
+                  >
+                    <span>
+                      <Icon name="calendar" size={17} />
+                    </span>
+                    <strong>Cronograma semanal</strong>
+                    <small>Agenda por día y horario.</small>
+                  </button>
+                </HorizontalSubvistaNav>
               </section>
-            </section>
-          ) : modulo === 'medico-quirofano' ? (
-            <MedicoQuirofanoView />
-          ) : modulo === 'anestesiologia-quirofano' ? (
-            <AnestesiologiaView />
-          ) : modulo === 'central-esterilizacion' ? (
-            <EsterilizacionView titulo="Inventario de material" subvistasVisibles={['inventario', 'kits', 'roperia']} />
-          ) : modulo === 'recepcion-material-sucio' ? (
-            <EsterilizacionView titulo="Central de esterilización" subvistaInicial="area-roja" subvistasVisibles={['area-roja', 'area-azul', 'area-verde']} />
-          ) : modulo === 'entrega-material-esteril' ? (
-            <EsterilizacionView titulo="Administración de esterilización" subvistaInicial="entrega" subvistasVisibles={['entrega', 'seguimiento', 'solicitudes', 'cronograma']} />
-          ) : modulo === 'cuenta-quirofano' ? (
-            <CuentaQuirofanoView />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaModalidad === "estudios" ? (
-            <VistaBaseDatosOrthanc />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "tomografias" && subvistaModalidad === "estudios" ? (
-            <VistaEstudiosCobrados tipoEstudio="Tomografía" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" && subvistaModalidad === "estudios" ? (
-            <VistaEstudiosCobrados tipoEstudio="Ecografía" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && subvistaModalidad === "estudios" ? (
-            <VistaEstudiosCobrados tipoEstudio="Ecocardiograma" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "informes" ? (
-            <VistaInformes />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" && subvistaModalidad === "pacientes" ? (
-            <VistaPacientes modalidad="Ecografía" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && subvistaModalidad === "pacientes" ? (
-            <VistaPacientes modalidad="Ecocardiograma" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecografias" && subvistaModalidad === "visor" ? (
-            <VisorEcografias key="visor-ecografias" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "tomografias" && subvistaModalidad === "visor" ? (
-            <VistaRayosX key="visor-tomografias" modalidad="Tomografía" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "radiografias" && subvistaModalidad === "visor" ? (
-            <VistaRayosX key="visor-radiografias" modalidad="Radiografía" />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "ecocardiogramas" && subvistaModalidad === "visor" ? (
-            <VistaRayosX key="visor-ecocardiogramas" modalidad="Radiografía" />
-          ) : modulo === "imagenologia" && ["pacientes", "radiografias", "tomografias"].includes(subvistaImagenologia) ? (
-            <VistaPacientes modalidad={subvistaImagenologia === "tomografias" ? "Tomografía" : subvistaImagenologia === "ecocardiogramas" ? "Ecocardiograma" : subvistaImagenologia === "radiografias" ? "Radiografía" : undefined} soloConEstudio={subvistaImagenologia === "radiografias"} />
-          ) : modulo === "imagenologia" && subvistaImagenologia === "visor" ? (
-            <VistaRayosX modalidad={visorModalidad || undefined} />
-          ) : modulo === "farmacia-ia" ? (
-            <AsistenteFarmaciaView />
-          ) : modulo === "configuracion" ? (
-            <VistaConfiguracion initialSection={subvistaConfiguracion} tema={tema} onCambiarTema={setTema} usuario={sesion.usuario} />
-          ) : modulo === "auditorias" ? (
-            <VistaAuditorias sesion={sesion} />
-          ) : actual ? (
-            <div className="modulo-vacio">
-              <span>
-                <Icon name={actual.icono} size={28} />
-              </span>
-              <p>SISTEMA CLÍNICO</p>
-              <h2>{actual.nombre}</h2>
-              <small>
-                Este módulo está listo para incorporar su contenido.
-              </small>
-            </div>
-          ) : null}
+            )}
+            {modulo === "recepcion" ? (
+              <RecepcionView
+                key={subvistaRecepcion}
+                initialSubview={subvistaRecepcion}
+                onAbrirModulo={setModulo}
+                onAgendarCirugia={() => {
+                  setAbrirFormularioQuirofano(true);
+                  setModulo("cuenta-quirofano");
+                }}
+              />
+            ) : modulo === "atencion-agenda" ? (
+              subvistaAtencionAgenda === "pacientes" ? (
+                <AgendaImagenologiaView />
+              ) : (
+                <CronogramaEstudiosView />
+              )
+            ) : modulo === "farmacia" ? (
+              <FarmaciaView />
+            ) : modulo === "farmacia-movimientos" || modulo === "almacen" ? (
+              <AdministracionFarmaciaView />
+            ) : modulo === "dispensar" ? (
+              <FarmaciaView />
+            ) : modulo === "cocina" ? (
+              <CocinaVentasView />
+            ) : modulo === "cocina-internacion" ? (
+              <CocinaInternacionView />
+            ) : modulo === "cocina-administracion" ? (
+              <CocinaAdministracionView />
+            ) : modulo === "pacientes" ? (
+              subvistaPacientes === "pacientes" ? (
+                <VistaPacientes modoClinico />
+              ) : subvistaPacientes === "historias" ? (
+                <HistoriasClinicasView />
+              ) : (
+                <TablaSubvistaPaciente vista="estudios" />
+              )
+            ) : modulo === "laboratorio-almacen" ? (
+              <LaboratorioAlmacenView />
+            ) : [
+                "laboratorio-ambulatorios",
+                "laboratorio-internados",
+                "laboratorio-configuracion",
+              ].includes(modulo) ? (
+              modulo === "laboratorio-configuracion" ? (
+                <ConfiguracionLaboratorioView />
+              ) : (
+                <LaboratorioView
+                  key={modulo}
+                  origen={
+                    modulo === "laboratorio-internados"
+                      ? "internacion"
+                      : "ambulatorio"
+                  }
+                />
+              )
+            ) : modulo === "atencion-medica" ? (
+              <ConsultorioView
+                key={colaAtencionVersion}
+                medico={sesion.usuario.nombre}
+                initialSubview="consulta"
+                initialPatient={pacienteColaAtencion}
+                signos={signosVitalesConfigurados}
+                estadoSignos={estadoSignos}
+              />
+            ) : modulo === "triaje-ambulatorio" ? (
+              <section className="triaje-ambulatorio-vista">
+                <HorizontalSubvistaNav
+                  className="recepcion-subvistas"
+                  ariaLabel="Subvistas de Triaje ambulatorio"
+                >
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTriajeAmbulatorio === "signos-vitales"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaTriajeAmbulatorio === "signos-vitales"
+                        ? "activo"
+                        : ""
+                    }
+                    onClick={() =>
+                      setSubvistaTriajeAmbulatorio("signos-vitales")
+                    }
+                  >
+                    <span>
+                      <Icon name="patient" size={17} />
+                    </span>
+                    <strong>Signos vitales</strong>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTriajeAmbulatorio === "agenda"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaTriajeAmbulatorio === "agenda" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaTriajeAmbulatorio("agenda")}
+                  >
+                    <span>
+                      <Icon name="calendar" size={17} />
+                    </span>
+                    <strong>Agenda</strong>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTriajeAmbulatorio === "registro-uso"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaTriajeAmbulatorio === "registro-uso"
+                        ? "activo"
+                        : ""
+                    }
+                    onClick={() => setSubvistaTriajeAmbulatorio("registro-uso")}
+                  >
+                    <span>
+                      <Icon name="audit" size={17} />
+                    </span>
+                    <strong>Registro de atención</strong>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTriajeAmbulatorio === "uso-items"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaTriajeAmbulatorio === "uso-items" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaTriajeAmbulatorio("uso-items")}
+                  >
+                    <span>
+                      <Icon name="package" size={17} />
+                    </span>
+                    <strong>Uso de ítems</strong>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTriajeAmbulatorio === "configuracion"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaTriajeAmbulatorio === "configuracion"
+                        ? "activo"
+                        : ""
+                    }
+                    onClick={() =>
+                      setSubvistaTriajeAmbulatorio("configuracion")
+                    }
+                  >
+                    <span>
+                      <Icon name="settings" size={17} />
+                    </span>
+                    <strong>Configuración</strong>
+                  </button>
+                </HorizontalSubvistaNav>
+                {subvistaTriajeAmbulatorio === "signos-vitales" &&
+                  estadoSignos === "listo" && (
+                    <SignosVitalesView
+                      camposConfigurados={signosVitalesConfigurados}
+                    />
+                  )}
+                {subvistaTriajeAmbulatorio === "agenda" && (
+                  <CitasRecepcionView />
+                )}
+                {subvistaTriajeAmbulatorio === "registro-uso" && (
+                  <RegistroUsoTriajeView />
+                )}
+                {subvistaTriajeAmbulatorio === "uso-items" && (
+                  <UsoItemsAmbulatorioView />
+                )}
+                {subvistaTriajeAmbulatorio === "configuracion" &&
+                  estadoSignos === "listo" && (
+                    <ConfiguracionSignosVitalesView
+                      signos={signosVitalesConfigurados}
+                      onChange={actualizarSignosVitales}
+                    />
+                  )}
+                {(subvistaTriajeAmbulatorio === "signos-vitales" ||
+                  subvistaTriajeAmbulatorio === "configuracion") &&
+                  estadoSignos === "cargando" && (
+                    <p>Cargando configuración de signos vitales...</p>
+                  )}
+                {(subvistaTriajeAmbulatorio === "signos-vitales" ||
+                  subvistaTriajeAmbulatorio === "configuracion") &&
+                  estadoSignos === "error" && (
+                    <div role="alert">
+                      <p>
+                        No se pudo cargar la configuración de signos vitales.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setVersionSignos((version) => version + 1)
+                        }
+                      >
+                        Reintentar
+                      </button>
+                    </div>
+                  )}
+              </section>
+            ) : modulo === "triaje-emergencias" ? (
+              <TriajeEmergenciasView />
+            ) : modulo === "atencion-urgencias" ? (
+              <AtencionMedicaEmergenciasView />
+            ) : modulo === "enfermera-terapia-intensiva" ? (
+              <section className="triaje-ambulatorio-vista">
+                <HorizontalSubvistaNav
+                  className="recepcion-subvistas"
+                  ariaLabel="Subvistas de enfermería de terapia intensiva"
+                >
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTerapia === "registro-enfermeria"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaTerapia === "registro-enfermeria" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaTerapia("registro-enfermeria")}
+                  >
+                    <span>
+                      <Icon name="audit" size={17} />
+                    </span>
+                    <strong>Registro de enfermería</strong>
+                    <small>
+                      Registro y seguimiento de cuidados de enfermería.
+                    </small>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTerapia === "monitorizacion" ? "page" : undefined
+                    }
+                    className={
+                      subvistaTerapia === "monitorizacion" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaTerapia("monitorizacion")}
+                  >
+                    <span>
+                      <Icon name="patient" size={17} />
+                    </span>
+                    <strong>Monitorización</strong>
+                    <small>
+                      Seguimiento de pacientes en terapia intensiva.
+                    </small>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaTerapia === "registros" ? "page" : undefined
+                    }
+                    className={subvistaTerapia === "registros" ? "activo" : ""}
+                    onClick={() => setSubvistaTerapia("registros")}
+                  >
+                    <span>
+                      <Icon name="audit" size={17} />
+                    </span>
+                    <strong>Registros</strong>
+                    <small>Registros de enfermería de terapia intensiva.</small>
+                  </button>
+                </HorizontalSubvistaNav>
+                {subvistaTerapia === "registro-enfermeria" ? (
+                  <RegistroEnfermeriaTerapiaView />
+                ) : subvistaTerapia === "monitorizacion" ? (
+                  <TerapiaIntensivaView />
+                ) : (
+                  <section
+                    className="em-panel"
+                    aria-labelledby="terapia-subvista-titulo"
+                  >
+                    <header className="em-panel-titulo">
+                      <h2 id="terapia-subvista-titulo">Registros</h2>
+                    </header>
+                    <p className="em-vacio">
+                      Aún no hay registros de enfermería.
+                    </p>
+                  </section>
+                )}
+              </section>
+            ) : modulo === "ambulancia" ? (
+              <AmbulanciaView />
+            ) : modulo === "enfermera-internacion" ? (
+              <section className="triaje-ambulatorio-vista">
+                <HorizontalSubvistaNav
+                  className="recepcion-subvistas"
+                  ariaLabel="Subvistas de enfermería de internación"
+                >
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaEnfermeraInternacion === "internados"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaEnfermeraInternacion === "internados"
+                        ? "activo"
+                        : ""
+                    }
+                    onClick={() =>
+                      setSubvistaEnfermeraInternacion("internados")
+                    }
+                  >
+                    <span>
+                      <Icon name="patient" size={17} />
+                    </span>
+                    <strong>Pacientes internados</strong>
+                    <small>Pacientes activos por sala y cama.</small>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaEnfermeraInternacion === "altas"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaEnfermeraInternacion === "altas" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaEnfermeraInternacion("altas")}
+                  >
+                    <span>
+                      <Icon name="check" size={17} />
+                    </span>
+                    <strong>Pacientes dados de alta</strong>
+                    <small>Historial de internaciones finalizadas.</small>
+                  </button>
+                </HorizontalSubvistaNav>
+                <EnfermeraInternacionView
+                  subvista={subvistaEnfermeraInternacion}
+                />
+              </section>
+            ) : modulo === "farmacia-internacion" ? (
+              <FarmaciaInternacionView enfermera={sesion.usuario.nombre} />
+            ) : modulo === "medico-internacion" ? (
+              <section className="triaje-ambulatorio-vista">
+                <HorizontalSubvistaNav
+                  className="recepcion-subvistas"
+                  ariaLabel="Subvistas de médico de internación"
+                >
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaMedicoInternacion === "internados"
+                        ? "page"
+                        : undefined
+                    }
+                    className={
+                      subvistaMedicoInternacion === "internados" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaMedicoInternacion("internados")}
+                  >
+                    <span>
+                      <Icon name="patient" size={17} />
+                    </span>
+                    <strong>Pacientes internados</strong>
+                    <small>Pacientes activos por sala y cama.</small>
+                  </button>
+                  <button
+                    type="button"
+                    aria-current={
+                      subvistaMedicoInternacion === "altas" ? "page" : undefined
+                    }
+                    className={
+                      subvistaMedicoInternacion === "altas" ? "activo" : ""
+                    }
+                    onClick={() => setSubvistaMedicoInternacion("altas")}
+                  >
+                    <span>
+                      <Icon name="check" size={17} />
+                    </span>
+                    <strong>Pacientes dados de alta</strong>
+                    <small>Historial de internaciones finalizadas.</small>
+                  </button>
+                </HorizontalSubvistaNav>
+                <MedicoInternacionView subvista={subvistaMedicoInternacion} />
+              </section>
+            ) : modulo === "enfermera-quirofano" ? (
+              <section className="enfermeria-quirofano-vista">
+                <nav
+                  className="enfermeria-q-subvistas recepcion-subvistas"
+                  aria-label="Funciones de enfermería de quirófano"
+                >
+                  <button
+                    type="button"
+                    className={
+                      rolEnfermeriaQuirofano === "instrumentista"
+                        ? "activo"
+                        : ""
+                    }
+                    onClick={() => {
+                      setRolEnfermeriaQuirofano("instrumentista");
+                      setCirugiaInstrumentista(null);
+                    }}
+                  >
+                    <span>
+                      <Icon name="patient" size={17} />
+                    </span>
+                    <strong>Enfermera instrumentista</strong>
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      rolEnfermeriaQuirofano === "circulante" ? "activo" : ""
+                    }
+                    onClick={() => {
+                      setRolEnfermeriaQuirofano("circulante");
+                      setCirugiaInstrumentista(null);
+                    }}
+                  >
+                    <span>
+                      <Icon name="userCheck" size={17} />
+                    </span>
+                    <strong>Enfermera circulante</strong>
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      rolEnfermeriaQuirofano === "almacen" ? "activo" : ""
+                    }
+                    onClick={() => setRolEnfermeriaQuirofano("almacen")}
+                  >
+                    <span>
+                      <Icon name="package" size={17} />
+                    </span>
+                    <strong>Almacén quirófano</strong>
+                  </button>
+                </nav>
+                <section className="enfermeria-q-panel">
+                  {(
+                    ["instrumentista", "circulante"] as RolEnfermeriaQuirofano[]
+                  ).includes(rolEnfermeriaQuirofano) ? (
+                    cirugiaSeleccionadaReal ? (
+                      rolEnfermeriaQuirofano === "instrumentista" ? (
+                        <InstrumentistaPreparacionView
+                          cirugia={cirugiaSeleccionada}
+                          onVolver={() => setCirugiaInstrumentista(null)}
+                        />
+                      ) : (
+                        <CirculanteAsistenciaView
+                          cirugia={cirugiaSeleccionada}
+                          onVolver={() => setCirugiaInstrumentista(null)}
+                        />
+                      )
+                    ) : Date.now() < 0 && cirugiaSeleccionada ? (
+                      <div className="instrumentista-tablero">
+                        <div className="instrumentista-contexto">
+                          <button
+                            type="button"
+                            onClick={() => setCirugiaInstrumentista(null)}
+                          >
+                            <Icon name="chevronLeft" size={16} /> Cirugías
+                            programadas
+                          </button>
+                          <div>
+                            <span>
+                              {cirugiaSeleccionada.sala} ·{" "}
+                              {cirugiaSeleccionada.hora}
+                            </span>
+                            <h3>{cirugiaSeleccionada.procedimiento}</h3>
+                            <small>
+                              {cirugiaSeleccionada.paciente} ·{" "}
+                              {cirugiaSeleccionada.cirujano}
+                            </small>
+                          </div>
+                        </div>
+                        <div
+                          className="instrumentista-indicadores"
+                          aria-label="Resumen de actividad de la cirugía seleccionada"
+                        >
+                          <div>
+                            <span>
+                              <Icon name="package" size={18} />
+                            </span>
+                            <strong>18</strong>
+                            <small>Instrumentos dispensados</small>
+                          </div>
+                          <div>
+                            <span>
+                              <Icon name="check" size={18} />
+                            </span>
+                            <strong>3</strong>
+                            <small>Conteos verificados</small>
+                          </div>
+                          <div>
+                            <span>
+                              <Icon name="patient" size={18} />
+                            </span>
+                            <strong>1</strong>
+                            <small>Cirugía seleccionada</small>
+                          </div>
+                          <div>
+                            <span>
+                              <Icon name="audit" size={18} />
+                            </span>
+                            <strong>0</strong>
+                            <small>Observaciones pendientes</small>
+                          </div>
+                        </div>
+                        <div className="instrumentista-listado">
+                          <div
+                            className="instrumentista-tabla"
+                            role="table"
+                            aria-label="Material dispensado para la cirugía seleccionada"
+                          >
+                            <div
+                              className="instrumentista-fila instrumentista-columnas"
+                              role="row"
+                            >
+                              <span>Instrumental / kit</span>
+                              <span>Procedimiento</span>
+                              <span>Hora</span>
+                              <span>Estado</span>
+                            </div>
+                            <div className="instrumentista-fila" role="row">
+                              <span>
+                                <strong>Kit de cirugía general</strong>
+                                <small>KIT-CG-021 · 24 piezas</small>
+                              </span>
+                              <span>{cirugiaSeleccionada.procedimiento}</span>
+                              <span>08:15</span>
+                              <span>
+                                <b className="estado-dispensado">Dispensado</b>
+                              </span>
+                            </div>
+                            <div className="instrumentista-fila" role="row">
+                              <span>
+                                <strong>Pinza Backhaus</strong>
+                                <small>INST-004 · Serie BAC-004</small>
+                              </span>
+                              <span>{cirugiaSeleccionada.procedimiento}</span>
+                              <span>08:18</span>
+                              <span>
+                                <b className="estado-en-uso">En uso</b>
+                              </span>
+                            </div>
+                            <div className="instrumentista-fila" role="row">
+                              <span>
+                                <strong>Set de laparotomía</strong>
+                                <small>KIT-LAP-008 · 36 piezas</small>
+                              </span>
+                              <span>{cirugiaSeleccionada.procedimiento}</span>
+                              <span>10:05</span>
+                              <span>
+                                <b className="estado-dispensado">Dispensado</b>
+                              </span>
+                            </div>
+                            <div className="instrumentista-fila" role="row">
+                              <span>
+                                <strong>Gasas estériles 10 × 10</strong>
+                                <small>INS-GAS-110 · 4 paquetes</small>
+                              </span>
+                              <span>{cirugiaSeleccionada.procedimiento}</span>
+                              <span>10:12</span>
+                              <span>
+                                <b className="estado-verificado">
+                                  Conteo verificado
+                                </b>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="instrumentista-agenda">
+                        <div className="instrumentista-agenda-filtros">
+                          <label>
+                            Desde
+                            <input
+                              type="date"
+                              value={fechaDesdeCirugias}
+                              onChange={(event) =>
+                                setFechaDesdeCirugias(event.target.value)
+                              }
+                            />
+                          </label>
+                          <label>
+                            Hasta
+                            <input
+                              type="date"
+                              value={fechaHastaCirugias}
+                              min={fechaDesdeCirugias || undefined}
+                              onChange={(event) =>
+                                setFechaHastaCirugias(event.target.value)
+                              }
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => setModulo("cuenta-quirofano")}
+                          >
+                            <Icon name="calendar" size={16} /> Agendar cirugía
+                          </button>
+                        </div>
+                        <div className="instrumentista-cirugias">
+                          {cirugiasVisiblesEnfermeria.length ? (
+                            <>
+                              <div
+                                className="instrumentista-cirugias-cabecera"
+                                aria-hidden="true"
+                              >
+                                <span />
+                                <span>TIPO DE CIRUGÍA</span>
+                                <span>PACIENTE</span>
+                                <span>QUIRÓFANO / CIRUJANO</span>
+                                <span />
+                              </div>
+                              {cirugiasVisiblesEnfermeria.map((cirugia) => (
+                                <button
+                                  type="button"
+                                  className="instrumentista-cirugia"
+                                  key={cirugia.id}
+                                  onClick={() =>
+                                    setCirugiaInstrumentista(cirugia.id)
+                                  }
+                                >
+                                  <time>{cirugia.hora}</time>
+                                  <div className="instrumentista-procedimiento">
+                                    <strong>{cirugia.procedimiento}</strong>
+                                  </div>
+                                  <div className="instrumentista-paciente">
+                                    <strong>{cirugia.paciente}</strong>
+                                  </div>
+                                  <div className="instrumentista-sala">
+                                    <strong>{cirugia.sala}</strong>
+                                    <span>{cirugia.cirujano}</span>
+                                  </div>
+                                  <b>
+                                    Revisar
+                                    <Icon name="chevronRight" size={16} />
+                                  </b>
+                                </button>
+                              ))}
+                            </>
+                          ) : (
+                            <div className="instrumentista-agenda-vacia">
+                              <Icon name="calendar" size={28} />
+                              <strong>No tienes cirugías asignadas</strong>
+                              <small>
+                                Cuando seas asignada como instrumentista o
+                                circulante, la cirugía aparecerá aquí.
+                              </small>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  ) : rolEnfermeriaQuirofano === "circulante" ? (
+                    <>
+                      <p>ASISTENCIA CIRCULANTE</p>
+                      <h3>Enfermera circulante</h3>
+                      <small>
+                        Verificación de sala y paciente, coordinación de
+                        insumos, apoyo al equipo y registro del procedimiento.
+                      </small>
+                    </>
+                  ) : (
+                    <AlmacenQuirofanoView />
+                  )}
+                </section>
+              </section>
+            ) : modulo === "medico-quirofano" ? (
+              <MedicoQuirofanoView />
+            ) : modulo === "anestesiologia-quirofano" ? (
+              <AnestesiologiaView />
+            ) : modulo === "central-esterilizacion" ? (
+              <EsterilizacionView
+                titulo="Inventario de material"
+                subvistasVisibles={["inventario", "kits", "roperia"]}
+              />
+            ) : modulo === "recepcion-material-sucio" ? (
+              <EsterilizacionView
+                titulo="Central de esterilización"
+                subvistaInicial="area-roja"
+                subvistasVisibles={["area-roja", "area-azul", "area-verde"]}
+              />
+            ) : modulo === "entrega-material-esteril" ? (
+              <EsterilizacionView
+                titulo="Administración de esterilización"
+                subvistaInicial="entrega"
+                subvistasVisibles={[
+                  "entrega",
+                  "seguimiento",
+                  "solicitudes",
+                  "cronograma",
+                ]}
+              />
+            ) : modulo === "cuenta-quirofano" ? (
+              <CuentaQuirofanoView abrirFormulario={abrirFormularioQuirofano} />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "radiografias" &&
+              subvistaModalidad === "estudios" ? (
+              <VistaBaseDatosOrthanc />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "tomografias" &&
+              subvistaModalidad === "estudios" ? (
+              <VistaEstudiosCobrados tipoEstudio="Tomografía" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "ecografias" &&
+              subvistaModalidad === "estudios" ? (
+              <VistaEstudiosCobrados tipoEstudio="Ecografía" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "ecocardiogramas" &&
+              subvistaModalidad === "estudios" ? (
+              <VistaEstudiosCobrados tipoEstudio="Ecocardiograma" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "informes" ? (
+              <VistaInformes />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "ecografias" &&
+              subvistaModalidad === "pacientes" ? (
+              <VistaPacientes modalidad="Ecografía" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "ecocardiogramas" &&
+              subvistaModalidad === "pacientes" ? (
+              <VistaPacientes modalidad="Ecocardiograma" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "ecografias" &&
+              subvistaModalidad === "visor" ? (
+              <VisorEcografias key="visor-ecografias" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "tomografias" &&
+              subvistaModalidad === "visor" ? (
+              <VistaRayosX key="visor-tomografias" modalidad="Tomografía" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "radiografias" &&
+              subvistaModalidad === "visor" ? (
+              <VistaRayosX key="visor-radiografias" modalidad="Radiografía" />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "ecocardiogramas" &&
+              subvistaModalidad === "visor" ? (
+              <VistaRayosX
+                key="visor-ecocardiogramas"
+                modalidad="Radiografía"
+              />
+            ) : modulo === "imagenologia" &&
+              ["pacientes", "radiografias", "tomografias"].includes(
+                subvistaImagenologia,
+              ) ? (
+              <VistaPacientes
+                modalidad={
+                  subvistaImagenologia === "tomografias"
+                    ? "Tomografía"
+                    : subvistaImagenologia === "ecocardiogramas"
+                      ? "Ecocardiograma"
+                      : subvistaImagenologia === "radiografias"
+                        ? "Radiografía"
+                        : undefined
+                }
+                soloConEstudio={subvistaImagenologia === "radiografias"}
+              />
+            ) : modulo === "imagenologia" &&
+              subvistaImagenologia === "visor" ? (
+              <VistaRayosX modalidad={visorModalidad || undefined} />
+            ) : modulo === "farmacia-ia" ? (
+              <AsistenteFarmaciaView />
+            ) : modulo === "configuracion" ? (
+              <VistaConfiguracion
+                initialSection={subvistaConfiguracion}
+                tema={tema}
+                onCambiarTema={setTema}
+                usuario={sesion.usuario}
+              />
+            ) : modulo === "auditorias" ? (
+              <VistaAuditorias sesion={sesion} />
+            ) : actual ? (
+              <div className="modulo-vacio">
+                <span>
+                  <Icon name={actual.icono} size={28} />
+                </span>
+                <p>SISTEMA CLÍNICO</p>
+                <h2>{actual.nombre}</h2>
+                <small>
+                  Este módulo está listo para incorporar su contenido.
+                </small>
+              </div>
+            ) : null}
           </Suspense>
         </div>
       </section>

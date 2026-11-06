@@ -18,7 +18,7 @@
   background: #fff;
   border: 1px solid #c9e1f0;
   border-radius: 12px;
-  box-shadow: 0 12px 32px rgba(16, 54, 82, .18);
+  box-shadow: 0 12px 32px rgba(16, 54, 82, 0.18);
 }
 
 .sistema-topbar .pulso-avisos header {
@@ -72,6 +72,13 @@
 }
 
 @media (max-width: 760px) {
-  .sistema-topbar .topbar-notificaciones { grid-column: 3; grid-row: 1; }
-  .sistema-topbar .pulso-avisos { left: auto; right: 0; transform: none; }
+  .sistema-topbar .topbar-notificaciones {
+    grid-column: 3;
+    grid-row: 1;
+  }
+  .sistema-topbar .pulso-avisos {
+    left: auto;
+    right: 0;
+    transform: none;
+  }
 }

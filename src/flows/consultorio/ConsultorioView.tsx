@@ -1,98 +1,1028 @@
-import { usePacientes } from '../../radius/vistas/pacientes/usePacientes';
-import { nombrePacienteClinico, edadPaciente } from '../../radius/vistas/pacientes/pacientesApi';
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
-import Icon, { type IconName } from '../../radius/componentes/Icono';
-import { AgendaAmbulatoriaView, type CitaConfirmada } from './AgendaAmbulatoriaView';
-import { registrarAtencionAmbulatoria } from './registroHistoria';
-import { ConsultaMedicaView } from './ConsultaMedicaView';
-import type { SignoVitalConfig } from '../triaje/ConfiguracionSignosVitalesView';
-import { FavoritosPaquetes } from './FavoritosPaquetes';
-import './ConsultorioView.css';
-import './HistoriasClinicasView.css';
-import './HistoriaHojeable.css';
-import './AccionesHistoria.css';
-import './HistoriasClinicasRefinamiento.css';
-import './EfectoHojeo.css';
-import './TapaHistoria.css';
-import { obtenerEpisodios, suscribirEpisodios, type DocumentoEpisodio } from './registroHistoria';
+import { usePacientes } from "../../radius/vistas/pacientes/usePacientes";
+import {
+  nombrePacienteClinico,
+  edadPaciente,
+} from "../../radius/vistas/pacientes/pacientesApi";
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import Icon, { type IconName } from "../../radius/componentes/Icono";
+import {
+  AgendaAmbulatoriaView,
+  type CitaConfirmada,
+} from "./AgendaAmbulatoriaView";
+import { registrarAtencionAmbulatoria } from "./registroHistoria";
+import { ConsultaMedicaView } from "./ConsultaMedicaView";
+import type { SignoVitalConfig } from "../triaje/ConfiguracionSignosVitalesView";
+import { FavoritosPaquetes } from "./FavoritosPaquetes";
+import "./ConsultorioView.css";
+import "./HistoriasClinicasView.css";
+import "./HistoriaHojeable.css";
+import "./AccionesHistoria.css";
+import "./HistoriasClinicasRefinamiento.css";
+import "./EfectoHojeo.css";
+import "./TapaHistoria.css";
+import {
+  obtenerEpisodios,
+  suscribirEpisodios,
+  type DocumentoEpisodio,
+} from "./registroHistoria";
 
-type Subvista = 'consulta' | 'historias' | 'favoritos';
-type EpisodioHistoria = { id: string; tipo: string; medico: string; motivo: string; fecha?: string; hora?: string; especialidad?: string; enfermedadActual: string; examenFisico: string; antecedentes: string; notas: string; signosVitales: Record<string, string>; recetas: DocumentoEpisodio[]; ordenes: DocumentoEpisodio[]; resultados: DocumentoEpisodio[]; reconsultas: DocumentoEpisodio[] };
-export type PacienteHistoria = { nombre: string; ci: string; edad: number; fechaNacimiento: string; numeroHistoria: string; datoRelevante: string; estado: 'Al día' | 'Pendiente'; episodios?: EpisodioHistoria[] };
-type PaginaLibro = { tipo: 'presentacion' | 'interior' | 'separador'; titulo: string; contenido: ReactNode };
+type Subvista = "consulta" | "historias" | "favoritos";
+type EpisodioHistoria = {
+  id: string;
+  tipo: string;
+  medico: string;
+  motivo: string;
+  fecha?: string;
+  hora?: string;
+  especialidad?: string;
+  enfermedadActual: string;
+  examenFisico: string;
+  antecedentes: string;
+  notas: string;
+  signosVitales: Record<string, string>;
+  recetas: DocumentoEpisodio[];
+  ordenes: DocumentoEpisodio[];
+  resultados: DocumentoEpisodio[];
+  reconsultas: DocumentoEpisodio[];
+};
+export type PacienteHistoria = {
+  nombre: string;
+  ci: string;
+  edad: number;
+  fechaNacimiento: string;
+  numeroHistoria: string;
+  datoRelevante: string;
+  estado: "Al día" | "Pendiente";
+  episodios?: EpisodioHistoria[];
+};
+type PaginaLibro = {
+  tipo: "presentacion" | "interior" | "separador";
+  titulo: string;
+  contenido: ReactNode;
+};
 
 const subvistas: { id: Subvista; nombre: string; icono: IconName }[] = [
-  { id: 'consulta', nombre: 'Consulta', icono: 'userCheck' },
-  { id: 'historias', nombre: 'Historias clínicas', icono: 'fileText' },
-  { id: 'favoritos', nombre: 'Favoritos', icono: 'sparkles' },
+  { id: "consulta", nombre: "Consulta", icono: "userCheck" },
+  { id: "historias", nombre: "Historias clínicas", icono: "fileText" },
+  { id: "favoritos", nombre: "Favoritos", icono: "sparkles" },
 ];
 
-
-export function ConsultorioView({ medico, initialSubview = 'consulta', initialPatient = null, signos, estadoSignos }: { medico: string; initialSubview?: Subvista; initialPatient?: CitaConfirmada | null; signos: SignoVitalConfig[]; estadoSignos: 'cargando' | 'listo' | 'error' }) {
+export function ConsultorioView({
+  medico,
+  initialSubview = "consulta",
+  initialPatient = null,
+  signos,
+  estadoSignos,
+}: {
+  medico: string;
+  initialSubview?: Subvista;
+  initialPatient?: CitaConfirmada | null;
+  signos: SignoVitalConfig[];
+  estadoSignos: "cargando" | "listo" | "error";
+}) {
   const [subvista, setSubvista] = useState<Subvista>(initialSubview);
-  const [pacienteEnConsulta, setPacienteEnConsulta] = useState<CitaConfirmada | null>(initialPatient);
-  useEffect(() => { if (pacienteEnConsulta) registrarAtencionAmbulatoria(pacienteEnConsulta, medico); }, [pacienteEnConsulta, medico]);
+  const [pacienteEnConsulta, setPacienteEnConsulta] =
+    useState<CitaConfirmada | null>(initialPatient);
+  useEffect(() => {
+    if (pacienteEnConsulta)
+      registrarAtencionAmbulatoria(pacienteEnConsulta, medico);
+  }, [pacienteEnConsulta, medico]);
   useEffect(() => {
     const volverAlListado = () => setPacienteEnConsulta(null);
-    window.addEventListener('consulta:volver-al-listado', volverAlListado);
-    return () => window.removeEventListener('consulta:volver-al-listado', volverAlListado);
+    window.addEventListener("consulta:volver-al-listado", volverAlListado);
+    return () =>
+      window.removeEventListener("consulta:volver-al-listado", volverAlListado);
   }, []);
-  return <section className="consultorio-vista"><nav className="consultorio-subvistas" aria-label="Subvistas de Consultorio médico">{subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => { setSubvista(item.id); if (item.id === 'consulta') setPacienteEnConsulta(null); }}><span className="consultorio-subvista-icono"><Icon name={item.icono} size={18} /></span><span>{item.nombre}</span></button>)}</nav>{subvista === 'consulta' ? (pacienteEnConsulta ? <ConsultaMedicaView key={`${pacienteEnConsulta.id}-${pacienteEnConsulta.fecha}-${pacienteEnConsulta.hora}`} paciente={pacienteEnConsulta} medico={medico} signos={signos} estadoSignos={estadoSignos} /> : <AgendaAmbulatoriaView medico={medico} onAtender={setPacienteEnConsulta} />) : subvista === 'historias' ? <HistoriasClinicasView /> : <FavoritosPaquetes medico={medico} />}</section>;
+  return (
+    <section className="consultorio-vista">
+      <nav
+        className="consultorio-subvistas"
+        aria-label="Subvistas de Consultorio médico"
+      >
+        {subvistas.map((item) => (
+          <button
+            key={item.id}
+            className={subvista === item.id ? "activo" : ""}
+            onClick={() => {
+              setSubvista(item.id);
+              if (item.id === "consulta") setPacienteEnConsulta(null);
+            }}
+          >
+            <span className="consultorio-subvista-icono">
+              <Icon name={item.icono} size={18} />
+            </span>
+            <span>{item.nombre}</span>
+          </button>
+        ))}
+      </nav>
+      {subvista === "consulta" ? (
+        pacienteEnConsulta ? (
+          <ConsultaMedicaView
+            key={`${pacienteEnConsulta.id}-${pacienteEnConsulta.fecha}-${pacienteEnConsulta.hora}`}
+            paciente={pacienteEnConsulta}
+            medico={medico}
+            signos={signos}
+            estadoSignos={estadoSignos}
+          />
+        ) : (
+          <AgendaAmbulatoriaView
+            medico={medico}
+            onAtender={setPacienteEnConsulta}
+          />
+        )
+      ) : subvista === "historias" ? (
+        <HistoriasClinicasView />
+      ) : (
+        <FavoritosPaquetes medico={medico} />
+      )}
+    </section>
+  );
 }
 
 export function HistoriasClinicasView() {
-  const [busqueda, setBusqueda] = useState(''); const [estado, setEstado] = useState('Todos'); const [edad, setEdad] = useState('Todas'); const [fileAbierto, setFileAbierto] = useState<PacienteHistoria | null>(null); const [historiaAbierta, setHistoriaAbierta] = useState<PacienteHistoria | null>(null); const [pagina, setPagina] = useState(1); const [tamano, setTamano] = useState(10);
-  const episodios = useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
+  const [busqueda, setBusqueda] = useState("");
+  const [estado, setEstado] = useState("Todos");
+  const [edad, setEdad] = useState("Todas");
+  const [fileAbierto, setFileAbierto] = useState<PacienteHistoria | null>(null);
+  const [historiaAbierta, setHistoriaAbierta] =
+    useState<PacienteHistoria | null>(null);
+  const [pagina, setPagina] = useState(1);
+  const [tamano, setTamano] = useState(10);
+  const episodios = useSyncExternalStore(
+    suscribirEpisodios,
+    obtenerEpisodios,
+    obtenerEpisodios,
+  );
   const { pacientes: fichasPacientes, errorPacientes } = usePacientes();
-  const pacientes: PacienteHistoria[] = fichasPacientes.map(p => ({nombre:nombrePacienteClinico(p),ci:p.ci,edad:edadPaciente(p.fecha_nacimiento),fechaNacimiento:p.fecha_nacimiento.slice(0,10),numeroHistoria:'HC-'+p.ci,datoRelevante:'Sin alertas registradas',estado:'Al día'}));
+  const pacientes: PacienteHistoria[] = fichasPacientes.map((p) => ({
+    nombre: nombrePacienteClinico(p),
+    ci: p.ci,
+    edad: edadPaciente(p.fecha_nacimiento),
+    fechaNacimiento: p.fecha_nacimiento.slice(0, 10),
+    numeroHistoria: "HC-" + p.ci,
+    datoRelevante: "Sin alertas registradas",
+    estado: "Al día",
+  }));
 
-  const conVisitas = (paciente: PacienteHistoria): PacienteHistoria => ({ ...paciente, episodios: episodios.filter((episodio) => episodio.paciente.ci === paciente.ci).sort((a, b) => a.correlativo - b.correlativo).map((episodio) => ({ id: episodio.episodioId, tipo: episodio.tipo, medico: episodio.medico, motivo: episodio.motivo, fecha: episodio.fecha, hora: episodio.paciente.hora, especialidad: episodio.paciente.especialidad, enfermedadActual: episodio.enfermedadActual, examenFisico: episodio.examenFisico, antecedentes: episodio.antecedentes, notas: episodio.notas, signosVitales: episodio.signosVitales, recetas: episodio.recetas, ordenes: episodio.ordenes, resultados: episodio.resultados, reconsultas: episodio.reconsultas })) });
-  const filtrados = pacientes.map(conVisitas).filter((paciente) => `${paciente.nombre} ${paciente.ci}`.toLowerCase().includes(busqueda.toLowerCase()) && (estado === 'Todos' || paciente.estado === estado) && (edad === 'Todas' || (edad === 'Menor de 40' ? paciente.edad < 40 : paciente.edad >= 40)));
+  const conVisitas = (paciente: PacienteHistoria): PacienteHistoria => ({
+    ...paciente,
+    episodios: episodios
+      .filter((episodio) => episodio.paciente.ci === paciente.ci)
+      .sort((a, b) => a.correlativo - b.correlativo)
+      .map((episodio) => ({
+        id: episodio.episodioId,
+        tipo: episodio.tipo,
+        medico: episodio.medico,
+        motivo: episodio.motivo,
+        fecha: episodio.fecha,
+        hora: episodio.paciente.hora,
+        especialidad: episodio.paciente.especialidad,
+        enfermedadActual: episodio.enfermedadActual,
+        examenFisico: episodio.examenFisico,
+        antecedentes: episodio.antecedentes,
+        notas: episodio.notas,
+        signosVitales: episodio.signosVitales,
+        recetas: episodio.recetas,
+        ordenes: episodio.ordenes,
+        resultados: episodio.resultados,
+        reconsultas: episodio.reconsultas,
+      })),
+  });
+  const filtrados = pacientes
+    .map(conVisitas)
+    .filter(
+      (paciente) =>
+        `${paciente.nombre} ${paciente.ci}`
+          .toLowerCase()
+          .includes(busqueda.toLowerCase()) &&
+        (estado === "Todos" || paciente.estado === estado) &&
+        (edad === "Todas" ||
+          (edad === "Menor de 40" ? paciente.edad < 40 : paciente.edad >= 40)),
+    );
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / tamano));
   const paginaActual = Math.min(pagina, totalPaginas);
-  const visibles = filtrados.slice((paginaActual - 1) * tamano, paginaActual * tamano);
-  useEffect(() => { setPagina(1); }, [busqueda, estado, edad, tamano]);
-  const Paginacion = () => <div className="historias-paginacion"><small>{filtrados.length ? `${(paginaActual - 1) * tamano + 1}–${Math.min(paginaActual * tamano, filtrados.length)} de ${filtrados.length}` : '0 resultados'}</small><div><label className="historias-selector-tamano"><span>Tamaño</span><select value={tamano} onChange={(event) => setTamano(Number(event.target.value))}>{[5, 10, 15, 20, 30, 50].map((cantidad) => <option key={cantidad}>{cantidad}</option>)}</select></label><button type="button" disabled={paginaActual === 1} onClick={() => setPagina((actual) => actual - 1)} aria-label="Pagina anterior"><Icon name="chevronLeft" size={16} /></button><span>Pagina <strong>{paginaActual}</strong> de {totalPaginas}</span><button type="button" disabled={paginaActual === totalPaginas} onClick={() => setPagina((actual) => actual + 1)} aria-label="Pagina siguiente"><Icon name="chevronRight" size={16} /></button></div></div>;
-  if (historiaAbierta) return <><VistaPaciente paciente={historiaAbierta} onVolver={() => setHistoriaAbierta(null)} onAbrirHistoria={() => setFileAbierto(historiaAbierta)} onAbrirFile={() => setFileAbierto(historiaAbierta)} />{fileAbierto && <HistoriaHojeable paciente={fileAbierto} onCerrar={() => setFileAbierto(null)} />}</>;
-  return <section className="historias-listado" aria-label="Listado de historias clínicas">{errorPacientes && <p role="alert">{errorPacientes}</p>}<div className="historias-herramientas"><label className="historias-buscador"><Icon name="search" size={17} /><input type="search" value={busqueda} onChange={(event) => setBusqueda(event.target.value)} placeholder="Buscar por nombre o CI" /></label><label>Estado<select value={estado} onChange={(event) => setEstado(event.target.value)}><option>Todos</option><option>Al día</option><option>Pendiente</option></select></label><label>Edad<select value={edad} onChange={(event) => setEdad(event.target.value)}><option>Todas</option><option>Menor de 40</option><option>40 o más</option></select></label></div><div className="historias-tabla-contenedor"><Paginacion /><table className="historias-tabla"><thead><tr><th>Paciente</th><th>CI</th><th>Edad</th><th>Acciones</th></tr></thead><tbody>{visibles.map((paciente) => <tr key={paciente.ci}><td><span className="historia-avatar">{paciente.nombre.split(' ').slice(0, 2).map((nombre) => nombre[0]).join('')}</span><strong>{paciente.nombre}</strong></td><td>{paciente.ci}</td><td>{paciente.edad} años</td><td><div className="historia-acciones"><button type="button" className="historia-ver" onClick={() => setHistoriaAbierta(paciente)}><Icon name="eye" size={16} /> Ver paciente</button></div></td></tr>)}{!visibles.length && <tr><td className="historias-vacias" colSpan={4}>No se encontraron pacientes con estos filtros.</td></tr>}</tbody></table><Paginacion /></div>{fileAbierto && <HistoriaHojeable paciente={fileAbierto} onCerrar={() => setFileAbierto(null)} />}</section>;
+  const visibles = filtrados.slice(
+    (paginaActual - 1) * tamano,
+    paginaActual * tamano,
+  );
+  useEffect(() => {
+    setPagina(1);
+  }, [busqueda, estado, edad, tamano]);
+  const Paginacion = () => (
+    <div className="historias-paginacion">
+      <small>
+        {filtrados.length
+          ? `${(paginaActual - 1) * tamano + 1}–${Math.min(paginaActual * tamano, filtrados.length)} de ${filtrados.length}`
+          : "0 resultados"}
+      </small>
+      <div>
+        <label className="historias-selector-tamano">
+          <span>Tamaño</span>
+          <select
+            value={tamano}
+            onChange={(event) => setTamano(Number(event.target.value))}
+          >
+            {[5, 10, 15, 20, 30, 50].map((cantidad) => (
+              <option key={cantidad}>{cantidad}</option>
+            ))}
+          </select>
+        </label>
+        <button
+          type="button"
+          disabled={paginaActual === 1}
+          onClick={() => setPagina((actual) => actual - 1)}
+          aria-label="Pagina anterior"
+        >
+          <Icon name="chevronLeft" size={16} />
+        </button>
+        <span>
+          Pagina <strong>{paginaActual}</strong> de {totalPaginas}
+        </span>
+        <button
+          type="button"
+          disabled={paginaActual === totalPaginas}
+          onClick={() => setPagina((actual) => actual + 1)}
+          aria-label="Pagina siguiente"
+        >
+          <Icon name="chevronRight" size={16} />
+        </button>
+      </div>
+    </div>
+  );
+  if (historiaAbierta)
+    return (
+      <>
+        <VistaPaciente
+          paciente={historiaAbierta}
+          onVolver={() => setHistoriaAbierta(null)}
+          onAbrirHistoria={() => setFileAbierto(historiaAbierta)}
+          onAbrirFile={() => setFileAbierto(historiaAbierta)}
+        />
+        {fileAbierto && (
+          <HistoriaHojeable
+            paciente={fileAbierto}
+            onCerrar={() => setFileAbierto(null)}
+          />
+        )}
+      </>
+    );
+  return (
+    <section
+      className="historias-listado"
+      aria-label="Listado de historias clínicas"
+    >
+      {errorPacientes && <p role="alert">{errorPacientes}</p>}
+      <div className="historias-herramientas">
+        <label className="historias-buscador">
+          <Icon name="search" size={17} />
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(event) => setBusqueda(event.target.value)}
+            placeholder="Buscar por nombre o CI"
+          />
+        </label>
+        <label>
+          Estado
+          <select
+            value={estado}
+            onChange={(event) => setEstado(event.target.value)}
+          >
+            <option>Todos</option>
+            <option>Al día</option>
+            <option>Pendiente</option>
+          </select>
+        </label>
+        <label>
+          Edad
+          <select
+            value={edad}
+            onChange={(event) => setEdad(event.target.value)}
+          >
+            <option>Todas</option>
+            <option>Menor de 40</option>
+            <option>40 o más</option>
+          </select>
+        </label>
+      </div>
+      <div className="historias-tabla-contenedor">
+        <Paginacion />
+        <table className="historias-tabla">
+          <thead>
+            <tr>
+              <th>Paciente</th>
+              <th>CI</th>
+              <th>Edad</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibles.map((paciente) => (
+              <tr key={paciente.ci}>
+                <td>
+                  <span className="historia-avatar">
+                    {paciente.nombre
+                      .split(" ")
+                      .slice(0, 2)
+                      .map((nombre) => nombre[0])
+                      .join("")}
+                  </span>
+                  <strong>{paciente.nombre}</strong>
+                </td>
+                <td>{paciente.ci}</td>
+                <td>{paciente.edad} años</td>
+                <td>
+                  <div className="historia-acciones">
+                    <button
+                      type="button"
+                      className="historia-ver"
+                      onClick={() => setHistoriaAbierta(paciente)}
+                    >
+                      <Icon name="eye" size={16} /> Ver paciente
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {!visibles.length && (
+              <tr>
+                <td className="historias-vacias" colSpan={4}>
+                  No se encontraron pacientes con estos filtros.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        <Paginacion />
+      </div>
+      {fileAbierto && (
+        <HistoriaHojeable
+          paciente={fileAbierto}
+          onCerrar={() => setFileAbierto(null)}
+        />
+      )}
+    </section>
+  );
 }
 
-function VistaPaciente({ paciente, onVolver, onAbrirHistoria, onAbrirFile }: { paciente: PacienteHistoria; onVolver: () => void; onAbrirHistoria: () => void; onAbrirFile: () => void }) { const episodios = paciente.episodios ?? []; const tipoAtencion = (tipo: string) => tipo === 'Consulta médica' ? 'Consulta ambulatoria' : tipo; return <section className="vista-paciente" aria-label={`Ficha de ${paciente.nombre}`}><header className="vista-paciente-cabecera"><div><span>FICHA DEL PACIENTE</span><h2>{paciente.nombre}</h2><div className="vista-paciente-meta"><span>CI {paciente.ci}</span><span>Historia clínica {paciente.numeroHistoria}</span><b>{episodios.length} {episodios.length === 1 ? 'capítulo' : 'capítulos'}</b></div></div><div className="vista-paciente-cabecera-acciones"><button type="button" onClick={onAbrirHistoria}><Icon name="eye" size={16} /> Ver historia</button><button type="button" className="historia-file" onClick={onAbrirFile}><Icon name="fileText" size={16} /> Ver file</button><button type="button" className="vista-paciente-volver" onClick={onVolver}><Icon name="chevronLeft" size={17} /> Volver</button></div></header><div className="vista-paciente-contenido"><section className="vista-paciente-atenciones"><header><div><span>HISTORIAL DE ATENCIONES</span><h3>Visitas al hospital</h3></div><small>{episodios.length} registradas</small></header>{episodios.length ? <div className="vista-paciente-lista">{episodios.map((episodio, indice) => <article key={episodio.id}><div className="vista-paciente-capitulo"><span>CAPÍTULO {indice + 1}</span><strong>{tipoAtencion(episodio.tipo)}</strong><time>{episodio.fecha || 'Fecha no registrada'}{episodio.hora ? ` · ${episodio.hora}` : ''}</time></div><div className="vista-paciente-visita-datos"><div><span>Médico tratante</span><strong>{episodio.medico || 'No registrado'}</strong></div>{episodio.tipo === 'Consulta médica' && <div><span>Especialidad</span><strong>{episodio.especialidad || 'Consulta ambulatoria'}</strong></div>}<div><span>{episodio.tipo === 'Internación' ? 'Diagnóstico' : 'Motivo de consulta'}</span><strong>{episodio.motivo || episodio.notas || 'Sin detalle registrado'}</strong></div></div><button type="button" onClick={onAbrirHistoria}><Icon name="eye" size={15} /> Ver</button></article>)}</div> : <div className="vista-paciente-vacio"><Icon name="fileText" size={25}/><strong>Sin atenciones registradas</strong><span>Las visitas, consultas, emergencias e internaciones aparecerán en este historial.</span></div>}</section></div></section>; }
-
-function TapaHistoria({ paciente }: { paciente: PacienteHistoria }) { return <div className="tapa-historia"><div className="tapa-acento" aria-hidden="true" /><img className="tapa-logo" src="/logo-hospital-original.png" alt="Hospital María Esperanza" /><div className="tapa-titulo"><span>EXPEDIENTE MÉDICO</span><h2>Historia clínica</h2><i aria-hidden="true" /></div><div className="tapa-paciente"><small>PACIENTE</small><h3>{paciente.nombre}</h3></div><dl className="tapa-datos"><div><dt>CI</dt><dd>{paciente.ci}</dd></div><div><dt>Edad</dt><dd>{paciente.edad} años</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento}</dd></div><div><dt>Número de historia</dt><dd>{paciente.numeroHistoria}</dd></div></dl><div className="tapa-alerta"><span>Dato relevante</span><strong>{paciente.datoRelevante}</strong></div><footer><span>Hospital María Esperanza</span><small>Documento clínico confidencial</small></footer></div>; }
-
-export function HistoriaHojeable({ paciente, onCerrar }: { paciente: PacienteHistoria; onCerrar: () => void }) {
-  const [pagina, setPagina] = useState(0); const [direccion, setDireccion] = useState<'adelante' | 'atras'>('adelante'); const [libroAbierto, setLibroAbierto] = useState(false);
+function VistaPaciente({
+  paciente,
+  onVolver,
+  onAbrirHistoria,
+  onAbrirFile,
+}: {
+  paciente: PacienteHistoria;
+  onVolver: () => void;
+  onAbrirHistoria: () => void;
+  onAbrirFile: () => void;
+}) {
   const episodios = paciente.episodios ?? [];
-  const [busquedaLibro, setBusquedaLibro] = useState(''); const [medicoFiltro, setMedicoFiltro] = useState(''); const [servicioFiltro, setServicioFiltro] = useState(''); const [estudioFiltro, setEstudioFiltro] = useState('');
-  const tipoEstudio = (texto: string) => { const valor = texto.toLocaleLowerCase('es'); if (/laboratorio|hemograma|sangre|orina/.test(valor)) return 'Laboratorios'; if (/rayo|radiograf/.test(valor)) return 'Rayos X'; if (/tomograf/.test(valor)) return 'Tomografías'; if (/ecocard/.test(valor)) return 'Ecocardiogramas'; return ''; };
-  const estudiosDisponibles = [...new Set(episodios.flatMap((episodio) => [...episodio.ordenes, ...episodio.resultados].map((documento) => tipoEstudio(`${documento.tipo} ${documento.detalle}`))).filter(Boolean))];
-  const servicioDe = (tipo: string) => tipo === 'Cirugía' ? 'Quirófano' : tipo;
-  const consulta = busquedaLibro.trim().toLocaleLowerCase('es');
+  const tipoAtencion = (tipo: string) =>
+    tipo === "Consulta médica" ? "Consulta ambulatoria" : tipo;
+  return (
+    <section
+      className="vista-paciente"
+      aria-label={`Ficha de ${paciente.nombre}`}
+    >
+      <header className="vista-paciente-cabecera">
+        <div>
+          <button
+            type="button"
+            className="vista-paciente-volver"
+            onClick={onVolver}
+          >
+            <Icon name="chevronLeft" size={17} /> Volver
+          </button>
+          <span>FICHA DEL PACIENTE</span>
+          <h2>{paciente.nombre}</h2>
+          <div className="vista-paciente-meta">
+            <span>CI {paciente.ci}</span>
+            <span>Historia clínica {paciente.numeroHistoria}</span>
+            <b>
+              {episodios.length}{" "}
+              {episodios.length === 1 ? "capítulo" : "capítulos"}
+            </b>
+          </div>
+        </div>
+        <div className="vista-paciente-cabecera-acciones">
+          <button type="button" onClick={onAbrirHistoria}>
+            <Icon name="eye" size={16} /> Ver historia
+          </button>
+          <button type="button" className="historia-file" onClick={onAbrirFile}>
+            <Icon name="fileText" size={16} /> Ver file
+          </button>
+        </div>
+      </header>
+      <div className="vista-paciente-contenido">
+        <section className="vista-paciente-atenciones">
+          <header>
+            <div>
+              <span>HISTORIAL DE ATENCIONES</span>
+              <h3>Visitas al hospital</h3>
+            </div>
+            <small>{episodios.length} registradas</small>
+          </header>
+          {episodios.length ? (
+            <div className="vista-paciente-lista">
+              {episodios.map((episodio, indice) => (
+                <article key={episodio.id}>
+                  <div className="vista-paciente-capitulo">
+                    <span>CAPÍTULO {indice + 1}</span>
+                    <strong>{tipoAtencion(episodio.tipo)}</strong>
+                    <time>
+                      {episodio.fecha || "Fecha no registrada"}
+                      {episodio.hora ? ` · ${episodio.hora}` : ""}
+                    </time>
+                  </div>
+                  <div className="vista-paciente-visita-datos">
+                    <div>
+                      <span>Médico tratante</span>
+                      <strong>{episodio.medico || "No registrado"}</strong>
+                    </div>
+                    {episodio.tipo === "Consulta médica" && (
+                      <div>
+                        <span>Especialidad</span>
+                        <strong>
+                          {episodio.especialidad || "Consulta ambulatoria"}
+                        </strong>
+                      </div>
+                    )}
+                    <div>
+                      <span>
+                        {episodio.tipo === "Internación"
+                          ? "Diagnóstico"
+                          : "Motivo de consulta"}
+                      </span>
+                      <strong>
+                        {episodio.motivo ||
+                          episodio.notas ||
+                          "Sin detalle registrado"}
+                      </strong>
+                    </div>
+                  </div>
+                  <button type="button" onClick={onAbrirHistoria}>
+                    <Icon name="eye" size={15} /> Ver
+                  </button>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="vista-paciente-vacio">
+              <Icon name="fileText" size={25} />
+              <strong>Sin atenciones registradas</strong>
+              <span>
+                Las visitas, consultas, emergencias e internaciones aparecerán
+                en este historial.
+              </span>
+            </div>
+          )}
+        </section>
+      </div>
+    </section>
+  );
+}
+
+function TapaHistoria({ paciente }: { paciente: PacienteHistoria }) {
+  return (
+    <div className="tapa-historia">
+      <div className="tapa-acento" aria-hidden="true" />
+      <img
+        className="tapa-logo"
+        src="/logo-hospital-original.png"
+        alt="Hospital María Esperanza"
+      />
+      <div className="tapa-titulo">
+        <span>EXPEDIENTE MÉDICO</span>
+        <h2>Historia clínica</h2>
+        <i aria-hidden="true" />
+      </div>
+      <div className="tapa-paciente">
+        <small>PACIENTE</small>
+        <h3>{paciente.nombre}</h3>
+      </div>
+      <dl className="tapa-datos">
+        <div>
+          <dt>CI</dt>
+          <dd>{paciente.ci}</dd>
+        </div>
+        <div>
+          <dt>Edad</dt>
+          <dd>{paciente.edad} años</dd>
+        </div>
+        <div>
+          <dt>Fecha de nacimiento</dt>
+          <dd>{paciente.fechaNacimiento}</dd>
+        </div>
+        <div>
+          <dt>Número de historia</dt>
+          <dd>{paciente.numeroHistoria}</dd>
+        </div>
+      </dl>
+      <div className="tapa-alerta">
+        <span>Dato relevante</span>
+        <strong>{paciente.datoRelevante}</strong>
+      </div>
+      <footer>
+        <span>Hospital María Esperanza</span>
+        <small>Documento clínico confidencial</small>
+      </footer>
+    </div>
+  );
+}
+
+export function HistoriaHojeable({
+  paciente,
+  onCerrar,
+}: {
+  paciente: PacienteHistoria;
+  onCerrar: () => void;
+}) {
+  const [pagina, setPagina] = useState(0);
+  const [direccion, setDireccion] = useState<"adelante" | "atras">("adelante");
+  const [libroAbierto, setLibroAbierto] = useState(false);
+  const episodios = paciente.episodios ?? [];
+  const [busquedaLibro, setBusquedaLibro] = useState("");
+  const [medicoFiltro, setMedicoFiltro] = useState("");
+  const [servicioFiltro, setServicioFiltro] = useState("");
+  const [estudioFiltro, setEstudioFiltro] = useState("");
+  const tipoEstudio = (texto: string) => {
+    const valor = texto.toLocaleLowerCase("es");
+    if (/laboratorio|hemograma|sangre|orina/.test(valor)) return "Laboratorios";
+    if (/rayo|radiograf/.test(valor)) return "Rayos X";
+    if (/tomograf/.test(valor)) return "Tomografías";
+    if (/ecocard/.test(valor)) return "Ecocardiogramas";
+    return "";
+  };
+  const estudiosDisponibles = [
+    ...new Set(
+      episodios
+        .flatMap((episodio) =>
+          [...episodio.ordenes, ...episodio.resultados].map((documento) =>
+            tipoEstudio(`${documento.tipo} ${documento.detalle}`),
+          ),
+        )
+        .filter(Boolean),
+    ),
+  ];
+  const servicioDe = (tipo: string) =>
+    tipo === "Cirugía" ? "Quirófano" : tipo;
+  const consulta = busquedaLibro.trim().toLocaleLowerCase("es");
   const episodiosFiltrados = episodios.filter((episodio) => {
-    const documentos = [...episodio.recetas, ...episodio.ordenes, ...episodio.resultados, ...episodio.reconsultas];
-    const coincideTexto = !consulta || [episodio.id, episodio.tipo, episodio.medico, episodio.motivo, episodio.enfermedadActual, episodio.examenFisico, episodio.notas, ...documentos.flatMap((documento) => [documento.tipo, documento.detalle])].join(' ').toLocaleLowerCase('es').includes(consulta);
-    const coincideEstudio = !estudioFiltro || [...episodio.ordenes, ...episodio.resultados].some((documento) => tipoEstudio(`${documento.tipo} ${documento.detalle}`) === estudioFiltro);
-    return coincideTexto && (!medicoFiltro || episodio.medico === medicoFiltro) && (!servicioFiltro || servicioDe(episodio.tipo) === servicioFiltro) && coincideEstudio;
+    const documentos = [
+      ...episodio.recetas,
+      ...episodio.ordenes,
+      ...episodio.resultados,
+      ...episodio.reconsultas,
+    ];
+    const coincideTexto =
+      !consulta ||
+      [
+        episodio.id,
+        episodio.tipo,
+        episodio.medico,
+        episodio.motivo,
+        episodio.enfermedadActual,
+        episodio.examenFisico,
+        episodio.notas,
+        ...documentos.flatMap((documento) => [
+          documento.tipo,
+          documento.detalle,
+        ]),
+      ]
+        .join(" ")
+        .toLocaleLowerCase("es")
+        .includes(consulta);
+    const coincideEstudio =
+      !estudioFiltro ||
+      [...episodio.ordenes, ...episodio.resultados].some(
+        (documento) =>
+          tipoEstudio(`${documento.tipo} ${documento.detalle}`) ===
+          estudioFiltro,
+      );
+    return (
+      coincideTexto &&
+      (!medicoFiltro || episodio.medico === medicoFiltro) &&
+      (!servicioFiltro || servicioDe(episodio.tipo) === servicioFiltro) &&
+      coincideEstudio
+    );
   });
-  useEffect(() => { setPagina(0); }, [busquedaLibro, medicoFiltro, servicioFiltro, estudioFiltro]);
-  const cabecera = <header className="libro-cabecera"><div className="libro-identidad"><span>HISTORIA CLÍNICA</span><h3>{paciente.nombre}</h3></div><div className="libro-filtros"><label className="libro-buscar"><Icon name="search" size={15}/><input value={busquedaLibro} onChange={(evento) => setBusquedaLibro(evento.target.value)} placeholder="Buscar en la historia" aria-label="Buscar en la historia clínica"/></label><label><span>Médico</span><select value={medicoFiltro} onChange={(evento) => setMedicoFiltro(evento.target.value)}><option value="">Todos</option>{[...new Set(episodios.map((episodio) => episodio.medico))].map((medico) => <option key={medico}>{medico}</option>)}</select></label><label><span>Servicio</span><select value={servicioFiltro} onChange={(evento) => setServicioFiltro(evento.target.value)}><option value="">Todos</option>{['Consulta médica','Emergencias','Internación','Quirófano','Terapia intensiva','Recuperación'].map((servicio) => <option key={servicio}>{servicio}</option>)}</select></label><label><span>Estudios</span><select value={estudioFiltro} onChange={(evento) => setEstudioFiltro(evento.target.value)}><option value="">Todos</option>{estudiosDisponibles.map((estudio) => <option key={estudio}>{estudio}</option>)}</select></label></div><button type="button" onClick={onCerrar} aria-label="Cerrar file"><Icon name="close" size={18} /></button></header>;
+  useEffect(() => {
+    setPagina(0);
+  }, [busquedaLibro, medicoFiltro, servicioFiltro, estudioFiltro]);
+  const cabecera = (
+    <header className="libro-cabecera">
+      <div className="libro-identidad">
+        <span>HISTORIA CLÍNICA</span>
+        <h3>{paciente.nombre}</h3>
+      </div>
+      <div className="libro-filtros">
+        <label className="libro-buscar">
+          <Icon name="search" size={15} />
+          <input
+            value={busquedaLibro}
+            onChange={(evento) => setBusquedaLibro(evento.target.value)}
+            placeholder="Buscar en la historia"
+            aria-label="Buscar en la historia clínica"
+          />
+        </label>
+        <label>
+          <span>Médico</span>
+          <select
+            value={medicoFiltro}
+            onChange={(evento) => setMedicoFiltro(evento.target.value)}
+          >
+            <option value="">Todos</option>
+            {[...new Set(episodios.map((episodio) => episodio.medico))].map(
+              (medico) => (
+                <option key={medico}>{medico}</option>
+              ),
+            )}
+          </select>
+        </label>
+        <label>
+          <span>Servicio</span>
+          <select
+            value={servicioFiltro}
+            onChange={(evento) => setServicioFiltro(evento.target.value)}
+          >
+            <option value="">Todos</option>
+            {[
+              "Consulta médica",
+              "Emergencias",
+              "Internación",
+              "Quirófano",
+              "Terapia intensiva",
+              "Recuperación",
+            ].map((servicio) => (
+              <option key={servicio}>{servicio}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Estudios</span>
+          <select
+            value={estudioFiltro}
+            onChange={(evento) => setEstudioFiltro(evento.target.value)}
+          >
+            <option value="">Todos</option>
+            {estudiosDisponibles.map((estudio) => (
+              <option key={estudio}>{estudio}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <button type="button" onClick={onCerrar} aria-label="Cerrar file">
+        <Icon name="close" size={18} />
+      </button>
+    </header>
+  );
   const paginaEpisodio = (indice: number) => 5 + indice * 3;
-  const listaDocumentos = (titulo: string, documentos: DocumentoEpisodio[], vacio: string) => <section className="episodio-documentos"><h4>{titulo}</h4>{documentos.length ? documentos.map((documento, indice) => <article key={`${documento.tipo}-${indice}`}><strong>{documento.tipo}</strong><span>{documento.detalle}</span>{documento.estado && <small>{documento.estado}</small>}</article>) : <p>{vacio}</p>}</section>;
+  const listaDocumentos = (
+    titulo: string,
+    documentos: DocumentoEpisodio[],
+    vacio: string,
+  ) => (
+    <section className="episodio-documentos">
+      <h4>{titulo}</h4>
+      {documentos.length ? (
+        documentos.map((documento, indice) => (
+          <article key={`${documento.tipo}-${indice}`}>
+            <strong>{documento.tipo}</strong>
+            <span>{documento.detalle}</span>
+            {documento.estado && <small>{documento.estado}</small>}
+          </article>
+        ))
+      ) : (
+        <p>{vacio}</p>
+      )}
+    </section>
+  );
   const paginas: PaginaLibro[] = [
-    { tipo: 'presentacion', titulo: 'Índice de episodios', contenido: <><p className="libro-kicker">HISTORIA CLÍNICA GENERAL</p><p>{episodiosFiltrados.length} de {episodios.length} episodios visibles.</p>{episodiosFiltrados.length ? <ol className="libro-indice">{episodiosFiltrados.map((episodio, indice) => <li key={episodio.id}><button type="button" onClick={() => { setDireccion('adelante'); setPagina(Math.floor((paginaEpisodio(indice) - 1) / 2) * 2); }}><span><strong>{episodio.id} · {episodio.tipo}</strong><small>{episodio.medico} · Motivo: {episodio.motivo}</small></span><span>Pág. {paginaEpisodio(indice)}</span></button></li>)}</ol> : <div className="libro-indice-vacio"><Icon name="search" size={28} /><strong>Sin resultados</strong><span>No hay hojas que coincidan con los filtros seleccionados.</span></div>}</> },
-    { tipo: 'presentacion', titulo: 'Archivo clínico', contenido: <><p className="libro-kicker">HISTORIA PERSONAL</p><h4>Información del expediente</h4><p>Este expediente reúne las atenciones, evoluciones, indicaciones y documentos clínicos del paciente.</p><dl className="libro-ficha"><div><dt>Paciente</dt><dd>{paciente.nombre}</dd></div><div><dt>Número de historia</dt><dd>{paciente.numeroHistoria}</dd></div><div><dt>Estado del file</dt><dd>{paciente.estado}</dd></div><div><dt>Dato relevante</dt><dd>{paciente.datoRelevante}</dd></div></dl><p className="libro-confidencial">Uso exclusivo del personal autorizado.</p></> },
-    { tipo: 'interior', titulo: 'Datos del paciente', contenido: <><p><b>Paciente:</b> {paciente.nombre}</p><p><b>CI:</b> {paciente.ci}</p><p><b>Edad:</b> {paciente.edad} años</p><p><b>Fecha de nacimiento:</b> {paciente.fechaNacimiento}</p><hr /><h4>Resumen clínico</h4><p>Las atenciones y documentos se incorporarán a este expediente.</p></> },
-    { tipo: 'interior', titulo: 'Documentos adjuntos', contenido: <><p>Las hojas cargadas desde archivos externos aparecerán aquí y se podrán recorrer junto a los registros clínicos generados por el sistema.</p><div className="libro-documento"><Icon name="fileText" size={24} /><span>Sin documentos adjuntos</span></div></> },
+    {
+      tipo: "presentacion",
+      titulo: "Índice de episodios",
+      contenido: (
+        <>
+          <p className="libro-kicker">HISTORIA CLÍNICA GENERAL</p>
+          <p>
+            {episodiosFiltrados.length} de {episodios.length} episodios
+            visibles.
+          </p>
+          {episodiosFiltrados.length ? (
+            <ol className="libro-indice">
+              {episodiosFiltrados.map((episodio, indice) => (
+                <li key={episodio.id}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDireccion("adelante");
+                      setPagina(
+                        Math.floor((paginaEpisodio(indice) - 1) / 2) * 2,
+                      );
+                    }}
+                  >
+                    <span>
+                      <strong>
+                        {episodio.id} · {episodio.tipo}
+                      </strong>
+                      <small>
+                        {episodio.medico} · Motivo: {episodio.motivo}
+                      </small>
+                    </span>
+                    <span>Pág. {paginaEpisodio(indice)}</span>
+                  </button>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <div className="libro-indice-vacio">
+              <Icon name="search" size={28} />
+              <strong>Sin resultados</strong>
+              <span>
+                No hay hojas que coincidan con los filtros seleccionados.
+              </span>
+            </div>
+          )}
+        </>
+      ),
+    },
+    {
+      tipo: "presentacion",
+      titulo: "Archivo clínico",
+      contenido: (
+        <>
+          <p className="libro-kicker">HISTORIA PERSONAL</p>
+          <h4>Información del expediente</h4>
+          <p>
+            Este expediente reúne las atenciones, evoluciones, indicaciones y
+            documentos clínicos del paciente.
+          </p>
+          <dl className="libro-ficha">
+            <div>
+              <dt>Paciente</dt>
+              <dd>{paciente.nombre}</dd>
+            </div>
+            <div>
+              <dt>Número de historia</dt>
+              <dd>{paciente.numeroHistoria}</dd>
+            </div>
+            <div>
+              <dt>Estado del file</dt>
+              <dd>{paciente.estado}</dd>
+            </div>
+            <div>
+              <dt>Dato relevante</dt>
+              <dd>{paciente.datoRelevante}</dd>
+            </div>
+          </dl>
+          <p className="libro-confidencial">
+            Uso exclusivo del personal autorizado.
+          </p>
+        </>
+      ),
+    },
+    {
+      tipo: "interior",
+      titulo: "Datos del paciente",
+      contenido: (
+        <>
+          <p>
+            <b>Paciente:</b> {paciente.nombre}
+          </p>
+          <p>
+            <b>CI:</b> {paciente.ci}
+          </p>
+          <p>
+            <b>Edad:</b> {paciente.edad} años
+          </p>
+          <p>
+            <b>Fecha de nacimiento:</b> {paciente.fechaNacimiento}
+          </p>
+          <hr />
+          <h4>Resumen clínico</h4>
+          <p>Las atenciones y documentos se incorporarán a este expediente.</p>
+        </>
+      ),
+    },
+    {
+      tipo: "interior",
+      titulo: "Documentos adjuntos",
+      contenido: (
+        <>
+          <p>
+            Las hojas cargadas desde archivos externos aparecerán aquí y se
+            podrán recorrer junto a los registros clínicos generados por el
+            sistema.
+          </p>
+          <div className="libro-documento">
+            <Icon name="fileText" size={24} />
+            <span>Sin documentos adjuntos</span>
+          </div>
+        </>
+      ),
+    },
     ...episodiosFiltrados.flatMap((episodio): PaginaLibro[] => [
-      { tipo: 'separador', titulo: '', contenido: <div className="episodio-separador"><span>EPISODIO CLÍNICO</span><strong>{episodio.id}</strong><h3>{episodio.tipo}</h3><p>{episodio.fecha ?? 'Fecha no registrada'}</p><small>{episodio.medico}</small></div> },
-      { tipo: 'interior', titulo: `${episodio.id} · Atención médica`, contenido: <><p className="libro-fecha">{episodio.fecha ?? 'Fecha no registrada'} · {episodio.medico}</p><p><b>Motivo:</b> {episodio.motivo}</p><div className="libro-consulta-detalle">{episodio.enfermedadActual && <p><b>Enfermedad actual:</b> {episodio.enfermedadActual}</p>}{episodio.examenFisico && <p><b>Examen físico:</b> {episodio.examenFisico}</p>}{episodio.antecedentes && <p><b>Antecedentes:</b> {episodio.antecedentes}</p>}{episodio.notas && <p><b>Notas médicas:</b> {episodio.notas}</p>}<h4>Signos vitales</h4>{Object.entries(episodio.signosVitales).filter(([, valor]) => valor).length ? <dl>{Object.entries(episodio.signosVitales).filter(([, valor]) => valor).map(([campo, valor]) => <div key={campo}><dt>{campo}</dt><dd>{valor}</dd></div>)}</dl> : <p>Sin signos vitales registrados.</p>}</div></> },
-      { tipo: 'interior', titulo: `${episodio.id} · Indicaciones y estudios`, contenido: <>{listaDocumentos('Recetas e indicaciones', episodio.recetas, 'Sin recetas registradas.')}{listaDocumentos('Órdenes de estudios', episodio.ordenes, 'Sin órdenes registradas.')}{listaDocumentos('Resultados adjuntos', episodio.resultados, 'Pendiente de resultados.')}{listaDocumentos('Reconsultas del episodio', episodio.reconsultas, 'Sin reconsultas registradas.')}</> },
+      {
+        tipo: "separador",
+        titulo: "",
+        contenido: (
+          <div className="episodio-separador">
+            <span>EPISODIO CLÍNICO</span>
+            <strong>{episodio.id}</strong>
+            <h3>{episodio.tipo}</h3>
+            <p>{episodio.fecha ?? "Fecha no registrada"}</p>
+            <small>{episodio.medico}</small>
+          </div>
+        ),
+      },
+      {
+        tipo: "interior",
+        titulo: `${episodio.id} · Atención médica`,
+        contenido: (
+          <>
+            <p className="libro-fecha">
+              {episodio.fecha ?? "Fecha no registrada"} · {episodio.medico}
+            </p>
+            <p>
+              <b>Motivo:</b> {episodio.motivo}
+            </p>
+            <div className="libro-consulta-detalle">
+              {episodio.enfermedadActual && (
+                <p>
+                  <b>Enfermedad actual:</b> {episodio.enfermedadActual}
+                </p>
+              )}
+              {episodio.examenFisico && (
+                <p>
+                  <b>Examen físico:</b> {episodio.examenFisico}
+                </p>
+              )}
+              {episodio.antecedentes && (
+                <p>
+                  <b>Antecedentes:</b> {episodio.antecedentes}
+                </p>
+              )}
+              {episodio.notas && (
+                <p>
+                  <b>Notas médicas:</b> {episodio.notas}
+                </p>
+              )}
+              <h4>Signos vitales</h4>
+              {Object.entries(episodio.signosVitales).filter(
+                ([, valor]) => valor,
+              ).length ? (
+                <dl>
+                  {Object.entries(episodio.signosVitales)
+                    .filter(([, valor]) => valor)
+                    .map(([campo, valor]) => (
+                      <div key={campo}>
+                        <dt>{campo}</dt>
+                        <dd>{valor}</dd>
+                      </div>
+                    ))}
+                </dl>
+              ) : (
+                <p>Sin signos vitales registrados.</p>
+              )}
+            </div>
+          </>
+        ),
+      },
+      {
+        tipo: "interior",
+        titulo: `${episodio.id} · Indicaciones y estudios`,
+        contenido: (
+          <>
+            {listaDocumentos(
+              "Recetas e indicaciones",
+              episodio.recetas,
+              "Sin recetas registradas.",
+            )}
+            {listaDocumentos(
+              "Órdenes de estudios",
+              episodio.ordenes,
+              "Sin órdenes registradas.",
+            )}
+            {listaDocumentos(
+              "Resultados adjuntos",
+              episodio.resultados,
+              "Pendiente de resultados.",
+            )}
+            {listaDocumentos(
+              "Reconsultas del episodio",
+              episodio.reconsultas,
+              "Sin reconsultas registradas.",
+            )}
+          </>
+        ),
+      },
     ]),
   ];
   const paginaActual = pagina < paginas.length ? pagina : 0;
-  const izquierda = paginas[paginaActual]; const derecha = paginas[paginaActual + 1];
-  if (!libroAbierto) return <div className="libro-fondo" onMouseDown={onCerrar}><section className="libro-modal libro-modal-cerrado" role="dialog" aria-modal="true" aria-label={`Historia clínica cerrada de ${paciente.nombre}`} onMouseDown={(event) => event.stopPropagation()}>{cabecera}<div className="libro-vista-previa"><div className="libro-cerrado" aria-label={`Tapa de la historia clínica de ${paciente.nombre}`}><TapaHistoria paciente={paciente} /></div><button type="button" className="libro-abrir" onClick={() => { setDireccion('adelante'); setPagina(0); setLibroAbierto(true); }}><strong>Abrir historia clínica</strong><Icon name="chevronRight" size={20} /></button></div></section></div>;
-  const dibujarPagina = (item: PaginaLibro, lado: 'izquierda' | 'derecha', numero: number) => <article className={`libro-pagina ${lado} libro-${item.tipo}`}><span className="libro-numero">{numero}</span>{item.titulo && <h3>{item.titulo}</h3>}{item.contenido}</article>;
-  return <div className="libro-fondo" onMouseDown={onCerrar}><section className="libro-modal" role="dialog" aria-modal="true" aria-label={`Historia clínica de ${paciente.nombre}`} onMouseDown={(event) => event.stopPropagation()}>{cabecera}<div className="libro-cuerpo"><button type="button" className="libro-navegar" onClick={() => { setDireccion('atras'); if (paginaActual === 0) setLibroAbierto(false); else setPagina(Math.max(0, paginaActual - 2)); }} aria-label={paginaActual === 0 ? 'Cerrar libro y ver tapa' : 'Páginas anteriores'}><Icon name="chevronLeft" size={22} /></button><div className={`libro ${direccion}`} key={`${paginaActual}-${direccion}`}>{dibujarPagina(izquierda, 'izquierda', paginaActual + 1)}{derecha && dibujarPagina(derecha, 'derecha', paginaActual + 2)}</div><button type="button" className="libro-navegar" disabled={!derecha || paginaActual + 2 >= paginas.length} onClick={() => { setDireccion('adelante'); setPagina(Math.min(paginas.length - 2, paginaActual + 2)); }} aria-label="Páginas siguientes"><Icon name="chevronRight" size={22} /></button></div><footer>Páginas {paginaActual + 1}{derecha ? `–${paginaActual + 2}` : ''} de {paginas.length}</footer></section></div>;
+  const izquierda = paginas[paginaActual];
+  const derecha = paginas[paginaActual + 1];
+  if (!libroAbierto)
+    return (
+      <div className="libro-fondo" onMouseDown={onCerrar}>
+        <section
+          className="libro-modal libro-modal-cerrado"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Historia clínica cerrada de ${paciente.nombre}`}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
+          {cabecera}
+          <div className="libro-vista-previa">
+            <div
+              className="libro-cerrado"
+              aria-label={`Tapa de la historia clínica de ${paciente.nombre}`}
+            >
+              <TapaHistoria paciente={paciente} />
+            </div>
+            <button
+              type="button"
+              className="libro-abrir"
+              onClick={() => {
+                setDireccion("adelante");
+                setPagina(0);
+                setLibroAbierto(true);
+              }}
+            >
+              <strong>Abrir historia clínica</strong>
+              <Icon name="chevronRight" size={20} />
+            </button>
+          </div>
+        </section>
+      </div>
+    );
+  const dibujarPagina = (
+    item: PaginaLibro,
+    lado: "izquierda" | "derecha",
+    numero: number,
+  ) => (
+    <article className={`libro-pagina ${lado} libro-${item.tipo}`}>
+      <span className="libro-numero">{numero}</span>
+      {item.titulo && <h3>{item.titulo}</h3>}
+      {item.contenido}
+    </article>
+  );
+  return (
+    <div className="libro-fondo" onMouseDown={onCerrar}>
+      <section
+        className="libro-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Historia clínica de ${paciente.nombre}`}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        {cabecera}
+        <div className="libro-cuerpo">
+          <button
+            type="button"
+            className="libro-navegar"
+            onClick={() => {
+              setDireccion("atras");
+              if (paginaActual === 0) setLibroAbierto(false);
+              else setPagina(Math.max(0, paginaActual - 2));
+            }}
+            aria-label={
+              paginaActual === 0
+                ? "Cerrar libro y ver tapa"
+                : "Páginas anteriores"
+            }
+          >
+            <Icon name="chevronLeft" size={22} />
+          </button>
+          <div
+            className={`libro ${direccion}`}
+            key={`${paginaActual}-${direccion}`}
+          >
+            {dibujarPagina(izquierda, "izquierda", paginaActual + 1)}
+            {derecha && dibujarPagina(derecha, "derecha", paginaActual + 2)}
+          </div>
+          <button
+            type="button"
+            className="libro-navegar"
+            disabled={!derecha || paginaActual + 2 >= paginas.length}
+            onClick={() => {
+              setDireccion("adelante");
+              setPagina(Math.min(paginas.length - 2, paginaActual + 2));
+            }}
+            aria-label="Páginas siguientes"
+          >
+            <Icon name="chevronRight" size={22} />
+          </button>
+        </div>
+        <footer>
+          Páginas {paginaActual + 1}
+          {derecha ? `–${paginaActual + 2}` : ""} de {paginas.length}
+        </footer>
+      </section>
+    </div>
+  );
 }

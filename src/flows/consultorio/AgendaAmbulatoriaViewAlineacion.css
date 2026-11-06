@@ -8,7 +8,9 @@
 /* La cabecera y las filas comparten exactamente la misma retícula. */
 .agenda-cola > header,
 .agenda-cola > article {
-  grid-template-columns: 64px minmax(170px, 1.15fr) minmax(145px, .9fr) minmax(175px, 1.1fr) minmax(135px, .72fr) 98px;
+  grid-template-columns:
+    64px minmax(170px, 1.15fr) minmax(145px, 0.9fr) minmax(175px, 1.1fr)
+    minmax(135px, 0.72fr) 98px;
   column-gap: 12px;
   padding-inline: 16px;
 }
@@ -40,5 +42,13 @@
   grid-template-columns: minmax(0, 1fr) 310px;
 }
 
-.agenda-ambulatoria .agenda-cola article time { display: grid; gap: 4px; }
-.agenda-ambulatoria .agenda-cola article time small { font-size: 11px; font-weight: 400; color: #587b96; white-space: nowrap; }
+.agenda-ambulatoria .agenda-cola article time {
+  display: grid;
+  gap: 4px;
+}
+.agenda-ambulatoria .agenda-cola article time small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #587b96;
+  white-space: nowrap;
+}

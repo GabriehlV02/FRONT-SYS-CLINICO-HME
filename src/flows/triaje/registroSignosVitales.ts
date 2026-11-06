@@ -9,9 +9,14 @@ const suscriptores = new Set<Suscriptor>();
 type ConsultaSignos = { id: string };
 const claveConsulta = (consulta: ConsultaSignos) => consulta.id;
 
-export function obtenerSignosVitales(consulta: ConsultaSignos) { return registros.get(claveConsulta(consulta)); }
+export function obtenerSignosVitales(consulta: ConsultaSignos) {
+  return registros.get(claveConsulta(consulta));
+}
 
-export function guardarSignosVitales(consulta: ConsultaSignos, valores: RegistroSignosVitales) {
+export function guardarSignosVitales(
+  consulta: ConsultaSignos,
+  valores: RegistroSignosVitales,
+) {
   registros.set(claveConsulta(consulta), { ...valores });
   suscriptores.forEach((suscriptor) => suscriptor());
 }

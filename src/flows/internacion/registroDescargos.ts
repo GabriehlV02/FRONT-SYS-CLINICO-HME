@@ -1,25 +1,30 @@
 export type EstadoDescargo = {
-  estado: 'pendiente' | 'recibido';
+  estado: "pendiente" | "recibido";
   recibidoPor?: string;
   recibidoEn?: string;
 };
 
 type Descargos = Record<string, EstadoDescargo>;
 
-const clave = 'hme:descargos-internacion';
-const evento = 'internacion:descargos-actualizados';
+const clave = "hme:descargos-internacion";
+const evento = "internacion:descargos-actualizados";
 let cache: Descargos | null = null;
 
 function disponible() {
-  return typeof window !== 'undefined';
+  return typeof window !== "undefined";
 }
 
 export function leerDescargos(): Descargos {
   if (cache) return cache;
   if (!disponible()) return (cache = {});
   try {
-    const guardados: unknown = JSON.parse(window.localStorage.getItem(clave) ?? '{}');
-    return (cache = guardados && typeof guardados === 'object' && !Array.isArray(guardados) ? guardados as Descargos : {});
+    const guardados: unknown = JSON.parse(
+      window.localStorage.getItem(clave) ?? "{}",
+    );
+    return (cache =
+      guardados && typeof guardados === "object" && !Array.isArray(guardados)
+        ? (guardados as Descargos)
+        : {});
   } catch {
     return (cache = {});
   }
@@ -28,7 +33,11 @@ export function leerDescargos(): Descargos {
 export function registrarRecepcionDescargo(id: string, recibidoPor: string) {
   const descargos = {
     ...leerDescargos(),
-    [id]: { estado: 'recibido' as const, recibidoPor, recibidoEn: new Date().toISOString() },
+    [id]: {
+      estado: "recibido" as const,
+      recibidoPor,
+      recibidoEn: new Date().toISOString(),
+    },
   };
   cache = descargos;
   window.localStorage.setItem(clave, JSON.stringify(descargos));
@@ -37,11 +46,14 @@ export function registrarRecepcionDescargo(id: string, recibidoPor: string) {
 
 export function suscribirDescargos(actualizar: () => void) {
   if (!disponible()) return () => undefined;
-  const manejar = () => { cache = null; actualizar(); };
+  const manejar = () => {
+    cache = null;
+    actualizar();
+  };
   window.addEventListener(evento, manejar);
-  window.addEventListener('storage', manejar);
+  window.addEventListener("storage", manejar);
   return () => {
     window.removeEventListener(evento, manejar);
-    window.removeEventListener('storage', manejar);
+    window.removeEventListener("storage", manejar);
   };
 }

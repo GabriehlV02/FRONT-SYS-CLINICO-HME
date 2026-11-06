@@ -218,9 +218,13 @@
 .confirmacion-salida header small {
   color: #008bc3;
   font-size: 10px;
-  letter-spacing: .1em;
+  letter-spacing: 0.1em;
 }
-.confirmacion-salida h3 { margin-top: 6px; font-size: 21px; color: #16476a; }
+.confirmacion-salida h3 {
+  margin-top: 6px;
+  font-size: 21px;
+  color: #16476a;
+}
 .confirmacion-salida header > button {
   width: 34px;
   height: 34px;
@@ -229,9 +233,20 @@
   background: #fff;
   cursor: pointer;
 }
-.confirmacion-salida .confirmacion-contenido { padding: 23px 24px; }
-.confirmacion-salida .confirmacion-contenido > p { color: #4d7088; font-size: 14px; line-height: 1.6; }
-.confirmacion-salida footer { padding: 0 24px 24px; gap: 10px; border: 0; background: #fff; }
+.confirmacion-salida .confirmacion-contenido {
+  padding: 23px 24px;
+}
+.confirmacion-salida .confirmacion-contenido > p {
+  color: #4d7088;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.confirmacion-salida footer {
+  padding: 0 24px 24px;
+  gap: 10px;
+  border: 0;
+  background: #fff;
+}
 .confirmacion-salida footer button {
   min-height: 44px;
   height: auto;
@@ -252,8 +267,13 @@
   background: linear-gradient(110deg, #087bb9, #0cadd1);
   box-shadow: 0 7px 16px #008ac526;
 }
-.confirmacion-salida footer button:hover { filter: brightness(.97); }
-.confirmacion-salida button:focus-visible { outline: 3px solid #70d2ef; outline-offset: 3px; }
+.confirmacion-salida footer button:hover {
+  filter: brightness(0.97);
+}
+.confirmacion-salida button:focus-visible {
+  outline: 3px solid #70d2ef;
+  outline-offset: 3px;
+}
 .confirmacion-modal.peligrosa header > span {
   color: #9a3e3e;
   background: #fae7e7;
@@ -277,7 +297,9 @@
   width: min(520px, 100%) !important;
   border: 1px solid rgb(255 255 255 / 78%) !important;
   border-radius: 22px !important;
-  box-shadow: 0 32px 90px rgb(8 40 62 / 30%), 0 8px 24px rgb(8 55 82 / 12%) !important;
+  box-shadow:
+    0 32px 90px rgb(8 40 62 / 30%),
+    0 8px 24px rgb(8 55 82 / 12%) !important;
 }
 .confirmacion-salida::before {
   position: absolute;
@@ -291,7 +313,9 @@
   padding: 26px 28px 22px;
   gap: 16px;
   border-bottom: 1px solid #e4f0f6;
-  background: radial-gradient(ellipse at 92% 0%, #e5f8ff 0, transparent 46%), linear-gradient(120deg, #f0faff, #fff 78%);
+  background:
+    radial-gradient(ellipse at 92% 0%, #e5f8ff 0, transparent 46%),
+    linear-gradient(120deg, #f0faff, #fff 78%);
 }
 .confirmacion-salida header > span {
   width: 56px;
@@ -300,18 +324,20 @@
   border-radius: 17px;
   color: #078cc4;
   background: linear-gradient(145deg, #e8f9ff, #d9f2fb);
-  box-shadow: inset 0 1px #fff, 0 7px 18px rgb(8 137 190 / 10%);
+  box-shadow:
+    inset 0 1px #fff,
+    0 7px 18px rgb(8 137 190 / 10%);
 }
 .confirmacion-salida header small {
   color: #0788bc;
   font-size: 9px;
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
 }
 .confirmacion-salida h3 {
   margin-top: 6px;
   color: #16476a;
   font-size: 23px;
-  letter-spacing: -.025em;
+  letter-spacing: -0.025em;
 }
 .confirmacion-salida header > button {
   width: 38px;
@@ -319,7 +345,11 @@
   border-color: #d5e8f1;
   color: #648196;
   background: rgb(255 255 255 / 85%);
-  transition: color .16s ease, border-color .16s ease, background .16s ease, transform .16s ease;
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease;
 }
 .confirmacion-salida header > button:hover {
   transform: translateY(-1px);
@@ -357,7 +387,10 @@
   min-height: 48px;
   border-radius: 11px;
   font-size: 13px;
-  transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background 0.16s ease;
 }
 .confirmacion-salida footer button:hover {
   transform: translateY(-1px);
@@ -373,15 +406,38 @@
   box-shadow: 0 10px 22px rgb(0 122 176 / 25%);
 }
 @media (max-width: 520px) {
-  .confirmacion-fondo-salida { padding: 14px; }
-  .confirmacion-salida { border-radius: 18px !important; }
-  .confirmacion-salida header { padding: 22px 19px 18px; gap: 12px; }
-  .confirmacion-salida header > span { width: 48px; height: 48px; border-radius: 14px; }
-  .confirmacion-salida h3 { font-size: 20px; }
-  .confirmacion-salida .confirmacion-contenido { padding: 21px 20px; }
-  .confirmacion-salida .confirmacion-contenido > p { font-size: 14px; }
-  .confirmacion-salida footer { padding: 0 20px 21px; }
-  .confirmacion-salida footer button { min-height: 45px; padding-inline: 9px; font-size: 12px; }
+  .confirmacion-fondo-salida {
+    padding: 14px;
+  }
+  .confirmacion-salida {
+    border-radius: 18px !important;
+  }
+  .confirmacion-salida header {
+    padding: 22px 19px 18px;
+    gap: 12px;
+  }
+  .confirmacion-salida header > span {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+  .confirmacion-salida h3 {
+    font-size: 20px;
+  }
+  .confirmacion-salida .confirmacion-contenido {
+    padding: 21px 20px;
+  }
+  .confirmacion-salida .confirmacion-contenido > p {
+    font-size: 14px;
+  }
+  .confirmacion-salida footer {
+    padding: 0 20px 21px;
+  }
+  .confirmacion-salida footer button {
+    min-height: 45px;
+    padding-inline: 9px;
+    font-size: 12px;
+  }
 }
 @keyframes modal-entrada {
   from {

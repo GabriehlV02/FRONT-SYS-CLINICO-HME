@@ -221,15 +221,20 @@ export default function VisorDicom({
       negativo: () => setInvertido((v) => !v),
       invertirHorizontal: () => setReflejado((v) => !v),
       centrar: () => setPosicion({ x: 0, y: 0 }),
-      siguienteCorte: () => setIndice((valor) => files.length ? (valor + 1) % files.length : 0),
+      siguienteCorte: () =>
+        setIndice((valor) => (files.length ? (valor + 1) % files.length : 0)),
       irACorte: (indice) =>
         setIndice(Math.max(0, Math.min(files.length - 1, indice))),
       ajustarVentana: (brillo, contraste) => {
         const imagen = imagenRef.current;
         if (!imagen) return;
         ventana.current = {
-          centro: imagen.centroInicial + ((brillo - 100) * imagen.anchoInicial) / 200,
-          ancho: Math.max(1, (imagen.anchoInicial * 100) / Math.max(20, contraste)),
+          centro:
+            imagen.centroInicial + ((brillo - 100) * imagen.anchoInicial) / 200,
+          ancho: Math.max(
+            1,
+            (imagen.anchoInicial * 100) / Math.max(20, contraste),
+          ),
         };
         pintar();
       },

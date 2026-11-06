@@ -101,7 +101,9 @@ export default function VistaBaseDatosOrthanc() {
       );
     } catch (e) {
       setEstado(null);
-      setErrorConexion("No se pudo conectar con Orthanc. Revisa el servidor e inténtalo nuevamente.");
+      setErrorConexion(
+        "No se pudo conectar con Orthanc. Revisa el servidor e inténtalo nuevamente.",
+      );
     } finally {
       setSincronizando(false);
       setCargando(false);
@@ -263,7 +265,9 @@ export default function VistaBaseDatosOrthanc() {
   return (
     <div className="orthanc-vista">
       <section className="orthanc-estado">
-        <div className={`orthanc-conexion ${estado ? "conectado" : "desconectado"}`}>
+        <div
+          className={`orthanc-conexion ${estado ? "conectado" : "desconectado"}`}
+        >
           <i />
           <span>
             <strong>
@@ -284,15 +288,19 @@ export default function VistaBaseDatosOrthanc() {
         </div>
         <div className="orthanc-metrica">
           <strong>
-            {
-              estado?.conectado ? new Set(estudios.map((e) => e.patientIdDicom || e.patientName))
-                .size : "—"
-            }
+            {estado?.conectado
+              ? new Set(estudios.map((e) => e.patientIdDicom || e.patientName))
+                  .size
+              : "—"}
           </strong>
           <small>pacientes DICOM</small>
         </div>
         <div className="orthanc-metrica">
-          <strong>{estado?.conectado ? estudios.filter((e) => !e.pacienteId).length : "—"}</strong>
+          <strong>
+            {estado?.conectado
+              ? estudios.filter((e) => !e.pacienteId).length
+              : "—"}
+          </strong>
           <small>pendientes de asociar</small>
         </div>
         <button
@@ -306,7 +314,11 @@ export default function VistaBaseDatosOrthanc() {
         </button>
       </section>
       {error && <div className="orthanc-mensaje error">{error}</div>}
-      <div className="orthanc-filtros" role="search" aria-label="Buscar y filtrar estudios">
+      <div
+        className="orthanc-filtros"
+        role="search"
+        aria-label="Buscar y filtrar estudios"
+      >
         <label className="orthanc-buscar">
           <Icon name="search" size={18} />
           <input
@@ -365,123 +377,8 @@ export default function VistaBaseDatosOrthanc() {
         </label>
       </div>
       <div className="orthanc-tabla-con-paginacion">
-      <div className="orthanc-paginacion">
-        <span />
-        <div>
-          <label>
-            Mostrar{" "}
-            <select
-              value={tamano}
-              onChange={(e) => {
-                setTamano(Number(e.target.value));
-                setPagina(1);
-              }}
-            >
-              {[10, 20, 50, 100].map((n) => (
-                <option key={n}>{n}</option>
-              ))}
-            </select>
-          </label>
-          <button
-            disabled={actual === 1}
-            onClick={() => setPagina((p) => p - 1)}
-          >
-            <Icon name="chevronLeft" size={16} />
-          </button>
-          <span>
-            Página <b>{actual}</b> de {paginas}
-          </span>
-          <button
-            disabled={actual === paginas}
-            onClick={() => setPagina((p) => p + 1)}
-          >
-            <Icon name="chevronRight" size={16} />
-          </button>
-        </div>
-      </div>
-      <div className="orthanc-tabla">
-          <div className="orthanc-fila columnas">
-            <span>Paciente DICOM</span>
-            <span>Estudio</span>
-            <span>Fecha</span>
-            <span>Series</span>
-            <span>Estado</span>
-            <span>Acciones</span>
-          </div>
-          {estudiosPagina.map((e) => (
-            <div className="orthanc-fila" key={e.id}>
-              <div className="orthanc-paciente">
-                <span>
-                  <Icon name="users" size={19} />
-                </span>
-                <div>
-                    <strong>{nombreLegible(e.patientName) || "Paciente sin nombre"}</strong>
-                </div>
-              </div>
-              <div>
-                <strong>{e.descripcion || "Estudio sin descripción"}</strong>
-              </div>
-              <div>{fecha(e.fechaEstudio)}</div>
-              <div>{e.cantidadSeries}</div>
-              <div>
-                <span
-                  className={`orthanc-asociacion ${e.pacienteId ? "asociado" : "pendiente"}`}
-                >
-                  {e.pacienteId ? "Asociado" : "Pendiente"}
-                </span>
-              </div>
-              <div className="orthanc-acciones">
-                <button type="button" onClick={() => visualizar(e)} aria-label="Ver estudio" title="Ver estudio">
-                  <Icon name="eye" size={17} />
-                  <span>Ver</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={descargando === e.id}
-                  onClick={() => void descargar(e)}
-                  aria-label="Descargar estudio en ZIP"
-                  title="Descargar estudio en ZIP"
-                >
-                  <Icon name="download" size={17} />
-                  <span>{descargando === e.id ? "…" : "ZIP"}</span>
-                </button>
-                <button type="button" onClick={() => abrirEdicion(e)} aria-label="Editar estudio" title="Editar estudio">
-                  <Icon name="edit" size={17} />
-                  <span>Editar</span>
-                </button>
-                <button
-                  type="button"
-                  className="eliminar"
-                  disabled={eliminando === e.id}
-                  onClick={() => void eliminar(e)}
-                  aria-label="Eliminar estudio"
-                  title="Eliminar estudio"
-                >
-                  <Icon name="trash" size={17} />
-                  <span>{eliminando === e.id ? "…" : "Eliminar"}</span>
-                </button>
-              </div>
-            </div>
-          ))}
-      </div>
-      {(cargando || !elementos.length) && (
-        <div className="orthanc-vacio">
-          <Icon name="image" size={28} />
-          <strong>
-            {cargando
-              ? "Leyendo la base de datos…"
-              : errorConexion ? "Servidor no disponible" : "No hay estudios para mostrar"}
-          </strong>
-          <small>
-            {cargando
-              ? "La primera consulta puede tardar si Orthanc contiene muchos estudios."
-              : errorConexion ? "Sincroniza nuevamente cuando se restablezca la conexión." : "Cambia la búsqueda, modalidad o rango de fechas."}
-          </small>
-        </div>
-      )}
-      {!cargando && elementos.length > 0 && (
-        <div className="orthanc-paginacion orthanc-paginacion-inferior">
-          <small>{`${(actual - 1) * tamano + 1}–${Math.min(actual * tamano, elementos.length)} de ${elementos.length}`}</small>
+        <div className="orthanc-paginacion">
+          <span />
           <div>
             <label>
               Mostrar{" "}
@@ -514,7 +411,138 @@ export default function VistaBaseDatosOrthanc() {
             </button>
           </div>
         </div>
-      )}
+        <div className="orthanc-tabla">
+          <div className="orthanc-fila columnas">
+            <span>Paciente DICOM</span>
+            <span>Estudio</span>
+            <span>Fecha</span>
+            <span>Series</span>
+            <span>Estado</span>
+            <span>Acciones</span>
+          </div>
+          {estudiosPagina.map((e) => (
+            <div className="orthanc-fila" key={e.id}>
+              <div className="orthanc-paciente">
+                <span>
+                  <Icon name="users" size={19} />
+                </span>
+                <div>
+                  <strong>
+                    {nombreLegible(e.patientName) || "Paciente sin nombre"}
+                  </strong>
+                </div>
+              </div>
+              <div>
+                <strong>{e.descripcion || "Estudio sin descripción"}</strong>
+              </div>
+              <div>{fecha(e.fechaEstudio)}</div>
+              <div>{e.cantidadSeries}</div>
+              <div>
+                <span
+                  className={`orthanc-asociacion ${e.pacienteId ? "asociado" : "pendiente"}`}
+                >
+                  {e.pacienteId ? "Asociado" : "Pendiente"}
+                </span>
+              </div>
+              <div className="orthanc-acciones">
+                <button
+                  type="button"
+                  onClick={() => visualizar(e)}
+                  aria-label="Ver estudio"
+                  title="Ver estudio"
+                >
+                  <Icon name="eye" size={17} />
+                  <span>Ver</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={descargando === e.id}
+                  onClick={() => void descargar(e)}
+                  aria-label="Descargar estudio en ZIP"
+                  title="Descargar estudio en ZIP"
+                >
+                  <Icon name="download" size={17} />
+                  <span>{descargando === e.id ? "…" : "ZIP"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => abrirEdicion(e)}
+                  aria-label="Editar estudio"
+                  title="Editar estudio"
+                >
+                  <Icon name="edit" size={17} />
+                  <span>Editar</span>
+                </button>
+                <button
+                  type="button"
+                  className="eliminar"
+                  disabled={eliminando === e.id}
+                  onClick={() => void eliminar(e)}
+                  aria-label="Eliminar estudio"
+                  title="Eliminar estudio"
+                >
+                  <Icon name="trash" size={17} />
+                  <span>{eliminando === e.id ? "…" : "Eliminar"}</span>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        {(cargando || !elementos.length) && (
+          <div className="orthanc-vacio">
+            <Icon name="image" size={28} />
+            <strong>
+              {cargando
+                ? "Leyendo la base de datos…"
+                : errorConexion
+                  ? "Servidor no disponible"
+                  : "No hay estudios para mostrar"}
+            </strong>
+            <small>
+              {cargando
+                ? "La primera consulta puede tardar si Orthanc contiene muchos estudios."
+                : errorConexion
+                  ? "Sincroniza nuevamente cuando se restablezca la conexión."
+                  : "Cambia la búsqueda, modalidad o rango de fechas."}
+            </small>
+          </div>
+        )}
+        {!cargando && elementos.length > 0 && (
+          <div className="orthanc-paginacion orthanc-paginacion-inferior">
+            <small>{`${(actual - 1) * tamano + 1}–${Math.min(actual * tamano, elementos.length)} de ${elementos.length}`}</small>
+            <div>
+              <label>
+                Mostrar{" "}
+                <select
+                  value={tamano}
+                  onChange={(e) => {
+                    setTamano(Number(e.target.value));
+                    setPagina(1);
+                  }}
+                >
+                  {[10, 20, 50, 100].map((n) => (
+                    <option key={n}>{n}</option>
+                  ))}
+                </select>
+              </label>
+              <button
+                disabled={actual === 1}
+                onClick={() => setPagina((p) => p - 1)}
+              >
+                <Icon name="chevronLeft" size={16} />
+              </button>
+              <span>
+                Página <b>{actual}</b> de {paginas}
+              </span>
+              <button
+                disabled={actual === paginas}
+                onClick={() => setPagina((p) => p + 1)}
+              >
+                <Icon name="chevronRight" size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       {editando && (
         <div
@@ -542,7 +570,10 @@ export default function VistaBaseDatosOrthanc() {
                 <Icon name="close" size={18} />
               </button>
             </header>
-            <div className="orthanc-modal-resumen" aria-label="Contenido DICOM del estudio">
+            <div
+              className="orthanc-modal-resumen"
+              aria-label="Contenido DICOM del estudio"
+            >
               <span className="orthanc-modal-resumen-icono">
                 <Icon name="image" size={18} />
               </span>
@@ -552,7 +583,9 @@ export default function VistaBaseDatosOrthanc() {
               </div>
               <div className="orthanc-modal-resumen-cifra">
                 <strong>{editando.cantidadSeries}</strong>
-                <small>{editando.cantidadSeries === 1 ? "Serie" : "Series"}</small>
+                <small>
+                  {editando.cantidadSeries === 1 ? "Serie" : "Series"}
+                </small>
               </div>
               <div className="orthanc-modal-resumen-cifra">
                 <strong>{editando.cantidadImagenes ?? 0}</strong>
@@ -645,4 +678,3 @@ export default function VistaBaseDatosOrthanc() {
     </div>
   );
 }
-

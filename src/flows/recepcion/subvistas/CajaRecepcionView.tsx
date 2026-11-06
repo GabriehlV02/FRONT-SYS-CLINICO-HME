@@ -1,8 +1,11 @@
-import { useProfesionales, etiquetaProfesional } from '../../../radius/profesionales';
+import {
+  useProfesionales,
+  etiquetaProfesional,
+} from "../../../radius/profesionales";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import ModalRegistroPaciente from '../../../radius/vistas/pacientes/ModalRegistroPaciente';
-import { usePacientes } from '../../../radius/vistas/pacientes/usePacientes';
-import { nombrePacienteClinico } from '../../../radius/vistas/pacientes/pacientesApi';
+import ModalRegistroPaciente from "../../../radius/vistas/pacientes/ModalRegistroPaciente";
+import { usePacientes } from "../../../radius/vistas/pacientes/usePacientes";
+import { nombrePacienteClinico } from "../../../radius/vistas/pacientes/pacientesApi";
 import Icon from "../../../radius/componentes/Icono";
 import { notificar } from "../../../radius/componentes/Notificaciones";
 import { apiContableFetch, apiFetch } from "../../../radius/api";
@@ -25,16 +28,92 @@ type Item = {
   subcategoria?: string;
 };
 const catalogoEjemplo: Item[] = [
-  { id: 'demo-prod-1', codigo: 'DEMO-PRO-001', nombre: 'Paracetamol 500 mg', tipo: 'Producto', categoria: 'Farmacia', precio: 2.5, stock: 120 },
-  { id: 'demo-prod-2', codigo: 'DEMO-PRO-002', nombre: 'Ibuprofeno 400 mg', tipo: 'Producto', categoria: 'Farmacia', precio: 3, stock: 80 },
-  { id: 'demo-prod-3', codigo: 'DEMO-PRO-003', nombre: 'Alcohol antiséptico 70%', tipo: 'Producto', categoria: 'Farmacia', precio: 18, stock: 35 },
-  { id: 'demo-ins-1', codigo: 'DEMO-INS-001', nombre: 'Jeringa descartable 5 ml', tipo: 'Insumo', categoria: 'Material médico', precio: 3.5, stock: 100 },
-  { id: 'demo-ins-2', codigo: 'DEMO-INS-002', nombre: 'Guantes de examen', tipo: 'Insumo', categoria: 'Material médico', precio: 2, stock: 160 },
-  { id: 'demo-ins-3', codigo: 'DEMO-INS-003', nombre: 'Gasas estériles', tipo: 'Insumo', categoria: 'Material médico', precio: 8, stock: 45 },
-  { id: 'demo-srv-1', codigo: 'DEMO-SRV-001', nombre: 'Hemograma completo', tipo: 'Servicio', categoria: 'Laboratorio', precio: 60 },
-  { id: 'demo-srv-2', codigo: 'DEMO-SRV-002', nombre: 'Glucosa en sangre', tipo: 'Servicio', categoria: 'Laboratorio', precio: 35 },
-  { id: 'demo-srv-3', codigo: 'DEMO-SRV-003', nombre: 'Electrocardiograma', tipo: 'Servicio', categoria: 'Cardiología', precio: 120 },
-  { id: 'demo-srv-4', codigo: 'DEMO-SRV-004', nombre: 'Curación ambulatoria', tipo: 'Servicio', categoria: 'Enfermería', precio: 50 },
+  {
+    id: "demo-prod-1",
+    codigo: "DEMO-PRO-001",
+    nombre: "Paracetamol 500 mg",
+    tipo: "Producto",
+    categoria: "Farmacia",
+    precio: 2.5,
+    stock: 120,
+  },
+  {
+    id: "demo-prod-2",
+    codigo: "DEMO-PRO-002",
+    nombre: "Ibuprofeno 400 mg",
+    tipo: "Producto",
+    categoria: "Farmacia",
+    precio: 3,
+    stock: 80,
+  },
+  {
+    id: "demo-prod-3",
+    codigo: "DEMO-PRO-003",
+    nombre: "Alcohol antiséptico 70%",
+    tipo: "Producto",
+    categoria: "Farmacia",
+    precio: 18,
+    stock: 35,
+  },
+  {
+    id: "demo-ins-1",
+    codigo: "DEMO-INS-001",
+    nombre: "Jeringa descartable 5 ml",
+    tipo: "Insumo",
+    categoria: "Material médico",
+    precio: 3.5,
+    stock: 100,
+  },
+  {
+    id: "demo-ins-2",
+    codigo: "DEMO-INS-002",
+    nombre: "Guantes de examen",
+    tipo: "Insumo",
+    categoria: "Material médico",
+    precio: 2,
+    stock: 160,
+  },
+  {
+    id: "demo-ins-3",
+    codigo: "DEMO-INS-003",
+    nombre: "Gasas estériles",
+    tipo: "Insumo",
+    categoria: "Material médico",
+    precio: 8,
+    stock: 45,
+  },
+  {
+    id: "demo-srv-1",
+    codigo: "DEMO-SRV-001",
+    nombre: "Hemograma completo",
+    tipo: "Servicio",
+    categoria: "Laboratorio",
+    precio: 60,
+  },
+  {
+    id: "demo-srv-2",
+    codigo: "DEMO-SRV-002",
+    nombre: "Glucosa en sangre",
+    tipo: "Servicio",
+    categoria: "Laboratorio",
+    precio: 35,
+  },
+  {
+    id: "demo-srv-3",
+    codigo: "DEMO-SRV-003",
+    nombre: "Electrocardiograma",
+    tipo: "Servicio",
+    categoria: "Cardiología",
+    precio: 120,
+  },
+  {
+    id: "demo-srv-4",
+    codigo: "DEMO-SRV-004",
+    nombre: "Curación ambulatoria",
+    tipo: "Servicio",
+    categoria: "Enfermería",
+    precio: 50,
+  },
 ];
 type Linea = Item & {
   cantidad: number;
@@ -42,7 +121,14 @@ type Linea = Item & {
   piezaImagen?: string;
 };
 type Pago = { id: number; metodo: string; monto: string };
-type CajaVenta = { id: number; nombre: string; codigo: string; sucursal_id: number; sucursal: string; almacenes: { id: number; nombre: string }[] };
+type CajaVenta = {
+  id: number;
+  nombre: string;
+  codigo: string;
+  sucursal_id: number;
+  sucursal: string;
+  almacenes: { id: number; nombre: string }[];
+};
 type ClienteVenta = {
   id: string;
   paciente_id?: string;
@@ -52,40 +138,166 @@ type ClienteVenta = {
   correo: string | null;
 };
 
-function SelectorContexto({ etiqueta, valor, opciones, onCambiar }: { etiqueta: string; valor: string; opciones: string[]; onCambiar: (valor: string) => void }) {
+function SelectorContexto({
+  etiqueta,
+  valor,
+  opciones,
+  onCambiar,
+}: {
+  etiqueta: string;
+  valor: string;
+  opciones: string[];
+  onCambiar: (valor: string) => void;
+}) {
   const [abierto, setAbierto] = useState(false);
-  return <div className="punto-selector-contexto"><span>{etiqueta}</span><button type="button" className={`punto-selector-disparador ${abierto ? 'abierto' : ''}`} aria-haspopup="listbox" aria-expanded={abierto} onClick={() => setAbierto(actual => !actual)}>{valor}<Icon name="chevronDown" size={15}/></button>{abierto && <div className="punto-selector-opciones" role="listbox" aria-label={`Seleccionar ${etiqueta}`}>{opciones.map(opcion => <button key={opcion} type="button" role="option" aria-selected={opcion === valor} className={opcion === valor ? 'seleccionada' : ''} onClick={() => { onCambiar(opcion); setAbierto(false); }}>{opcion}{opcion === valor && <Icon name="check" size={14}/>}</button>)}</div>}</div>;
+  return (
+    <div className="punto-selector-contexto">
+      <span>{etiqueta}</span>
+      <button
+        type="button"
+        className={`punto-selector-disparador ${abierto ? "abierto" : ""}`}
+        aria-haspopup="listbox"
+        aria-expanded={abierto}
+        onClick={() => setAbierto((actual) => !actual)}
+      >
+        {valor}
+        <Icon name="chevronDown" size={15} />
+      </button>
+      {abierto && (
+        <div
+          className="punto-selector-opciones"
+          role="listbox"
+          aria-label={`Seleccionar ${etiqueta}`}
+        >
+          {opciones.map((opcion) => (
+            <button
+              key={opcion}
+              type="button"
+              role="option"
+              aria-selected={opcion === valor}
+              className={opcion === valor ? "seleccionada" : ""}
+              onClick={() => {
+                onCambiar(opcion);
+                setAbierto(false);
+              }}
+            >
+              {opcion}
+              {opcion === valor && <Icon name="check" size={14} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-const escaparRegex = (texto: string) => texto.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-const normalizarTexto = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es');
+const escaparRegex = (texto: string) =>
+  texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const normalizarTexto = (texto: string) =>
+  texto
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es");
 const resaltarCoincidencia = (texto: string, consulta: string): ReactNode => {
   const termino = consulta.trim();
   if (!termino) return texto;
-  const partes = texto.split(new RegExp(`(${escaparRegex(termino)})`, 'ig'));
-  return partes.map((parte, indice) => parte.toLocaleLowerCase('es') === termino.toLocaleLowerCase('es')
-    ? <strong className="cliente-texto-coincidente" key={indice}>{parte}</strong>
-    : parte);
+  const partes = texto.split(new RegExp(`(${escaparRegex(termino)})`, "ig"));
+  return partes.map((parte, indice) =>
+    parte.toLocaleLowerCase("es") === termino.toLocaleLowerCase("es") ? (
+      <strong className="cliente-texto-coincidente" key={indice}>
+        {parte}
+      </strong>
+    ) : (
+      parte
+    ),
+  );
 };
-type VentaHistorial = { id: string; codigo: string; estado: string; total: string | number; fecha: string; sucursal: string | null; caja: string | null; cajero: string; pagos: { metodo: string; monto: string | number }[] | null; cambio: string | number | null; detalles: { nombre_item: string; cantidad: string | number; precio_unitario: string | number; total: string | number }[] };
-type ConsumoHistorial = { id: string; n: string; fecha: string; total: string; estado: 'Pagado' | 'No pagado' | 'Anulado' | 'Pre venta'; detalle: string; datos: DetalleConsumo };
-type ItemConsumo = { concepto: string; cantidad: number; unitario: string; total: string };
-type DetalleConsumo = { items: ItemConsumo[]; pagado: string; pagos: string[]; cajero: string; caja: string; sucursal: string };
+type VentaHistorial = {
+  id: string;
+  codigo: string;
+  estado: string;
+  total: string | number;
+  fecha: string;
+  sucursal: string | null;
+  caja: string | null;
+  cajero: string;
+  pagos: { metodo: string; monto: string | number }[] | null;
+  cambio: string | number | null;
+  detalles: {
+    nombre_item: string;
+    cantidad: string | number;
+    precio_unitario: string | number;
+    total: string | number;
+  }[];
+};
+type ConsumoHistorial = {
+  id: string;
+  n: string;
+  fecha: string;
+  total: string;
+  estado: "Pagado" | "No pagado" | "Anulado" | "Pre venta";
+  detalle: string;
+  datos: DetalleConsumo;
+};
+type ItemConsumo = {
+  concepto: string;
+  cantidad: number;
+  unitario: string;
+  total: string;
+};
+type DetalleConsumo = {
+  items: ItemConsumo[];
+  pagado: string;
+  pagos: string[];
+  cajero: string;
+  caja: string;
+  sucursal: string;
+};
 
 const formatoImporte = (valor: string | number) => Number(valor).toFixed(2);
 const dinero = (n: number) => `Bs ${n.toFixed(2)}`;
-const fechaVencimientoCatalogo = (fecha?: string) => fecha
-  ? new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium' }).format(new Date(`${fecha.slice(0, 10)}T00:00:00`))
-  : 'Sin fecha registrada';
+const fechaVencimientoCatalogo = (fecha?: string) =>
+  fecha
+    ? new Intl.DateTimeFormat("es-BO", { dateStyle: "medium" }).format(
+        new Date(`${fecha.slice(0, 10)}T00:00:00`),
+      )
+    : "Sin fecha registrada";
 const alertasInventario = (item: Item) => {
-  const alertas: { tipo: "stock" | "vencimiento"; texto: string; nivel: "bajo" | "proximo" | "vencido" }[] = [];
-  if (item.stock !== undefined && item.stockMinimo !== undefined && item.stock <= item.stockMinimo) alertas.push({ tipo: "stock", texto: `Stock bajo: ${item.stock} de mínimo ${item.stockMinimo}`, nivel: "bajo" });
+  const alertas: {
+    tipo: "stock" | "vencimiento";
+    texto: string;
+    nivel: "bajo" | "proximo" | "vencido";
+  }[] = [];
+  if (
+    item.stock !== undefined &&
+    item.stockMinimo !== undefined &&
+    item.stock <= item.stockMinimo
+  )
+    alertas.push({
+      tipo: "stock",
+      texto: `Stock bajo: ${item.stock} de mínimo ${item.stockMinimo}`,
+      nivel: "bajo",
+    });
   if (item.fechaVencimiento) {
-    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
     const vence = new Date(`${item.fechaVencimiento}T00:00:00`);
     const dias = Math.ceil((vence.getTime() - hoy.getTime()) / 86_400_000);
-    if (dias < 0) alertas.push({ tipo: "vencimiento", texto: "Producto vencido", nivel: "vencido" });
-    else if (dias <= 90) alertas.push({ tipo: "vencimiento", texto: dias === 0 ? "Vence hoy" : `Vence en ${dias} día${dias === 1 ? "" : "s"}`, nivel: "proximo" });
+    if (dias < 0)
+      alertas.push({
+        tipo: "vencimiento",
+        texto: "Producto vencido",
+        nivel: "vencido",
+      });
+    else if (dias <= 90)
+      alertas.push({
+        tipo: "vencimiento",
+        texto:
+          dias === 0
+            ? "Vence hoy"
+            : `Vence en ${dias} día${dias === 1 ? "" : "s"}`,
+        nivel: "proximo",
+      });
   }
   return alertas;
 };
@@ -109,10 +321,21 @@ export function CajaRecepcionView({
   cocina?: boolean;
   navegacion?: ReactNode;
 }) {
-  const {medicos,resolver}=useProfesionales();
-  const medicosPorEspecialidad:Record<string,string[]>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)]));
+  const { medicos, resolver } = useProfesionales();
+  const medicosPorEspecialidad: Record<string, string[]> = Object.fromEntries(
+    [...new Set(medicos.flatMap((p) => p.especialidades))].map((e) => [
+      e,
+      medicos
+        .filter((p) => p.especialidades.includes(e))
+        .map(etiquetaProfesional),
+    ]),
+  );
   const { pacientes: fichasPacientes, errorPacientes } = usePacientes();
-  const pacientesRegistrados = fichasPacientes.map(p => ({id:p.id,nombre:nombrePacienteClinico(p),ci:p.ci}));
+  const pacientesRegistrados = fichasPacientes.map((p) => ({
+    id: p.id,
+    nombre: nombrePacienteClinico(p),
+    ci: p.ci,
+  }));
   const [busqueda, setBusqueda] = useState(""),
     [tipo, setTipo] = useState<"Todos" | Tipo>("Todos"),
     [lineas, setLineas] = useState<Linea[]>([]),
@@ -129,76 +352,161 @@ export function CajaRecepcionView({
     [pagos, setPagos] = useState<Pago[]>([pagoNuevo(1)]),
     [descuento, setDescuento] = useState(""),
     [errorAviso, setErrorAviso] = useState("");
-  const setMensaje = (texto: string, tipo: 'exito' | 'error' | 'advertencia' = 'exito') => {
-    setErrorAviso(tipo === 'exito' ? '' : texto);
-    if (texto) notificar(tipo, tipo === 'exito' ? 'Recepción' : tipo === 'error' ? 'No se pudo completar' : 'Revisa los datos', texto);
+  const setMensaje = (
+    texto: string,
+    tipo: "exito" | "error" | "advertencia" = "exito",
+  ) => {
+    setErrorAviso(tipo === "exito" ? "" : texto);
+    if (texto)
+      notificar(
+        tipo,
+        tipo === "exito"
+          ? "Recepción"
+          : tipo === "error"
+            ? "No se pudo completar"
+            : "Revisa los datos",
+        texto,
+      );
   };
   const [catalogo, setCatalogo] = useState<Item[]>(catalogoEjemplo);
-  const [errorCatalogo, setErrorCatalogo] = useState('');
+  const [errorCatalogo, setErrorCatalogo] = useState("");
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
   const [recargaCatalogo, setRecargaCatalogo] = useState(0);
   useEffect(() => {
-    const controller = new AbortController(); setCargandoCatalogo(true); setErrorCatalogo('');
-    apiFetch('/api/catalogo', { signal: controller.signal }).then(async r => {
-      const respuesta = await r.json(); if (!r.ok) throw new Error(respuesta.message || 'No se pudo consultar el catálogo compartido.');
-      return respuesta.data as (Omit<Item, 'tipo'> & { tipo: string })[];
-    }).then(datos => setCatalogo([...datos.map(i => ({ ...i, tipo: (i.tipo === 'servicio' ? 'Servicio' : i.tipo === 'insumo' ? 'Insumo' : 'Producto') as Tipo })), ...catalogoEjemplo]))
-      .catch(() => { if (!controller.signal.aborted) { setCatalogo(catalogoEjemplo); setErrorCatalogo(''); } })
-      .finally(() => { if (!controller.signal.aborted) setCargandoCatalogo(false); });
+    const controller = new AbortController();
+    setCargandoCatalogo(true);
+    setErrorCatalogo("");
+    apiFetch("/api/catalogo", { signal: controller.signal })
+      .then(async (r) => {
+        const respuesta = await r.json();
+        if (!r.ok)
+          throw new Error(
+            respuesta.message || "No se pudo consultar el catálogo compartido.",
+          );
+        return respuesta.data as (Omit<Item, "tipo"> & { tipo: string })[];
+      })
+      .then((datos) =>
+        setCatalogo([
+          ...datos.map((i) => ({
+            ...i,
+            tipo: (i.tipo === "servicio"
+              ? "Servicio"
+              : i.tipo === "insumo"
+                ? "Insumo"
+                : "Producto") as Tipo,
+          })),
+          ...catalogoEjemplo,
+        ]),
+      )
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setCatalogo(catalogoEjemplo);
+          setErrorCatalogo("");
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCargandoCatalogo(false);
+      });
     return () => controller.abort();
   }, [recargaCatalogo]);
   const [imagenParaAgregar, setImagenParaAgregar] = useState<Item | null>(null);
-  const [consultaParaAgendar, setConsultaParaAgendar] = useState<Item | null>(null);
-  const [especialidadConsulta, setEspecialidadConsulta] = useState('Medicina Interna');
-  const [medicoConsulta, setMedicoConsulta] = useState('');
-  const [fechaConsulta, setFechaConsulta] = useState('');
-  const [horaConsulta, setHoraConsulta] = useState('');
-  const [motivoOperativoConsulta, setMotivoOperativoConsulta] = useState('');
+  const [consultaParaAgendar, setConsultaParaAgendar] = useState<Item | null>(
+    null,
+  );
+  const [especialidadConsulta, setEspecialidadConsulta] =
+    useState("Medicina Interna");
+  const [medicoConsulta, setMedicoConsulta] = useState("");
+  const [fechaConsulta, setFechaConsulta] = useState("");
+  const [horaConsulta, setHoraConsulta] = useState("");
+  const [motivoOperativoConsulta, setMotivoOperativoConsulta] = useState("");
   const [precioConsulta, setPrecioConsulta] = useState(80);
   const [cajasVenta, setCajasVenta] = useState<CajaVenta[]>([]);
-  const [cajaVentaId, setCajaVentaId] = useState('');
-  const [almacenVentaId, setAlmacenVentaId] = useState('');
+  const [cajaVentaId, setCajaVentaId] = useState("");
+  const [almacenVentaId, setAlmacenVentaId] = useState("");
   const solicitudVenta = useRef(crypto.randomUUID());
-  const cajaVenta = cajasVenta.find(caja => String(caja.id) === cajaVentaId);
+  const cajaVenta = cajasVenta.find((caja) => String(caja.id) === cajaVentaId);
   useEffect(() => {
     const controller = new AbortController();
-    apiFetch('/api/v1/recepcion/ventas/opciones', { signal: controller.signal })
-      .then(async respuesta => { const datos = await respuesta.json(); if (!respuesta.ok) throw new Error(datos.message || 'No se pudieron cargar las cajas.'); return datos.data as CajaVenta[]; })
-      .then(cajas => { setCajasVenta(cajas); if (cajas.length === 1) { setCajaVentaId(String(cajas[0].id)); if (cajas[0].almacenes.length === 1) setAlmacenVentaId(String(cajas[0].almacenes[0].id)); } })
-      .catch(() => { /* Las opciones pueden no estar disponibles durante las pruebas de frontend. */ });
+    apiFetch("/api/v1/recepcion/ventas/opciones", { signal: controller.signal })
+      .then(async (respuesta) => {
+        const datos = await respuesta.json();
+        if (!respuesta.ok)
+          throw new Error(datos.message || "No se pudieron cargar las cajas.");
+        return datos.data as CajaVenta[];
+      })
+      .then((cajas) => {
+        setCajasVenta(cajas);
+        if (cajas.length === 1) {
+          setCajaVentaId(String(cajas[0].id));
+          if (cajas[0].almacenes.length === 1)
+            setAlmacenVentaId(String(cajas[0].almacenes[0].id));
+        }
+      })
+      .catch(() => {
+        /* Las opciones pueden no estar disponibles durante las pruebas de frontend. */
+      });
     return () => controller.abort();
   }, []);
-  const [clienteSeleccionado, setClienteSeleccionado] = useState<ClienteVenta | null>(null);
+  const [clienteSeleccionado, setClienteSeleccionado] =
+    useState<ClienteVenta | null>(null);
   const seleccionClienteVersion = useRef(0);
   const [ventasPaciente, setVentasPaciente] = useState<VentaHistorial[]>([]);
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
-  const [errorHistorial, setErrorHistorial] = useState('');
+  const [errorHistorial, setErrorHistorial] = useState("");
   const [revisionHistorial, setRevisionHistorial] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     setVentasPaciente([]);
     setConsumoSeleccionado(null);
-    setFiltroHistorial('Todos');
-    setErrorHistorial('');
+    setFiltroHistorial("Todos");
+    setErrorHistorial("");
     if (!clienteSeleccionado?.id || !clienteSeleccionado.paciente_id) {
       setCargandoHistorial(false);
       return () => controller.abort();
     }
     setCargandoHistorial(true);
-    apiFetch(`/api/v1/recepcion/clientes/${encodeURIComponent(clienteSeleccionado.id)}/ventas`, { signal: controller.signal })
-      .then(async respuesta => {
+    apiFetch(
+      `/api/v1/recepcion/clientes/${encodeURIComponent(clienteSeleccionado.id)}/ventas`,
+      { signal: controller.signal },
+    )
+      .then(async (respuesta) => {
         const resultado = await respuesta.json();
-        if (!respuesta.ok) throw new Error(resultado.message || 'No se pudo cargar el historial de ventas.');
+        if (!respuesta.ok)
+          throw new Error(
+            resultado.message || "No se pudo cargar el historial de ventas.",
+          );
         if (!controller.signal.aborted) setVentasPaciente(resultado.data);
       })
-      .catch(error => { if (!controller.signal.aborted) setErrorHistorial(error.message || 'No se pudo cargar el historial de ventas.'); })
-      .finally(() => { if (!controller.signal.aborted) setCargandoHistorial(false); });
+      .catch((error) => {
+        if (!controller.signal.aborted)
+          setErrorHistorial(
+            error.message || "No se pudo cargar el historial de ventas.",
+          );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCargandoHistorial(false);
+      });
     return () => controller.abort();
-  }, [clienteSeleccionado?.id, clienteSeleccionado?.paciente_id, revisionHistorial]);
-  const [datosFactura, setDatosFactura] = useState({ nitCi: '', razonSocial: '', nitCiOriginal: '' });
-  const [registroCliente, setRegistroCliente] = useState({ nombre: "", nitCi: "", telefono: "", correo: "" });
+  }, [
+    clienteSeleccionado?.id,
+    clienteSeleccionado?.paciente_id,
+    revisionHistorial,
+  ]);
+  const [datosFactura, setDatosFactura] = useState({
+    nitCi: "",
+    razonSocial: "",
+    nitCiOriginal: "",
+  });
+  const [registroCliente, setRegistroCliente] = useState({
+    nombre: "",
+    nitCi: "",
+    telefono: "",
+    correo: "",
+  });
   const [busquedaCliente, setBusquedaCliente] = useState("");
-  const [clientesEncontrados, setClientesEncontrados] = useState<ClienteVenta[]>([]);
+  const [clientesEncontrados, setClientesEncontrados] = useState<
+    ClienteVenta[]
+  >([]);
   const [buscandoClientes, setBuscandoClientes] = useState(false);
   const [guardandoCliente, setGuardandoCliente] = useState(false);
   const [cobrando, setCobrando] = useState(false);
@@ -206,50 +514,116 @@ export function CajaRecepcionView({
   const [tipoEstudioImagen, setTipoEstudioImagen] = useState("Rayos X");
   const [piezaEstudioImagen, setPiezaEstudioImagen] = useState("Tórax");
   const [otraPiezaImagen, setOtraPiezaImagen] = useState("");
-  const [consumoSeleccionado, setConsumoSeleccionado] = useState<ConsumoHistorial | null>(null);
+  const [consumoSeleccionado, setConsumoSeleccionado] =
+    useState<ConsumoHistorial | null>(null);
   const [carritoAbierto, setCarritoAbierto] = useState(true);
-  const historialPaciente: ConsumoHistorial[] = ventasPaciente.map(venta => {
+  const historialPaciente: ConsumoHistorial[] = ventasPaciente.map((venta) => {
     const pagos = venta.pagos;
-    const fecha = new Date(venta.fecha.replace(' ', 'T'));
-    const estado = venta.estado === 'COMPLETADA' ? 'Pagado' : venta.estado === 'ANULADA' ? 'Anulado' : 'Pre venta';
+    const fecha = new Date(venta.fecha.replace(" ", "T"));
+    const estado =
+      venta.estado === "COMPLETADA"
+        ? "Pagado"
+        : venta.estado === "ANULADA"
+          ? "Anulado"
+          : "Pre venta";
     return {
-      id: venta.id, n: venta.codigo, fecha: Number.isNaN(fecha.getTime()) ? venta.fecha : new Intl.DateTimeFormat('es-BO', { dateStyle: 'medium', timeStyle: 'short' }).format(fecha),
-      total: formatoImporte(venta.total), estado,
-      detalle: venta.detalles.length === 1 ? '1 producto o servicio' : `${venta.detalles.length} productos o servicios`,
+      id: venta.id,
+      n: venta.codigo,
+      fecha: Number.isNaN(fecha.getTime())
+        ? venta.fecha
+        : new Intl.DateTimeFormat("es-BO", {
+            dateStyle: "medium",
+            timeStyle: "short",
+          }).format(fecha),
+      total: formatoImporte(venta.total),
+      estado,
+      detalle:
+        venta.detalles.length === 1
+          ? "1 producto o servicio"
+          : `${venta.detalles.length} productos o servicios`,
       datos: {
-        cajero: venta.cajero || 'No registrado', caja: venta.caja || 'No registrada', sucursal: venta.sucursal || 'No registrada',
-        pagado: pagos ? formatoImporte(pagos.reduce((total, pago) => total + Number(pago.monto), 0) - Number(venta.cambio || 0)) : 'No registrado',
-        pagos: pagos ? pagos.map(pago => `${pago.metodo} · Bs. ${formatoImporte(pago.monto)}`) : ['Método no registrado'],
-        items: venta.detalles.map(item => ({ concepto: item.nombre_item, cantidad: Number(item.cantidad), unitario: formatoImporte(item.precio_unitario), total: formatoImporte(item.total) })),
+        cajero: venta.cajero || "No registrado",
+        caja: venta.caja || "No registrada",
+        sucursal: venta.sucursal || "No registrada",
+        pagado: pagos
+          ? formatoImporte(
+              pagos.reduce((total, pago) => total + Number(pago.monto), 0) -
+                Number(venta.cambio || 0),
+            )
+          : "No registrado",
+        pagos: pagos
+          ? pagos.map(
+              (pago) => `${pago.metodo} · Bs. ${formatoImporte(pago.monto)}`,
+            )
+          : ["Método no registrado"],
+        items: venta.detalles.map((item) => ({
+          concepto: item.nombre_item,
+          cantidad: Number(item.cantidad),
+          unitario: formatoImporte(item.precio_unitario),
+          total: formatoImporte(item.total),
+        })),
       },
     };
   });
-  useEffect(()=>{
-    if(modo !== 'buscar') return;
-    const termino=busquedaCliente.trim().toLocaleLowerCase('es');
-    setClientesEncontrados(termino.length<2 ? [] : fichasPacientes.filter(p=>`${nombrePacienteClinico(p)} ${p.ci}`.toLocaleLowerCase('es').includes(termino)).slice(0,8).map(p=>({id:'paciente:'+p.id,paciente_id:p.id,nombre_razon_social:nombrePacienteClinico(p),nit_ci:p.ci,telefono:p.telefono || null,correo:null})));
-    setBuscandoClientes(false);setErrorCliente(errorPacientes);
-  },[modo,busquedaCliente,fichasPacientes,errorPacientes]);
+  useEffect(() => {
+    if (modo !== "buscar") return;
+    const termino = busquedaCliente.trim().toLocaleLowerCase("es");
+    setClientesEncontrados(
+      termino.length < 2
+        ? []
+        : fichasPacientes
+            .filter((p) =>
+              `${nombrePacienteClinico(p)} ${p.ci}`
+                .toLocaleLowerCase("es")
+                .includes(termino),
+            )
+            .slice(0, 8)
+            .map((p) => ({
+              id: "paciente:" + p.id,
+              paciente_id: p.id,
+              nombre_razon_social: nombrePacienteClinico(p),
+              nit_ci: p.ci,
+              telefono: p.telefono || null,
+              correo: null,
+            })),
+    );
+    setBuscandoClientes(false);
+    setErrorCliente(errorPacientes);
+  }, [modo, busquedaCliente, fichasPacientes, errorPacientes]);
   useEffect(() => {
     const actualizarPrecio = () => {
       try {
-        const asociaciones = JSON.parse(localStorage.getItem('clinico_recepcion_funciones_items_v1') || '[]') as Array<{ funcionalidad?: string; precio?: number; activo?: boolean }>;
-        const asociacion = asociaciones.find(actual => actual.activo && actual.funcionalidad === 'Agenda de pacientes');
+        const asociaciones = JSON.parse(
+          localStorage.getItem("clinico_recepcion_funciones_items_v1") || "[]",
+        ) as Array<{
+          funcionalidad?: string;
+          precio?: number;
+          activo?: boolean;
+        }>;
+        const asociacion = asociaciones.find(
+          (actual) =>
+            actual.activo && actual.funcionalidad === "Agenda de pacientes",
+        );
         setPrecioConsulta(Number(asociacion?.precio) || 80);
-      } catch { setPrecioConsulta(80); }
+      } catch {
+        setPrecioConsulta(80);
+      }
     };
     actualizarPrecio();
-    window.addEventListener('storage', actualizarPrecio);
-    return () => window.removeEventListener('storage', actualizarPrecio);
+    window.addEventListener("storage", actualizarPrecio);
+    return () => window.removeEventListener("storage", actualizarPrecio);
   }, []);
 
   const resultados = useMemo(
     () =>
       catalogo.filter(
         (i) =>
-          (cocina || !farmacia || i.tipo === "Producto" || i.tipo === "Insumo") &&
+          (cocina ||
+            !farmacia ||
+            i.tipo === "Producto" ||
+            i.tipo === "Insumo") &&
           (tipo === "Todos" || i.tipo === tipo) &&
-          `${i.nombre} ${i.codigo} ${i.tipo} ${i.categoria || ''}`
+          `${i.nombre} ${i.codigo} ${i.tipo} ${i.categoria || ""}`
             .toLowerCase()
             .includes(busqueda.toLowerCase()),
       ),
@@ -262,19 +636,28 @@ export function CajaRecepcionView({
     pendiente = Math.max(total - pagado, 0),
     cambio = Math.max(pagado - total, 0);
   const profesionalConsulta = resolver(medicoConsulta);
-  const diasAtencionConsulta = profesionalConsulta?.horario?.startsWith('Lun') ? [1, 3, 5] : [2, 4, 6];
-  const horasAtencionConsulta = profesionalConsulta?.horario?.includes('08:00')
-    ? ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30']
-    : ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00', '17:30'];
-  const fechaEnTurno = !fechaConsulta || diasAtencionConsulta.includes(new Date(`${fechaConsulta}T12:00:00`).getDay());
+  const diasAtencionConsulta = profesionalConsulta?.horario?.startsWith("Lun")
+    ? [1, 3, 5]
+    : [2, 4, 6];
+  const horasAtencionConsulta = profesionalConsulta?.horario?.includes("08:00")
+    ? ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"]
+    : ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
+  const fechaEnTurno =
+    !fechaConsulta ||
+    diasAtencionConsulta.includes(
+      new Date(`${fechaConsulta}T12:00:00`).getDay(),
+    );
   useEffect(() => {
     if (!consultaParaAgendar) return;
-    const campoHora = document.querySelector('.punto-consulta-modal input[type="time"]') as HTMLInputElement | null;
+    const campoHora = document.querySelector(
+      '.punto-consulta-modal input[type="time"]',
+    ) as HTMLInputElement | null;
     if (!campoHora) return;
     campoHora.min = horasAtencionConsulta[0];
-    campoHora.max = horasAtencionConsulta.at(-1) || '';
-    campoHora.step = '1800';
-    if (horaConsulta && !horasAtencionConsulta.includes(horaConsulta)) setHoraConsulta('');
+    campoHora.max = horasAtencionConsulta.at(-1) || "";
+    campoHora.step = "1800";
+    if (horaConsulta && !horasAtencionConsulta.includes(horaConsulta))
+      setHoraConsulta("");
   }, [consultaParaAgendar, horasAtencionConsulta, horaConsulta]);
   const agregar = (i: Item) => {
     setLineas((a) =>
@@ -287,9 +670,15 @@ export function CajaRecepcionView({
   const prepararAgregar = (item: Item) => {
     // Una consulta no es un ítem de venta genérico: requiere una cita asociada.
     // El id procede del catálogo contable y no siempre se llama "consulta".
-    const esConsultaMedica = item.tipo === 'Servicio' && /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre));
+    const esConsultaMedica =
+      item.tipo === "Servicio" &&
+      /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre));
     if (esConsultaMedica) {
-      setConsultaParaAgendar(item); setEspecialidadConsulta('Medicina Interna'); setMedicoConsulta(medicosPorEspecialidad['Medicina Interna']?.[0] || ''); setFechaConsulta(''); setHoraConsulta('');
+      setConsultaParaAgendar(item);
+      setEspecialidadConsulta("Medicina Interna");
+      setMedicoConsulta(medicosPorEspecialidad["Medicina Interna"]?.[0] || "");
+      setFechaConsulta("");
+      setHoraConsulta("");
       return;
     }
     if (item.categoria === "Imagenología") {
@@ -302,36 +691,121 @@ export function CajaRecepcionView({
     agregar(item);
   };
   const abrirConsultaExterna = () => {
-    const consulta = catalogo.find(item => item.tipo === 'Servicio' && /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre)))
-      || { id: 'consulta-externa-demo', nombre: 'Consulta médica', tipo: 'Servicio' as Tipo, codigo: 'SRV-CONS-EXT', precio: precioConsulta };
+    const consulta = catalogo.find(
+      (item) =>
+        item.tipo === "Servicio" &&
+        /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre)),
+    ) || {
+      id: "consulta-externa-demo",
+      nombre: "Consulta médica",
+      tipo: "Servicio" as Tipo,
+      codigo: "SRV-CONS-EXT",
+      precio: precioConsulta,
+    };
     setConsultaParaAgendar(consulta);
-    setEspecialidadConsulta('Medicina Interna');
-    setMedicoConsulta(medicosPorEspecialidad['Medicina Interna']?.[0] || '');
-    setFechaConsulta('');
-    setHoraConsulta('');
+    setEspecialidadConsulta("Medicina Interna");
+    setMedicoConsulta(medicosPorEspecialidad["Medicina Interna"]?.[0] || "");
+    setFechaConsulta("");
+    setHoraConsulta("");
   };
   const agendarConsulta = async () => {
-    if (!consultaParaAgendar || !fechaConsulta || !horaConsulta) return setMensaje('Selecciona especialidad, médico, fecha y hora para continuar.', 'advertencia');
-    if (!fechaEnTurno || !horasAtencionConsulta.includes(horaConsulta)) return setMensaje('Selecciona un día y una hora dentro del turno de consulta externa del médico.', 'advertencia');
-    const ficha = fichasPacientes.find(p => p.ci === ciPaciente), profesional = resolver(medicoConsulta);
-    const motivoCapturado = motivoOperativoConsulta.trim() || window.prompt('Motivo de consulta para el médico (opcional):')?.trim() || '';
-    if (!ficha || !profesional) return setMensaje('Selecciona un paciente registrado y un médico activo.', 'advertencia');
-    try{const r=await apiFetch('/api/citas',{method:'POST',headers:{Accept:'application/json'},body:JSON.stringify({paciente_id:ficha.id,profesional_id:profesional.id,doctor:profesional.nombre,especialidad:especialidadConsulta,consultorio:'Consultorio 1',fecha:fechaConsulta,hora:horaConsulta,estado:'por_confirmar'})});const d=await r.json();if(!r.ok)throw new Error(Object.values(d.errors || {}).flat().join(' ') || d.message || 'No se pudo agendar la consulta.');}catch(e){setMensaje((e as Error).message, 'error');return;}
-    const linea: Linea = { ...consultaParaAgendar, id: `${consultaParaAgendar.id}-${fechaConsulta}-${horaConsulta}-${medicoConsulta}`, nombre: `${consultaParaAgendar.nombre} · ${especialidadConsulta}`, cantidad: 1 };
-    setLineas(actuales => [...actuales, linea]);
-    const citaOperativa = { id: `cita-operativa-${Date.now()}`, pacienteId: ficha.id, paciente: nombrePacienteClinico(ficha), ci: ficha.ci, doctor: medicoConsulta, especialidad: especialidadConsulta, motivoOperativo: motivoCapturado, fecha: fechaConsulta, hora: horaConsulta, estado: 'confirmada', consultorio: 'Consulta ambulatoria', edad: ficha.fecha_nacimiento ? new Date().getFullYear() - new Date(ficha.fecha_nacimiento).getFullYear() : undefined, fechaNacimiento: ficha.fecha_nacimiento };
-    const citasOperativas = JSON.parse(localStorage.getItem('clinico_citas_operativas_v1') || '[]');
-    localStorage.setItem('clinico_citas_operativas_v1', JSON.stringify([...citasOperativas, citaOperativa]));
-    window.dispatchEvent(new Event('agenda:operativa-actualizada'));
-    setMotivoOperativoConsulta('');
-    setMensaje(`Consulta agendada con ${medicoConsulta} para el ${fechaConsulta} a las ${horaConsulta}.`);
+    if (!consultaParaAgendar || !fechaConsulta || !horaConsulta)
+      return setMensaje(
+        "Selecciona especialidad, médico, fecha y hora para continuar.",
+        "advertencia",
+      );
+    if (!fechaEnTurno || !horasAtencionConsulta.includes(horaConsulta))
+      return setMensaje(
+        "Selecciona un día y una hora dentro del turno de consulta externa del médico.",
+        "advertencia",
+      );
+    const ficha = fichasPacientes.find((p) => p.ci === ciPaciente),
+      profesional = resolver(medicoConsulta);
+    const motivoCapturado =
+      motivoOperativoConsulta.trim() ||
+      window.prompt("Motivo de consulta para el médico (opcional):")?.trim() ||
+      "";
+    if (!ficha || !profesional)
+      return setMensaje(
+        "Selecciona un paciente registrado y un médico activo.",
+        "advertencia",
+      );
+    try {
+      const r = await apiFetch("/api/citas", {
+        method: "POST",
+        headers: { Accept: "application/json" },
+        body: JSON.stringify({
+          paciente_id: ficha.id,
+          profesional_id: profesional.id,
+          doctor: profesional.nombre,
+          especialidad: especialidadConsulta,
+          consultorio: "Consultorio 1",
+          fecha: fechaConsulta,
+          hora: horaConsulta,
+          estado: "por_confirmar",
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok)
+        throw new Error(
+          Object.values(d.errors || {})
+            .flat()
+            .join(" ") ||
+            d.message ||
+            "No se pudo agendar la consulta.",
+        );
+    } catch (e) {
+      setMensaje((e as Error).message, "error");
+      return;
+    }
+    const linea: Linea = {
+      ...consultaParaAgendar,
+      id: `${consultaParaAgendar.id}-${fechaConsulta}-${horaConsulta}-${medicoConsulta}`,
+      nombre: `${consultaParaAgendar.nombre} · ${especialidadConsulta}`,
+      cantidad: 1,
+    };
+    setLineas((actuales) => [...actuales, linea]);
+    const citaOperativa = {
+      id: `cita-operativa-${Date.now()}`,
+      pacienteId: ficha.id,
+      paciente: nombrePacienteClinico(ficha),
+      ci: ficha.ci,
+      doctor: medicoConsulta,
+      especialidad: especialidadConsulta,
+      motivoOperativo: motivoCapturado,
+      fecha: fechaConsulta,
+      hora: horaConsulta,
+      estado: "confirmada",
+      consultorio: "Consulta ambulatoria",
+      edad: ficha.fecha_nacimiento
+        ? new Date().getFullYear() -
+          new Date(ficha.fecha_nacimiento).getFullYear()
+        : undefined,
+      fechaNacimiento: ficha.fecha_nacimiento,
+    };
+    const citasOperativas = JSON.parse(
+      localStorage.getItem("clinico_citas_operativas_v1") || "[]",
+    );
+    localStorage.setItem(
+      "clinico_citas_operativas_v1",
+      JSON.stringify([...citasOperativas, citaOperativa]),
+    );
+    window.dispatchEvent(new Event("agenda:operativa-actualizada"));
+    setMotivoOperativoConsulta("");
+    setMensaje(
+      `Consulta agendada con ${medicoConsulta} para el ${fechaConsulta} a las ${horaConsulta}.`,
+    );
     setConsultaParaAgendar(null);
     setCarritoAbierto(true);
   };
   const agregarEstudioImagen = () => {
     if (!imagenParaAgregar) return;
-    const pieza = piezaEstudioImagen === "Otra" ? otraPiezaImagen.trim() : piezaEstudioImagen;
-    if (!pieza) return setMensaje("Indica la pieza o región del estudio.", 'advertencia');
+    const pieza =
+      piezaEstudioImagen === "Otra"
+        ? otraPiezaImagen.trim()
+        : piezaEstudioImagen;
+    if (!pieza)
+      return setMensaje("Indica la pieza o región del estudio.", "advertencia");
     const linea: Linea = {
       ...imagenParaAgregar,
       id: `${imagenParaAgregar.id}-${tipoEstudioImagen}-${pieza}`,
@@ -343,7 +817,11 @@ export function CajaRecepcionView({
     setLineas((actuales) => {
       const existente = actuales.find((actual) => actual.id === linea.id);
       return existente
-        ? actuales.map((actual) => actual.id === linea.id ? { ...actual, cantidad: actual.cantidad + 1 } : actual)
+        ? actuales.map((actual) =>
+            actual.id === linea.id
+              ? { ...actual, cantidad: actual.cantidad + 1 }
+              : actual,
+          )
         : [...actuales, linea];
     });
     setMensaje(`${linea.nombre} agregado al carrito.`);
@@ -379,22 +857,32 @@ export function CajaRecepcionView({
     setClienteSeleccionado(null);
     setVentasPaciente([]);
     setConsumoSeleccionado(null);
-    if (cliente.paciente_id && cliente.id.startsWith('paciente:')) {
+    if (cliente.paciente_id && cliente.id.startsWith("paciente:")) {
       try {
-        const respuesta = await apiFetch(`/api/v1/pacientes/${cliente.paciente_id}/cliente-contable`, {method:'POST',headers:{Accept:'application/json'}});
+        const respuesta = await apiFetch(
+          `/api/v1/pacientes/${cliente.paciente_id}/cliente-contable`,
+          { method: "POST", headers: { Accept: "application/json" } },
+        );
         const resultado = await respuesta.json();
-        if (!respuesta.ok || !resultado.data) throw new Error(resultado.message || 'No se pudo vincular el paciente para cobro.');
+        if (!respuesta.ok || !resultado.data)
+          throw new Error(
+            resultado.message || "No se pudo vincular el paciente para cobro.",
+          );
         cliente = resultado.data;
-      } catch (causa) {if (version === seleccionClienteVersion.current) setErrorCliente((causa as Error).message);return;}
+      } catch (causa) {
+        if (version === seleccionClienteVersion.current)
+          setErrorCliente((causa as Error).message);
+        return;
+      }
     }
     if (version !== seleccionClienteVersion.current) return;
     setClienteSeleccionado(cliente);
     setPaciente(cliente.nombre_razon_social);
-    setCiPaciente(cliente.nit_ci || '');
+    setCiPaciente(cliente.nit_ci || "");
     setDatosFactura({
-      nitCi: cliente.nit_ci || '',
+      nitCi: cliente.nit_ci || "",
       razonSocial: cliente.nombre_razon_social,
-      nitCiOriginal: cliente.nit_ci || '',
+      nitCiOriginal: cliente.nit_ci || "",
     });
     setHistorialAbierto(true);
     setBusquedaCliente("");
@@ -421,57 +909,115 @@ export function CajaRecepcionView({
           correo: registroCliente.correo.trim() || null,
         }),
       });
-      const resultado = await respuesta.json() as { data?: ClienteVenta; message?: string; errors?: Record<string, string[]> };
+      const resultado = (await respuesta.json()) as {
+        data?: ClienteVenta;
+        message?: string;
+        errors?: Record<string, string[]>;
+      };
       if (!respuesta.ok || !resultado.data) {
         const detalle = Object.values(resultado.errors || {}).flat()[0];
-        throw new Error(detalle || resultado.message || "No se pudo registrar el cliente.");
+        throw new Error(
+          detalle || resultado.message || "No se pudo registrar el cliente.",
+        );
       }
       seleccionarCliente(resultado.data);
     } catch (error) {
-      setErrorCliente(error instanceof Error ? error.message : "No se pudo registrar el cliente.");
+      setErrorCliente(
+        error instanceof Error
+          ? error.message
+          : "No se pudo registrar el cliente.",
+      );
     } finally {
       setGuardandoCliente(false);
     }
   };
   const realizarPreVenta = () => {
-    if (!lineas.length) return setMensaje('Agrega al menos un producto o servicio antes de realizar la pre venta.');
-    if (!clienteSeleccionado) return setMensaje('Busca o registra un cliente antes de realizar la pre venta.');
+    if (!lineas.length)
+      return setMensaje(
+        "Agrega al menos un producto o servicio antes de realizar la pre venta.",
+      );
+    if (!clienteSeleccionado)
+      return setMensaje(
+        "Busca o registra un cliente antes de realizar la pre venta.",
+      );
     const registro = {
       id: `PV-${Date.now()}`,
-      estado: 'Pre venta',
+      estado: "Pre venta",
       creadoEn: new Date().toISOString(),
-      cliente: { id: clienteSeleccionado.id, nombre: clienteSeleccionado.nombre_razon_social, nitCi: datosFactura.nitCi, razonSocial: datosFactura.razonSocial },
-      detalles: lineas.map(linea => ({ id: linea.id, nombre: linea.nombre, cantidad: linea.cantidad, precio: linea.precio })),
-      total, pagado, pendiente, descuento: rebaja,
-      pagos: pagos.filter(pago => Number(pago.monto) > 0),
+      cliente: {
+        id: clienteSeleccionado.id,
+        nombre: clienteSeleccionado.nombre_razon_social,
+        nitCi: datosFactura.nitCi,
+        razonSocial: datosFactura.razonSocial,
+      },
+      detalles: lineas.map((linea) => ({
+        id: linea.id,
+        nombre: linea.nombre,
+        cantidad: linea.cantidad,
+        precio: linea.precio,
+      })),
+      total,
+      pagado,
+      pendiente,
+      descuento: rebaja,
+      pagos: pagos.filter((pago) => Number(pago.monto) > 0),
     };
     try {
-      const actuales = JSON.parse(localStorage.getItem('clinico_preventas_v1') || '[]') as unknown[];
-      localStorage.setItem('clinico_preventas_v1', JSON.stringify([registro, ...actuales]));
-      setMensaje(`Pre venta ${registro.id} guardada. Saldo pendiente: ${dinero(pendiente)}.`);
+      const actuales = JSON.parse(
+        localStorage.getItem("clinico_preventas_v1") || "[]",
+      ) as unknown[];
+      localStorage.setItem(
+        "clinico_preventas_v1",
+        JSON.stringify([registro, ...actuales]),
+      );
+      setMensaje(
+        `Pre venta ${registro.id} guardada. Saldo pendiente: ${dinero(pendiente)}.`,
+      );
       setLineas([]);
       setPagos([pagoNuevo(Date.now())]);
-      setDescuento('');
+      setDescuento("");
       setClienteSeleccionado(null);
-    } catch { setMensaje('No se pudo guardar la pre venta localmente.'); }
+    } catch {
+      setMensaje("No se pudo guardar la pre venta localmente.");
+    }
   };
   const cobrar = async () => {
     if (!lineas.length || pendiente > 0) return;
-    if (lineas.some(linea => !['Producto', 'Insumo'].includes(linea.tipo) || !/^item-\d+$/.test(linea.id))) {
-      setMensaje('Por ahora solo se pueden registrar ventas de productos e insumos. Retira los servicios del carrito.', 'advertencia');
+    if (
+      lineas.some(
+        (linea) =>
+          !["Producto", "Insumo"].includes(linea.tipo) ||
+          !/^item-\d+$/.test(linea.id),
+      )
+    ) {
+      setMensaje(
+        "Por ahora solo se pueden registrar ventas de productos e insumos. Retira los servicios del carrito.",
+        "advertencia",
+      );
       return;
     }
     if (!cajaVentaId || !almacenVentaId) {
-      setMensaje('Selecciona una caja y un almacén asignados antes de cobrar.', 'advertencia');
+      setMensaje(
+        "Selecciona una caja y un almacén asignados antes de cobrar.",
+        "advertencia",
+      );
       return;
     }
     if (!clienteSeleccionado) {
-      setMensaje("Busca o registra un cliente antes de cobrar la venta.", 'advertencia');
+      setMensaje(
+        "Busca o registra un cliente antes de cobrar la venta.",
+        "advertencia",
+      );
       return;
     }
-    const estudiosImagen = lineas.filter((linea) => linea.estudioImagen && linea.piezaImagen);
+    const estudiosImagen = lineas.filter(
+      (linea) => linea.estudioImagen && linea.piezaImagen,
+    );
     if (estudiosImagen.length && (!paciente.trim() || !ciPaciente.trim())) {
-      setMensaje("Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.", 'advertencia');
+      setMensaje(
+        "Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.",
+        "advertencia",
+      );
       return;
     }
     setCobrando(true);
@@ -485,7 +1031,9 @@ export function CajaRecepcionView({
           caja_id: Number(cajaVentaId),
           almacen_id: Number(almacenVentaId),
           descuento: rebaja,
-          pagos: pagos.filter(pago => Number(pago.monto) > 0).map(pago => ({ metodo: pago.metodo, monto: pago.monto })),
+          pagos: pagos
+            .filter((pago) => Number(pago.monto) > 0)
+            .map((pago) => ({ metodo: pago.metodo, monto: pago.monto })),
           detalles: lineas.map((linea) => ({
             item_id: Number(linea.id.slice(5)),
             cantidad: linea.cantidad,
@@ -493,23 +1041,52 @@ export function CajaRecepcionView({
           })),
         }),
       });
-      const resultado = await respuesta.json() as { data?: { codigo?: string }; message?: string; errors?: Record<string, string[]> };
+      const resultado = (await respuesta.json()) as {
+        data?: { codigo?: string };
+        message?: string;
+        errors?: Record<string, string[]>;
+      };
       if (!respuesta.ok || !resultado.data) {
         const detalle = Object.values(resultado.errors || {}).flat()[0];
-        throw new Error(detalle || resultado.message || "No se pudo registrar la venta.");
+        throw new Error(
+          detalle || resultado.message || "No se pudo registrar la venta.",
+        );
       }
 
       if (estudiosImagen.length) {
-        const fichaPaciente = fichasPacientes.find((ficha) => ficha.ci === ciPaciente);
-        if (!fichaPaciente) throw new Error('No se encontró la ficha clínica del paciente para programar el estudio.');
-        const respuestasEstudios = await Promise.all(estudiosImagen.map((linea) => apiFetch(`/api/v1/pacientes/${fichaPaciente.id}/estudios`, {
-          method: 'POST', headers: { Accept: 'application/json' }, body: JSON.stringify({
-            tipo: 'RADIOGRAFIA', nombre: `Radiografía de ${linea.piezaImagen} AP`,
-            indicaciones: 'Proyección AP. Verificar preparación y datos del paciente antes de la toma.', solicitado_por: 'Recepción', estado_detalle: 'Cobrado en caja',
-          }),
-        })));
-        const falloEstudio = respuestasEstudios.find((respuesta) => !respuesta.ok);
-        if (falloEstudio) { const datos = await falloEstudio.json(); throw new Error(datos.message || 'El cobro fue registrado, pero no se pudo programar el estudio en la agenda.'); }
+        const fichaPaciente = fichasPacientes.find(
+          (ficha) => ficha.ci === ciPaciente,
+        );
+        if (!fichaPaciente)
+          throw new Error(
+            "No se encontró la ficha clínica del paciente para programar el estudio.",
+          );
+        const respuestasEstudios = await Promise.all(
+          estudiosImagen.map((linea) =>
+            apiFetch(`/api/v1/pacientes/${fichaPaciente.id}/estudios`, {
+              method: "POST",
+              headers: { Accept: "application/json" },
+              body: JSON.stringify({
+                tipo: "RADIOGRAFIA",
+                nombre: `Radiografía de ${linea.piezaImagen} AP`,
+                indicaciones:
+                  "Proyección AP. Verificar preparación y datos del paciente antes de la toma.",
+                solicitado_por: "Recepción",
+                estado_detalle: "Cobrado en caja",
+              }),
+            }),
+          ),
+        );
+        const falloEstudio = respuestasEstudios.find(
+          (respuesta) => !respuesta.ok,
+        );
+        if (falloEstudio) {
+          const datos = await falloEstudio.json();
+          throw new Error(
+            datos.message ||
+              "El cobro fue registrado, pero no se pudo programar el estudio en la agenda.",
+          );
+        }
         registrarSolicitudesImagenologia(
           paciente,
           ciPaciente,
@@ -521,67 +1098,400 @@ export function CajaRecepcionView({
           })),
         );
       }
-      setMensaje(`${resultado.data.codigo || "Venta"} registrada correctamente.`);
+      setMensaje(
+        `${resultado.data.codigo || "Venta"} registrada correctamente.`,
+      );
       solicitudVenta.current = crypto.randomUUID();
-      setRecargaCatalogo(valor => valor + 1);
-      setRevisionHistorial(valor => valor + 1);
+      setRecargaCatalogo((valor) => valor + 1);
+      setRevisionHistorial((valor) => valor + 1);
       setLineas([]);
       setPagos([pagoNuevo(Date.now())]);
       setDescuento("");
     } catch (error) {
-      setMensaje(error instanceof Error ? error.message : "No se pudo registrar la venta.", 'error');
+      setMensaje(
+        error instanceof Error
+          ? error.message
+          : "No se pudo registrar la venta.",
+        "error",
+      );
     } finally {
       setCobrando(false);
     }
   };
   const replegarSidebarAlOperar = () => {
-    if (!farmacia && !cocina) window.dispatchEvent(new Event("clinico:replegar-sidebar"));
+    if (!farmacia && !cocina)
+      window.dispatchEvent(new Event("clinico:replegar-sidebar"));
   };
   const detalleConsumoSeleccionado = consumoSeleccionado?.datos ?? null;
   return (
-    <section className={`punto-pos ${(farmacia || cocina) ? "punto-pos-farmacia" : ""}`} onClickCapture={(evento) => { if ((evento.target as HTMLElement).closest("button")) replegarSidebarAlOperar(); }}>
-      {consumoSeleccionado && detalleConsumoSeleccionado && <div className="punto-detalle-consumo-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsumoSeleccionado(null); }}>
-        <section className={`punto-detalle-consumo estado-${consumoSeleccionado.estado.toLowerCase().replace(' ', '-')}`} role="dialog" aria-modal="true" aria-labelledby="detalle-consumo-titulo">
-          <header className="punto-detalle-consumo-cabecera">
-            <div><span>DETALLE DE CONSUMO</span><h3 id="detalle-consumo-titulo">N.º {consumoSeleccionado.n}</h3><small>{paciente || 'Paciente no identificado'} · HC-{ciPaciente || '004821'}</small></div>
-            <div className="punto-detalle-consumo-importe"><span className={`estado-${consumoSeleccionado.estado.toLowerCase().replace(' ', '-')}`}>{consumoSeleccionado.estado}</span><strong>Bs. {consumoSeleccionado.total}</strong></div>
-            <button type="button" aria-label="Cerrar detalle" onClick={() => setConsumoSeleccionado(null)}><Icon name="close" size={19}/></button>
-          </header>
-          <div className="punto-detalle-consumo-resumen"><span><b>Fecha</b>{consumoSeleccionado.fecha}</span><span><b>Sucursal</b>{detalleConsumoSeleccionado.sucursal}</span><span><b>Caja</b>{detalleConsumoSeleccionado.caja}</span><span><b>Cobró</b>{detalleConsumoSeleccionado.cajero}</span></div>
-          <section className="punto-detalle-consumo-items" aria-label="Ítems del consumo"><div className="punto-detalle-consumo-titulo"><span>CONSUMO REGISTRADO</span><small>{consumoSeleccionado.detalle}</small></div><div className="punto-detalle-consumo-tabla"><div className="punto-detalle-consumo-tabla-cabecera"><span>Ítem</span><span>Cant.</span><span>P. unit.</span><span>Total</span></div>{detalleConsumoSeleccionado.items.map((item, indice) => <div className="punto-detalle-consumo-tabla-fila" key={`${item.concepto}-${indice}`}><strong>{item.concepto}</strong><span>{item.cantidad}</span><span>Bs. {item.unitario}</span><b>Bs. {item.total}</b></div>)}</div></section>
-          <section className="punto-detalle-consumo-pago"><div><span>Total a pagar</span><strong>Bs. {consumoSeleccionado.total}</strong></div><div><span>Total pagado</span><strong>{detalleConsumoSeleccionado.pagado === 'No registrado' ? 'No registrado' : `Bs. ${detalleConsumoSeleccionado.pagado}`}</strong></div><div className="punto-detalle-consumo-metodos"><span>Método{detalleConsumoSeleccionado.pagos.length > 1 ? 's' : ''} de pago</span>{detalleConsumoSeleccionado.pagos.map((metodo, indice) => <b key={indice}>{metodo}</b>)}</div></section>
-          <footer><button type="button" onClick={() => setConsumoSeleccionado(null)}>Cerrar</button></footer>
-        </section>
-      </div>}
-      {consultaParaAgendar && <div className="punto-imagen-fondo" role="presentation" onMouseDown={evento => { if (evento.target === evento.currentTarget) setConsultaParaAgendar(null); }}><form className="punto-imagen-modal punto-consulta-modal" role="dialog" aria-modal="true" aria-label="Agendar consulta ambulatoria" onSubmit={evento => { evento.preventDefault(); agendarConsulta(); }}><header><div><span>CONSULTA AMBULATORIA</span><h3>Agendar consulta</h3><small>Primero registra los datos de la cita; después se añadirá el servicio al carrito para su cobro.</small></div><button type="button" aria-label="Cerrar" onClick={() => setConsultaParaAgendar(null)}>×</button></header><label>Paciente registrado<select required value={ciPaciente} onChange={evento => { const ficha = fichasPacientes.find(actual => actual.ci === evento.target.value); if (!ficha) return; setPaciente(nombrePacienteClinico(ficha)); setCiPaciente(ficha.ci); void seleccionarCliente({ id: `paciente:${ficha.id}`, paciente_id: ficha.id, nit_ci: ficha.ci, nombre_razon_social: nombrePacienteClinico(ficha), telefono: ficha.telefono || null, correo: null }); }}><option value="">Seleccionar paciente</option>{pacientesRegistrados.map(ficha => <option key={ficha.id} value={ficha.ci}>{ficha.nombre} · CI {ficha.ci}</option>)}</select></label><small className="punto-consulta-ayuda">Solo se muestran pacientes registrados en el sistema.</small><label>Especialidad<select value={especialidadConsulta} onChange={evento => { const especialidad = evento.target.value; setEspecialidadConsulta(especialidad); setMedicoConsulta(medicosPorEspecialidad[especialidad]?.[0] || ''); }}>{Object.keys(medicosPorEspecialidad).map(especialidad => <option key={especialidad}>{especialidad}</option>)}</select></label><label>Médico<select required value={medicoConsulta} onChange={evento => setMedicoConsulta(evento.target.value)}><option value="">Seleccionar médico</option>{(medicosPorEspecialidad[especialidadConsulta] || []).map(medico => <option key={medico}>{medico}</option>)}</select></label><div className="punto-consulta-fecha"><label>Fecha<input required type="date" min={new Date().toISOString().slice(0, 10)} value={fechaConsulta} onChange={evento => setFechaConsulta(evento.target.value)} /></label><label>Hora<input required type="time" step="1800" value={horaConsulta} onChange={evento => setHoraConsulta(evento.target.value)} /></label></div><footer><button type="button" onClick={() => setConsultaParaAgendar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="check" size={16} /> Confirmar cita y añadir al carrito</button></footer></form></div>}
-      {imagenParaAgregar && (
-        <div className="punto-imagen-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setImagenParaAgregar(null); }}>
-          <form className="punto-imagen-modal" role="dialog" aria-modal="true" aria-label="Detalle del estudio de imagenología" onSubmit={(evento) => { evento.preventDefault(); agregarEstudioImagen(); }}>
-            <header>
-              <div><span>IMAGENOLOGÍA</span><h3>Detalle del estudio</h3><small>Define la modalidad y la pieza antes de agregarla al cobro.</small></div>
-              <button type="button" aria-label="Cerrar" onClick={() => setImagenParaAgregar(null)}>×</button>
+    <section
+      className={`punto-pos ${farmacia || cocina ? "punto-pos-farmacia" : ""}`}
+      onClickCapture={(evento) => {
+        if ((evento.target as HTMLElement).closest("button"))
+          replegarSidebarAlOperar();
+      }}
+    >
+      {consumoSeleccionado && detalleConsumoSeleccionado && (
+        <div
+          className="punto-detalle-consumo-fondo"
+          role="presentation"
+          onMouseDown={(evento) => {
+            if (evento.target === evento.currentTarget)
+              setConsumoSeleccionado(null);
+          }}
+        >
+          <section
+            className={`punto-detalle-consumo estado-${consumoSeleccionado.estado.toLowerCase().replace(" ", "-")}`}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="detalle-consumo-titulo"
+          >
+            <header className="punto-detalle-consumo-cabecera">
+              <div>
+                <span>DETALLE DE CONSUMO</span>
+                <h3 id="detalle-consumo-titulo">N.º {consumoSeleccionado.n}</h3>
+                <small>
+                  {paciente || "Paciente no identificado"} · HC-
+                  {ciPaciente || "004821"}
+                </small>
+              </div>
+              <div className="punto-detalle-consumo-importe">
+                <span
+                  className={`estado-${consumoSeleccionado.estado.toLowerCase().replace(" ", "-")}`}
+                >
+                  {consumoSeleccionado.estado}
+                </span>
+                <strong>Bs. {consumoSeleccionado.total}</strong>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar detalle"
+                onClick={() => setConsumoSeleccionado(null)}
+              >
+                <Icon name="close" size={19} />
+              </button>
             </header>
-            <label>Tipo de estudio
-              <select value={tipoEstudioImagen} onChange={(evento) => setTipoEstudioImagen(evento.target.value)}>
-                <option>Rayos X</option><option>Tomografía</option><option>Ecocardiograma</option><option>Otro estudio de imagen</option>
+            <div className="punto-detalle-consumo-resumen">
+              <span>
+                <b>Fecha</b>
+                {consumoSeleccionado.fecha}
+              </span>
+              <span>
+                <b>Sucursal</b>
+                {detalleConsumoSeleccionado.sucursal}
+              </span>
+              <span>
+                <b>Caja</b>
+                {detalleConsumoSeleccionado.caja}
+              </span>
+              <span>
+                <b>Cobró</b>
+                {detalleConsumoSeleccionado.cajero}
+              </span>
+            </div>
+            <section
+              className="punto-detalle-consumo-items"
+              aria-label="Ítems del consumo"
+            >
+              <div className="punto-detalle-consumo-titulo">
+                <span>CONSUMO REGISTRADO</span>
+                <small>{consumoSeleccionado.detalle}</small>
+              </div>
+              <div className="punto-detalle-consumo-tabla">
+                <div className="punto-detalle-consumo-tabla-cabecera">
+                  <span>Ítem</span>
+                  <span>Cant.</span>
+                  <span>P. unit.</span>
+                  <span>Total</span>
+                </div>
+                {detalleConsumoSeleccionado.items.map((item, indice) => (
+                  <div
+                    className="punto-detalle-consumo-tabla-fila"
+                    key={`${item.concepto}-${indice}`}
+                  >
+                    <strong>{item.concepto}</strong>
+                    <span>{item.cantidad}</span>
+                    <span>Bs. {item.unitario}</span>
+                    <b>Bs. {item.total}</b>
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section className="punto-detalle-consumo-pago">
+              <div>
+                <span>Total a pagar</span>
+                <strong>Bs. {consumoSeleccionado.total}</strong>
+              </div>
+              <div>
+                <span>Total pagado</span>
+                <strong>
+                  {detalleConsumoSeleccionado.pagado === "No registrado"
+                    ? "No registrado"
+                    : `Bs. ${detalleConsumoSeleccionado.pagado}`}
+                </strong>
+              </div>
+              <div className="punto-detalle-consumo-metodos">
+                <span>
+                  Método{detalleConsumoSeleccionado.pagos.length > 1 ? "s" : ""}{" "}
+                  de pago
+                </span>
+                {detalleConsumoSeleccionado.pagos.map((metodo, indice) => (
+                  <b key={indice}>{metodo}</b>
+                ))}
+              </div>
+            </section>
+            <footer>
+              <button
+                type="button"
+                onClick={() => setConsumoSeleccionado(null)}
+              >
+                Cerrar
+              </button>
+            </footer>
+          </section>
+        </div>
+      )}
+      {consultaParaAgendar && (
+        <div
+          className="punto-imagen-fondo"
+          role="presentation"
+          onMouseDown={(evento) => {
+            if (evento.target === evento.currentTarget)
+              setConsultaParaAgendar(null);
+          }}
+        >
+          <form
+            className="punto-imagen-modal punto-consulta-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Agendar consulta ambulatoria"
+            onSubmit={(evento) => {
+              evento.preventDefault();
+              agendarConsulta();
+            }}
+          >
+            <header>
+              <div>
+                <span>CONSULTA AMBULATORIA</span>
+                <h3>Agendar consulta</h3>
+                <small>
+                  Primero registra los datos de la cita; después se añadirá el
+                  servicio al carrito para su cobro.
+                </small>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setConsultaParaAgendar(null)}
+              >
+                ×
+              </button>
+            </header>
+            <label>
+              Paciente registrado
+              <select
+                required
+                value={ciPaciente}
+                onChange={(evento) => {
+                  const ficha = fichasPacientes.find(
+                    (actual) => actual.ci === evento.target.value,
+                  );
+                  if (!ficha) return;
+                  setPaciente(nombrePacienteClinico(ficha));
+                  setCiPaciente(ficha.ci);
+                  void seleccionarCliente({
+                    id: `paciente:${ficha.id}`,
+                    paciente_id: ficha.id,
+                    nit_ci: ficha.ci,
+                    nombre_razon_social: nombrePacienteClinico(ficha),
+                    telefono: ficha.telefono || null,
+                    correo: null,
+                  });
+                }}
+              >
+                <option value="">Seleccionar paciente</option>
+                {pacientesRegistrados.map((ficha) => (
+                  <option key={ficha.id} value={ficha.ci}>
+                    {ficha.nombre} · CI {ficha.ci}
+                  </option>
+                ))}
               </select>
             </label>
-            <label>Pieza o región
-              <select value={piezaEstudioImagen} onChange={(evento) => setPiezaEstudioImagen(evento.target.value)}>
-                <option>Tórax</option><option>Brazo</option><option>Antebrazo</option><option>Mano</option><option>Pierna</option><option>Rodilla</option><option>Pie</option><option>Craneo</option><option>Abdomen</option><option>Columna</option><option>Pelvis</option><option>Otra</option>
+            <small className="punto-consulta-ayuda">
+              Solo se muestran pacientes registrados en el sistema.
+            </small>
+            <label>
+              Especialidad
+              <select
+                value={especialidadConsulta}
+                onChange={(evento) => {
+                  const especialidad = evento.target.value;
+                  setEspecialidadConsulta(especialidad);
+                  setMedicoConsulta(
+                    medicosPorEspecialidad[especialidad]?.[0] || "",
+                  );
+                }}
+              >
+                {Object.keys(medicosPorEspecialidad).map((especialidad) => (
+                  <option key={especialidad}>{especialidad}</option>
+                ))}
               </select>
             </label>
-            {piezaEstudioImagen === "Otra" && <label>Especifica la pieza
-              <input required autoFocus value={otraPiezaImagen} onChange={(evento) => setOtraPiezaImagen(evento.target.value)} placeholder="Ej. hombro izquierdo" />
-            </label>}
-            <footer><button type="button" onClick={() => setImagenParaAgregar(null)}>Cancelar</button><button className="punto-imagen-primario" type="submit"><Icon name="plus" size={16} /> Agregar al cobro · {dinero(imagenParaAgregar.precio)}</button></footer>
+            <label>
+              Médico
+              <select
+                required
+                value={medicoConsulta}
+                onChange={(evento) => setMedicoConsulta(evento.target.value)}
+              >
+                <option value="">Seleccionar médico</option>
+                {(medicosPorEspecialidad[especialidadConsulta] || []).map(
+                  (medico) => (
+                    <option key={medico}>{medico}</option>
+                  ),
+                )}
+              </select>
+            </label>
+            <div className="punto-consulta-fecha">
+              <label>
+                Fecha
+                <input
+                  required
+                  type="date"
+                  min={new Date().toISOString().slice(0, 10)}
+                  value={fechaConsulta}
+                  onChange={(evento) => setFechaConsulta(evento.target.value)}
+                />
+              </label>
+              <label>
+                Hora
+                <input
+                  required
+                  type="time"
+                  step="1800"
+                  value={horaConsulta}
+                  onChange={(evento) => setHoraConsulta(evento.target.value)}
+                />
+              </label>
+            </div>
+            <footer>
+              <button
+                type="button"
+                onClick={() => setConsultaParaAgendar(null)}
+              >
+                Cancelar
+              </button>
+              <button className="punto-imagen-primario" type="submit">
+                <Icon name="check" size={16} /> Confirmar cita y añadir al
+                carrito
+              </button>
+            </footer>
+          </form>
+        </div>
+      )}
+      {imagenParaAgregar && (
+        <div
+          className="punto-imagen-fondo"
+          role="presentation"
+          onMouseDown={(evento) => {
+            if (evento.target === evento.currentTarget)
+              setImagenParaAgregar(null);
+          }}
+        >
+          <form
+            className="punto-imagen-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Detalle del estudio de imagenología"
+            onSubmit={(evento) => {
+              evento.preventDefault();
+              agregarEstudioImagen();
+            }}
+          >
+            <header>
+              <div>
+                <span>IMAGENOLOGÍA</span>
+                <h3>Detalle del estudio</h3>
+                <small>
+                  Define la modalidad y la pieza antes de agregarla al cobro.
+                </small>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setImagenParaAgregar(null)}
+              >
+                ×
+              </button>
+            </header>
+            <label>
+              Tipo de estudio
+              <select
+                value={tipoEstudioImagen}
+                onChange={(evento) => setTipoEstudioImagen(evento.target.value)}
+              >
+                <option>Rayos X</option>
+                <option>Tomografía</option>
+                <option>Ecocardiograma</option>
+                <option>Otro estudio de imagen</option>
+              </select>
+            </label>
+            <label>
+              Pieza o región
+              <select
+                value={piezaEstudioImagen}
+                onChange={(evento) =>
+                  setPiezaEstudioImagen(evento.target.value)
+                }
+              >
+                <option>Tórax</option>
+                <option>Brazo</option>
+                <option>Antebrazo</option>
+                <option>Mano</option>
+                <option>Pierna</option>
+                <option>Rodilla</option>
+                <option>Pie</option>
+                <option>Craneo</option>
+                <option>Abdomen</option>
+                <option>Columna</option>
+                <option>Pelvis</option>
+                <option>Otra</option>
+              </select>
+            </label>
+            {piezaEstudioImagen === "Otra" && (
+              <label>
+                Especifica la pieza
+                <input
+                  required
+                  autoFocus
+                  value={otraPiezaImagen}
+                  onChange={(evento) => setOtraPiezaImagen(evento.target.value)}
+                  placeholder="Ej. hombro izquierdo"
+                />
+              </label>
+            )}
+            <footer>
+              <button type="button" onClick={() => setImagenParaAgregar(null)}>
+                Cancelar
+              </button>
+              <button className="punto-imagen-primario" type="submit">
+                <Icon name="plus" size={16} /> Agregar al cobro ·{" "}
+                {dinero(imagenParaAgregar.precio)}
+              </button>
+            </footer>
           </form>
         </div>
       )}
       {mostrandoLaboratorio && (
         <SolicitudLaboratorioRecepcion
           paciente={
-            paciente && ciPaciente ? { id:fichasPacientes.find(p=>p.ci===ciPaciente)?.id, nombre: paciente, ci: ciPaciente } : null
+            paciente && ciPaciente
+              ? {
+                  id: fichasPacientes.find((p) => p.ci === ciPaciente)?.id,
+                  nombre: paciente,
+                  ci: ciPaciente,
+                }
+              : null
           }
           pacientes={pacientesRegistrados}
           onSeleccionar={(p) => {
@@ -595,16 +1505,34 @@ export function CajaRecepcionView({
       )}
       {mostrandoInternacion && (
         <InternacionModal
-          pacienteInicial={paciente && ciPaciente ? { nombre: paciente, ci: ciPaciente } : null}
-          onRegistrada={(registro) => setMensaje(`Preinternación registrada para ${registro.paciente}.`)}
+          pacienteInicial={
+            paciente && ciPaciente ? { nombre: paciente, ci: ciPaciente } : null
+          }
+          onRegistrada={(registro) =>
+            setMensaje(`Preinternación registrada para ${registro.paciente}.`)
+          }
           onCerrar={() => setMostrandoInternacion(false)}
         />
       )}
-      {mostrandoNuevoPaciente && <ModalRegistroPaciente onCerrar={() => setMostrandoNuevoPaciente(false)} onRegistrado={p => {
-        setPaciente(nombrePacienteClinico(p)); setCiPaciente(p.ci);
-        if(registroPacienteParaCobro) void seleccionarCliente({id:'paciente:'+p.id,paciente_id:p.id,nombre_razon_social:nombrePacienteClinico(p),nit_ci:p.ci,telefono:p.telefono || null,correo:null});
-        setMensaje('Paciente registrado en la ficha clínica compartida.');
-      }} />}
+      {mostrandoNuevoPaciente && (
+        <ModalRegistroPaciente
+          onCerrar={() => setMostrandoNuevoPaciente(false)}
+          onRegistrado={(p) => {
+            setPaciente(nombrePacienteClinico(p));
+            setCiPaciente(p.ci);
+            if (registroPacienteParaCobro)
+              void seleccionarCliente({
+                id: "paciente:" + p.id,
+                paciente_id: p.id,
+                nombre_razon_social: nombrePacienteClinico(p),
+                nit_ci: p.ci,
+                telefono: p.telefono || null,
+                correo: null,
+              });
+            setMensaje("Paciente registrado en la ficha clínica compartida.");
+          }}
+        />
+      )}
       {mostrandoCotizacion && (
         <div
           className="punto-cotizacion-fondo"
@@ -694,10 +1622,48 @@ export function CajaRecepcionView({
       <div className="punto-pos-superior">
         {navegacion}
         <header className="punto-pos-cabecera punto-pos-contexto">
-        <div className="punto-contexto">
-          <label><span>Caja y sucursal</span><select value={cajaVentaId} onChange={evento => { const id = evento.target.value; const caja = cajasVenta.find(actual => String(actual.id) === id); setCajaVentaId(id); setAlmacenVentaId(caja?.almacenes.length === 1 ? String(caja.almacenes[0].id) : ''); }}><option value="">Selecciona una caja</option>{cajasVenta.map(caja => <option key={caja.id} value={caja.id}>{caja.sucursal} · {caja.nombre}</option>)}</select></label>
-          <label><span>Almacén</span><select value={almacenVentaId} onChange={evento => setAlmacenVentaId(evento.target.value)} disabled={!cajaVenta}><option value="">Selecciona un almacén</option>{cajaVenta?.almacenes.map(almacen => <option key={almacen.id} value={almacen.id}>{almacen.nombre}</option>)}</select></label>
-        </div>
+          <div className="punto-contexto">
+            <label>
+              <span>Caja y sucursal</span>
+              <select
+                value={cajaVentaId}
+                onChange={(evento) => {
+                  const id = evento.target.value;
+                  const caja = cajasVenta.find(
+                    (actual) => String(actual.id) === id,
+                  );
+                  setCajaVentaId(id);
+                  setAlmacenVentaId(
+                    caja?.almacenes.length === 1
+                      ? String(caja.almacenes[0].id)
+                      : "",
+                  );
+                }}
+              >
+                <option value="">Selecciona una caja</option>
+                {cajasVenta.map((caja) => (
+                  <option key={caja.id} value={caja.id}>
+                    {caja.sucursal} · {caja.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Almacén</span>
+              <select
+                value={almacenVentaId}
+                onChange={(evento) => setAlmacenVentaId(evento.target.value)}
+                disabled={!cajaVenta}
+              >
+                <option value="">Selecciona un almacén</option>
+                {cajaVenta?.almacenes.map((almacen) => (
+                  <option key={almacen.id} value={almacen.id}>
+                    {almacen.nombre}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         </header>
       </div>
       <div
@@ -746,10 +1712,38 @@ export function CajaRecepcionView({
                   <option>Pre venta</option>
                 </select>
                 <div className="punto-historial-lista">
-                  {cargandoHistorial && <p role="status">Cargando ventas del paciente…</p>}
-                  {errorHistorial && <p role="alert">{errorHistorial} <button type="button" onClick={() => setRevisionHistorial(valor => valor + 1)}>Reintentar</button></p>}
-                  {!cargandoHistorial && !errorHistorial && !clienteSeleccionado?.paciente_id && <p>Selecciona un paciente registrado para consultar sus ventas.</p>}
-                  {!cargandoHistorial && !errorHistorial && clienteSeleccionado?.paciente_id && !historialPaciente.some(c => filtroHistorial === 'Todos' || c.estado === filtroHistorial) && <p>No hay ventas para mostrar.</p>}
+                  {cargandoHistorial && (
+                    <p role="status">Cargando ventas del paciente…</p>
+                  )}
+                  {errorHistorial && (
+                    <p role="alert">
+                      {errorHistorial}{" "}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRevisionHistorial((valor) => valor + 1)
+                        }
+                      >
+                        Reintentar
+                      </button>
+                    </p>
+                  )}
+                  {!cargandoHistorial &&
+                    !errorHistorial &&
+                    !clienteSeleccionado?.paciente_id && (
+                      <p>
+                        Selecciona un paciente registrado para consultar sus
+                        ventas.
+                      </p>
+                    )}
+                  {!cargandoHistorial &&
+                    !errorHistorial &&
+                    clienteSeleccionado?.paciente_id &&
+                    !historialPaciente.some(
+                      (c) =>
+                        filtroHistorial === "Todos" ||
+                        c.estado === filtroHistorial,
+                    ) && <p>No hay ventas para mostrar.</p>}
                   {historialPaciente
                     .filter(
                       (c) =>
@@ -764,7 +1758,12 @@ export function CajaRecepcionView({
                         tabIndex={0}
                         aria-label={`Ver detalle del consumo ${c.n}`}
                         onClick={() => setConsumoSeleccionado(c)}
-                        onKeyDown={evento => { if (evento.key === 'Enter' || evento.key === ' ') { evento.preventDefault(); setConsumoSeleccionado(c); } }}
+                        onKeyDown={(evento) => {
+                          if (evento.key === "Enter" || evento.key === " ") {
+                            evento.preventDefault();
+                            setConsumoSeleccionado(c);
+                          }
+                        }}
                       >
                         <div>
                           <strong>N.º {c.n}</strong>
@@ -774,8 +1773,8 @@ export function CajaRecepcionView({
                           {c.estado}
                         </span>
                         <p>
-                          <Icon name="chevronRight" size={14} /> Cajero/a:
-                          {' '}{c.datos.cajero}
+                          <Icon name="chevronRight" size={14} /> Cajero/a:{" "}
+                          {c.datos.cajero}
                           <br />
                           <em>{c.detalle}</em>
                         </p>
@@ -790,9 +1789,23 @@ export function CajaRecepcionView({
             )}
           </aside>
         )}
-        <section className={`punto-catalogo ${carritoAbierto ? 'vista-carrito' : ''}`}>
-          {cargandoCatalogo && <p role="status">Consultando productos y servicios del contable…</p>}
-          {errorCatalogo && <p className="punto-catalogo-error" role="alert"><span>{errorCatalogo}</span><button type="button" onClick={() => setRecargaCatalogo(v => v + 1)}>Reintentar</button></p>}
+        <section
+          className={`punto-catalogo ${carritoAbierto ? "vista-carrito" : ""}`}
+        >
+          {cargandoCatalogo && (
+            <p role="status">Consultando productos y servicios del contable…</p>
+          )}
+          {errorCatalogo && (
+            <p className="punto-catalogo-error" role="alert">
+              <span>{errorCatalogo}</span>
+              <button
+                type="button"
+                onClick={() => setRecargaCatalogo((v) => v + 1)}
+              >
+                Reintentar
+              </button>
+            </p>
+          )}
           <div className="punto-busquedas">
             <label>
               <Icon name="search" size={17} />
@@ -803,13 +1816,38 @@ export function CajaRecepcionView({
               />
             </label>
             {carritoAbierto && busqueda.trim() && (
-              <div className="punto-buscador-carrito-resultados" role="listbox" aria-label="Productos encontrados">
-                {Object.entries(resultados.slice(0, 14).reduce<Record<string, Item[]>>((grupos, item) => {
-                  const grupo = item.categoria || item.tipo;
-                  (grupos[grupo] ||= []).push(item);
-                  return grupos;
-                }, {})).map(([categoria, items]) => <div key={categoria}><strong>{categoria}</strong>{items.map(item => <button type="button" role="option" key={item.id} onClick={() => prepararAgregar(item)}><span>{item.nombre}</span><small>{dinero(item.precio)}</small></button>)}</div>)}
-                {!resultados.length && <p>Sin coincidencias para esta búsqueda.</p>}
+              <div
+                className="punto-buscador-carrito-resultados"
+                role="listbox"
+                aria-label="Productos encontrados"
+              >
+                {Object.entries(
+                  resultados
+                    .slice(0, 14)
+                    .reduce<Record<string, Item[]>>((grupos, item) => {
+                      const grupo = item.categoria || item.tipo;
+                      (grupos[grupo] ||= []).push(item);
+                      return grupos;
+                    }, {}),
+                ).map(([categoria, items]) => (
+                  <div key={categoria}>
+                    <strong>{categoria}</strong>
+                    {items.map((item) => (
+                      <button
+                        type="button"
+                        role="option"
+                        key={item.id}
+                        onClick={() => prepararAgregar(item)}
+                      >
+                        <span>{item.nombre}</span>
+                        <small>{dinero(item.precio)}</small>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+                {!resultados.length && (
+                  <p>Sin coincidencias para esta búsqueda.</p>
+                )}
               </div>
             )}
             {!farmacia && !cocina && (
@@ -826,12 +1864,20 @@ export function CajaRecepcionView({
               </button>
             )}
             {!farmacia && !cocina && onConsultaExterna && (
-              <button className="punto-accion-consulta-externa" type="button" onClick={abrirConsultaExterna}>
+              <button
+                className="punto-accion-consulta-externa"
+                type="button"
+                onClick={abrirConsultaExterna}
+              >
                 <Icon name="calendar" size={16} /> Consulta externa
               </button>
             )}
             {!farmacia && !cocina && (
-              <button className="punto-accion-cirugia" type="button" onClick={onAgendarCirugia}>
+              <button
+                className="punto-accion-cirugia"
+                type="button"
+                onClick={onAgendarCirugia}
+              >
                 <Icon name="calendar" size={16} /> Agendar cirugía
               </button>
             )}
@@ -852,15 +1898,19 @@ export function CajaRecepcionView({
           <div className="punto-catalogo-filtros">
             <div className="punto-categorias">
               <button
-                className={`punto-boton-carrito ${carritoAbierto ? 'activo' : ''}`}
+                className={`punto-boton-carrito ${carritoAbierto ? "activo" : ""}`}
                 type="button"
                 aria-haspopup="dialog"
                 aria-expanded={carritoAbierto}
-                onClick={() => setCarritoAbierto(abierto => !abierto)}
+                onClick={() => setCarritoAbierto((abierto) => !abierto)}
               >
                 <Icon name="asset" size={16} />
                 <span>Carrito</span>
-                {lineas.length > 0 && <b>{lineas.reduce((total, linea) => total + linea.cantidad, 0)}</b>}
+                {lineas.length > 0 && (
+                  <b>
+                    {lineas.reduce((total, linea) => total + linea.cantidad, 0)}
+                  </b>
+                )}
               </button>
               {(farmacia
                 ? (["Todos", "Producto", "Insumo"] as const)
@@ -870,57 +1920,161 @@ export function CajaRecepcionView({
                   type="button"
                   className={!carritoAbierto && tipo === o ? "activo" : ""}
                   key={o}
-                  onClick={() => { setCarritoAbierto(false); setTipo(o); }}
+                  onClick={() => {
+                    setCarritoAbierto(false);
+                    setTipo(o);
+                  }}
                 >
                   {o}
                 </button>
               ))}
             </div>
-            <button className="punto-actualizar-catalogo" type="button" disabled={cargandoCatalogo} onClick={() => setRecargaCatalogo(v => v + 1)}><Icon name="refresh" size={15}/> Actualizar</button>
-
+            <button
+              className="punto-actualizar-catalogo"
+              type="button"
+              disabled={cargandoCatalogo}
+              onClick={() => setRecargaCatalogo((v) => v + 1)}
+            >
+              <Icon name="refresh" size={15} /> Actualizar
+            </button>
           </div>
           {carritoAbierto && (
-            <section className="punto-carrito-flotante" role="dialog" aria-label="Carrito de venta">
+            <section
+              className="punto-carrito-flotante"
+              role="dialog"
+              aria-label="Carrito de venta"
+            >
               <header>
-                <div><strong>Carrito de venta</strong><small>{lineas.reduce((total, linea) => total + linea.cantidad, 0)} productos</small></div>
+                <div>
+                  <strong>Carrito de venta</strong>
+                  <small>
+                    {lineas.reduce((total, linea) => total + linea.cantidad, 0)}{" "}
+                    productos
+                  </small>
+                </div>
               </header>
               <div className="punto-carrito-lineas">
-                {lineas.map((i) => <article key={i.id}><strong>{i.nombre}</strong><small>{dinero(i.precio)} c/u</small><div><button type="button" onClick={() => cantidad(i.id, -1)}>−</button><input className="punto-cantidad-input" type="text" inputMode="numeric" pattern="[0-9]*" aria-label={`Cantidad de ${i.nombre}`} value={String(i.cantidad)} onFocus={(e) => e.currentTarget.select()} onChange={(e) => escribirCantidad(i.id, e.target.value)} /><button type="button" onClick={() => cantidad(i.id, 1)}>+</button><span>{dinero(i.precio * i.cantidad)}</span><button className="punto-quitar" type="button" onClick={() => setLineas(a => a.filter(x => x.id !== i.id))}>×</button></div></article>)}
+                {lineas.map((i) => (
+                  <article key={i.id}>
+                    <strong>{i.nombre}</strong>
+                    <small>{dinero(i.precio)} c/u</small>
+                    <div>
+                      <button type="button" onClick={() => cantidad(i.id, -1)}>
+                        −
+                      </button>
+                      <input
+                        className="punto-cantidad-input"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        aria-label={`Cantidad de ${i.nombre}`}
+                        value={String(i.cantidad)}
+                        onFocus={(e) => e.currentTarget.select()}
+                        onChange={(e) => escribirCantidad(i.id, e.target.value)}
+                      />
+                      <button type="button" onClick={() => cantidad(i.id, 1)}>
+                        +
+                      </button>
+                      <span>{dinero(i.precio * i.cantidad)}</span>
+                      <button
+                        className="punto-quitar"
+                        type="button"
+                        onClick={() =>
+                          setLineas((a) => a.filter((x) => x.id !== i.id))
+                        }
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </article>
+                ))}
               </div>
-              <section className="punto-resumen punto-resumen-carrito"><div className="punto-total"><span>Subtotal a pagar</span><b>{dinero(total)}</b></div></section>
+              <section className="punto-resumen punto-resumen-carrito">
+                <div className="punto-total">
+                  <span>Subtotal a pagar</span>
+                  <b>{dinero(total)}</b>
+                </div>
+              </section>
             </section>
           )}
-          {(errorAviso || errorPacientes) && <p className="punto-aviso" role="alert">{errorAviso || errorPacientes}</p>}
+          {(errorAviso || errorPacientes) && (
+            <p className="punto-aviso" role="alert">
+              {errorAviso || errorPacientes}
+            </p>
+          )}
 
-            <div className="punto-tarjetas catalogo-clinico-tarjetas">
-              {resultados.map((i) => (
-                <article key={i.id}>
-                  <div className="punto-tarjeta-info">
-                    <small>{i.codigo}</small>
-                    <strong>{i.nombre}</strong>
-                    <div className="catalogo-clinico-detalles">{i.stock !== undefined ? <span className="catalogo-clinico-vencimiento">Vencimiento <b>{fechaVencimientoCatalogo(i.fechaVencimiento)}</b></span> : <span>{i.tipo}</span>}{i.stock !== undefined && <span className={'catalogo-clinico-stock' + (i.stock <= 0 ? ' agotado' : '')}>Stock <b>{i.stock}</b></span>}</div>
-                    {farmacia && alertasInventario(i).length > 0 && <div className="punto-alertas-inventario" aria-label={`Alertas de ${i.nombre}`}>
-                      {alertasInventario(i).map(alerta => <span key={alerta.tipo} className={alerta.nivel}><Icon name={alerta.tipo === "stock" ? "package" : "calendar"} size={13}/>{alerta.texto}</span>)}
-                    </div>}
+          <div className="punto-tarjetas catalogo-clinico-tarjetas">
+            {resultados.map((i) => (
+              <article key={i.id}>
+                <div className="punto-tarjeta-info">
+                  <small>{i.codigo}</small>
+                  <strong>{i.nombre}</strong>
+                  <div className="catalogo-clinico-detalles">
+                    {i.stock !== undefined ? (
+                      <span className="catalogo-clinico-vencimiento">
+                        Vencimiento{" "}
+                        <b>{fechaVencimientoCatalogo(i.fechaVencimiento)}</b>
+                      </span>
+                    ) : (
+                      <span>{i.tipo}</span>
+                    )}
+                    {i.stock !== undefined && (
+                      <span
+                        className={
+                          "catalogo-clinico-stock" +
+                          (i.stock <= 0 ? " agotado" : "")
+                        }
+                      >
+                        Stock <b>{i.stock}</b>
+                      </span>
+                    )}
                   </div>
-                  <footer>
-                    <div>
-                      <b>{dinero(i.precio)}</b>
-                      <small>Precio de venta</small>
+                  {farmacia && alertasInventario(i).length > 0 && (
+                    <div
+                      className="punto-alertas-inventario"
+                      aria-label={`Alertas de ${i.nombre}`}
+                    >
+                      {alertasInventario(i).map((alerta) => (
+                        <span key={alerta.tipo} className={alerta.nivel}>
+                          <Icon
+                            name={
+                              alerta.tipo === "stock" ? "package" : "calendar"
+                            }
+                            size={13}
+                          />
+                          {alerta.texto}
+                        </span>
+                      ))}
                     </div>
-                    <button type="button" aria-label={`Agregar ${i.nombre}`} onClick={() => prepararAgregar(i)}>
-                      <Icon name="plus" size={16} /> Agregar
-                    </button>
-                  </footer>
-                </article>
-              ))}
-            </div>
-
+                  )}
+                </div>
+                <footer>
+                  <div>
+                    <b>{dinero(i.precio)}</b>
+                    <small>Precio de venta</small>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label={`Agregar ${i.nombre}`}
+                    onClick={() => prepararAgregar(i)}
+                  >
+                    <Icon name="plus" size={16} /> Agregar
+                  </button>
+                </footer>
+              </article>
+            ))}
+          </div>
         </section>
         <aside className="punto-carrito">
           <header>
             <div>
-              <p>{cocina ? "CARRITO DE COCINA" : farmacia ? "CARRITO DE FARMACIA" : "CARRITO DE VENTA"}</p>
+              <p>
+                {cocina
+                  ? "CARRITO DE COCINA"
+                  : farmacia
+                    ? "CARRITO DE FARMACIA"
+                    : "CARRITO DE VENTA"}
+              </p>
               <strong>
                 {lineas.reduce((t, i) => t + i.cantidad, 0)} productos
               </strong>
@@ -930,10 +2084,23 @@ export function CajaRecepcionView({
           <section className="punto-cliente">
             {!clienteSeleccionado && modo === "inicio" && (
               <div className="cliente-acciones">
-                <button type="button" onClick={() => { setErrorCliente(""); setModo("buscar"); }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setErrorCliente("");
+                    setModo("buscar");
+                  }}
+                >
                   <Icon name="search" size={15} /> Buscar paciente
                 </button>
-                <button type="button" onClick={() => { setRegistroPacienteParaCobro(true); setMostrandoNuevoPaciente(true); setMensaje(""); }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegistroPacienteParaCobro(true);
+                    setMostrandoNuevoPaciente(true);
+                    setMensaje("");
+                  }}
+                >
                   <Icon name="plus" size={15} /> Registrar paciente
                 </button>
               </div>
@@ -949,8 +2116,14 @@ export function CajaRecepcionView({
                     placeholder="Buscar por nombre, CI/NIT, celular o correo"
                   />
                 </label>
-                {!!errorCliente && <p className="cliente-error" role="alert">{errorCliente}</p>}
-                {buscandoClientes && <p className="cliente-ayuda">Buscando clientes...</p>}
+                {!!errorCliente && (
+                  <p className="cliente-error" role="alert">
+                    {errorCliente}
+                  </p>
+                )}
+                {buscandoClientes && (
+                  <p className="cliente-ayuda">Buscando clientes...</p>
+                )}
                 {!!busquedaCliente && !buscandoClientes && !errorCliente && (
                   <div
                     className="cliente-coincidencias"
@@ -965,11 +2138,29 @@ export function CajaRecepcionView({
                           key={cliente.id}
                           onClick={() => seleccionarCliente(cliente)}
                         >
-                          <span className="cliente-coincidencia-linea"><span className="cliente-nombre-coincidencia">{resaltarCoincidencia(cliente.nombre_razon_social, busquedaCliente)}</span><small>{cliente.nit_ci ? resaltarCoincidencia(cliente.nit_ci, busquedaCliente) : 'Sin CI'}</small></span>
+                          <span className="cliente-coincidencia-linea">
+                            <span className="cliente-nombre-coincidencia">
+                              {resaltarCoincidencia(
+                                cliente.nombre_razon_social,
+                                busquedaCliente,
+                              )}
+                            </span>
+                            <small>
+                              {cliente.nit_ci
+                                ? resaltarCoincidencia(
+                                    cliente.nit_ci,
+                                    busquedaCliente,
+                                  )
+                                : "Sin CI"}
+                            </small>
+                          </span>
                         </button>
                       ))
                     ) : (
-                      <p>No hay coincidencias. Puedes registrar al paciente para esta venta.</p>
+                      <p>
+                        No hay coincidencias. Puedes registrar al paciente para
+                        esta venta.
+                      </p>
                     )}
                   </div>
                 )}
@@ -988,7 +2179,9 @@ export function CajaRecepcionView({
             )}
             {!clienteSeleccionado && modo === "registrar" && (
               <div className="cliente-formulario">
-                <small>El registro es solo comercial; no crea una ficha clínica.</small>
+                <small>
+                  El registro es solo comercial; no crea una ficha clínica.
+                </small>
                 <input
                   placeholder="Nombre o razón social *"
                   value={registroCliente.nombre}
@@ -1023,11 +2216,24 @@ export function CajaRecepcionView({
                   type="email"
                   placeholder="Correo electrónico"
                   value={registroCliente.correo}
-                  onChange={(e) => setRegistroCliente((actual) => ({ ...actual, correo: e.target.value }))}
+                  onChange={(e) =>
+                    setRegistroCliente((actual) => ({
+                      ...actual,
+                      correo: e.target.value,
+                    }))
+                  }
                 />
-                {!!errorCliente && <p className="cliente-error" role="alert">{errorCliente}</p>}
+                {!!errorCliente && (
+                  <p className="cliente-error" role="alert">
+                    {errorCliente}
+                  </p>
+                )}
                 <div>
-                  <button type="button" disabled={guardandoCliente} onClick={() => void guardarCliente()}>
+                  <button
+                    type="button"
+                    disabled={guardandoCliente}
+                    onClick={() => void guardarCliente()}
+                  >
                     {guardandoCliente ? "Guardando..." : "Guardar cliente"}
                   </button>
                   <button
@@ -1050,7 +2256,11 @@ export function CajaRecepcionView({
                     onClick={() => {
                       seleccionClienteVersion.current++;
                       setClienteSeleccionado(null);
-                      setDatosFactura({ nitCi: '', razonSocial: '', nitCiOriginal: '' });
+                      setDatosFactura({
+                        nitCi: "",
+                        razonSocial: "",
+                        nitCiOriginal: "",
+                      });
                       setPaciente("");
                       setCiPaciente("");
                     }}
@@ -1063,22 +2273,33 @@ export function CajaRecepcionView({
                   <input
                     aria-label="CI o NIT para la factura"
                     value={datosFactura.nitCi}
-                    onChange={(evento) => setDatosFactura(actual => ({
-                      ...actual,
-                      nitCi: evento.target.value,
-                      razonSocial: actual.nitCi.trim() === actual.nitCiOriginal.trim() ? '' : actual.razonSocial,
-                    }))}
+                    onChange={(evento) =>
+                      setDatosFactura((actual) => ({
+                        ...actual,
+                        nitCi: evento.target.value,
+                        razonSocial:
+                          actual.nitCi.trim() === actual.nitCiOriginal.trim()
+                            ? ""
+                            : actual.razonSocial,
+                      }))
+                    }
                     placeholder="CI / NIT"
                   />
                 </label>
-                {datosFactura.nitCi.trim() !== datosFactura.nitCiOriginal.trim() && (
+                {datosFactura.nitCi.trim() !==
+                  datosFactura.nitCiOriginal.trim() && (
                   <label className="cliente-razon-social-factura">
                     <small>Razón social o nombre para factura</small>
                     <input
                       autoFocus
                       aria-label="Razón social o nombre para la factura"
                       value={datosFactura.razonSocial}
-                      onChange={(evento) => setDatosFactura(actual => ({ ...actual, razonSocial: evento.target.value }))}
+                      onChange={(evento) =>
+                        setDatosFactura((actual) => ({
+                          ...actual,
+                          razonSocial: evento.target.value,
+                        }))
+                      }
                       placeholder="Escribe el nombre que saldrá en la factura"
                     />
                   </label>
@@ -1087,42 +2308,42 @@ export function CajaRecepcionView({
             )}
           </section>
           <div className="punto-carrito-lineas">
-            {lineas.length ? (
-              lineas.map((i) => (
-                <article key={i.id}>
-                  <strong>{i.nombre}</strong>
-                  <small>{dinero(i.precio)} c/u</small>
-                  <div>
-                    <button type="button" onClick={() => cantidad(i.id, -1)}>
-                      −
-                    </button>
-                    <input
-                      className="punto-cantidad-input"
-                      type="text"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      aria-label={`Cantidad de ${i.nombre}`}
-                      value={String(i.cantidad)}
-                      onFocus={(e) => e.currentTarget.select()}
-                      onChange={(e) => escribirCantidad(i.id, e.target.value)}
-                    />
-                    <button type="button" onClick={() => cantidad(i.id, 1)}>
-                      +
-                    </button>
-                    <span>{dinero(i.precio * i.cantidad)}</span>
-                    <button
-                      className="punto-quitar"
-                      type="button"
-                      onClick={() =>
-                        setLineas((a) => a.filter((x) => x.id !== i.id))
-                      }
-                    >
-                      ×
-                    </button>
-                  </div>
-                </article>
-              ))
-            ) : null}
+            {lineas.length
+              ? lineas.map((i) => (
+                  <article key={i.id}>
+                    <strong>{i.nombre}</strong>
+                    <small>{dinero(i.precio)} c/u</small>
+                    <div>
+                      <button type="button" onClick={() => cantidad(i.id, -1)}>
+                        −
+                      </button>
+                      <input
+                        className="punto-cantidad-input"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        aria-label={`Cantidad de ${i.nombre}`}
+                        value={String(i.cantidad)}
+                        onFocus={(e) => e.currentTarget.select()}
+                        onChange={(e) => escribirCantidad(i.id, e.target.value)}
+                      />
+                      <button type="button" onClick={() => cantidad(i.id, 1)}>
+                        +
+                      </button>
+                      <span>{dinero(i.precio * i.cantidad)}</span>
+                      <button
+                        className="punto-quitar"
+                        type="button"
+                        onClick={() =>
+                          setLineas((a) => a.filter((x) => x.id !== i.id))
+                        }
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </article>
+                ))
+              : null}
           </div>
           <section className="punto-resumen punto-descuento">
             <label>
@@ -1223,7 +2444,8 @@ export function CajaRecepcionView({
             disabled={!lineas.length || pendiente > 0 || cobrando}
             onClick={() => void cobrar()}
           >
-            <Icon name="check" size={17} /> {cobrando ? "Registrando venta..." : "Cobrar venta"}
+            <Icon name="check" size={17} />{" "}
+            {cobrando ? "Registrando venta..." : "Cobrar venta"}
           </button>
           <button
             className="punto-preventa"
@@ -1231,7 +2453,8 @@ export function CajaRecepcionView({
             disabled={!lineas.length || cobrando}
             onClick={realizarPreVenta}
           >
-            <Icon name="fileText" size={17} /> Realizar pre venta{pendiente > 0 ? ` · Falta ${dinero(pendiente)}` : ''}
+            <Icon name="fileText" size={17} /> Realizar pre venta
+            {pendiente > 0 ? ` · Falta ${dinero(pendiente)}` : ""}
           </button>
         </aside>
       </div>

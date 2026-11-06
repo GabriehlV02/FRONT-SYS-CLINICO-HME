@@ -1,1 +1,168 @@
-.favoritos-paquetes{padding:22px;color:#173f62}.favoritos-paquetes header,.favoritos-titulo,.favoritos-paquetes footer{display:flex;justify-content:space-between;align-items:center;gap:12px}.favoritos-paquetes h3,.favoritos-paquetes h4{margin:4px 0 8px}.favoritos-paquetes p{margin:4px 0;color:#5d7992}.favoritos-paquetes header p{color:#0788bf;font-size:11px;font-weight:800;letter-spacing:.08em}.favoritos-paquetes button,.consulta-paquete button{padding:9px 14px;border:1px solid #c4ddea;border-radius:8px;background:#fff;color:#086d9f;font:inherit;font-weight:700;cursor:pointer}.favoritos-paquetes .favoritos-primario{background:#087fb7;border-color:#087fb7;color:#fff}.favoritos-lista{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:20px}.favoritos-lista article,.favoritos-editor{padding:16px;border:1px solid #d7e8f2;border-radius:10px;background:#f9fcfe}.favoritos-lista article div{display:flex;gap:8px;margin-top:12px}.favoritos-vacio{text-align:center;padding:48px 12px;color:#57778f}.favoritos-editor{display:grid;gap:18px;margin-top:20px}.favoritos-editor section{border-top:1px solid #dceaf2;padding-top:12px}.favoritos-editor label{display:grid;gap:6px;font-size:12px;font-weight:700}.favoritos-editor input:not([type=checkbox]),.favoritos-editor textarea,.consulta-paquete select{box-sizing:border-box;width:100%;padding:10px;border:1px solid #c4ddea;border-radius:7px;background:white;color:#173f62;font:inherit}.favoritos-editor textarea{min-height:60px}.favoritos-medicamento{display:grid;grid-template-columns:2fr 1fr 1fr auto;align-items:end;gap:8px;margin-top:10px}.favoritos-laboratorios{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;max-height:200px;overflow:auto}.favoritos-laboratorios label{display:flex;align-items:center;gap:8px}.favoritos-indicacion{display:flex;gap:8px;margin-top:8px}.favoritos-indicacion textarea{flex:1}.favoritos-error{padding:10px;color:#a32929!important;background:#fff0f0}.consulta-paquete{display:flex;align-items:end;gap:10px;flex-wrap:wrap;padding:14px;margin-bottom:14px;border:1px solid #d0e4ef;border-radius:10px;background:#f5fbfe}.consulta-paquete label{display:grid;gap:5px;min-width:220px;flex:1;font-size:12px;font-weight:700}.consulta-paquete p{width:100%;margin:0;color:#426a83;font-size:12px}@media(max-width:650px){.favoritos-paquetes header{align-items:flex-start;flex-direction:column}.favoritos-medicamento{grid-template-columns:1fr 1fr}.favoritos-medicamento label:first-child{grid-column:1/-1}.consulta-paquete label{min-width:0;flex-basis:100%}}
+.favoritos-paquetes {
+  padding: 22px;
+  color: #173f62;
+}
+.favoritos-paquetes header,
+.favoritos-titulo,
+.favoritos-paquetes footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.favoritos-paquetes h3,
+.favoritos-paquetes h4 {
+  margin: 4px 0 8px;
+}
+.favoritos-paquetes p {
+  margin: 4px 0;
+  color: #5d7992;
+}
+.favoritos-paquetes header p {
+  color: #0788bf;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+.favoritos-paquetes button,
+.consulta-paquete button {
+  padding: 9px 14px;
+  border: 1px solid #c4ddea;
+  border-radius: 8px;
+  background: #fff;
+  color: #086d9f;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.favoritos-paquetes .favoritos-primario {
+  background: #087fb7;
+  border-color: #087fb7;
+  color: #fff;
+}
+.favoritos-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.favoritos-lista article,
+.favoritos-editor {
+  padding: 16px;
+  border: 1px solid #d7e8f2;
+  border-radius: 10px;
+  background: #f9fcfe;
+}
+.favoritos-lista article div {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.favoritos-vacio {
+  text-align: center;
+  padding: 48px 12px;
+  color: #57778f;
+}
+.favoritos-editor {
+  display: grid;
+  gap: 18px;
+  margin-top: 20px;
+}
+.favoritos-editor section {
+  border-top: 1px solid #dceaf2;
+  padding-top: 12px;
+}
+.favoritos-editor label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.favoritos-editor input:not([type="checkbox"]),
+.favoritos-editor textarea,
+.consulta-paquete select {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #c4ddea;
+  border-radius: 7px;
+  background: white;
+  color: #173f62;
+  font: inherit;
+}
+.favoritos-editor textarea {
+  min-height: 60px;
+}
+.favoritos-medicamento {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  align-items: end;
+  gap: 8px;
+  margin-top: 10px;
+}
+.favoritos-laboratorios {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  max-height: 200px;
+  overflow: auto;
+}
+.favoritos-laboratorios label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.favoritos-indicacion {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.favoritos-indicacion textarea {
+  flex: 1;
+}
+.favoritos-error {
+  padding: 10px;
+  color: #a32929 !important;
+  background: #fff0f0;
+}
+.consulta-paquete {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #d0e4ef;
+  border-radius: 10px;
+  background: #f5fbfe;
+}
+.consulta-paquete label {
+  display: grid;
+  gap: 5px;
+  min-width: 220px;
+  flex: 1;
+  font-size: 12px;
+  font-weight: 700;
+}
+.consulta-paquete p {
+  width: 100%;
+  margin: 0;
+  color: #426a83;
+  font-size: 12px;
+}
+@media (max-width: 650px) {
+  .favoritos-paquetes header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .favoritos-medicamento {
+    grid-template-columns: 1fr 1fr;
+  }
+  .favoritos-medicamento label:first-child {
+    grid-column: 1/-1;
+  }
+  .consulta-paquete label {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+}

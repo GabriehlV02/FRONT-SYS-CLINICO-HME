@@ -1,1 +1,131 @@
-.consulta-impresion-fondo{position:fixed;z-index:1500;inset:0;display:grid;place-items:center;padding:20px;background:#12314b88;backdrop-filter:blur(3px)}.consulta-impresion-modal{width:min(980px,100%);max-height:92vh;overflow:auto;border-radius:14px;background:#f4fbff;box-shadow:0 24px 70px #06243b77}.consulta-impresion-modal>header,.consulta-impresion-modal>footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 20px;background:#fff}.consulta-impresion-modal>header{border-bottom:1px solid #cfe5f0}.consulta-impresion-modal>header p{margin:0;color:#087fc0;font-size:10px;font-weight:900;letter-spacing:.09em}.consulta-impresion-modal h3{margin:3px 0;color:#17496d}.consulta-impresion-modal small{color:#66839d}.consulta-impresion-modal>header button{width:32px;height:32px;border:1px solid #cde2ed;border-radius:7px;color:#39708f;background:#f8fcff;font-size:20px;cursor:pointer}.consulta-hojas{display:grid;gap:14px;padding:20px}.consulta-hoja{padding:20px;border:1px solid #bcddec;border-top:5px solid #078fc0;border-radius:9px;background:#fff;color:#244d69}.consulta-hoja>span{color:#087fc0;font-size:10px;font-weight:900;letter-spacing:.08em}.consulta-hoja h2{margin:8px 0 3px;color:#075b91}.consulta-hoja h4{margin:14px 0 4px;color:#075b91;font-size:12px}.consulta-hoja p{margin:0;font-size:12px;line-height:1.5}.consulta-hoja-doble{display:grid;grid-template-columns:1fr 1fr;padding:0;overflow:hidden}.consulta-hoja-doble>div{padding:18px}.consulta-hoja-doble>div+div{border-left:1px solid #d5e8f2}.consulta-impresion-modal>footer{border-top:1px solid #cfe5f0}.consulta-impresion-modal>footer button{min-height:38px;padding:0 14px;border:1px solid #a8d5e9;border-radius:8px;color:#0873af;background:#fff;font-weight:800;cursor:pointer}.consulta-impresion-modal>footer button:last-child{color:#fff;background:#087fc0}@media(max-width:640px){.consulta-impresion-fondo{padding:8px}.consulta-hojas{padding:12px}.consulta-hoja-doble{grid-template-columns:1fr}.consulta-hoja-doble>div+div{border-top:1px solid #d5e8f2;border-left:0}}
+.consulta-impresion-fondo {
+  position: fixed;
+  z-index: 1500;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #12314b88;
+  backdrop-filter: blur(3px);
+}
+.consulta-impresion-modal {
+  width: min(980px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  border-radius: 14px;
+  background: #f4fbff;
+  box-shadow: 0 24px 70px #06243b77;
+}
+.consulta-impresion-modal > header,
+.consulta-impresion-modal > footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px 20px;
+  background: #fff;
+}
+.consulta-impresion-modal > header {
+  border-bottom: 1px solid #cfe5f0;
+}
+.consulta-impresion-modal > header p {
+  margin: 0;
+  color: #087fc0;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.09em;
+}
+.consulta-impresion-modal h3 {
+  margin: 3px 0;
+  color: #17496d;
+}
+.consulta-impresion-modal small {
+  color: #66839d;
+}
+.consulta-impresion-modal > header button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #cde2ed;
+  border-radius: 7px;
+  color: #39708f;
+  background: #f8fcff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.consulta-hojas {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+}
+.consulta-hoja {
+  padding: 20px;
+  border: 1px solid #bcddec;
+  border-top: 5px solid #078fc0;
+  border-radius: 9px;
+  background: #fff;
+  color: #244d69;
+}
+.consulta-hoja > span {
+  color: #087fc0;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+.consulta-hoja h2 {
+  margin: 8px 0 3px;
+  color: #075b91;
+}
+.consulta-hoja h4 {
+  margin: 14px 0 4px;
+  color: #075b91;
+  font-size: 12px;
+}
+.consulta-hoja p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.consulta-hoja-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0;
+  overflow: hidden;
+}
+.consulta-hoja-doble > div {
+  padding: 18px;
+}
+.consulta-hoja-doble > div + div {
+  border-left: 1px solid #d5e8f2;
+}
+.consulta-impresion-modal > footer {
+  border-top: 1px solid #cfe5f0;
+}
+.consulta-impresion-modal > footer button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #a8d5e9;
+  border-radius: 8px;
+  color: #0873af;
+  background: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+.consulta-impresion-modal > footer button:last-child {
+  color: #fff;
+  background: #087fc0;
+}
+@media (max-width: 640px) {
+  .consulta-impresion-fondo {
+    padding: 8px;
+  }
+  .consulta-hojas {
+    padding: 12px;
+  }
+  .consulta-hoja-doble {
+    grid-template-columns: 1fr;
+  }
+  .consulta-hoja-doble > div + div {
+    border-top: 1px solid #d5e8f2;
+    border-left: 0;
+  }
+}

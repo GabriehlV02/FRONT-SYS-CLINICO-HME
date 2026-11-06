@@ -1,75 +1,405 @@
 /* Patrón visual del sidebar de productos, adaptado al sistema clínico. */
-.sistema-sidebar { width:270px; background:#fff !important; border-right:1px solid #dce5f1 !important; box-shadow:8px 0 26px rgba(28,42,76,.07) !important; }
-.sistema-sidebar::before,.sistema-sidebar::after { display:none !important; }
-.sistema-marca { height:104px !important; padding:18px 20px !important; border-bottom:0 !important; }
-.sidebar-scroll { display:flex; flex:1; min-height:0; flex-direction:column; }
-.sistema-nav { padding:18px 12px 10px; }
-.sistema-nav section { padding-bottom:10px; }
-.sistema-nav section + section { margin-top:0 !important; padding-top:0 !important; border-top:0 !important; }
-.sistema-nav section p { display:block; margin:8px 0 6px; padding-top:8px; border-top:1px dotted #d7dbe3; color:#0084bd; font-size:10px; font-weight:850; letter-spacing:1.35px; }
-.sistema-nav section:first-child p { padding-top:0; border-top:0; }
-.sistema-nav .nav-modulo { height:46px; margin:3px 0; padding:0 14px; gap:12px; border:1px solid transparent; border-radius:11px; color:#142b4c; background:transparent; font-family:inherit; transition:background .16s ease,color .16s ease,transform .16s ease; }
-.sistema-nav .nav-modulo:hover { color:#076bb7; border-color:#e3f0fb; background:#f2f9ff; box-shadow:none; transform:translateX(2px); }
-.sistema-nav .nav-modulo.activo { color:#075da8; border-color:#d8eafb; background:#eaf5ff; box-shadow:inset 3px 0 #168bd0; }
-.sistema-nav .nav-modulo.activo:before { display:block; left:0; top:0; bottom:0; width:5px; border-radius:8px 0 0 8px; background:linear-gradient(#159fe5,#075da8); }
-.nav-icono,.nav-modulo.activo .nav-icono,.nav-modulo:hover .nav-icono { width:20px; height:20px; flex-basis:20px; border:0; border-radius:0; color:currentColor; background:transparent; box-shadow:none; }
-.nav-texto { font-size:14px; font-weight:650; }
-.nav-indicador { display:none; }
-.sidebar-sesion { display:flex; align-items:center; gap:11px; margin:auto 16px 12px; padding:12px; border:1px solid #aee4ee; border-radius:16px; color:#132947; background:linear-gradient(110deg,#f1fbff,#e6fbfd); box-shadow:0 8px 19px rgba(20,161,187,.08); }
-.sidebar-sesion-avatar { width:42px; height:42px; display:grid; place-items:center; border:2px solid #fff; border-radius:50%; color:#fff; background:linear-gradient(145deg,#2078e9,#11c6c1); box-shadow:0 3px 10px rgba(25,151,184,.23); }
-.sidebar-sesion div { min-width:0; display:grid; gap:2px; }
-.sidebar-sesion strong { overflow:hidden; color:#10223e; font-size:13px; font-weight:800; text-overflow:ellipsis; white-space:nowrap; }
-.sidebar-sesion small { color:#526a8a; font-size:11px; }
-.boton-salir { height:44px; margin:0 16px 22px; width:calc(100% - 32px); padding:0 14px; border:1px solid #dfe5ee; border-radius:13px; color:#253653; background:#fff; }
-.boton-salir:hover { color:#075da8; background:#eef8ff; }
-.boton-salir .nav-icono { width:20px; height:20px; flex-basis:20px; color:currentColor; background:transparent; }
-.replegar-menu { width:46px !important; height:46px !important; border:3px solid #fff !important; border-radius:50% !important; color:#fff !important; background:linear-gradient(145deg,#20aae1,#009cae) !important; box-shadow:0 8px 20px rgba(3,134,158,.3) !important; }
-.replegar-menu:hover { color:#fff !important; transform:scale(1.04); }
+.sistema-sidebar {
+  width: 270px;
+  background: #fff !important;
+  border-right: 1px solid #dce5f1 !important;
+  box-shadow: 8px 0 26px rgba(28, 42, 76, 0.07) !important;
+}
+.sistema-sidebar::before,
+.sistema-sidebar::after {
+  display: none !important;
+}
+.sistema-marca {
+  height: 104px !important;
+  padding: 18px 20px !important;
+  border-bottom: 0 !important;
+}
+.sidebar-scroll {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+}
+.sistema-nav {
+  padding: 18px 12px 10px;
+}
+.sistema-nav section {
+  padding-bottom: 10px;
+}
+.sistema-nav section + section {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: 0 !important;
+}
+.sistema-nav section p {
+  display: block;
+  margin: 8px 0 6px;
+  padding-top: 8px;
+  border-top: 1px dotted #d7dbe3;
+  color: #0084bd;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 1.35px;
+}
+.sistema-nav section:first-child p {
+  padding-top: 0;
+  border-top: 0;
+}
+.sistema-nav .nav-modulo {
+  height: 46px;
+  margin: 3px 0;
+  padding: 0 14px;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: #142b4c;
+  background: transparent;
+  font-family: inherit;
+  transition:
+    background 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+.sistema-nav .nav-modulo:hover {
+  color: #076bb7;
+  border-color: #e3f0fb;
+  background: #f2f9ff;
+  box-shadow: none;
+  transform: translateX(2px);
+}
+.sistema-nav .nav-modulo.activo {
+  color: #075da8;
+  border-color: #d8eafb;
+  background: #eaf5ff;
+  box-shadow: inset 3px 0 #168bd0;
+}
+.sistema-nav .nav-modulo.activo:before {
+  display: block;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  border-radius: 8px 0 0 8px;
+  background: linear-gradient(#159fe5, #075da8);
+}
+.nav-icono,
+.nav-modulo.activo .nav-icono,
+.nav-modulo:hover .nav-icono {
+  width: 20px;
+  height: 20px;
+  flex-basis: 20px;
+  border: 0;
+  border-radius: 0;
+  color: currentColor;
+  background: transparent;
+  box-shadow: none;
+}
+.nav-texto {
+  font-size: 14px;
+  font-weight: 650;
+}
+.nav-indicador {
+  display: none;
+}
+.sidebar-sesion {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: auto 16px 12px;
+  padding: 12px;
+  border: 1px solid #aee4ee;
+  border-radius: 16px;
+  color: #132947;
+  background: linear-gradient(110deg, #f1fbff, #e6fbfd);
+  box-shadow: 0 8px 19px rgba(20, 161, 187, 0.08);
+}
+.sidebar-sesion-avatar {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(145deg, #2078e9, #11c6c1);
+  box-shadow: 0 3px 10px rgba(25, 151, 184, 0.23);
+}
+.sidebar-sesion div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.sidebar-sesion strong {
+  overflow: hidden;
+  color: #10223e;
+  font-size: 13px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-sesion small {
+  color: #526a8a;
+  font-size: 11px;
+}
+.boton-salir {
+  height: 44px;
+  margin: 0 16px 22px;
+  width: calc(100% - 32px);
+  padding: 0 14px;
+  border: 1px solid #dfe5ee;
+  border-radius: 13px;
+  color: #253653;
+  background: #fff;
+}
+.boton-salir:hover {
+  color: #075da8;
+  background: #eef8ff;
+}
+.boton-salir .nav-icono {
+  width: 20px;
+  height: 20px;
+  flex-basis: 20px;
+  color: currentColor;
+  background: transparent;
+}
+.replegar-menu {
+  width: 46px !important;
+  height: 46px !important;
+  border: 3px solid #fff !important;
+  border-radius: 50% !important;
+  color: #fff !important;
+  background: linear-gradient(145deg, #20aae1, #009cae) !important;
+  box-shadow: 0 8px 20px rgba(3, 134, 158, 0.3) !important;
+}
+.replegar-menu:hover {
+  color: #fff !important;
+  transform: scale(1.04);
+}
 
 /* Control flotante: no debe quedar oculto por la barra superior ni por el sidebar. */
 @media (min-width: 761px) {
-  .sistema-sidebar,.marca-container { overflow:visible !important; }
-  .replegar-menu { position:fixed !important; top:32px !important; left:247px !important; right:auto !important; z-index:1001 !important; display:grid !important; place-items:center !important; width:46px !important; height:46px !important; border:3px solid #fff !important; border-radius:50% !important; color:#fff !important; background:linear-gradient(145deg,#20aae1,#009cae) !important; box-shadow:0 9px 22px rgba(3,134,158,.38) !important; }
-  .sidebar-replegado .replegar-menu { left:63px !important; }
+  .sistema-sidebar,
+  .marca-container {
+    overflow: visible !important;
+  }
+  .replegar-menu {
+    position: fixed !important;
+    top: 32px !important;
+    left: 247px !important;
+    right: auto !important;
+    z-index: 1001 !important;
+    display: grid !important;
+    place-items: center !important;
+    width: 46px !important;
+    height: 46px !important;
+    border: 3px solid #fff !important;
+    border-radius: 50% !important;
+    color: #fff !important;
+    background: linear-gradient(145deg, #20aae1, #009cae) !important;
+    box-shadow: 0 9px 22px rgba(3, 134, 158, 0.38) !important;
+  }
+  .sidebar-replegado .replegar-menu {
+    left: 63px !important;
+  }
 }
 
 /* Perfil de cabecera: una unidad visual compacta, legible y alineada. */
-.sistema-app .sistema-topbar .perfil{
-  min-width:0;
-  height:46px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:4px 12px 4px 5px !important;
-  border:1px solid rgba(255,255,255,.26) !important;
-  border-radius:14px;
-  color:#fff;
-  background:rgba(2,62,111,.16) !important;
-  box-shadow:inset 0 1px rgba(255,255,255,.1);
+.sistema-app .sistema-topbar .perfil {
+  min-width: 0;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 5px !important;
+  border: 1px solid rgba(255, 255, 255, 0.26) !important;
+  border-radius: 14px;
+  color: #fff;
+  background: rgba(2, 62, 111, 0.16) !important;
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.1);
 }
-.sistema-app .sistema-topbar .perfil-avatar{
-  width:36px;
-  height:36px;
-  flex:0 0 36px;
-  display:grid;
-  place-items:center;
-  border:2px solid rgba(255,255,255,.92) !important;
-  border-radius:50%;
-  color:#fff !important;
-  background:rgba(255,255,255,.13) !important;
-  box-shadow:0 2px 7px rgba(0,42,81,.16);
+.sistema-app .sistema-topbar .perfil-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255, 255, 255, 0.92) !important;
+  border-radius: 50%;
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.13) !important;
+  box-shadow: 0 2px 7px rgba(0, 42, 81, 0.16);
 }
-.sistema-app .sistema-topbar .perfil-avatar svg{width:21px;height:21px}
-.sistema-app .sistema-topbar .perfil>span:last-child{min-width:0;display:grid;gap:2px;line-height:1.1}
-.sistema-app .sistema-topbar .perfil strong{overflow:hidden;color:#fff !important;font-size:12px;font-weight:800;line-height:1.15;text-overflow:ellipsis;white-space:nowrap}
-.sistema-app .sistema-topbar .perfil small{display:flex;align-items:center;gap:5px;overflow:hidden;margin:0;color:rgba(255,255,255,.84) !important;font-size:10px;font-weight:600;line-height:1.15;text-overflow:ellipsis;white-space:nowrap}
-.sistema-app .sistema-topbar .perfil i{width:6px;height:6px;flex:0 0 6px;border:1px solid rgba(255,255,255,.8);border-radius:50%;background:#59dfa4 !important;box-shadow:0 0 0 2px rgba(89,223,164,.16)}
-@media(max-width:760px){.sistema-app .sistema-topbar .perfil{display:none}}
-@media (min-width:761px) { .sidebar-replegado .sidebar-sesion { display:none; } }
-@media (max-width:760px) { .sidebar-sesion { margin-bottom:10px; } }
+.sistema-app .sistema-topbar .perfil-avatar svg {
+  width: 21px;
+  height: 21px;
+}
+.sistema-app .sistema-topbar .perfil > span:last-child {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  line-height: 1.1;
+}
+.sistema-app .sistema-topbar .perfil strong {
+  overflow: hidden;
+  color: #fff !important;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sistema-app .sistema-topbar .perfil small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.84) !important;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sistema-app .sistema-topbar .perfil i {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  background: #59dfa4 !important;
+  box-shadow: 0 0 0 2px rgba(89, 223, 164, 0.16);
+}
+@media (max-width: 760px) {
+  .sistema-app .sistema-topbar .perfil {
+    display: none;
+  }
+}
+@media (min-width: 761px) {
+  .sidebar-replegado .sidebar-sesion {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .sidebar-sesion {
+    margin-bottom: 10px;
+  }
+}
 
 /* Ajuste final de proporción y ritmo visual del menú clínico. */
-.sistema-sidebar{width:270px!important}.sistema-marca{height:108px!important;padding:18px 18px 14px!important;display:flex!important;align-items:center!important}.sistema-marca .marca-logo-completo{width:218px!important;height:66px!important;flex-basis:218px!important}.sistema-marca .marca-logo-completo img{width:100%!important;height:100%!important;object-fit:contain!important}.sistema-nav{padding:10px 12px 12px!important}.sistema-nav section{padding:0 0 5px!important}.sistema-nav section+section{margin-top:5px!important}.sistema-nav section p{margin:7px 2px 5px!important;padding-top:8px!important;font-size:10px!important;line-height:1.2!important;letter-spacing:1.25px!important;color:#0084bd!important}.sistema-nav section:first-child p{padding-top:0!important}.sistema-nav .nav-modulo{height:46px!important;min-height:46px!important;margin:3px 0!important;padding:0 14px!important;gap:12px!important;border-radius:12px!important;color:#12365c!important;font-size:14px!important;font-weight:750!important}.sistema-nav .nav-modulo:hover{color:#075da8!important;background:#eef8ff!important}.sistema-nav .nav-modulo.activo{color:#075da8!important;background:#e7f5ff!important;box-shadow:0 5px 13px rgba(7,105,181,.1)!important}.sistema-nav .nav-modulo.activo:before{top:7px!important;bottom:7px!important;width:4px!important;border-radius:0 9px 9px 0!important;background:linear-gradient(180deg,#20aae1,#075da8)!important}.sistema-nav .nav-icono{width:22px!important;height:22px!important;flex-basis:22px!important;color:currentColor!important}.sistema-nav .nav-icono svg{width:20px!important;height:20px!important}.sistema-nav .nav-texto{font-size:14px!important;font-weight:750!important}.boton-salir{height:46px!important;margin:8px 16px 18px!important;width:calc(100% - 32px)!important;border-color:#cfe1f1!important;border-radius:12px!important;color:#12365c!important;font-size:14px!important;font-weight:800!important}.boton-salir:hover{color:#075da8!important;background:#eef8ff!important}.sidebar-sesion{margin:14px 16px 10px!important;padding:12px!important;border-radius:14px!important}.sidebar-estado{margin:0 16px 10px!important;border-radius:13px!important}@media(max-width:760px){.sistema-marca .marca-logo-completo{width:218px!important;height:66px!important;flex-basis:218px!important}.sistema-nav{padding:12px!important}}
+.sistema-sidebar {
+  width: 270px !important;
+}
+.sistema-marca {
+  height: 108px !important;
+  padding: 18px 18px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.sistema-marca .marca-logo-completo {
+  width: 218px !important;
+  height: 66px !important;
+  flex-basis: 218px !important;
+}
+.sistema-marca .marca-logo-completo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+}
+.sistema-nav {
+  padding: 10px 12px 12px !important;
+}
+.sistema-nav section {
+  padding: 0 0 5px !important;
+}
+.sistema-nav section + section {
+  margin-top: 5px !important;
+}
+.sistema-nav section p {
+  margin: 7px 2px 5px !important;
+  padding-top: 8px !important;
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  letter-spacing: 1.25px !important;
+  color: #0084bd !important;
+}
+.sistema-nav section:first-child p {
+  padding-top: 0 !important;
+}
+.sistema-nav .nav-modulo {
+  height: 46px !important;
+  min-height: 46px !important;
+  margin: 3px 0 !important;
+  padding: 0 14px !important;
+  gap: 12px !important;
+  border-radius: 12px !important;
+  color: #12365c !important;
+  font-size: 14px !important;
+  font-weight: 750 !important;
+}
+.sistema-nav .nav-modulo:hover {
+  color: #075da8 !important;
+  background: #eef8ff !important;
+}
+.sistema-nav .nav-modulo.activo {
+  color: #075da8 !important;
+  background: #e7f5ff !important;
+  box-shadow: 0 5px 13px rgba(7, 105, 181, 0.1) !important;
+}
+.sistema-nav .nav-modulo.activo:before {
+  top: 7px !important;
+  bottom: 7px !important;
+  width: 4px !important;
+  border-radius: 0 9px 9px 0 !important;
+  background: linear-gradient(180deg, #20aae1, #075da8) !important;
+}
+.sistema-nav .nav-icono {
+  width: 22px !important;
+  height: 22px !important;
+  flex-basis: 22px !important;
+  color: currentColor !important;
+}
+.sistema-nav .nav-icono svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+.sistema-nav .nav-texto {
+  font-size: 14px !important;
+  font-weight: 750 !important;
+}
+.boton-salir {
+  height: 46px !important;
+  margin: 8px 16px 18px !important;
+  width: calc(100% - 32px) !important;
+  border-color: #cfe1f1 !important;
+  border-radius: 12px !important;
+  color: #12365c !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+.boton-salir:hover {
+  color: #075da8 !important;
+  background: #eef8ff !important;
+}
+.sidebar-sesion {
+  margin: 14px 16px 10px !important;
+  padding: 12px !important;
+  border-radius: 14px !important;
+}
+.sidebar-estado {
+  margin: 0 16px 10px !important;
+  border-radius: 13px !important;
+}
+@media (max-width: 760px) {
+  .sistema-marca .marca-logo-completo {
+    width: 218px !important;
+    height: 66px !important;
+    flex-basis: 218px !important;
+  }
+  .sistema-nav {
+    padding: 12px !important;
+  }
+}
 
 /* Retícula compacta y alineada: las separaciones siguen un único ritmo de 4 px. */
 .sistema-marca {
@@ -159,7 +489,7 @@
   color: #0077b6 !important;
   font-size: 10px !important;
   font-weight: 700 !important;
-  letter-spacing: .9px !important;
+  letter-spacing: 0.9px !important;
 }
 
 .sistema-nav section:first-child p {
@@ -184,7 +514,9 @@
 
 .sistema-nav .nav-modulo.activo {
   background: linear-gradient(90deg, #e5f5ff, #f5fbff) !important;
-  box-shadow: inset 0 0 0 1px #c8e8f8, 0 5px 14px rgba(7, 105, 181, .09) !important;
+  box-shadow:
+    inset 0 0 0 1px #c8e8f8,
+    0 5px 14px rgba(7, 105, 181, 0.09) !important;
 }
 
 .sistema-nav .nav-modulo.activo:before {
@@ -210,67 +542,391 @@
 
 /* Overrides finales del tema oscuro: este archivo se carga después de la
    paleta general y contiene las reglas visuales del sidebar. */
-.sistema-app[data-theme="dark"] .sistema-sidebar{background:var(--sidebar-gradient)!important;border-right-color:#244763!important;box-shadow:10px 0 30px #00000045!important}
-.sistema-app[data-theme="dark"] .sistema-marca{border-color:#244763!important}.sistema-app[data-theme="dark"] .sistema-marca strong{color:#f7fbff!important}.sistema-app[data-theme="dark"] .sistema-marca small{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .sistema-marca{background:linear-gradient(180deg,#153c58,#0c293f)!important}.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo{padding:5px!important;background:#fff!important;border-color:#315d7d!important}.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo img{mix-blend-mode:normal!important;object-fit:contain!important}
-.sistema-app[data-theme="dark"] .sistema-nav section+section{margin-top:0!important;padding-top:0!important;border-top:0!important}.sistema-app[data-theme="dark"] .sistema-nav section p{color:#70c9ff!important;border-top-color:#315d7d!important}
-.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo,.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir{color:#b8d0e3!important;background:transparent!important;border-color:transparent!important}
-.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo:hover,.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir:hover{color:#fff!important;background:#143e5b!important;border-color:#315d7d!important}
-.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo{color:#fff!important;background:#155273!important;border-color:#1a9ddd!important;box-shadow:inset 3px 0 #52c7ff,0 6px 16px #0000002e!important}
-.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo:before{background:#52c7ff!important}.sistema-app[data-theme="dark"] .sistema-nav .nav-icono{color:#70c9ff!important;background:#123a55!important;border-color:#315d7d!important}.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo .nav-icono{color:#fff!important;background:linear-gradient(145deg,#147eb2,#0b4f78)!important;border-color:#52c7ff!important}
-.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion{color:#dff5ff!important;background:linear-gradient(110deg,#0d466d,#082d50)!important;border-color:#315d7d!important;box-shadow:0 8px 19px #0000002e!important}.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion strong{color:#f7fbff!important}.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion small{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .sistema-sidebar .replegar-menu{color:#fff!important;background:#0878bd!important;border-color:#52c7ff!important}.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir{border-top-color:#315d7d!important}.sistema-app[data-theme="dark"] .sistema-sidebar :is(.sidebar-scroll,.sistema-nav){scrollbar-color:#0878bd transparent}
-.sistema-app[data-theme="dark"] .sistema-topbar{background:#087fbd!important;border-color:#0a5e8d!important;color:#fff!important}.sistema-app[data-theme="dark"] .sistema-topbar .topbar-titulo h1{color:#fff!important}.sistema-app[data-theme="dark"] .sistema-topbar :is(.topbar-icono,.topbar-boton,.notificaciones-boton,.salir-rapido,.desplegar-sidebar-escritorio){border-color:#b9e5f6!important;background:#f2fbff!important;color:#0870ae!important}.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global{border-color:#b9e5f6!important;background:#f2fbff!important;color:#0870ae!important}.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global input{color:#12365c!important}.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global input::placeholder{color:#607894!important}
-.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen span,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto header small,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-totales span{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen label,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto strong{color:#f7fbff!important}
-.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen input,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila input,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila select{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen input::placeholder,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila input::placeholder{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .punto-carrito .punto-total,.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-totales{border-color:#315d7d!important}.sistema-app[data-theme="dark"] .punto-carrito .punto-total b{color:#70c9ff!important}
-.sistema-app[data-theme="dark"] .punto-carrito .punto-agregar-pago{border-color:#52c7ff!important;color:#fff!important;background:#0b72b3!important}.sistema-app[data-theme="dark"] .punto-carrito .punto-cobrar{color:#fff!important;background:linear-gradient(105deg,#126ba0,#087fbd)!important}
-.sistema-app[data-theme="dark"] .punto-catalogo{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .punto-busquedas label{border-color:#315d7d!important;color:#9bb4ca!important;background:#061f38!important}
-.sistema-app[data-theme="dark"] .punto-busquedas input{color:#f3f8fc!important;background:transparent!important}
-.sistema-app[data-theme="dark"] .punto-busquedas input::placeholder{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .punto-accion-laboratorio{border-color:#7046c4!important;color:#fff!important;background:#7046c4!important}
-.sistema-app[data-theme="dark"] .punto-modo-vista,.sistema-app[data-theme="dark"] .punto-categorias button{border-color:#315d7d!important;background:#082d50!important}
-.sistema-app[data-theme="dark"] .punto-modo-vista button,.sistema-app[data-theme="dark"] .punto-categorias button{color:#b8d0e3!important;background:transparent!important}
-.sistema-app[data-theme="dark"] .punto-modo-vista button.activo,.sistema-app[data-theme="dark"] .punto-categorias button.activo{color:#fff!important;background:#0878bd!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-items{background:#0b2947!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-item{border-color:#315d7d!important;background:#0d3559!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-item:hover{background:#12466d!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-item > div{border-color:#315d7d!important;background:#08233e!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-item strong{color:#f7fbff!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-item small{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-item b{color:#b8eaff!important}
-.sistema-app[data-theme="dark"] .punto-catalogo .caja-item em{color:#9be8d0!important;background:#10483f!important}
-.sistema-app[data-theme="dark"] .punto-cliente{border-color:#315d7d!important;background:linear-gradient(145deg,#0b2947,#08233e)!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .punto-cliente > header strong{color:#b8eaff!important}
-.sistema-app[data-theme="dark"] .punto-cliente input{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .cliente-acciones button:first-child{border-color:#52c7ff!important;color:#fff!important;background:#082d50!important}
-.sistema-app[data-theme="dark"] .cliente-acciones button:last-child{border-color:#087fbd!important;background:linear-gradient(100deg,#0b91d2,#2563eb)!important}
-.sistema-app[data-theme="dark"] .cliente-coincidencias{border-color:#315d7d!important;background:#0b2947!important}
-.sistema-app[data-theme="dark"] .cliente-coincidencias button{border-color:#315d7d!important;color:#f3f8fc!important;background:#0b2947!important}
-.sistema-app[data-theme="dark"] .cliente-coincidencias button:hover{background:#12466d!important}
-.sistema-app[data-theme="dark"] .citas-vista{color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .citas-controles,.sistema-app[data-theme="dark"] .citas-calendario-panel,.sistema-app[data-theme="dark"] .citas-doctor-opciones,.sistema-app[data-theme="dark"] .citas-modal{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .citas-doctor-selector>button,.sistema-app[data-theme="dark"] .citas-fecha-hora input,.sistema-app[data-theme="dark"] .citas-fecha-hora select,.sistema-app[data-theme="dark"] .citas-modal-campos input,.sistema-app[data-theme="dark"] .citas-modal-campos select{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .citas-doctor-opciones button,.sistema-app[data-theme="dark"] .citas-calendario-dias button{color:#dff5ff!important;background:transparent!important}
-.sistema-app[data-theme="dark"] .citas-doctor-opciones button:hover,.sistema-app[data-theme="dark"] .citas-calendario-dias button:hover{background:#12466d!important}
-.sistema-app[data-theme="dark"] .agenda-encabezado .agenda-esquina,.sistema-app[data-theme="dark"] .agenda-encabezado .agenda-dia{border-color:#315d7d!important;background:#0d3559!important;color:#b8eaff!important}
-.sistema-app[data-theme="dark"] .agenda-fila{border-color:#315d7d!important}.sistema-app[data-theme="dark"] .agenda-fila time{color:#b8d0e3!important}.sistema-app[data-theme="dark"] .agenda-celda{border-color:#315d7d!important;background:#0b2947!important}.sistema-app[data-theme="dark"] .agenda-celda:hover{background:#12466d!important}
-.sistema-app[data-theme="dark"] .citas-resumen{color:#b8d0e3!important}.sistema-app[data-theme="dark"] .citas-resumen small{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .citas-agenda,.sistema-app[data-theme="dark"] .agenda-tabla{background:#0b2947!important;border-color:#315d7d!important}
-.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque{color:#e8f7ff!important;background:#12466d!important;border-color:#52c7ff!important}
-.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque strong,.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque small{color:#e8f7ff!important}
-.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.confirmada{background:#10483f!important;border-color:#4fd1a5!important}.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.por-confirmar{background:#4b3514!important;border-color:#ffd995!important}.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.cancelada{background:#47202a!important;border-color:#ffb9c1!important}
-.sistema-app[data-theme="dark"] .cuentas-recepcion,.sistema-app[data-theme="dark"] .cuentas-recepcion article,.sistema-app[data-theme="dark"] .cuentas-listado,.sistema-app[data-theme="dark"] .cuentas-contenido{border-color:#315d7d!important;background:#0b2947!important;color:#f3f8fc!important}
-.sistema-app[data-theme="dark"] .cuentas-encabezado h2,.sistema-app[data-theme="dark"] .cuentas-encabezado strong{color:#f7fbff!important}.sistema-app[data-theme="dark"] .cuentas-encabezado p,.sistema-app[data-theme="dark"] .cuentas-recepcion small{color:#9bb4ca!important}
-.sistema-app[data-theme="dark"] .cuentas-api-aviso{border-color:#7d5360!important;background:#47202a!important;color:#ffb9c1!important}.sistema-app[data-theme="dark"] .cuentas-filtros-clinica input{border-color:#315d7d!important;background:#061f38!important;color:#f3f8fc!important}
+.sistema-app[data-theme="dark"] .sistema-sidebar {
+  background: var(--sidebar-gradient) !important;
+  border-right-color: #244763 !important;
+  box-shadow: 10px 0 30px #00000045 !important;
+}
+.sistema-app[data-theme="dark"] .sistema-marca {
+  border-color: #244763 !important;
+}
+.sistema-app[data-theme="dark"] .sistema-marca strong {
+  color: #f7fbff !important;
+}
+.sistema-app[data-theme="dark"] .sistema-marca small {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .sistema-marca {
+  background: linear-gradient(180deg, #153c58, #0c293f) !important;
+}
+.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo {
+  padding: 5px !important;
+  background: #fff !important;
+  border-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"] .sistema-marca .marca-logo-completo img {
+  mix-blend-mode: normal !important;
+  object-fit: contain !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav section + section {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: 0 !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav section p {
+  color: #70c9ff !important;
+  border-top-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo,
+.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir {
+  color: #b8d0e3 !important;
+  background: transparent !important;
+  border-color: transparent !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo:hover,
+.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir:hover {
+  color: #fff !important;
+  background: #143e5b !important;
+  border-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo {
+  color: #fff !important;
+  background: #155273 !important;
+  border-color: #1a9ddd !important;
+  box-shadow:
+    inset 3px 0 #52c7ff,
+    0 6px 16px #0000002e !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo:before {
+  background: #52c7ff !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-icono {
+  color: #70c9ff !important;
+  background: #123a55 !important;
+  border-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"] .sistema-nav .nav-modulo.activo .nav-icono {
+  color: #fff !important;
+  background: linear-gradient(145deg, #147eb2, #0b4f78) !important;
+  border-color: #52c7ff !important;
+}
+.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion {
+  color: #dff5ff !important;
+  background: linear-gradient(110deg, #0d466d, #082d50) !important;
+  border-color: #315d7d !important;
+  box-shadow: 0 8px 19px #0000002e !important;
+}
+.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion strong {
+  color: #f7fbff !important;
+}
+.sistema-app[data-theme="dark"] .sistema-sidebar .sidebar-sesion small {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .sistema-sidebar .replegar-menu {
+  color: #fff !important;
+  background: #0878bd !important;
+  border-color: #52c7ff !important;
+}
+.sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir {
+  border-top-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"]
+  .sistema-sidebar
+  :is(.sidebar-scroll, .sistema-nav) {
+  scrollbar-color: #0878bd transparent;
+}
+.sistema-app[data-theme="dark"] .sistema-topbar {
+  background: #087fbd !important;
+  border-color: #0a5e8d !important;
+  color: #fff !important;
+}
+.sistema-app[data-theme="dark"] .sistema-topbar .topbar-titulo h1 {
+  color: #fff !important;
+}
+.sistema-app[data-theme="dark"]
+  .sistema-topbar
+  :is(
+    .topbar-icono,
+    .topbar-boton,
+    .notificaciones-boton,
+    .salir-rapido,
+    .desplegar-sidebar-escritorio
+  ) {
+  border-color: #b9e5f6 !important;
+  background: #f2fbff !important;
+  color: #0870ae !important;
+}
+.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global {
+  border-color: #b9e5f6 !important;
+  background: #f2fbff !important;
+  color: #0870ae !important;
+}
+.sistema-app[data-theme="dark"] .sistema-topbar .busqueda-global input {
+  color: #12365c !important;
+}
+.sistema-app[data-theme="dark"]
+  .sistema-topbar
+  .busqueda-global
+  input::placeholder {
+  color: #607894 !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen,
+.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto {
+  border-color: #315d7d !important;
+  background: #0b2947 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen span,
+.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto header small,
+.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-totales span {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen label,
+.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-mixto strong {
+  color: #f7fbff !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-resumen input,
+.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila input,
+.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-fila select {
+  border-color: #315d7d !important;
+  background: #061f38 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"]
+  .punto-carrito
+  .punto-resumen
+  input::placeholder,
+.sistema-app[data-theme="dark"]
+  .punto-carrito
+  .punto-pago-fila
+  input::placeholder {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-total,
+.sistema-app[data-theme="dark"] .punto-carrito .punto-pago-totales {
+  border-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-total b {
+  color: #70c9ff !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-agregar-pago {
+  border-color: #52c7ff !important;
+  color: #fff !important;
+  background: #0b72b3 !important;
+}
+.sistema-app[data-theme="dark"] .punto-carrito .punto-cobrar {
+  color: #fff !important;
+  background: linear-gradient(105deg, #126ba0, #087fbd) !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo {
+  border-color: #315d7d !important;
+  background: #0b2947 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .punto-busquedas label {
+  border-color: #315d7d !important;
+  color: #9bb4ca !important;
+  background: #061f38 !important;
+}
+.sistema-app[data-theme="dark"] .punto-busquedas input {
+  color: #f3f8fc !important;
+  background: transparent !important;
+}
+.sistema-app[data-theme="dark"] .punto-busquedas input::placeholder {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .punto-accion-laboratorio {
+  border-color: #7046c4 !important;
+  color: #fff !important;
+  background: #7046c4 !important;
+}
+.sistema-app[data-theme="dark"] .punto-modo-vista,
+.sistema-app[data-theme="dark"] .punto-categorias button {
+  border-color: #315d7d !important;
+  background: #082d50 !important;
+}
+.sistema-app[data-theme="dark"] .punto-modo-vista button,
+.sistema-app[data-theme="dark"] .punto-categorias button {
+  color: #b8d0e3 !important;
+  background: transparent !important;
+}
+.sistema-app[data-theme="dark"] .punto-modo-vista button.activo,
+.sistema-app[data-theme="dark"] .punto-categorias button.activo {
+  color: #fff !important;
+  background: #0878bd !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-items {
+  background: #0b2947 !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item {
+  border-color: #315d7d !important;
+  background: #0d3559 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item:hover {
+  background: #12466d !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item > div {
+  border-color: #315d7d !important;
+  background: #08233e !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item strong {
+  color: #f7fbff !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item small {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item b {
+  color: #b8eaff !important;
+}
+.sistema-app[data-theme="dark"] .punto-catalogo .caja-item em {
+  color: #9be8d0 !important;
+  background: #10483f !important;
+}
+.sistema-app[data-theme="dark"] .punto-cliente {
+  border-color: #315d7d !important;
+  background: linear-gradient(145deg, #0b2947, #08233e) !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .punto-cliente > header strong {
+  color: #b8eaff !important;
+}
+.sistema-app[data-theme="dark"] .punto-cliente input {
+  border-color: #315d7d !important;
+  background: #061f38 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .cliente-acciones button:first-child {
+  border-color: #52c7ff !important;
+  color: #fff !important;
+  background: #082d50 !important;
+}
+.sistema-app[data-theme="dark"] .cliente-acciones button:last-child {
+  border-color: #087fbd !important;
+  background: linear-gradient(100deg, #0b91d2, #2563eb) !important;
+}
+.sistema-app[data-theme="dark"] .cliente-coincidencias {
+  border-color: #315d7d !important;
+  background: #0b2947 !important;
+}
+.sistema-app[data-theme="dark"] .cliente-coincidencias button {
+  border-color: #315d7d !important;
+  color: #f3f8fc !important;
+  background: #0b2947 !important;
+}
+.sistema-app[data-theme="dark"] .cliente-coincidencias button:hover {
+  background: #12466d !important;
+}
+.sistema-app[data-theme="dark"] .citas-vista {
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .citas-controles,
+.sistema-app[data-theme="dark"] .citas-calendario-panel,
+.sistema-app[data-theme="dark"] .citas-doctor-opciones,
+.sistema-app[data-theme="dark"] .citas-modal {
+  border-color: #315d7d !important;
+  background: #0b2947 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .citas-doctor-selector > button,
+.sistema-app[data-theme="dark"] .citas-fecha-hora input,
+.sistema-app[data-theme="dark"] .citas-fecha-hora select,
+.sistema-app[data-theme="dark"] .citas-modal-campos input,
+.sistema-app[data-theme="dark"] .citas-modal-campos select {
+  border-color: #315d7d !important;
+  background: #061f38 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .citas-doctor-opciones button,
+.sistema-app[data-theme="dark"] .citas-calendario-dias button {
+  color: #dff5ff !important;
+  background: transparent !important;
+}
+.sistema-app[data-theme="dark"] .citas-doctor-opciones button:hover,
+.sistema-app[data-theme="dark"] .citas-calendario-dias button:hover {
+  background: #12466d !important;
+}
+.sistema-app[data-theme="dark"] .agenda-encabezado .agenda-esquina,
+.sistema-app[data-theme="dark"] .agenda-encabezado .agenda-dia {
+  border-color: #315d7d !important;
+  background: #0d3559 !important;
+  color: #b8eaff !important;
+}
+.sistema-app[data-theme="dark"] .agenda-fila {
+  border-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"] .agenda-fila time {
+  color: #b8d0e3 !important;
+}
+.sistema-app[data-theme="dark"] .agenda-celda {
+  border-color: #315d7d !important;
+  background: #0b2947 !important;
+}
+.sistema-app[data-theme="dark"] .agenda-celda:hover {
+  background: #12466d !important;
+}
+.sistema-app[data-theme="dark"] .citas-resumen {
+  color: #b8d0e3 !important;
+}
+.sistema-app[data-theme="dark"] .citas-resumen small {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .citas-agenda,
+.sistema-app[data-theme="dark"] .agenda-tabla {
+  background: #0b2947 !important;
+  border-color: #315d7d !important;
+}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque {
+  color: #e8f7ff !important;
+  background: #12466d !important;
+  border-color: #52c7ff !important;
+}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque strong,
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque small {
+  color: #e8f7ff !important;
+}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.confirmada {
+  background: #10483f !important;
+  border-color: #4fd1a5 !important;
+}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.por-confirmar {
+  background: #4b3514 !important;
+  border-color: #ffd995 !important;
+}
+.sistema-app[data-theme="dark"] .citas-agenda .cita-bloque.cancelada {
+  background: #47202a !important;
+  border-color: #ffb9c1 !important;
+}
+.sistema-app[data-theme="dark"] .cuentas-recepcion,
+.sistema-app[data-theme="dark"] .cuentas-recepcion article,
+.sistema-app[data-theme="dark"] .cuentas-listado,
+.sistema-app[data-theme="dark"] .cuentas-contenido {
+  border-color: #315d7d !important;
+  background: #0b2947 !important;
+  color: #f3f8fc !important;
+}
+.sistema-app[data-theme="dark"] .cuentas-encabezado h2,
+.sistema-app[data-theme="dark"] .cuentas-encabezado strong {
+  color: #f7fbff !important;
+}
+.sistema-app[data-theme="dark"] .cuentas-encabezado p,
+.sistema-app[data-theme="dark"] .cuentas-recepcion small {
+  color: #9bb4ca !important;
+}
+.sistema-app[data-theme="dark"] .cuentas-api-aviso {
+  border-color: #7d5360 !important;
+  background: #47202a !important;
+  color: #ffb9c1 !important;
+}
+.sistema-app[data-theme="dark"] .cuentas-filtros-clinica input {
+  border-color: #315d7d !important;
+  background: #061f38 !important;
+  color: #f3f8fc !important;
+}
 
 .sistema-sidebar .replegar-menu {
   background: var(--sidebar-control-blue) !important;
-  box-shadow: 0 8px 20px rgba(9, 107, 181, .3) !important;
+  box-shadow: 0 8px 20px rgba(9, 107, 181, 0.3) !important;
 }
 
 .sistema-sidebar :is(.sidebar-scroll, .sistema-nav) {
@@ -296,7 +952,7 @@
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--sidebar-control-blue) transparent;
-  font-family: 'Segoe UI', Inter, Arial, sans-serif;
+  font-family: "Segoe UI", Inter, Arial, sans-serif;
 }
 
 .sistema-sidebar .sistema-nav {
@@ -363,8 +1019,13 @@
 @media (min-width: 761px) {
   .sidebar-replegado .sistema-topbar {
     border-bottom-color: #075a9f !important;
-    background: linear-gradient(105deg, #075b9f, #0879bd 58%, #1596d2) !important;
-    box-shadow: 0 6px 18px rgba(5, 84, 150, .22) !important;
+    background: linear-gradient(
+      105deg,
+      #075b9f,
+      #0879bd 58%,
+      #1596d2
+    ) !important;
+    box-shadow: 0 6px 18px rgba(5, 84, 150, 0.22) !important;
   }
 
   .sidebar-replegado .topbar-titulo h1,
@@ -374,8 +1035,8 @@
   }
 
   .sidebar-replegado .topbar-icono {
-    border-color: rgba(255, 255, 255, .38) !important;
-    background: rgba(255, 255, 255, .13) !important;
+    border-color: rgba(255, 255, 255, 0.38) !important;
+    background: rgba(255, 255, 255, 0.13) !important;
   }
 
   .sidebar-replegado .perfil {
@@ -406,9 +1067,9 @@
 
   .sidebar-replegado .notificaciones-boton,
   .sidebar-replegado .salir-rapido {
-    border: 1px solid rgba(255, 255, 255, .56) !important;
+    border: 1px solid rgba(255, 255, 255, 0.56) !important;
     color: #0874b8 !important;
-    background: rgba(255, 255, 255, .95) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
   }
 
   .sidebar-replegado .notificaciones-boton {
@@ -416,8 +1077,8 @@
   }
 
   .sidebar-replegado .busqueda-global {
-    border-color: rgba(255, 255, 255, .55) !important;
-    background: rgba(255, 255, 255, .96) !important;
+    border-color: rgba(255, 255, 255, 0.55) !important;
+    background: rgba(255, 255, 255, 0.96) !important;
     box-shadow: none !important;
   }
 
@@ -463,7 +1124,7 @@
     margin-bottom: 14px !important;
     padding: 0 0 8px !important;
     background: #d4e5fb;
-    box-shadow: 0 7px 10px -10px rgba(7, 63, 113, .55);
+    box-shadow: 0 7px 10px -10px rgba(7, 63, 113, 0.55);
   }
 
   .area-trabajo > .imagenologia-subvistas {
@@ -513,7 +1174,9 @@
 }
 
 @media (max-width: 760px) {
-  .sistema-app { --clinico-topbar: 100px; }
+  .sistema-app {
+    --clinico-topbar: 100px;
+  }
   .sistema-app .sistema-topbar {
     position: fixed;
     top: 0;
@@ -522,7 +1185,9 @@
     height: var(--clinico-topbar);
     z-index: 100;
   }
-  .sistema-app .menu-fondo { top: var(--clinico-topbar); }
+  .sistema-app .menu-fondo {
+    top: var(--clinico-topbar);
+  }
   .sistema-app .area-trabajo {
     padding-top: calc(var(--clinico-topbar) + 14px) !important;
   }
@@ -530,9 +1195,17 @@
 
 /* Controles proporcionados a la altura compacta de la cabecera. */
 @media (min-width: 761px) {
-  .sistema-app .sistema-topbar { gap: 12px; }
+  .sistema-app .sistema-topbar {
+    gap: 12px;
+  }
 
-  .sistema-topbar :is(.topbar-icono,.topbar-boton,.salir-rapido,.desplegar-sidebar-escritorio) {
+  .sistema-topbar
+    :is(
+      .topbar-icono,
+      .topbar-boton,
+      .salir-rapido,
+      .desplegar-sidebar-escritorio
+    ) {
     width: 36px;
     height: 36px;
     min-height: 36px;
@@ -542,14 +1215,28 @@
     place-items: center;
   }
 
-  .sistema-app .sistema-topbar .desplegar-sidebar-escritorio { flex-basis: 36px; }
-  .sistema-topbar :is(.topbar-icono,.topbar-boton,.salir-rapido) { border-radius: 9px; }
-  .sistema-topbar :is(.topbar-icono,.topbar-boton,.salir-rapido,.desplegar-sidebar-escritorio) > svg {
+  .sistema-app .sistema-topbar .desplegar-sidebar-escritorio {
+    flex-basis: 36px;
+  }
+  .sistema-topbar :is(.topbar-icono, .topbar-boton, .salir-rapido) {
+    border-radius: 9px;
+  }
+  .sistema-topbar
+    :is(
+      .topbar-icono,
+      .topbar-boton,
+      .salir-rapido,
+      .desplegar-sidebar-escritorio
+    )
+    > svg {
     width: 18px;
     height: 18px;
   }
 
-  .sistema-topbar .topbar-titulo h1 { font-size: 20px; line-height: 1.2; }
+  .sistema-topbar .topbar-titulo h1 {
+    font-size: 20px;
+    line-height: 1.2;
+  }
   .sistema-topbar .busqueda-global {
     height: 36px;
     min-height: 36px;
@@ -557,8 +1244,14 @@
     gap: 10px;
     border-radius: 10px;
   }
-  .sistema-topbar .busqueda-global input { font-size: 13px; line-height: 1.3; }
-  .sistema-topbar .busqueda-global > svg { width: 16px; height: 16px; }
+  .sistema-topbar .busqueda-global input {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+  .sistema-topbar .busqueda-global > svg {
+    width: 16px;
+    height: 16px;
+  }
 
   .sistema-app .sistema-topbar .perfil {
     min-height: 36px;
@@ -571,47 +1264,102 @@
     flex: 0 0 34px;
     border-width: 2px;
   }
-  .sistema-topbar .perfil .perfil-avatar svg { width: 28px; height: 28px; }
-  .sistema-topbar .perfil strong { font-size: 12px; line-height: 1.2; }
-  .sistema-topbar .perfil small { margin-top: 3px; font-size: 10px; line-height: 1.2; }
-  .sistema-topbar .perfil i { width: 5px; height: 5px; }
+  .sistema-topbar .perfil .perfil-avatar svg {
+    width: 28px;
+    height: 28px;
+  }
+  .sistema-topbar .perfil strong {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  .sistema-topbar .perfil small {
+    margin-top: 3px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+  .sistema-topbar .perfil i {
+    width: 5px;
+    height: 5px;
+  }
 }
 
-@media (min-width:761px) {
-  .sistema-app .sistema-topbar .perfil{height:46px;padding:4px 12px 4px 5px!important;border:1px solid rgba(255,255,255,.26)!important;border-radius:14px;background:rgba(2,62,111,.16)!important}
-  .sistema-app .sistema-topbar .perfil-avatar{width:36px;height:36px;flex-basis:36px;border:2px solid rgba(255,255,255,.92)!important;color:#fff!important;background:rgba(255,255,255,.13)!important}
-  .sistema-app .sistema-topbar .perfil-avatar svg{width:21px;height:21px}
-  .sistema-app .sistema-topbar .perfil strong{font-size:12px;line-height:1.15}
-  .sistema-app .sistema-topbar .perfil small{margin:0;font-size:10px;line-height:1.15}
-  .sistema-app .sistema-topbar .perfil i{width:6px;height:6px;flex-basis:6px;background:#59dfa4!important}
+@media (min-width: 761px) {
+  .sistema-app .sistema-topbar .perfil {
+    height: 46px;
+    padding: 4px 12px 4px 5px !important;
+    border: 1px solid rgba(255, 255, 255, 0.26) !important;
+    border-radius: 14px;
+    background: rgba(2, 62, 111, 0.16) !important;
+  }
+  .sistema-app .sistema-topbar .perfil-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border: 2px solid rgba(255, 255, 255, 0.92) !important;
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.13) !important;
+  }
+  .sistema-app .sistema-topbar .perfil-avatar svg {
+    width: 21px;
+    height: 21px;
+  }
+  .sistema-app .sistema-topbar .perfil strong {
+    font-size: 12px;
+    line-height: 1.15;
+  }
+  .sistema-app .sistema-topbar .perfil small {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.15;
+  }
+  .sistema-app .sistema-topbar .perfil i {
+    width: 6px;
+    height: 6px;
+    flex-basis: 6px;
+    background: #59dfa4 !important;
+  }
 }
 
 /* Perfil integrado: conserva identidad y presencia, sin competir con la barra superior. */
-@media (min-width:761px) {
+@media (min-width: 761px) {
   .sistema-app .sistema-topbar .perfil {
-    height:40px;
-    min-height:40px;
-    gap:7px;
-    margin-left:2px;
-    padding:0 6px 0 12px !important;
-    border:0 !important;
-    border-left:1px solid rgba(255,255,255,.24) !important;
-    border-radius:0 !important;
-    background:transparent !important;
-    box-shadow:none !important;
+    height: 40px;
+    min-height: 40px;
+    gap: 7px;
+    margin-left: 2px;
+    padding: 0 6px 0 12px !important;
+    border: 0 !important;
+    border-left: 1px solid rgba(255, 255, 255, 0.24) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
   }
   .sistema-app .sistema-topbar .perfil-avatar {
-    width:32px;
-    height:32px;
-    flex-basis:32px;
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
     /* El icono ya incluye su propia silueta circular; sin un segundo aro exterior. */
-    border:0 !important;
-    color:#fff !important;
-    background:rgba(255,255,255,.08) !important;
-    box-shadow:none !important;
+    border: 0 !important;
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: none !important;
   }
-  .sistema-app .sistema-topbar .perfil-avatar svg { width:19px; height:19px; }
-  .sistema-app .sistema-topbar .perfil strong { font-size:12px; font-weight:750; }
-  .sistema-app .sistema-topbar .perfil small { margin:1px 0 0; color:rgba(255,255,255,.72) !important; font-size:9px; }
-  .sistema-app .sistema-topbar .perfil i { width:5px; height:5px; flex-basis:5px; }
+  .sistema-app .sistema-topbar .perfil-avatar svg {
+    width: 19px;
+    height: 19px;
+  }
+  .sistema-app .sistema-topbar .perfil strong {
+    font-size: 12px;
+    font-weight: 750;
+  }
+  .sistema-app .sistema-topbar .perfil small {
+    margin: 1px 0 0;
+    color: rgba(255, 255, 255, 0.72) !important;
+    font-size: 9px;
+  }
+  .sistema-app .sistema-topbar .perfil i {
+    width: 5px;
+    height: 5px;
+    flex-basis: 5px;
+  }
 }

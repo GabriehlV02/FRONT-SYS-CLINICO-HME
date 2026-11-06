@@ -1,10 +1,15 @@
-import { useProfesionales, etiquetaProfesional } from '../../../radius/profesionales';
-import { useMemo, useState, useEffect } from 'react';
-import ModalRegistroPaciente, { type PacienteRegistrado } from '../../../radius/vistas/pacientes/ModalRegistroPaciente';
-import { usePacientes } from '../../../radius/vistas/pacientes/usePacientes';
-import { apiFetch } from '../../../radius/api';
-import Icon from '../../../radius/componentes/Icono';
-import './AgendarConsultaView.css';
+import {
+  useProfesionales,
+  etiquetaProfesional,
+} from "../../../radius/profesionales";
+import { useMemo, useState, useEffect } from "react";
+import ModalRegistroPaciente, {
+  type PacienteRegistrado,
+} from "../../../radius/vistas/pacientes/ModalRegistroPaciente";
+import { usePacientes } from "../../../radius/vistas/pacientes/usePacientes";
+import { apiFetch } from "../../../radius/api";
+import Icon from "../../../radius/componentes/Icono";
+import "./AgendarConsultaView.css";
 
 type Paciente = {
   id: string;
@@ -19,12 +24,18 @@ type Props = {
   doctorInicial?: string;
   fechaInicial?: string;
   horaInicial?: string;
-  consultaPendiente?: { id?: string; paciente: string; ci: string; doctor: string; especialidad?: string };
+  consultaPendiente?: {
+    id?: string;
+    paciente: string;
+    ci: string;
+    doctor: string;
+    especialidad?: string;
+  };
   onVolver: () => void;
   onAgendada: (datos: {
     id: string;
     pacienteId: string;
-    profesionalId?:string;
+    profesionalId?: string;
     especialidad: string;
     paciente: string;
     ci: string;
@@ -37,62 +48,123 @@ type Props = {
 const horas = Array.from(
   { length: 20 },
   (_, index) =>
-    `${String(7 + Math.floor(index / 2)).padStart(2, '0')}:${index % 2 ? '30' : '00'}`,
+    `${String(7 + Math.floor(index / 2)).padStart(2, "0")}:${index % 2 ? "30" : "00"}`,
 );
 const fechaLocal = (fecha = new Date()) => {
   const anio = fecha.getFullYear();
-  const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-  const dia = String(fecha.getDate()).padStart(2, '0');
+  const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+  const dia = String(fecha.getDate()).padStart(2, "0");
   return `${anio}-${mes}-${dia}`;
 };
 const minutosDeHora = (hora: string) => {
-  const [horas, minutos] = hora.split(':').map(Number);
+  const [horas, minutos] = hora.split(":").map(Number);
   return horas * 60 + minutos;
 };
 const nombreCompleto = (paciente: Paciente) =>
   [paciente.nombres, paciente.apellidoPaterno, paciente.apellidoMaterno]
     .filter(Boolean)
-    .join(' ');
-const paraAgenda = (p: PacienteRegistrado): Paciente => ({id:p.id,nombres:p.nombres,apellidoPaterno:p.apellido_paterno,apellidoMaterno:p.apellido_materno,ci:p.ci,celular:p.telefono || ''});
+    .join(" ");
+const paraAgenda = (p: PacienteRegistrado): Paciente => ({
+  id: p.id,
+  nombres: p.nombres,
+  apellidoPaterno: p.apellido_paterno,
+  apellidoMaterno: p.apellido_materno,
+  ci: p.ci,
+  celular: p.telefono || "",
+});
 
 export function AgendarConsultaView({
-  doctorInicial = '',
+  doctorInicial = "",
   fechaInicial,
-  horaInicial = '07:00',
+  horaInicial = "07:00",
   consultaPendiente,
   onVolver,
   onAgendada,
 }: Props) {
-  const {profesionales,medicos,errorProfesionales,resolver}=useProfesionales();
-  const [servicios, setServicios] = useState<Array<{id:string;contableId:number;nombre:string;tipo:string;precio:number}>>([]);
-  const [servicioId, setServicioId] = useState('');
-  const [errorServicios, setErrorServicios] = useState('');
+  const { profesionales, medicos, errorProfesionales, resolver } =
+    useProfesionales();
+  const [servicios, setServicios] = useState<
+    Array<{
+      id: string;
+      contableId: number;
+      nombre: string;
+      tipo: string;
+      precio: number;
+    }>
+  >([]);
+  const [servicioId, setServicioId] = useState("");
+  const [errorServicios, setErrorServicios] = useState("");
   useEffect(() => {
     const controller = new AbortController();
-    void apiFetch('/api/catalogo', { signal: controller.signal }).then(async respuesta => {
-      const datos = await respuesta.json();
-      if (!respuesta.ok) throw new Error(datos.message || 'No se pudo cargar el catálogo de servicios.');
-      if (!controller.signal.aborted) setServicios((datos.data || []).filter((item: {tipo:string}) => item.tipo === 'servicio'));
-    }).catch(error => { if (!controller.signal.aborted) setErrorServicios(error.message || 'No se pudo cargar el catálogo de servicios.'); });
+    void apiFetch("/api/catalogo", { signal: controller.signal })
+      .then(async (respuesta) => {
+        const datos = await respuesta.json();
+        if (!respuesta.ok)
+          throw new Error(
+            datos.message || "No se pudo cargar el catálogo de servicios.",
+          );
+        if (!controller.signal.aborted)
+          setServicios(
+            (datos.data || []).filter(
+              (item: { tipo: string }) => item.tipo === "servicio",
+            ),
+          );
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted)
+          setErrorServicios(
+            error.message || "No se pudo cargar el catálogo de servicios.",
+          );
+      });
     return () => controller.abort();
   }, []);
-  const especialidades:Record<string,{doctores:string[]}>=Object.fromEntries([...new Set(medicos.flatMap(p=>p.especialidades))].map(e=>[e,{doctores:medicos.filter(p=>p.especialidades.includes(e)).map(etiquetaProfesional)}]));
-  const doctores=medicos.map(etiquetaProfesional);
+  const especialidades: Record<string, { doctores: string[] }> =
+    Object.fromEntries(
+      [...new Set(medicos.flatMap((p) => p.especialidades))].map((e) => [
+        e,
+        {
+          doctores: medicos
+            .filter((p) => p.especialidades.includes(e))
+            .map(etiquetaProfesional),
+        },
+      ]),
+    );
+  const doctores = medicos.map(etiquetaProfesional);
   const { pacientes: fichas, errorPacientes } = usePacientes();
   const pacientes = useMemo(() => fichas.map(paraAgenda), [fichas]);
-  const [busqueda, setBusqueda] = useState('');
+  const [busqueda, setBusqueda] = useState("");
   const [paciente, setPaciente] = useState<Paciente | null>(null);
-  useEffect(() => { if (consultaPendiente) setPaciente(pacientes.find(p=>p.ci===consultaPendiente.ci) || null); }, [pacientes, consultaPendiente?.ci]);
+  useEffect(() => {
+    if (consultaPendiente)
+      setPaciente(pacientes.find((p) => p.ci === consultaPendiente.ci) || null);
+  }, [pacientes, consultaPendiente?.ci]);
   const [registrando, setRegistrando] = useState(false);
-  const [especialidad, setEspecialidad] = useState(() => consultaPendiente?.especialidad && especialidades[consultaPendiente.especialidad] ? consultaPendiente.especialidad : Object.entries(especialidades).find(([, item]) => item.doctores.includes(consultaPendiente?.doctor ?? doctorInicial))?.[0] ?? '');
-  const [doctor, setDoctor] = useState(consultaPendiente?.doctor ?? doctorInicial);
-  useEffect(()=>{const elegido=medicos.find(p=>p.nombre===(consultaPendiente?.doctor || doctorInicial) || etiquetaProfesional(p)===(consultaPendiente?.doctor || doctorInicial));if(elegido){setDoctor(etiquetaProfesional(elegido));setEspecialidad(actual=>actual || elegido.especialidades[0] || '');}},[profesionales,doctorInicial,consultaPendiente?.id]);
-  const soloCobro = Boolean(consultaPendiente);
-  const [fecha, setFecha] = useState(
-    fechaInicial ?? fechaLocal(),
+  const [especialidad, setEspecialidad] = useState(() =>
+    consultaPendiente?.especialidad &&
+    especialidades[consultaPendiente.especialidad]
+      ? consultaPendiente.especialidad
+      : (Object.entries(especialidades).find(([, item]) =>
+          item.doctores.includes(consultaPendiente?.doctor ?? doctorInicial),
+        )?.[0] ?? ""),
   );
+  const [doctor, setDoctor] = useState(
+    consultaPendiente?.doctor ?? doctorInicial,
+  );
+  useEffect(() => {
+    const elegido = medicos.find(
+      (p) =>
+        p.nombre === (consultaPendiente?.doctor || doctorInicial) ||
+        etiquetaProfesional(p) === (consultaPendiente?.doctor || doctorInicial),
+    );
+    if (elegido) {
+      setDoctor(etiquetaProfesional(elegido));
+      setEspecialidad((actual) => actual || elegido.especialidades[0] || "");
+    }
+  }, [profesionales, doctorInicial, consultaPendiente?.id]);
+  const soloCobro = Boolean(consultaPendiente);
+  const [fecha, setFecha] = useState(fechaInicial ?? fechaLocal());
   const [hora, setHora] = useState(horaInicial);
-  const [mensaje, setMensaje] = useState('');
+  const [mensaje, setMensaje] = useState("");
   const resultados = useMemo(() => {
     const termino = busqueda.trim().toLowerCase();
     return termino
@@ -109,9 +181,9 @@ export function AgendarConsultaView({
     .filter(([, item]) => !doctor || item.doctores.includes(doctor))
     .map(([nombre]) => nombre);
   const doctoresDisponibles = especialidad
-    ? (especialidades[especialidad]?.doctores || [])
+    ? especialidades[especialidad]?.doctores || []
     : doctores;
-  const servicio = servicios.find(item => item.id === servicioId);
+  const servicio = servicios.find((item) => item.id === servicioId);
   const precio = servicio ? Number(servicio.precio) : 0;
   const [guardando, setGuardando] = useState(false);
   const horasDisponibles = useMemo(() => {
@@ -119,35 +191,87 @@ export function AgendarConsultaView({
     const ahora = new Date();
     // Las citas trabajan con bloques de 30 minutos: se toma el siguiente bloque,
     // nunca el actual ni uno que ya haya comenzado.
-    const siguienteBloque = (ahora.getHours() * 60) + ahora.getMinutes() + (ahora.getSeconds() ? 1 : 0);
-    return horas.filter(item => minutosDeHora(item) >= Math.ceil(siguienteBloque / 30) * 30);
+    const siguienteBloque =
+      ahora.getHours() * 60 + ahora.getMinutes() + (ahora.getSeconds() ? 1 : 0);
+    return horas.filter(
+      (item) => minutosDeHora(item) >= Math.ceil(siguienteBloque / 30) * 30,
+    );
   }, [fecha]);
   useEffect(() => {
-    if (!soloCobro && !horasDisponibles.includes(hora)) setHora(horasDisponibles[0] || '');
+    if (!soloCobro && !horasDisponibles.includes(hora))
+      setHora(horasDisponibles[0] || "");
   }, [hora, horasDisponibles, soloCobro]);
 
   const confirmar = async () => {
-    if (!paciente || !especialidad || !doctor || !fecha || !servicio || guardando || soloCobro) return;
+    if (
+      !paciente ||
+      !especialidad ||
+      !doctor ||
+      !fecha ||
+      !servicio ||
+      guardando ||
+      soloCobro
+    )
+      return;
     if (!soloCobro && !horasDisponibles.includes(hora)) {
-      setMensaje('Selecciona un horario futuro disponible para la fecha elegida.');
+      setMensaje(
+        "Selecciona un horario futuro disponible para la fecha elegida.",
+      );
       return;
     }
-    if(!consultaPendiente && !resolver(doctor)){setMensaje('Selecciona un médico activo del catálogo.');return;}
+    if (!consultaPendiente && !resolver(doctor)) {
+      setMensaje("Selecciona un médico activo del catálogo.");
+      return;
+    }
     setGuardando(true);
     try {
-    const respuesta = await apiFetch(consultaPendiente?.id ? `/api/citas/${consultaPendiente.id}/estado` : '/api/citas', {method:consultaPendiente?.id ? 'PATCH':'POST',headers:{Accept:'application/json'},body:JSON.stringify(consultaPendiente?.id ? {estado:'confirmada'} : {paciente_id:paciente.id,profesional_id:resolver(doctor)?.id,doctor:resolver(doctor)?.nombre || doctor,especialidad,consultorio:'Consultorio 1',fecha,hora,estado:'por_confirmar',servicio_id:servicio.contableId})});
-    const datos = await respuesta.json();
-    if(!respuesta.ok) throw new Error(Object.values(datos.errors || {}).flat()[0] as string || datos.message || 'No se pudo guardar la cita.');
-    onAgendada({
-      id:datos.id,pacienteId:paciente.id,profesionalId:datos.profesionalId,
-      paciente: nombreCompleto(paciente),
-      ci: paciente.ci,
-      doctor:datos.doctor,
-      fecha,
-      hora,
-      especialidad,
-    });
-    } catch(causa) {setMensaje((causa as Error).message);} finally {setGuardando(false);}
+      const respuesta = await apiFetch(
+        consultaPendiente?.id
+          ? `/api/citas/${consultaPendiente.id}/estado`
+          : "/api/citas",
+        {
+          method: consultaPendiente?.id ? "PATCH" : "POST",
+          headers: { Accept: "application/json" },
+          body: JSON.stringify(
+            consultaPendiente?.id
+              ? { estado: "confirmada" }
+              : {
+                  paciente_id: paciente.id,
+                  profesional_id: resolver(doctor)?.id,
+                  doctor: resolver(doctor)?.nombre || doctor,
+                  especialidad,
+                  consultorio: "Consultorio 1",
+                  fecha,
+                  hora,
+                  estado: "por_confirmar",
+                  servicio_id: servicio.contableId,
+                },
+          ),
+        },
+      );
+      const datos = await respuesta.json();
+      if (!respuesta.ok)
+        throw new Error(
+          (Object.values(datos.errors || {}).flat()[0] as string) ||
+            datos.message ||
+            "No se pudo guardar la cita.",
+        );
+      onAgendada({
+        id: datos.id,
+        pacienteId: paciente.id,
+        profesionalId: datos.profesionalId,
+        paciente: nombreCompleto(paciente),
+        ci: paciente.ci,
+        doctor: datos.doctor,
+        fecha,
+        hora,
+        especialidad,
+      });
+    } catch (causa) {
+      setMensaje((causa as Error).message);
+    } finally {
+      setGuardando(false);
+    }
   };
 
   return (
@@ -158,7 +282,7 @@ export function AgendarConsultaView({
         </button>
         <div>
           <span>AGENDAMIENTO DE CONSULTA</span>
-          <h1>{soloCobro ? 'Consulta pendiente' : 'Nueva consulta'}</h1>
+          <h1>{soloCobro ? "Consulta pendiente" : "Nueva consulta"}</h1>
         </div>
       </header>
       <div className="agendar-columnas">
@@ -169,13 +293,15 @@ export function AgendarConsultaView({
               <strong>Paciente</strong>
               <small>Busca un registro existente o crea uno nuevo.</small>
             </div>
-            {!soloCobro && <button
-              className="secundario"
-              type="button"
-              onClick={() => setRegistrando(!registrando)}
-            >
-              <Icon name="plus" size={14} /> Registrar
-            </button>}
+            {!soloCobro && (
+              <button
+                className="secundario"
+                type="button"
+                onClick={() => setRegistrando(!registrando)}
+              >
+                <Icon name="plus" size={14} /> Registrar
+              </button>
+            )}
           </div>
           {!paciente && (
             <label className="agendar-buscar">
@@ -195,7 +321,7 @@ export function AgendarConsultaView({
                   key={item.id}
                   onClick={() => {
                     setPaciente(item);
-                    setBusqueda('');
+                    setBusqueda("");
                   }}
                 >
                   <strong>{nombreCompleto(item)}</strong>
@@ -206,7 +332,15 @@ export function AgendarConsultaView({
               ))}
             </div>
           )}
-          {registrando && <ModalRegistroPaciente onCerrar={() => setRegistrando(false)} onRegistrado={p => {setPaciente(paraAgenda(p));setBusqueda('');}} />}
+          {registrando && (
+            <ModalRegistroPaciente
+              onCerrar={() => setRegistrando(false)}
+              onRegistrado={(p) => {
+                setPaciente(paraAgenda(p));
+                setBusqueda("");
+              }}
+            />
+          )}
           {paciente && (
             <div className="agendar-paciente">
               <div>
@@ -216,12 +350,24 @@ export function AgendarConsultaView({
                   CI {paciente.ci} · {paciente.celular}
                 </small>
               </div>
-              {!soloCobro && <button type="button" onClick={() => setPaciente(null)}>
-                <Icon name="close" size={15} />
-              </button>}
+              {!soloCobro && (
+                <button type="button" onClick={() => setPaciente(null)}>
+                  <Icon name="close" size={15} />
+                </button>
+              )}
             </div>
           )}
-          {(mensaje || errorPacientes || errorProfesionales || errorServicios) && <p className="agendar-error" role="alert">{mensaje || errorPacientes || errorProfesionales || errorServicios}</p>}
+          {(mensaje ||
+            errorPacientes ||
+            errorProfesionales ||
+            errorServicios) && (
+            <p className="agendar-error" role="alert">
+              {mensaje ||
+                errorPacientes ||
+                errorProfesionales ||
+                errorServicios}
+            </p>
+          )}
           <div className="agendar-seccion-titulo">
             <b>2</b>
             <div>
@@ -230,7 +376,20 @@ export function AgendarConsultaView({
             </div>
           </div>
           <div className="agendar-campos">
-            <label>Servicio a cobrar<select value={servicioId} onChange={e => setServicioId(e.target.value)}><option value="">Selecciona un servicio</option>{servicios.map(item => <option key={item.id} value={item.id}>{item.nombre} · Bs {Number(item.precio).toFixed(2)}</option>)}</select></label>
+            <label>
+              Servicio a cobrar
+              <select
+                value={servicioId}
+                onChange={(e) => setServicioId(e.target.value)}
+              >
+                <option value="">Selecciona un servicio</option>
+                {servicios.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.nombre} · Bs {Number(item.precio).toFixed(2)}
+                  </option>
+                ))}
+              </select>
+            </label>
             <label>
               Especialidad
               <select
@@ -244,7 +403,7 @@ export function AgendarConsultaView({
                     doctor &&
                     !especialidades[valor].doctores.includes(doctor)
                   )
-                    setDoctor('');
+                    setDoctor("");
                 }}
               >
                 <option value="">Seleccionar</option>
@@ -266,7 +425,7 @@ export function AgendarConsultaView({
                     valor &&
                     !especialidades[especialidad].doctores.includes(valor)
                   )
-                    setEspecialidad('');
+                    setEspecialidad("");
                 }}
               >
                 <option value="">Seleccionar</option>
@@ -287,8 +446,14 @@ export function AgendarConsultaView({
             </label>
             <label>
               Hora
-              <select disabled={soloCobro || horasDisponibles.length === 0} value={hora} onChange={(e) => setHora(e.target.value)}>
-                {!horasDisponibles.length && <option value="">No quedan horarios disponibles hoy</option>}
+              <select
+                disabled={soloCobro || horasDisponibles.length === 0}
+                value={hora}
+                onChange={(e) => setHora(e.target.value)}
+              >
+                {!horasDisponibles.length && (
+                  <option value="">No quedan horarios disponibles hoy</option>
+                )}
                 {horasDisponibles.map((item) => (
                   <option key={item}>{item}</option>
                 ))}
@@ -297,10 +462,44 @@ export function AgendarConsultaView({
           </div>
         </section>
         <aside className="panel agendar-cobro">
-          <div className="agendar-seccion-titulo"><b>3</b><div><strong>Servicio</strong><small>Importe del catálogo contable</small></div></div>
-          <div className="agendar-resumen"><span>{servicio?.nombre || 'Selecciona un servicio'}</span><strong>Bs {precio.toFixed(2)}</strong></div>
-          <p role="status">El cobro desde esta pantalla aún no está conectado. La cita se guardará por confirmar; registra el pago en caja.</p>
-          {soloCobro ? <button className="primario" type="button" onClick={onVolver}>Volver a la agenda</button> : <button className="primario" type="button" disabled={!paciente || !especialidad || !doctor || !fecha || !hora || !servicio || guardando} onClick={confirmar}>{guardando ? 'Guardando…' : 'Agendar por confirmar'} <Icon name="arrowRight" size={16}/></button>}
+          <div className="agendar-seccion-titulo">
+            <b>3</b>
+            <div>
+              <strong>Servicio</strong>
+              <small>Importe del catálogo contable</small>
+            </div>
+          </div>
+          <div className="agendar-resumen">
+            <span>{servicio?.nombre || "Selecciona un servicio"}</span>
+            <strong>Bs {precio.toFixed(2)}</strong>
+          </div>
+          <p role="status">
+            El cobro desde esta pantalla aún no está conectado. La cita se
+            guardará por confirmar; registra el pago en caja.
+          </p>
+          {soloCobro ? (
+            <button className="primario" type="button" onClick={onVolver}>
+              Volver a la agenda
+            </button>
+          ) : (
+            <button
+              className="primario"
+              type="button"
+              disabled={
+                !paciente ||
+                !especialidad ||
+                !doctor ||
+                !fecha ||
+                !hora ||
+                !servicio ||
+                guardando
+              }
+              onClick={confirmar}
+            >
+              {guardando ? "Guardando…" : "Agendar por confirmar"}{" "}
+              <Icon name="arrowRight" size={16} />
+            </button>
+          )}
         </aside>
       </div>
     </section>

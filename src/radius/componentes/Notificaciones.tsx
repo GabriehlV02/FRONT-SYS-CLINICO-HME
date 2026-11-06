@@ -96,11 +96,24 @@ export default function CentroNotificaciones() {
           >
             <header>
               <span>
-                <Icon name={dialogo.variante === "salida" ? "logout" : dialogo.peligrosa ? "trash" : "audit"} size={22} />
+                <Icon
+                  name={
+                    dialogo.variante === "salida"
+                      ? "logout"
+                      : dialogo.peligrosa
+                        ? "trash"
+                        : "audit"
+                  }
+                  size={22}
+                />
               </span>
               <div>
                 <small>
-                  {dialogo.variante === "salida" ? "SISTEMA CLÍNICO" : dialogo.peligrosa ? "ACCIÓN IRREVERSIBLE" : "CONFIRMACIÓN"}
+                  {dialogo.variante === "salida"
+                    ? "SISTEMA CLÍNICO"
+                    : dialogo.peligrosa
+                      ? "ACCIÓN IRREVERSIBLE"
+                      : "CONFIRMACIÓN"}
                 </small>
                 <h3 id="confirmacion-titulo">{dialogo.titulo}</h3>
               </div>
@@ -121,7 +134,10 @@ export default function CentroNotificaciones() {
               <button onClick={() => responder(false)}>Cancelar</button>
               <button className="confirmar" onClick={() => responder(true)}>
                 {(dialogo.variante === "salida" || dialogo.peligrosa) && (
-                  <Icon name={dialogo.variante === "salida" ? "logout" : "trash"} size={15} />
+                  <Icon
+                    name={dialogo.variante === "salida" ? "logout" : "trash"}
+                    size={15}
+                  />
                 )}{" "}
                 {dialogo.textoConfirmar || "Confirmar"}
               </button>

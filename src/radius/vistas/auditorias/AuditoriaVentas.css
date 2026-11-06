@@ -1,14 +1,301 @@
-.auditoria-ventas{display:grid;gap:12px}
-.auditoria-ventas-resumen{display:flex;align-items:stretch;gap:10px}
-.auditoria-ventas-resumen article{display:grid;gap:5px;min-width:170px;padding:12px 15px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
-.auditoria-ventas-resumen article small{color:var(--muted);font-size:10px}.auditoria-ventas-resumen article strong{color:var(--heading);font-size:18px}
-.auditoria-ventas-resumen>button,.auditoria-ventas-paginacion button,.auditoria-ventas-modal footer button{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 13px;border:1px solid var(--border);border-radius:8px;color:var(--primary-strong);background:var(--field);font:inherit;font-size:11px;font-weight:800;cursor:pointer}
-.auditoria-ventas-resumen>button{margin-left:auto;min-height:44px}.auditoria-ventas-resumen>button:hover,.auditoria-ventas-paginacion button:not(:disabled):hover{border-color:var(--primary);background:var(--primary-soft)}
-.auditoria-ventas-filtros{display:grid;grid-template-columns:minmax(220px,1.5fr) repeat(5,minmax(115px,1fr));align-items:end;gap:9px;padding:12px;border:1px solid var(--border);border-radius:10px;background:var(--panel)}
-.auditoria-ventas-filtros>label:not(.auditoria-ventas-buscar){display:grid;gap:5px;color:var(--muted);font-size:10px;font-weight:800}.auditoria-ventas-filtros input,.auditoria-ventas-filtros select{box-sizing:border-box;width:100%;height:38px;padding:0 9px;border:1px solid var(--border);border-radius:7px;outline:none;color:var(--text);background:var(--field);font:inherit;font-size:11px}.auditoria-ventas-filtros :is(input,select):focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 17%,transparent)}
-.auditoria-ventas-buscar{display:flex;align-items:center;gap:8px;height:38px;padding:0 10px;border:1px solid var(--border);border-radius:7px;color:var(--primary);background:var(--field)}.auditoria-ventas-buscar input{height:auto;padding:0;border:0;outline:0;background:transparent}
-.auditoria-ventas-tabla{overflow:auto;border:1px solid var(--border);border-radius:10px;background:var(--panel);box-shadow:var(--shadow)}.auditoria-ventas-fila{display:grid;grid-template-columns:minmax(100px,.75fr) minmax(135px,1fr) minmax(120px,1fr) minmax(120px,.9fr) minmax(130px,1fr) minmax(130px,1fr) minmax(100px,.7fr);align-items:center;gap:10px;min-width:920px;min-height:51px;padding:8px 12px;border-bottom:1px solid var(--border);color:var(--muted);font-size:10px}.auditoria-ventas-fila:last-child{border-bottom:0}.auditoria-ventas-fila.cabecera{min-height:38px;color:var(--muted);background:var(--panel-2);font-size:9px;font-weight:900;letter-spacing:.4px;text-transform:uppercase}.auditoria-ventas-fila strong,.auditoria-ventas-fila>b{color:var(--heading)}.auditoria-ventas-fila>b{text-align:right;white-space:nowrap}.auditoria-ventas-vacio{display:grid;min-height:100px;place-items:center;color:var(--muted);font-size:12px}
-.auditoria-ventas-paginacion{display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px}.auditoria-ventas-paginacion>div{display:flex;gap:7px}.auditoria-ventas-paginacion button{min-height:34px}.auditoria-ventas-paginacion button:disabled,.auditoria-ventas-modal button:disabled{opacity:.5;cursor:not-allowed}.auditoria-ventas-error{margin:0;padding:9px 11px;border:1px solid var(--danger);border-radius:8px;color:var(--danger);background:var(--danger-bg);font-size:11px}
-.auditoria-ventas-capa{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:18px;background:rgba(15,35,53,.5);backdrop-filter:blur(3px)}.auditoria-ventas-modal{width:min(480px,100%);padding:18px;border:1px solid var(--border);border-radius:14px;background:var(--panel);box-shadow:0 24px 80px rgba(13,42,64,.25)}.auditoria-ventas-modal header{display:flex;justify-content:space-between;gap:12px}.auditoria-ventas-modal header small{color:var(--primary);font-size:10px;font-weight:900;letter-spacing:.8px}.auditoria-ventas-modal h3{margin:5px 0;color:var(--heading);font-size:19px}.auditoria-ventas-modal p{margin:0;color:var(--muted);font-size:11px}.auditoria-ventas-modal header>button{display:grid;place-items:center;width:34px;height:34px;border:1px solid var(--border);border-radius:8px;color:var(--muted);background:var(--field);cursor:pointer}.auditoria-ventas-modal>div{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.auditoria-ventas-modal>div label{display:grid;gap:5px;color:var(--muted);font-size:11px;font-weight:700}.auditoria-ventas-modal input{height:38px;padding:0 9px;border:1px solid var(--border);border-radius:7px;color:var(--text);background:var(--field);font:inherit}.auditoria-ventas-modal footer{display:flex;justify-content:flex-end;gap:8px}.auditoria-ventas-modal footer button{min-height:38px}.auditoria-ventas-modal footer button[type=submit]{border-color:var(--primary);color:#fff;background:var(--primary)}
-@media(max-width:1050px){.auditoria-ventas-filtros{grid-template-columns:repeat(3,minmax(0,1fr))}.auditoria-ventas-buscar{grid-column:span 3}}
-@media(max-width:620px){.auditoria-ventas-resumen{display:grid;grid-template-columns:1fr 1fr}.auditoria-ventas-resumen article{min-width:0}.auditoria-ventas-resumen>button{grid-column:span 2;margin:0}.auditoria-ventas-filtros{grid-template-columns:1fr 1fr}.auditoria-ventas-buscar{grid-column:span 2}.auditoria-ventas-paginacion{align-items:flex-start;flex-direction:column}}
+.auditoria-ventas {
+  display: grid;
+  gap: 12px;
+}
+.auditoria-ventas-resumen {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+.auditoria-ventas-resumen article {
+  display: grid;
+  gap: 5px;
+  min-width: 170px;
+  padding: 12px 15px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.auditoria-ventas-resumen article small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.auditoria-ventas-resumen article strong {
+  color: var(--heading);
+  font-size: 18px;
+}
+.auditoria-ventas-resumen > button,
+.auditoria-ventas-paginacion button,
+.auditoria-ventas-modal footer button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 13px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--primary-strong);
+  background: var(--field);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.auditoria-ventas-resumen > button {
+  margin-left: auto;
+  min-height: 44px;
+}
+.auditoria-ventas-resumen > button:hover,
+.auditoria-ventas-paginacion button:not(:disabled):hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.auditoria-ventas-filtros {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(5, minmax(115px, 1fr));
+  align-items: end;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+}
+.auditoria-ventas-filtros > label:not(.auditoria-ventas-buscar) {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+.auditoria-ventas-filtros input,
+.auditoria-ventas-filtros select {
+  box-sizing: border-box;
+  width: 100%;
+  height: 38px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  outline: none;
+  color: var(--text);
+  background: var(--field);
+  font: inherit;
+  font-size: 11px;
+}
+.auditoria-ventas-filtros :is(input, select):focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 17%, transparent);
+}
+.auditoria-ventas-buscar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--primary);
+  background: var(--field);
+}
+.auditoria-ventas-buscar input {
+  height: auto;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+}
+.auditoria-ventas-tabla {
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+.auditoria-ventas-fila {
+  display: grid;
+  grid-template-columns:
+    minmax(100px, 0.75fr) minmax(135px, 1fr) minmax(120px, 1fr)
+    minmax(120px, 0.9fr) minmax(130px, 1fr) minmax(130px, 1fr) minmax(
+      100px,
+      0.7fr
+    );
+  align-items: center;
+  gap: 10px;
+  min-width: 920px;
+  min-height: 51px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 10px;
+}
+.auditoria-ventas-fila:last-child {
+  border-bottom: 0;
+}
+.auditoria-ventas-fila.cabecera {
+  min-height: 38px;
+  color: var(--muted);
+  background: var(--panel-2);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.auditoria-ventas-fila strong,
+.auditoria-ventas-fila > b {
+  color: var(--heading);
+}
+.auditoria-ventas-fila > b {
+  text-align: right;
+  white-space: nowrap;
+}
+.auditoria-ventas-vacio {
+  display: grid;
+  min-height: 100px;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+.auditoria-ventas-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.auditoria-ventas-paginacion > div {
+  display: flex;
+  gap: 7px;
+}
+.auditoria-ventas-paginacion button {
+  min-height: 34px;
+}
+.auditoria-ventas-paginacion button:disabled,
+.auditoria-ventas-modal button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.auditoria-ventas-error {
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  color: var(--danger);
+  background: var(--danger-bg);
+  font-size: 11px;
+}
+.auditoria-ventas-capa {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(15, 35, 53, 0.5);
+  backdrop-filter: blur(3px);
+}
+.auditoria-ventas-modal {
+  width: min(480px, 100%);
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: 0 24px 80px rgba(13, 42, 64, 0.25);
+}
+.auditoria-ventas-modal header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.auditoria-ventas-modal header small {
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.8px;
+}
+.auditoria-ventas-modal h3 {
+  margin: 5px 0;
+  color: var(--heading);
+  font-size: 19px;
+}
+.auditoria-ventas-modal p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+.auditoria-ventas-modal header > button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  background: var(--field);
+  cursor: pointer;
+}
+.auditoria-ventas-modal > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 18px 0;
+}
+.auditoria-ventas-modal > div label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.auditoria-ventas-modal input {
+  height: 38px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text);
+  background: var(--field);
+  font: inherit;
+}
+.auditoria-ventas-modal footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.auditoria-ventas-modal footer button {
+  min-height: 38px;
+}
+.auditoria-ventas-modal footer button[type="submit"] {
+  border-color: var(--primary);
+  color: #fff;
+  background: var(--primary);
+}
+@media (max-width: 1050px) {
+  .auditoria-ventas-filtros {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .auditoria-ventas-buscar {
+    grid-column: span 3;
+  }
+}
+@media (max-width: 620px) {
+  .auditoria-ventas-resumen {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .auditoria-ventas-resumen article {
+    min-width: 0;
+  }
+  .auditoria-ventas-resumen > button {
+    grid-column: span 2;
+    margin: 0;
+  }
+  .auditoria-ventas-filtros {
+    grid-template-columns: 1fr 1fr;
+  }
+  .auditoria-ventas-buscar {
+    grid-column: span 2;
+  }
+  .auditoria-ventas-paginacion {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

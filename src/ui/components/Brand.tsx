@@ -1,4 +1,4 @@
-import './BrandCompact.css';
+import "./BrandCompact.css";
 
 export function Brand({
   sidebar = false,
@@ -9,19 +9,21 @@ export function Brand({
   subtitle: string;
   name: string;
 }) {
-  const logoCompleto = '/logo-hospital-original.png';
-  const logoCompacto = '/brand.svg?v=clinico-azul-vital';
+  const logoCompleto = "/logo-hospital-original.png";
+  const logoCompacto = "/brand.svg?v=clinico-azul-vital";
 
   return (
-    <div className={sidebar ? 'sistema-marca' : 'login-brand'}>
+    <div className={sidebar ? "sistema-marca" : "login-brand"}>
       <span className="marca-icono marca-logo-completo" aria-hidden="true">
         <img
           src={sidebar ? logoCompleto : logoCompacto}
           alt=""
           onError={(event) => {
-            event.currentTarget.parentElement?.classList.add('logo-no-disponible');
+            event.currentTarget.parentElement?.classList.add(
+              "logo-no-disponible",
+            );
           }}
-          style={{ width: '100%', height: '100%', display: 'block' }}
+          style={{ width: "100%", height: "100%", display: "block" }}
         />
       </span>
       {sidebar && (
@@ -29,7 +31,7 @@ export function Brand({
           <img
             src={logoCompacto}
             alt=""
-            style={{ width: '100%', height: '100%', display: 'block' }}
+            style={{ width: "100%", height: "100%", display: "block" }}
           />
         </span>
       )}

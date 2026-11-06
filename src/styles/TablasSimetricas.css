@@ -15,7 +15,7 @@
   padding: 13px 16px;
   font-size: 10px;
   font-weight: 850;
-  letter-spacing: .045em;
+  letter-spacing: 0.045em;
   line-height: 1.25;
   text-align: left;
   text-transform: uppercase;
@@ -32,20 +32,54 @@
   text-align: center;
 }
 
-.sistema-app .area-trabajo table td:last-child :is(button, .historia-acciones, .lab-config-acciones, .acciones-tabla) {
+.sistema-app
+  .area-trabajo
+  table
+  td:last-child
+  :is(button, .historia-acciones, .lab-config-acciones, .acciones-tabla) {
   justify-content: center;
 }
 
-.sistema-app .area-trabajo :is(.usuarios-columnas,.orthanc-fila.columnas,.recepcion-tabla>div:first-child,.config-signos-encabezado) {
+.sistema-app
+  .area-trabajo
+  :is(
+    .usuarios-columnas,
+    .orthanc-fila.columnas,
+    .recepcion-tabla > div:first-child,
+    .config-signos-encabezado
+  ) {
   align-items: center;
 }
 
-.sistema-app .area-trabajo :is(.usuarios-fila,.orthanc-fila,.recepcion-tabla>div,.config-signos-tabla article) {
+.sistema-app
+  .area-trabajo
+  :is(
+    .usuarios-fila,
+    .orthanc-fila,
+    .recepcion-tabla > div,
+    .config-signos-tabla article
+  ) {
   align-items: center;
 }
 
-.sistema-app .area-trabajo :is(.usuarios-columnas,.orthanc-fila.columnas,.recepcion-tabla>div:first-child,.config-signos-encabezado) > :last-child,
-.sistema-app .area-trabajo :is(.usuarios-fila,.orthanc-fila,.recepcion-tabla>div,.config-signos-tabla article) > :last-child {
+.sistema-app
+  .area-trabajo
+  :is(
+    .usuarios-columnas,
+    .orthanc-fila.columnas,
+    .recepcion-tabla > div:first-child,
+    .config-signos-encabezado
+  )
+  > :last-child,
+.sistema-app
+  .area-trabajo
+  :is(
+    .usuarios-fila,
+    .orthanc-fila,
+    .recepcion-tabla > div,
+    .config-signos-tabla article
+  )
+  > :last-child {
   justify-self: center;
   text-align: center;
 }

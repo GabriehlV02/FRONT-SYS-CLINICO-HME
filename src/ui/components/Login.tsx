@@ -1,9 +1,9 @@
-import '../styles/LoginFields.css';
-import { useState, type FormEvent } from 'react';
-import Icon from './Icon';
-import { Brand } from './Brand';
-import { LoginBalancePanel } from './LoginBalancePanel';
-import type { AuthSession, SystemConfig } from '../types';
+import "../styles/LoginFields.css";
+import { useState, type FormEvent } from "react";
+import Icon from "./Icon";
+import { Brand } from "./Brand";
+import { LoginBalancePanel } from "./LoginBalancePanel";
+import type { AuthSession, SystemConfig } from "../types";
 
 export function Login({
   onLogin,
@@ -12,25 +12,25 @@ export function Login({
   onLogin: (session: AuthSession) => void;
   config: SystemConfig;
 }) {
-  const esContable = config.id === 'contable';
+  const esContable = config.id === "contable";
   const [username, setUsername] = useState(() => {
     try {
-      return localStorage.getItem(`clinica_${config.id}_usuario`) || '';
+      return localStorage.getItem(`clinica_${config.id}_usuario`) || "";
     } catch {
-      return '';
+      return "";
     }
   });
   const [remember, setRemember] = useState(Boolean(username));
   const minimumPasswordLength =
-    config.id === 'clinico' || config.id === 'contable' ? 5 : 6;
-  const [password, setPassword] = useState('');
+    config.id === "clinico" || config.id === "contable" ? 5 : 6;
+  const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function enter(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
     let nextSession: AuthSession = {
       user: username.trim(),
@@ -38,11 +38,11 @@ export function Login({
       permissions: [],
     };
 
-    if (config.id === 'contable') {
+    if (config.id === "contable") {
       try {
-        const response = await fetch('/api/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ usuario: username.trim(), password }),
         });
         const data = (await response.json().catch(() => ({}))) as {
@@ -50,18 +50,18 @@ export function Login({
           usuario?: { nombre?: string; rol?: string; permisos?: string[] };
         };
         if (!response.ok) {
-          setError(data.message || 'No se pudo iniciar sesion.');
+          setError(data.message || "No se pudo iniciar sesion.");
           return;
         }
         nextSession = {
-          user: data.usuario?.nombre || 'Administrador',
+          user: data.usuario?.nombre || "Administrador",
           role: data.usuario?.rol || config.role,
           permissions: Array.isArray(data.usuario?.permisos)
             ? data.usuario.permisos
             : [],
         };
       } catch {
-        setError('No se pudo conectar con el servidor contable.');
+        setError("No se pudo conectar con el servidor contable.");
         return;
       } finally {
         setLoading(false);
@@ -111,7 +111,7 @@ export function Login({
           id="password"
           required
           minLength={minimumPasswordLength}
-          type={visible ? 'text' : 'password'}
+          type={visible ? "text" : "password"}
           autoComplete="current-password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
@@ -131,10 +131,10 @@ export function Login({
               input.setSelectionRange(start, end);
             });
           }}
-          aria-label={visible ? 'Ocultar contrasena' : 'Mostrar contrasena'}
+          aria-label={visible ? "Ocultar contrasena" : "Mostrar contrasena"}
           aria-pressed={visible}
         >
-          <Icon name={visible ? 'eyeOff' : 'eye'} size={18} />
+          <Icon name={visible ? "eyeOff" : "eye"} size={18} />
         </button>
       </div>
       <div className="login-opciones">
@@ -152,7 +152,7 @@ export function Login({
                 }
               }
             }}
-          />{' '}
+          />{" "}
           Recordar mi usuario
         </label>
         {!esContable && <span>{config.role}</span>}
@@ -163,24 +163,24 @@ export function Login({
         </p>
       )}
       <button className="login-submit" type="submit" disabled={loading}>
-        {loading ? 'Conectando...' : 'Iniciar sesion'}{' '}
+        {loading ? "Conectando..." : "Iniciar sesion"}{" "}
         {!loading && <Icon name="arrowRight" size={18} />}
       </button>
       <div className="login-seguro">
         <Icon name="check" size={16} /> Sesion protegida · Expira tras 6 horas
       </div>
-      {config.id !== 'contable' && (
+      {config.id !== "contable" && (
         <div className="demo-access">
           <button
             type="button"
             onClick={() =>
-              onLogin({ user: 'demo', role: config.role, permissions: [] })
+              onLogin({ user: "demo", role: config.role, permissions: [] })
             }
           >
             Entrar en modo demostracion <Icon name="arrowRight" size={14} />
           </button>
           <p>
-            Puedes usar cualquier usuario y una contrasena de{' '}
+            Puedes usar cualquier usuario y una contrasena de{" "}
             {minimumPasswordLength} caracteres o mas.
           </p>
         </div>
@@ -190,7 +190,7 @@ export function Login({
 
   return (
     <main className={`login-page login-page-${config.id}`}>
-      {['superior', 'inferior'].map((position) => (
+      {["superior", "inferior"].map((position) => (
         <svg
           key={position}
           className={`triangulo-fondo triangulo-${position}`}
@@ -208,7 +208,7 @@ export function Login({
         <path d="M101 15Q110 0 119 15L207 166Q216 182 198 182H22Q4 182 13 166Z" />
         <circle cx="193" cy="142" r="6" />
       </svg>
-      {['uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis'].map((name) => (
+      {["uno", "dos", "tres", "cuatro", "cinco", "seis"].map((name) => (
         <svg
           key={name}
           className={`mini-triangulo mini-${name}`}
@@ -218,7 +218,7 @@ export function Login({
           <path d="M45 8Q50 0 55 8L94 76Q99 85 89 85H11Q1 85 6 76Z" />
         </svg>
       ))}
-      {['uno', 'dos', 'tres'].map((name) => (
+      {["uno", "dos", "tres"].map((name) => (
         <span key={name} aria-hidden="true">
           <i className={`punto punto-${name}`} />
           <i className={`trazo trazo-${name}`} />
@@ -231,13 +231,13 @@ export function Login({
           </section>
           <section className="login-balance-right">
             <div className="login-circulos" aria-hidden="true">
-              {['uno', 'dos', 'tres', 'cuatro'].map((name) => (
+              {["uno", "dos", "tres", "cuatro"].map((name) => (
                 <span
                   key={`fijo-${name}`}
                   className={`login-circulo login-circulo-${name}`}
                 />
               ))}
-              {['uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis'].map((name) => (
+              {["uno", "dos", "tres", "cuatro", "cinco", "seis"].map((name) => (
                 <span
                   key={`movil-${name}`}
                   className={`login-circulo-movil login-circulo-movil-${name}`}

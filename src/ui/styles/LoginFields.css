@@ -1,6 +1,10 @@
 /* Un único borde al escribir, sin los aros superpuestos del tema global. */
-.login-field { margin-bottom: 17px; }
-.login-field .login-label { margin-bottom: 0; }
+.login-field {
+  margin-bottom: 17px;
+}
+.login-field .login-label {
+  margin-bottom: 0;
+}
 
 .login-page .login-input,
 .login-page .login-input:focus-within {

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../componentes/Icono";
 import { apiFetch } from "../../api";
-import ModalRegistroPaciente, { type PacienteRegistrado } from "./ModalRegistroPaciente";
-import { listarPacientes, pacienteParaVista } from './pacientesApi';
+import ModalRegistroPaciente, {
+  type PacienteRegistrado,
+} from "./ModalRegistroPaciente";
+import { listarPacientes, pacienteParaVista } from "./pacientesApi";
 import {
   guardarArchivoEstudio,
   guardarEstudios,
@@ -45,69 +47,426 @@ const calcularEdad = (fecha: string) => {
 const nombreCompleto = (p: Paciente) =>
   `${p.nombres} ${p.primerApellido} ${p.segundoApellido}`.trim();
 
-type EstudioInspeccion = { id: string; titulo: string; tipo: string; fecha: string; descripcion: string; origen: "local" | "orthanc" };
+type EstudioInspeccion = {
+  id: string;
+  titulo: string;
+  tipo: string;
+  fecha: string;
+  descripcion: string;
+  origen: "local" | "orthanc";
+};
 type ClasificacionEstudio = { id: number; nombre: string };
-const clasificacionesIniciales = ['Ecografía', 'Radiografía', 'Tomografía', 'Electrocardiograma'];
+const clasificacionesIniciales = [
+  "Ecografía",
+  "Radiografía",
+  "Tomografía",
+  "Electrocardiograma",
+];
 
-function InspeccionPaciente({ paciente, estudios, onVolver }: { paciente: Paciente; estudios: EstudioDemo[]; onVolver: () => void }) {
+function InspeccionPaciente({
+  paciente,
+  estudios,
+  onVolver,
+}: {
+  paciente: Paciente;
+  estudios: EstudioDemo[];
+  onVolver: () => void;
+}) {
   const [orthanc, setOrthanc] = useState<EstudioInspeccion[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [tipo, setTipo] = useState("todos");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
   const [cargando, setCargando] = useState(true);
-  const [clasificaciones, setClasificaciones] = useState<string[]>(clasificacionesIniciales);
+  const [clasificaciones, setClasificaciones] = useState<string[]>(
+    clasificacionesIniciales,
+  );
   useEffect(() => {
     let activo = true;
-    void apiFetch('/api/v1/estudios/clasificaciones').then(async respuesta => {
-      if (!respuesta.ok) return [];
-      const cuerpo = await respuesta.json() as { data?: ClasificacionEstudio[] };
-      return cuerpo.data || [];
-    }).then(datos => {
-      if (activo && datos.length) setClasificaciones(datos.map(clasificacion => clasificacion.nombre));
-    }).catch(() => undefined);
-    return () => { activo = false; };
+    void apiFetch("/api/v1/estudios/clasificaciones")
+      .then(async (respuesta) => {
+        if (!respuesta.ok) return [];
+        const cuerpo = (await respuesta.json()) as {
+          data?: ClasificacionEstudio[];
+        };
+        return cuerpo.data || [];
+      })
+      .then((datos) => {
+        if (activo && datos.length)
+          setClasificaciones(
+            datos.map((clasificacion) => clasificacion.nombre),
+          );
+      })
+      .catch(() => undefined);
+    return () => {
+      activo = false;
+    };
   }, []);
   useEffect(() => {
     let activo = true;
-    void apiFetch('/api/orthanc/estudios').then(async respuesta => respuesta.ok ? respuesta.json() : []).then((datos: Array<{ id: string; pacienteId: string | null; patientIdDicom: string; descripcion: string; fechaEstudio: string; modalidades: string[] }>) => {
-      if (!activo) return;
-      setOrthanc(datos.filter(estudio => estudio.pacienteId === paciente.id || estudio.patientIdDicom.trim() === paciente.numeroDocumento.trim()).map(estudio => ({ id: estudio.id, titulo: estudio.descripcion || 'Estudio DICOM', tipo: estudio.modalidades.join(' · ') || 'Radiografía', fecha: /^\d{8}$/.test(estudio.fechaEstudio) ? `${estudio.fechaEstudio.slice(0, 4)}-${estudio.fechaEstudio.slice(4, 6)}-${estudio.fechaEstudio.slice(6, 8)}` : estudio.fechaEstudio, descripcion: 'Servidor Orthanc', origen: 'orthanc' })));
-    }).catch(() => undefined).finally(() => { if (activo) setCargando(false); });
-    return () => { activo = false; };
+    void apiFetch("/api/orthanc/estudios")
+      .then(async (respuesta) => (respuesta.ok ? respuesta.json() : []))
+      .then(
+        (
+          datos: Array<{
+            id: string;
+            pacienteId: string | null;
+            patientIdDicom: string;
+            descripcion: string;
+            fechaEstudio: string;
+            modalidades: string[];
+          }>,
+        ) => {
+          if (!activo) return;
+          setOrthanc(
+            datos
+              .filter(
+                (estudio) =>
+                  estudio.pacienteId === paciente.id ||
+                  estudio.patientIdDicom.trim() ===
+                    paciente.numeroDocumento.trim(),
+              )
+              .map((estudio) => ({
+                id: estudio.id,
+                titulo: estudio.descripcion || "Estudio DICOM",
+                tipo: estudio.modalidades.join(" · ") || "Radiografía",
+                fecha: /^\d{8}$/.test(estudio.fechaEstudio)
+                  ? `${estudio.fechaEstudio.slice(0, 4)}-${estudio.fechaEstudio.slice(4, 6)}-${estudio.fechaEstudio.slice(6, 8)}`
+                  : estudio.fechaEstudio,
+                descripcion: "Servidor Orthanc",
+                origen: "orthanc",
+              })),
+          );
+        },
+      )
+      .catch(() => undefined)
+      .finally(() => {
+        if (activo) setCargando(false);
+      });
+    return () => {
+      activo = false;
+    };
   }, [paciente.id, paciente.numeroDocumento]);
   const todos = useMemo<EstudioInspeccion[]>(() => {
-    const locales = estudios.filter(estudio => estudio.pacienteId === paciente.id).map(estudio => ({ id: estudio.id, titulo: estudio.titulo, tipo: estudio.categoria, fecha: estudio.creadaEn.slice(0, 10), descripcion: estudio.descripcion || estudio.nombreArchivo, origen: 'local' as const }));
-    return [...locales, ...orthanc].sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+    const locales = estudios
+      .filter((estudio) => estudio.pacienteId === paciente.id)
+      .map((estudio) => ({
+        id: estudio.id,
+        titulo: estudio.titulo,
+        tipo: estudio.categoria,
+        fecha: estudio.creadaEn.slice(0, 10),
+        descripcion: estudio.descripcion || estudio.nombreArchivo,
+        origen: "local" as const,
+      }));
+    return [...locales, ...orthanc].sort((a, b) =>
+      (b.fecha || "").localeCompare(a.fecha || ""),
+    );
   }, [estudios, orthanc, paciente.id]);
-  const tipos = useMemo(() => [...new Set([...clasificaciones, ...todos.map(estudio => estudio.tipo).filter(Boolean)])], [clasificaciones, todos]);
+  const tipos = useMemo(
+    () => [
+      ...new Set([
+        ...clasificaciones,
+        ...todos.map((estudio) => estudio.tipo).filter(Boolean),
+      ]),
+    ],
+    [clasificaciones, todos],
+  );
   const visibles = useMemo(() => {
-    const termino = busqueda.trim().toLocaleLowerCase('es');
-    return todos.filter(estudio => (!termino || `${estudio.titulo} ${estudio.tipo} ${estudio.descripcion}`.toLocaleLowerCase('es').includes(termino)) && (tipo === 'todos' || estudio.tipo === tipo) && (!desde || estudio.fecha >= desde) && (!hasta || estudio.fecha <= hasta));
+    const termino = busqueda.trim().toLocaleLowerCase("es");
+    return todos.filter(
+      (estudio) =>
+        (!termino ||
+          `${estudio.titulo} ${estudio.tipo} ${estudio.descripcion}`
+            .toLocaleLowerCase("es")
+            .includes(termino)) &&
+        (tipo === "todos" || estudio.tipo === tipo) &&
+        (!desde || estudio.fecha >= desde) &&
+        (!hasta || estudio.fecha <= hasta),
+    );
   }, [todos, busqueda, tipo, desde, hasta]);
   const abrir = (estudio: EstudioInspeccion) => {
-    if (estudio.origen === 'orthanc') {
-      localStorage.setItem('radiuus_orthanc_estudio', estudio.id);
-      const destino = estudio.tipo === 'Tomografía' ? 'visor-tomografias' : estudio.tipo === 'Ecografía' ? 'visor-ecografias' : estudio.tipo === 'Ecocardiograma' ? 'visor-ecocardiogramas' : 'visor-radiografias';
-      window.dispatchEvent(new CustomEvent('radiuus:navegar', { detail: destino }));
+    if (estudio.origen === "orthanc") {
+      localStorage.setItem("radiuus_orthanc_estudio", estudio.id);
+      const destino =
+        estudio.tipo === "Tomografía"
+          ? "visor-tomografias"
+          : estudio.tipo === "Ecografía"
+            ? "visor-ecografias"
+            : estudio.tipo === "Ecocardiograma"
+              ? "visor-ecocardiogramas"
+              : "visor-radiografias";
+      window.dispatchEvent(
+        new CustomEvent("radiuus:navegar", { detail: destino }),
+      );
     } else seleccionarEstudio(estudio.id);
   };
-  return <section className="inspeccion-imagenologia">
-    <button type="button" className="inspeccion-volver" onClick={onVolver}><Icon name="chevronLeft" size={17}/> Volver al listado de pacientes</button>
-    <header className="inspeccion-paciente"><span><Icon name="patient" size={24}/></span><div><small>PACIENTE</small><h2>{nombreCompleto(paciente)}</h2><p>{paciente.tipoDocumento} {paciente.numeroDocumento} · {todos.length} {todos.length === 1 ? 'estudio' : 'estudios'} de imagenología</p></div></header>
-    <section className="inspeccion-filtros" aria-label="Filtros de estudios"><label className="inspeccion-buscar"><Icon name="search" size={17}/><input value={busqueda} onChange={evento => setBusqueda(evento.target.value)} placeholder="Buscar estudio, modalidad o descripción"/></label><label><span>Tipo de estudio</span><select value={tipo} onChange={evento => setTipo(evento.target.value)}><option value="todos">Todos los tipos</option>{tipos.map(valor => <option key={valor}>{valor}</option>)}</select></label><label><span>Desde</span><input type="date" value={desde} onChange={evento => setDesde(evento.target.value)}/></label><label><span>Hasta</span><input type="date" min={desde} value={hasta} onChange={evento => setHasta(evento.target.value)}/></label>{(busqueda || tipo !== 'todos' || desde || hasta) && <button type="button" onClick={() => { setBusqueda(''); setTipo('todos'); setDesde(''); setHasta(''); }}>Limpiar filtros</button>}</section>
-    <section className="inspeccion-estudios"><header className="inspeccion-columnas"><span>Estudio</span><span>Fecha</span><span>Origen</span><span>Acciones</span></header>{cargando && !todos.length ? <div className="inspeccion-vacio"><span>Cargando estudios…</span></div> : visibles.length ? <div className="inspeccion-lista">{visibles.map(estudio => <article key={`${estudio.origen}-${estudio.id}`}><span><Icon name="image" size={19}/></span><div><strong>{estudio.titulo}</strong><small>{estudio.tipo} · {estudio.descripcion}</small></div><time>{estudio.fecha ? new Date(`${estudio.fecha}T00:00:00`).toLocaleDateString('es-BO') : 'Sin fecha'}</time><em>{estudio.origen === 'orthanc' ? 'Orthanc' : 'Local'}</em><button type="button" onClick={() => abrir(estudio)}><Icon name="eye" size={16}/> Ver estudio</button></article>)}</div> : <div className="inspeccion-vacio"><Icon name="image" size={28}/><strong>No hay estudios que coincidan</strong><small>{todos.length ? 'Cambia la búsqueda o los filtros aplicados.' : 'Este paciente todavía no tiene estudios de imagenología.'}</small></div>}</section>
-  </section>;
+  return (
+    <section className="inspeccion-imagenologia">
+      <button type="button" className="inspeccion-volver" onClick={onVolver}>
+        <Icon name="chevronLeft" size={17} /> Volver al listado de pacientes
+      </button>
+      <header className="inspeccion-paciente">
+        <span>
+          <Icon name="patient" size={24} />
+        </span>
+        <div>
+          <small>PACIENTE</small>
+          <h2>{nombreCompleto(paciente)}</h2>
+          <p>
+            {paciente.tipoDocumento} {paciente.numeroDocumento} · {todos.length}{" "}
+            {todos.length === 1 ? "estudio" : "estudios"} de imagenología
+          </p>
+        </div>
+      </header>
+      <section className="inspeccion-filtros" aria-label="Filtros de estudios">
+        <label className="inspeccion-buscar">
+          <Icon name="search" size={17} />
+          <input
+            value={busqueda}
+            onChange={(evento) => setBusqueda(evento.target.value)}
+            placeholder="Buscar estudio, modalidad o descripción"
+          />
+        </label>
+        <label>
+          <span>Tipo de estudio</span>
+          <select
+            value={tipo}
+            onChange={(evento) => setTipo(evento.target.value)}
+          >
+            <option value="todos">Todos los tipos</option>
+            {tipos.map((valor) => (
+              <option key={valor}>{valor}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          <span>Desde</span>
+          <input
+            type="date"
+            value={desde}
+            onChange={(evento) => setDesde(evento.target.value)}
+          />
+        </label>
+        <label>
+          <span>Hasta</span>
+          <input
+            type="date"
+            min={desde}
+            value={hasta}
+            onChange={(evento) => setHasta(evento.target.value)}
+          />
+        </label>
+        {(busqueda || tipo !== "todos" || desde || hasta) && (
+          <button
+            type="button"
+            onClick={() => {
+              setBusqueda("");
+              setTipo("todos");
+              setDesde("");
+              setHasta("");
+            }}
+          >
+            Limpiar filtros
+          </button>
+        )}
+      </section>
+      <section className="inspeccion-estudios">
+        <header className="inspeccion-columnas">
+          <span>Estudio</span>
+          <span>Fecha</span>
+          <span>Origen</span>
+          <span>Acciones</span>
+        </header>
+        {cargando && !todos.length ? (
+          <div className="inspeccion-vacio">
+            <span>Cargando estudios…</span>
+          </div>
+        ) : visibles.length ? (
+          <div className="inspeccion-lista">
+            {visibles.map((estudio) => (
+              <article key={`${estudio.origen}-${estudio.id}`}>
+                <span>
+                  <Icon name="image" size={19} />
+                </span>
+                <div>
+                  <strong>{estudio.titulo}</strong>
+                  <small>
+                    {estudio.tipo} · {estudio.descripcion}
+                  </small>
+                </div>
+                <time>
+                  {estudio.fecha
+                    ? new Date(`${estudio.fecha}T00:00:00`).toLocaleDateString(
+                        "es-BO",
+                      )
+                    : "Sin fecha"}
+                </time>
+                <em>{estudio.origen === "orthanc" ? "Orthanc" : "Local"}</em>
+                <button type="button" onClick={() => abrir(estudio)}>
+                  <Icon name="eye" size={16} /> Ver estudio
+                </button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="inspeccion-vacio">
+            <Icon name="image" size={28} />
+            <strong>No hay estudios que coincidan</strong>
+            <small>
+              {todos.length
+                ? "Cambia la búsqueda o los filtros aplicados."
+                : "Este paciente todavía no tiene estudios de imagenología."}
+            </small>
+          </div>
+        )}
+      </section>
+    </section>
+  );
 }
 
-function FichaPacienteCompleta({ paciente, estudios, onVolver }: { paciente: Paciente; estudios: EstudioDemo[]; onVolver: () => void }) {
-  const consumos = estudios.filter(estudio => estudio.pacienteId === paciente.id);
-  const datos = [['Nombres', paciente.nombres], ['Apellido paterno', paciente.primerApellido], ['Apellido materno', paciente.segundoApellido], ['CI', paciente.numeroDocumento], ['Complemento', paciente.complementoCi || 'No registrado'], ['Expedido en', paciente.expedidoEn || 'No registrado'], ['CI con QR', paciente.ciConQr ? 'Sí' : 'No'], ['NIT', paciente.nit || 'No registrado'], ['Razón social', paciente.razonSocial || 'No registrada'], ['Fecha de nacimiento', paciente.fechaNacimiento ? new Date(`${paciente.fechaNacimiento}T00:00:00`).toLocaleDateString('es-BO') : 'No registrada'], ['Edad', calcularEdad(paciente.fechaNacimiento) === null ? 'No registrada' : `${calcularEdad(paciente.fechaNacimiento)} años`], ['Sexo', paciente.sexo.replaceAll('_', ' ') || 'No registrado'], ['Celular', paciente.telefono || 'No registrado'], ['País', paciente.pais || 'No registrado'], ['Departamento', paciente.departamento || 'No registrado'], ['Ciudad', paciente.ciudad || 'No registrada'], ['Zona / barrio', paciente.zonaBarrio || 'No registrada'], ['Dirección', paciente.direccion || 'No registrada'], ['Responsable', paciente.responsableNombre || 'No registrado'], ['CI responsable', paciente.responsableCi || 'No registrado'], ['Teléfono responsable', paciente.responsableTelefono || 'No registrado'], ['Parentesco', paciente.responsableParentesco || 'No registrado'], ['Cómo se enteró', paciente.comoSeEntero || 'No registrado'], ['Observaciones', paciente.observaciones || 'Sin observaciones'], ['Estado', paciente.habilitado === false ? 'Inhabilitado' : 'Habilitado']];
-  return <section className="ficha-paciente-completa" aria-label={`Ficha de ${nombreCompleto(paciente)}`}><header><div className="ficha-paciente-identidad"><span className="ficha-paciente-avatar">{`${paciente.nombres[0] || ''}${paciente.primerApellido[0] || ''}`}</span><div><span>FICHA DEL PACIENTE</span><h2>{nombreCompleto(paciente)}</h2><p>{paciente.tipoDocumento} {paciente.numeroDocumento} <i/> Paciente registrado</p></div></div></header><div className="ficha-paciente-regreso"><button type="button" onClick={onVolver}><Icon name="chevronLeft" size={17}/> Volver al listado</button></div><div className="ficha-paciente-completa-cuerpo"><section className="ficha-paciente-informacion"><header><div><span>INFORMACIÓN PERSONAL</span><h3>Datos registrados</h3></div><small>{paciente.sucursal || 'Central'}</small></header><div>{datos.map(([etiqueta, valor]) => <article key={etiqueta} className={etiqueta === 'Dirección' ? 'ficha-dato-amplio' : ''}><span>{etiqueta}</span><strong>{valor}</strong></article>)}</div></section><aside className="ficha-paciente-consumos"><header><div><span>HISTORIAL</span><h3>Consumos y pagos</h3></div><small>{consumos.length} registrados</small></header>{consumos.length ? <div className="ficha-consumos-lista">{consumos.map(consumo => <article key={consumo.id}><strong>{consumo.titulo}</strong><span>{consumo.categoria}</span><footer><time>{new Date(consumo.creadaEn).toLocaleDateString('es-BO')}</time><b>Registrado</b></footer></article>)}</div> : <div className="ficha-consumos-vacio"><Icon name="fileText" size={25}/><strong>Sin consumos o pagos registrados</strong><span>Los servicios, estudios y pagos del paciente aparecerán aquí.</span></div>}</aside></div></section>;
+function FichaPacienteCompleta({
+  paciente,
+  estudios,
+  onVolver,
+}: {
+  paciente: Paciente;
+  estudios: EstudioDemo[];
+  onVolver: () => void;
+}) {
+  const consumos = estudios.filter(
+    (estudio) => estudio.pacienteId === paciente.id,
+  );
+  const datos = [
+    ["Nombres", paciente.nombres],
+    ["Apellido paterno", paciente.primerApellido],
+    ["Apellido materno", paciente.segundoApellido],
+    ["CI", paciente.numeroDocumento],
+    ["Complemento", paciente.complementoCi || "No registrado"],
+    ["Expedido en", paciente.expedidoEn || "No registrado"],
+    ["CI con QR", paciente.ciConQr ? "Sí" : "No"],
+    ["NIT", paciente.nit || "No registrado"],
+    ["Razón social", paciente.razonSocial || "No registrada"],
+    [
+      "Fecha de nacimiento",
+      paciente.fechaNacimiento
+        ? new Date(`${paciente.fechaNacimiento}T00:00:00`).toLocaleDateString(
+            "es-BO",
+          )
+        : "No registrada",
+    ],
+    [
+      "Edad",
+      calcularEdad(paciente.fechaNacimiento) === null
+        ? "No registrada"
+        : `${calcularEdad(paciente.fechaNacimiento)} años`,
+    ],
+    ["Sexo", paciente.sexo.replaceAll("_", " ") || "No registrado"],
+    ["Celular", paciente.telefono || "No registrado"],
+    ["País", paciente.pais || "No registrado"],
+    ["Departamento", paciente.departamento || "No registrado"],
+    ["Ciudad", paciente.ciudad || "No registrada"],
+    ["Zona / barrio", paciente.zonaBarrio || "No registrada"],
+    ["Dirección", paciente.direccion || "No registrada"],
+    ["Responsable", paciente.responsableNombre || "No registrado"],
+    ["CI responsable", paciente.responsableCi || "No registrado"],
+    ["Teléfono responsable", paciente.responsableTelefono || "No registrado"],
+    ["Parentesco", paciente.responsableParentesco || "No registrado"],
+    ["Cómo se enteró", paciente.comoSeEntero || "No registrado"],
+    ["Observaciones", paciente.observaciones || "Sin observaciones"],
+    ["Estado", paciente.habilitado === false ? "Inhabilitado" : "Habilitado"],
+  ];
+  return (
+    <section
+      className="ficha-paciente-completa"
+      aria-label={`Ficha de ${nombreCompleto(paciente)}`}
+    >
+      <header>
+        <div className="ficha-paciente-identidad">
+          <span className="ficha-paciente-avatar">{`${paciente.nombres[0] || ""}${paciente.primerApellido[0] || ""}`}</span>
+          <div>
+            <span>FICHA DEL PACIENTE</span>
+            <h2>{nombreCompleto(paciente)}</h2>
+            <p>
+              {paciente.tipoDocumento} {paciente.numeroDocumento} <i /> Paciente
+              registrado
+            </p>
+          </div>
+        </div>
+      </header>
+      <div className="ficha-paciente-regreso">
+        <button type="button" onClick={onVolver}>
+          <Icon name="chevronLeft" size={17} /> Volver al listado
+        </button>
+      </div>
+      <div className="ficha-paciente-completa-cuerpo">
+        <section className="ficha-paciente-informacion">
+          <header>
+            <div>
+              <span>INFORMACIÓN PERSONAL</span>
+              <h3>Datos registrados</h3>
+            </div>
+            <small>{paciente.sucursal || "Central"}</small>
+          </header>
+          <div>
+            {datos.map(([etiqueta, valor]) => (
+              <article
+                key={etiqueta}
+                className={etiqueta === "Dirección" ? "ficha-dato-amplio" : ""}
+              >
+                <span>{etiqueta}</span>
+                <strong>{valor}</strong>
+              </article>
+            ))}
+          </div>
+        </section>
+        <aside className="ficha-paciente-consumos">
+          <header>
+            <div>
+              <span>HISTORIAL</span>
+              <h3>Consumos y pagos</h3>
+            </div>
+            <small>{consumos.length} registrados</small>
+          </header>
+          {consumos.length ? (
+            <div className="ficha-consumos-lista">
+              {consumos.map((consumo) => (
+                <article key={consumo.id}>
+                  <strong>{consumo.titulo}</strong>
+                  <span>{consumo.categoria}</span>
+                  <footer>
+                    <time>
+                      {new Date(consumo.creadaEn).toLocaleDateString("es-BO")}
+                    </time>
+                    <b>Registrado</b>
+                  </footer>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="ficha-consumos-vacio">
+              <Icon name="fileText" size={25} />
+              <strong>Sin consumos o pagos registrados</strong>
+              <span>
+                Los servicios, estudios y pagos del paciente aparecerán aquí.
+              </span>
+            </div>
+          )}
+        </aside>
+      </div>
+    </section>
+  );
 }
 
-export default function VistaPacientes({ modalidad, soloConEstudio = false, modoClinico = false }: { modalidad?: "Radiografía" | "Tomografía" | "Ecografía" | "Ecocardiograma"; soloConEstudio?: boolean; modoClinico?: boolean }) {
-  const [errorListado, setErrorListado] = useState('');
+export default function VistaPacientes({
+  modalidad,
+  soloConEstudio = false,
+  modoClinico = false,
+}: {
+  modalidad?: "Radiografía" | "Tomografía" | "Ecografía" | "Ecocardiograma";
+  soloConEstudio?: boolean;
+  modoClinico?: boolean;
+}) {
+  const [errorListado, setErrorListado] = useState("");
   const [recarga, setRecarga] = useState(0);
   const [pacientes, setPacientes] = useState<Paciente[]>([]),
     [estudios, setEstudios] = useState<EstudioDemo[]>([]),
@@ -124,7 +483,9 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     [guardando, setGuardando] = useState(false),
     [editando, setEditando] = useState<Paciente | null>(null),
     [viendo, setViendo] = useState<Paciente | null>(null),
-    [pacienteSeleccionado, setPacienteSeleccionado] = useState<Paciente | null>(null),
+    [pacienteSeleccionado, setPacienteSeleccionado] = useState<Paciente | null>(
+      null,
+    ),
     [pacienteRadiografia, setPacienteRadiografia] = useState<Paciente | null>(
       null,
     ),
@@ -136,27 +497,63 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
     const actualizar = () => setEstudios(obtenerEstudios());
     actualizar();
     setCargando(true);
-    setErrorListado('');
-    void listarPacientes(controller.signal).then(datos => {
-      if (!controller.signal.aborted) setPacientes(datos);
-    }).catch(causa => {
-      if (!controller.signal.aborted) setErrorListado(causa instanceof Error ? causa.message : 'No se pudieron cargar los pacientes.');
-    }).finally(() => { if (!controller.signal.aborted) setCargando(false); });
+    setErrorListado("");
+    void listarPacientes(controller.signal)
+      .then((datos) => {
+        if (!controller.signal.aborted) setPacientes(datos);
+      })
+      .catch((causa) => {
+        if (!controller.signal.aborted)
+          setErrorListado(
+            causa instanceof Error
+              ? causa.message
+              : "No se pudieron cargar los pacientes.",
+          );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCargando(false);
+      });
     window.addEventListener("radiuus:datos-demo", actualizar);
-    return () => { controller.abort(); window.removeEventListener("radiuus:datos-demo", actualizar); };
+    return () => {
+      controller.abort();
+      window.removeEventListener("radiuus:datos-demo", actualizar);
+    };
   }, [recarga]);
-  useEffect(()=>{const actualizar=()=>setRecarga(valor=>valor+1);window.addEventListener('pacientes:actualizados',actualizar);window.addEventListener('focus',actualizar);return()=>{window.removeEventListener('pacientes:actualizados',actualizar);window.removeEventListener('focus',actualizar);};},[]);
+  useEffect(() => {
+    const actualizar = () => setRecarga((valor) => valor + 1);
+    window.addEventListener("pacientes:actualizados", actualizar);
+    window.addEventListener("focus", actualizar);
+    return () => {
+      window.removeEventListener("pacientes:actualizados", actualizar);
+      window.removeEventListener("focus", actualizar);
+    };
+  }, []);
   const estudiosModalidad = useMemo(
-    () => modalidad ? estudios.filter((estudio) => estudio.categoria === modalidad) : estudios,
+    () =>
+      modalidad
+        ? estudios.filter((estudio) => estudio.categoria === modalidad)
+        : estudios,
     [estudios, modalidad],
   );
-  const pacientesVisibles = useMemo(
-    () => {
-      const unicos = [...new Map(pacientes.map(paciente => [(paciente.numeroDocumento || paciente.id).trim().toLocaleUpperCase('es'), paciente])).values()];
-      return (soloConEstudio || Boolean(modalidad)) ? unicos.filter((paciente) => estudiosModalidad.some((estudio) => estudio.pacienteId === paciente.id)) : unicos;
-    },
-    [pacientes, estudiosModalidad, soloConEstudio],
-  );
+  const pacientesVisibles = useMemo(() => {
+    const unicos = [
+      ...new Map(
+        pacientes.map((paciente) => [
+          (paciente.numeroDocumento || paciente.id)
+            .trim()
+            .toLocaleUpperCase("es"),
+          paciente,
+        ]),
+      ).values(),
+    ];
+    return soloConEstudio || Boolean(modalidad)
+      ? unicos.filter((paciente) =>
+          estudiosModalidad.some(
+            (estudio) => estudio.pacienteId === paciente.id,
+          ),
+        )
+      : unicos;
+  }, [pacientes, estudiosModalidad, soloConEstudio]);
   const filtrados = useMemo(
     () =>
       pacientesVisibles.filter(
@@ -185,18 +582,28 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
   };
   const pacienteRegistrado = (registrado: PacienteRegistrado) => {
     const nuevo = pacienteParaVista(registrado);
-    setPacientes((actuales) => [nuevo, ...actuales.filter((p) => p.id !== nuevo.id)]);
-    setRecarga(actual => actual + 1);
-    setBusqueda('');
-    setSexo('todos');
-    setSucursal('todas');
+    setPacientes((actuales) => [
+      nuevo,
+      ...actuales.filter((p) => p.id !== nuevo.id),
+    ]);
+    setRecarga((actual) => actual + 1);
+    setBusqueda("");
+    setSexo("todos");
+    setSucursal("todas");
     setPacienteSeleccionado(nuevo);
     setPagina(1);
   };
-  const replegarSidebar = () => window.dispatchEvent(new Event("clinico:replegar-sidebar"));
-  const historialConsumos = useMemo(() => pacienteSeleccionado
-    ? estudios.filter((estudio) => estudio.pacienteId === pacienteSeleccionado.id)
-    : [], [estudios, pacienteSeleccionado]);
+  const replegarSidebar = () =>
+    window.dispatchEvent(new Event("clinico:replegar-sidebar"));
+  const historialConsumos = useMemo(
+    () =>
+      pacienteSeleccionado
+        ? estudios.filter(
+            (estudio) => estudio.pacienteId === pacienteSeleccionado.id,
+          )
+        : [],
+    [estudios, pacienteSeleccionado],
+  );
   const abrirEditar = (p: Paciente) => {
     setEditando(p);
     setForm({
@@ -223,13 +630,39 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
         id: editando?.id || `pac-${crypto.randomUUID()}`,
         creadoEn: editando?.creadoEn || new Date().toISOString(),
       };
-      if (!editando) throw new Error('Utiliza Registrar paciente para crear una ficha completa.');
-      const respuesta = await apiFetch(`/api/v1/pacientes/${editando.id}`, { method: 'PUT', headers: {Accept:'application/json'}, body: JSON.stringify({nombres:d.nombres,apellido_paterno:d.primerApellido,apellido_materno:d.segundoApellido,ci:d.numeroDocumento,fecha_nacimiento:d.fechaNacimiento,genero:({femenino:'Femenino',masculino:'Masculino',otro:'Otro'} as Record<string,string>)[d.sexo] || d.sexo,telefono:d.telefono,direccion_domicilio:d.direccion}) });
+      if (!editando)
+        throw new Error(
+          "Utiliza Registrar paciente para crear una ficha completa.",
+        );
+      const respuesta = await apiFetch(`/api/v1/pacientes/${editando.id}`, {
+        method: "PUT",
+        headers: { Accept: "application/json" },
+        body: JSON.stringify({
+          nombres: d.nombres,
+          apellido_paterno: d.primerApellido,
+          apellido_materno: d.segundoApellido,
+          ci: d.numeroDocumento,
+          fecha_nacimiento: d.fechaNacimiento,
+          genero:
+            (
+              {
+                femenino: "Femenino",
+                masculino: "Masculino",
+                otro: "Otro",
+              } as Record<string, string>
+            )[d.sexo] || d.sexo,
+          telefono: d.telefono,
+          direccion_domicilio: d.direccion,
+        }),
+      });
       const datos = await respuesta.json();
-      if (!respuesta.ok) throw new Error(datos.message || 'No se pudo guardar el paciente.');
+      if (!respuesta.ok)
+        throw new Error(datos.message || "No se pudo guardar el paciente.");
       const guardado = pacienteParaVista(datos.data);
-      const nuevos = editando ? pacientes.map((p) => (p.id === guardado.id ? guardado : p)) : [guardado, ...pacientes];
-      window.dispatchEvent(new Event('pacientes:actualizados'));
+      const nuevos = editando
+        ? pacientes.map((p) => (p.id === guardado.id ? guardado : p))
+        : [guardado, ...pacientes];
+      window.dispatchEvent(new Event("pacientes:actualizados"));
       setPacientes(nuevos);
       cerrar();
     } catch (e) {
@@ -259,7 +692,9 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
   const subirRadiografia = async (e: FormEvent) => {
     e.preventDefault();
     if (!pacienteRadiografia || !archivoRadiografia)
-      return setErrorRadiografia(`Selecciona el archivo de ${modalidad?.toLowerCase() || "imagenología"}.`);
+      return setErrorRadiografia(
+        `Selecciona el archivo de ${modalidad?.toLowerCase() || "imagenología"}.`,
+      );
     if (archivoRadiografia.size > 200 * 1024 * 1024)
       return setErrorRadiografia("El archivo no debe superar 200 MB.");
     setGuardandoRadiografia(true);
@@ -283,7 +718,9 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
       cerrarRadiografia();
     } catch (e) {
       setErrorRadiografia(
-        e instanceof Error ? e.message : `No se pudo guardar el estudio de ${modalidad?.toLowerCase() || "imagenología"}.`,
+        e instanceof Error
+          ? e.message
+          : `No se pudo guardar el estudio de ${modalidad?.toLowerCase() || "imagenología"}.`,
       );
     } finally {
       setGuardandoRadiografia(false);
@@ -328,11 +765,38 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
       </div>
     </div>
   );
-  if (viendo && !modoClinico) return <InspeccionPaciente paciente={viendo} estudios={estudios} onVolver={() => setViendo(null)} />;
-  if (pacienteSeleccionado && modoClinico) return <FichaPacienteCompleta paciente={pacienteSeleccionado} estudios={estudios} onVolver={() => setPacienteSeleccionado(null)} />;
+  if (viendo && !modoClinico)
+    return (
+      <InspeccionPaciente
+        paciente={viendo}
+        estudios={estudios}
+        onVolver={() => setViendo(null)}
+      />
+    );
+  if (pacienteSeleccionado && modoClinico)
+    return (
+      <FichaPacienteCompleta
+        paciente={pacienteSeleccionado}
+        estudios={estudios}
+        onVolver={() => setPacienteSeleccionado(null)}
+      />
+    );
   return (
-    <div className="usuarios-vista pacientes-vista" onPointerDownCapture={replegarSidebar}>
-      {errorListado && <div role="alert">{errorListado} <button type="button" onClick={() => setRecarga(actual => actual + 1)}>Reintentar</button></div>}
+    <div
+      className="usuarios-vista pacientes-vista"
+      onPointerDownCapture={replegarSidebar}
+    >
+      {errorListado && (
+        <div role="alert">
+          {errorListado}{" "}
+          <button
+            type="button"
+            onClick={() => setRecarga((actual) => actual + 1)}
+          >
+            Reintentar
+          </button>
+        </div>
+      )}
       <div className="usuarios-herramientas">
         <label className="pacientes-buscador">
           <Icon name="search" size={18} />
@@ -342,132 +806,293 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
             placeholder="Buscar por nombre, documento, celular o dirección..."
           />
         </label>
-        <label className="pacientes-filtro"><span>Sexo</span><select
-          value={sexo}
-          onChange={(e) => filtrar(() => setSexo(e.target.value))}
-        >
-          <option value="todos">Todos los sexos</option>
-          <option value="femenino">Femenino</option>
-          <option value="masculino">Masculino</option>
-          <option value="otro">Otro</option>
-          <option value="no_especifica">No especifica</option>
-        </select></label>
-        {modoClinico && <label className="pacientes-filtro"><span>Sucursal</span><select value={sucursal} onChange={(e) => filtrar(() => setSucursal(e.target.value))} aria-label="Filtrar por sucursal">
-          <option value="todas">Todas las sucursales</option><option value="Central">Sucursal Central</option><option value="Norte">Sucursal Norte</option><option value="Sur">Sucursal Sur</option>
-        </select></label>}
-        {modoClinico && <button className="usuarios-crear pacientes-registrar" type="button" onClick={() => setRegistroAbierto(true)}><Icon name="plus" size={17} />Registrar nuevo paciente</button>}
-      </div>
-      <div className={`pacientes-con-historial ${pacienteSeleccionado ? "con-paciente" : ""}`}>
-      <div className="pacientes-listado">
-      <div className={`usuarios-tabla pacientes-tabla ${modoClinico ? "pacientes-tabla-sin-sucursal" : ""}`}>
-        <Paginacion tam />
-        <div className="usuarios-fila usuarios-columnas">
-          <span>Paciente</span>
-          <span>Fecha de nacimiento</span>
-          <span>Documento</span>
-          <span>Edad</span>
+        <label className="pacientes-filtro">
           <span>Sexo</span>
-          <span>Celular</span>
-          {!modoClinico && <><span>Tipo de estudio</span><span>Estado</span></>}
-          <span>Acciones</span>
-        </div>
-        {cargando ? (
-          <div className="usuarios-mensaje">Cargando pacientes…</div>
-        ) : visibles.length ? (
-          visibles.map((p) => {
-            const estudio = estudioDe(p);
-            return (
-              <div className={`usuarios-fila ${pacienteSeleccionado?.id === p.id ? "paciente-activo" : ""}`} key={p.id}>
-                <div className="usuario-identidad">
-                  <div>
-                    <strong>{nombreCompleto(p)}</strong>
-                  </div>
-                </div>
-                <div>
-                  <strong className="dato-movil">Fecha de nacimiento</strong>
-                  <span>
-                    {p.fechaNacimiento
-                      ? new Date(
-                          `${p.fechaNacimiento}T00:00:00`,
-                        ).toLocaleDateString("es-ES")
-                      : "No registrada"}
-                  </span>
-                </div>
-                <div>
-                  <strong className="dato-movil">Documento</strong>
-                  <span>
-                    {p.tipoDocumento} · {p.numeroDocumento}
-                  </span>
-                </div>
-                <div>
-                  <strong className="dato-movil">Edad</strong>
-                  <span>{calcularEdad(p.fechaNacimiento) === null ? "No registrada" : `${calcularEdad(p.fechaNacimiento)} años`}</span>
-                </div>
-                <div>
-                  <strong className="dato-movil">Sexo</strong>
-                  <span>{p.sexo.replace("_", " ") || "No registrado"}</span>
-                </div>
-                <div>
-                  <strong className="dato-movil">Celular</strong>
-                  <span>{p.telefono || "No registrado"}</span>
-                </div>
-                {!modoClinico && <><div className="radiografia-tipo">
-                  <strong className="dato-movil">Tipo de estudio</strong>
-                  <span>{estudio?.titulo || modalidad || "Sin estudio"}</span>
-                </div><div className="radiografia-estado">
-                  <strong className="dato-movil">Estado</strong>
-                  <span
-                    className={estudio ? "estado-cargado" : "estado-pendiente"}
-                  >
-                    {estudio ? "Cargada" : "Pendiente"}
-                  </span>
-                </div></>}
-                <div className="acciones-tabla">
-                  {modoClinico ? <button
-                    className="usuario-accion"
-                    type="button"
-                    onClick={() => setPacienteSeleccionado(p)}
-                    title="Ver paciente"
-                    aria-label={`Ver paciente ${nombreCompleto(p)}`}
-                  >
-                    <Icon name="eye" size={16} /><span>Ver paciente</span>
-                  </button> : <button
-                    className="usuario-accion"
-                    onClick={() => {
-                      if (modalidad === 'Tomografía' && estudio) {
-                        seleccionarEstudio(estudio.id);
-                        return;
-                      }
-                      setViendo(p);
-                    }}
-                    title={!modalidad ? "Inspeccionar paciente" : "Ver paciente"}
-                    aria-label={!modalidad ? `Inspeccionar estudios de ${nombreCompleto(p)}` : `Ver paciente ${nombreCompleto(p)}`}
-                  >
-                    <Icon name="eye" size={16} /><span>Ver paciente</span>
-                  </button>}
-                </div>
-              </div>
-            );
-          })
-        ) : (
-          <div className="usuarios-mensaje">
-            <span>
-              <Icon name="users" size={25} />
-            </span>
-            <strong>No hay pacientes para mostrar</strong>
-            <small>Registra el primer paciente o cambia los filtros.</small>
-          </div>
+          <select
+            value={sexo}
+            onChange={(e) => filtrar(() => setSexo(e.target.value))}
+          >
+            <option value="todos">Todos los sexos</option>
+            <option value="femenino">Femenino</option>
+            <option value="masculino">Masculino</option>
+            <option value="otro">Otro</option>
+            <option value="no_especifica">No especifica</option>
+          </select>
+        </label>
+        {modoClinico && (
+          <label className="pacientes-filtro">
+            <span>Sucursal</span>
+            <select
+              value={sucursal}
+              onChange={(e) => filtrar(() => setSucursal(e.target.value))}
+              aria-label="Filtrar por sucursal"
+            >
+              <option value="todas">Todas las sucursales</option>
+              <option value="Central">Sucursal Central</option>
+              <option value="Norte">Sucursal Norte</option>
+              <option value="Sur">Sucursal Sur</option>
+            </select>
+          </label>
+        )}
+        {modoClinico && (
+          <button
+            className="usuarios-crear pacientes-registrar"
+            type="button"
+            onClick={() => setRegistroAbierto(true)}
+          >
+            <Icon name="plus" size={17} />
+            Registrar nuevo paciente
+          </button>
         )}
       </div>
-      <Paginacion tam />
-      </div>
-      {pacienteSeleccionado && <aside className="historial-consumos" aria-label={`Ficha e historial de consumo de ${nombreCompleto(pacienteSeleccionado)}`}>
-        <header><div><p>FICHA DEL PACIENTE</p><h3>{nombreCompleto(pacienteSeleccionado)}</h3><small>{pacienteSeleccionado.tipoDocumento} {pacienteSeleccionado.numeroDocumento}</small></div><button type="button" onClick={() => setPacienteSeleccionado(null)} aria-label="Cerrar ficha"><Icon name="close" size={16} /></button></header>
-        <section className="ficha-paciente-datos"><div><span>Fecha de nacimiento</span><strong>{pacienteSeleccionado.fechaNacimiento ? new Date(`${pacienteSeleccionado.fechaNacimiento}T00:00:00`).toLocaleDateString('es-BO') : 'No registrada'}</strong></div><div><span>Edad</span><strong>{calcularEdad(pacienteSeleccionado.fechaNacimiento) === null ? 'No registrada' : `${calcularEdad(pacienteSeleccionado.fechaNacimiento)} años`}</strong></div><div><span>Sexo</span><strong>{pacienteSeleccionado.sexo.replace('_', ' ') || 'No registrado'}</strong></div><div><span>Celular</span><strong>{pacienteSeleccionado.telefono || 'No registrado'}</strong></div><div className="ficha-paciente-direccion"><span>Dirección</span><strong>{pacienteSeleccionado.direccion || 'No registrada'}</strong></div></section>
-        <h4 className="historial-consumos-titulo">Historial de consumos</h4>
-        <label className="historial-filtro"><span>Todos</span><select aria-label="Filtrar historial"><option>Todos</option><option>Pagados</option><option>Pendientes</option></select></label>
-        <div className="historial-lista">{historialConsumos.length ? historialConsumos.map((estudio) => <article className="consumo-card pagado" key={estudio.id}><strong>{estudio.titulo}</strong><span>HOSPITAL MARÍA ESPERANZA</span><small>{estudio.categoria}</small><footer><time>{new Date(estudio.creadaEn).toLocaleDateString("es-BO", { day: "numeric", month: "long", year: "numeric" })}</time><b>Registrado</b></footer></article>) : <div className="historial-vacio"><Icon name="fileText" size={23} /><strong>Sin consumos registrados</strong><small>Los estudios, servicios y cargos de este paciente aparecerán aquí.</small></div>}</div>
-      </aside>}
+      <div
+        className={`pacientes-con-historial ${pacienteSeleccionado ? "con-paciente" : ""}`}
+      >
+        <div className="pacientes-listado">
+          <div
+            className={`usuarios-tabla pacientes-tabla ${modoClinico ? "pacientes-tabla-sin-sucursal" : ""}`}
+          >
+            <Paginacion tam />
+            <div className="usuarios-fila usuarios-columnas">
+              <span>Paciente</span>
+              <span>Fecha de nacimiento</span>
+              <span>Documento</span>
+              <span>Edad</span>
+              <span>Sexo</span>
+              <span>Celular</span>
+              {!modoClinico && (
+                <>
+                  <span>Tipo de estudio</span>
+                  <span>Estado</span>
+                </>
+              )}
+              <span>Acciones</span>
+            </div>
+            {cargando ? (
+              <div className="usuarios-mensaje">Cargando pacientes…</div>
+            ) : visibles.length ? (
+              visibles.map((p) => {
+                const estudio = estudioDe(p);
+                return (
+                  <div
+                    className={`usuarios-fila ${pacienteSeleccionado?.id === p.id ? "paciente-activo" : ""}`}
+                    key={p.id}
+                  >
+                    <div className="usuario-identidad">
+                      <div>
+                        <strong>{nombreCompleto(p)}</strong>
+                      </div>
+                    </div>
+                    <div>
+                      <strong className="dato-movil">
+                        Fecha de nacimiento
+                      </strong>
+                      <span>
+                        {p.fechaNacimiento
+                          ? new Date(
+                              `${p.fechaNacimiento}T00:00:00`,
+                            ).toLocaleDateString("es-ES")
+                          : "No registrada"}
+                      </span>
+                    </div>
+                    <div>
+                      <strong className="dato-movil">Documento</strong>
+                      <span>
+                        {p.tipoDocumento} · {p.numeroDocumento}
+                      </span>
+                    </div>
+                    <div>
+                      <strong className="dato-movil">Edad</strong>
+                      <span>
+                        {calcularEdad(p.fechaNacimiento) === null
+                          ? "No registrada"
+                          : `${calcularEdad(p.fechaNacimiento)} años`}
+                      </span>
+                    </div>
+                    <div>
+                      <strong className="dato-movil">Sexo</strong>
+                      <span>{p.sexo.replace("_", " ") || "No registrado"}</span>
+                    </div>
+                    <div>
+                      <strong className="dato-movil">Celular</strong>
+                      <span>{p.telefono || "No registrado"}</span>
+                    </div>
+                    {!modoClinico && (
+                      <>
+                        <div className="radiografia-tipo">
+                          <strong className="dato-movil">
+                            Tipo de estudio
+                          </strong>
+                          <span>
+                            {estudio?.titulo || modalidad || "Sin estudio"}
+                          </span>
+                        </div>
+                        <div className="radiografia-estado">
+                          <strong className="dato-movil">Estado</strong>
+                          <span
+                            className={
+                              estudio ? "estado-cargado" : "estado-pendiente"
+                            }
+                          >
+                            {estudio ? "Cargada" : "Pendiente"}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    <div className="acciones-tabla">
+                      {modoClinico ? (
+                        <button
+                          className="usuario-accion"
+                          type="button"
+                          onClick={() => setPacienteSeleccionado(p)}
+                          title="Ver paciente"
+                          aria-label={`Ver paciente ${nombreCompleto(p)}`}
+                        >
+                          <Icon name="eye" size={16} />
+                          <span>Ver paciente</span>
+                        </button>
+                      ) : (
+                        <button
+                          className="usuario-accion"
+                          onClick={() => {
+                            if (modalidad === "Tomografía" && estudio) {
+                              seleccionarEstudio(estudio.id);
+                              return;
+                            }
+                            setViendo(p);
+                          }}
+                          title={
+                            !modalidad
+                              ? "Inspeccionar paciente"
+                              : "Ver paciente"
+                          }
+                          aria-label={
+                            !modalidad
+                              ? `Inspeccionar estudios de ${nombreCompleto(p)}`
+                              : `Ver paciente ${nombreCompleto(p)}`
+                          }
+                        >
+                          <Icon name="eye" size={16} />
+                          <span>Ver paciente</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="usuarios-mensaje">
+                <span>
+                  <Icon name="users" size={25} />
+                </span>
+                <strong>No hay pacientes para mostrar</strong>
+                <small>Registra el primer paciente o cambia los filtros.</small>
+              </div>
+            )}
+          </div>
+          <Paginacion tam />
+        </div>
+        {pacienteSeleccionado && (
+          <aside
+            className="historial-consumos"
+            aria-label={`Ficha e historial de consumo de ${nombreCompleto(pacienteSeleccionado)}`}
+          >
+            <header>
+              <div>
+                <p>FICHA DEL PACIENTE</p>
+                <h3>{nombreCompleto(pacienteSeleccionado)}</h3>
+                <small>
+                  {pacienteSeleccionado.tipoDocumento}{" "}
+                  {pacienteSeleccionado.numeroDocumento}
+                </small>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPacienteSeleccionado(null)}
+                aria-label="Cerrar ficha"
+              >
+                <Icon name="close" size={16} />
+              </button>
+            </header>
+            <section className="ficha-paciente-datos">
+              <div>
+                <span>Fecha de nacimiento</span>
+                <strong>
+                  {pacienteSeleccionado.fechaNacimiento
+                    ? new Date(
+                        `${pacienteSeleccionado.fechaNacimiento}T00:00:00`,
+                      ).toLocaleDateString("es-BO")
+                    : "No registrada"}
+                </strong>
+              </div>
+              <div>
+                <span>Edad</span>
+                <strong>
+                  {calcularEdad(pacienteSeleccionado.fechaNacimiento) === null
+                    ? "No registrada"
+                    : `${calcularEdad(pacienteSeleccionado.fechaNacimiento)} años`}
+                </strong>
+              </div>
+              <div>
+                <span>Sexo</span>
+                <strong>
+                  {pacienteSeleccionado.sexo.replace("_", " ") ||
+                    "No registrado"}
+                </strong>
+              </div>
+              <div>
+                <span>Celular</span>
+                <strong>
+                  {pacienteSeleccionado.telefono || "No registrado"}
+                </strong>
+              </div>
+              <div className="ficha-paciente-direccion">
+                <span>Dirección</span>
+                <strong>
+                  {pacienteSeleccionado.direccion || "No registrada"}
+                </strong>
+              </div>
+            </section>
+            <h4 className="historial-consumos-titulo">Historial de consumos</h4>
+            <label className="historial-filtro">
+              <span>Todos</span>
+              <select aria-label="Filtrar historial">
+                <option>Todos</option>
+                <option>Pagados</option>
+                <option>Pendientes</option>
+              </select>
+            </label>
+            <div className="historial-lista">
+              {historialConsumos.length ? (
+                historialConsumos.map((estudio) => (
+                  <article className="consumo-card pagado" key={estudio.id}>
+                    <strong>{estudio.titulo}</strong>
+                    <span>HOSPITAL MARÍA ESPERANZA</span>
+                    <small>{estudio.categoria}</small>
+                    <footer>
+                      <time>
+                        {new Date(estudio.creadaEn).toLocaleDateString(
+                          "es-BO",
+                          { day: "numeric", month: "long", year: "numeric" },
+                        )}
+                      </time>
+                      <b>Registrado</b>
+                    </footer>
+                  </article>
+                ))
+              ) : (
+                <div className="historial-vacio">
+                  <Icon name="fileText" size={23} />
+                  <strong>Sin consumos registrados</strong>
+                  <small>
+                    Los estudios, servicios y cargos de este paciente aparecerán
+                    aquí.
+                  </small>
+                </div>
+              )}
+            </div>
+          </aside>
+        )}
       </div>
       {abierto && editando && (
         <div className="usuario-modal-fondo" onClick={cerrar}>
@@ -606,8 +1231,15 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
               </label>
               <label>
                 Sucursal
-                <select value={form.sucursal} onChange={(e) => setForm({ ...form, sucursal: e.target.value })}>
-                  <option value="Central">Sucursal Central</option><option value="Norte">Sucursal Norte</option><option value="Sur">Sucursal Sur</option>
+                <select
+                  value={form.sucursal}
+                  onChange={(e) =>
+                    setForm({ ...form, sucursal: e.target.value })
+                  }
+                >
+                  <option value="Central">Sucursal Central</option>
+                  <option value="Norte">Sucursal Norte</option>
+                  <option value="Sur">Sucursal Sur</option>
                 </select>
               </label>
             </div>
@@ -627,7 +1259,12 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
           </form>
         </div>
       )}
-      {registroAbierto && <ModalRegistroPaciente onCerrar={() => setRegistroAbierto(false)} onRegistrado={pacienteRegistrado} />}
+      {registroAbierto && (
+        <ModalRegistroPaciente
+          onCerrar={() => setRegistroAbierto(false)}
+          onRegistrado={pacienteRegistrado}
+        />
+      )}
       {viendo && (
         <div className="usuario-modal-fondo" onClick={() => setViendo(null)}>
           <div
@@ -653,7 +1290,9 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
               <div>
                 <small>Documento</small>
                 <strong>
-                  {viendo.numeroDocumento ? `${viendo.tipoDocumento || "Documento"} · ${viendo.numeroDocumento}` : "No registrado"}
+                  {viendo.numeroDocumento
+                    ? `${viendo.tipoDocumento || "Documento"} · ${viendo.numeroDocumento}`
+                    : "No registrado"}
                 </strong>
               </div>
               <div>
@@ -700,7 +1339,10 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
             className="usuario-modal informe-modal"
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="usuario-modal-cerrar" onClick={cerrarRadiografia}>
+            <button
+              className="usuario-modal-cerrar"
+              onClick={cerrarRadiografia}
+            >
               <Icon name="close" />
             </button>
             <div className="usuario-modal-titulo">
@@ -708,16 +1350,17 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                 <Icon name="image" size={23} />
               </span>
               <div>
-                <h3>
-                  Subir {modalidad?.toLowerCase() || "estudio"}
-                </h3>
+                <h3>Subir {modalidad?.toLowerCase() || "estudio"}</h3>
                 <p>{nombreCompleto(pacienteRadiografia)}</p>
               </div>
             </div>
             {errorRadiografia && (
               <div className="usuario-form-error">{errorRadiografia}</div>
             )}
-            <p className="radiografia-ayuda">Carga el estudio en imagen, DICOM, ZIP o RAR para asociarlo a este paciente y dejarlo disponible en el visor.</p>
+            <p className="radiografia-ayuda">
+              Carga el estudio en imagen, DICOM, ZIP o RAR para asociarlo a este
+              paciente y dejarlo disponible en el visor.
+            </p>
             <form className="informe-carga" onSubmit={subirRadiografia}>
               <label>
                 <input
@@ -730,7 +1373,9 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                 />
                 <span>
                   <Icon name="plus" size={17} />
-                  {archivoRadiografia ? archivoRadiografia.name : `Seleccionar ${modalidad?.toLowerCase() || "estudio"}`}
+                  {archivoRadiografia
+                    ? archivoRadiografia.name
+                    : `Seleccionar ${modalidad?.toLowerCase() || "estudio"}`}
                 </span>
               </label>
               <div className="usuario-form-acciones">
@@ -742,7 +1387,9 @@ export default function VistaPacientes({ modalidad, soloConEstudio = false, modo
                   disabled={!archivoRadiografia || guardandoRadiografia}
                 >
                   <Icon name="check" size={16} />
-                  {guardandoRadiografia ? "Guardando…" : `Subir ${modalidad?.toLowerCase() || "estudio"}`}
+                  {guardandoRadiografia
+                    ? "Guardando…"
+                    : `Subir ${modalidad?.toLowerCase() || "estudio"}`}
                 </button>
               </div>
             </form>

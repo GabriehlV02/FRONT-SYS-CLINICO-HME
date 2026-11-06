@@ -5,6 +5,7 @@ import Icon, { type IconName } from '../../radius/componentes/Icono';
 import { AgendaAmbulatoriaView, type CitaConfirmada } from './AgendaAmbulatoriaView';
 import { registrarAtencionAmbulatoria } from './registroHistoria';
 import { ConsultaMedicaView } from './ConsultaMedicaView';
+import type { SignoVitalConfig } from '../triaje/ConfiguracionSignosVitalesView';
 import { FavoritosPaquetes } from './FavoritosPaquetes';
 import './ConsultorioView.css';
 import './HistoriasClinicasView.css';
@@ -27,7 +28,7 @@ const subvistas: { id: Subvista; nombre: string; icono: IconName }[] = [
 ];
 
 
-export function ConsultorioView({ medico, initialSubview = 'consulta', initialPatient = null }: { medico: string; initialSubview?: Subvista; initialPatient?: CitaConfirmada | null }) {
+export function ConsultorioView({ medico, initialSubview = 'consulta', initialPatient = null, signos, estadoSignos }: { medico: string; initialSubview?: Subvista; initialPatient?: CitaConfirmada | null; signos: SignoVitalConfig[]; estadoSignos: 'cargando' | 'listo' | 'error' }) {
   const [subvista, setSubvista] = useState<Subvista>(initialSubview);
   const [pacienteEnConsulta, setPacienteEnConsulta] = useState<CitaConfirmada | null>(initialPatient);
   useEffect(() => { if (pacienteEnConsulta) registrarAtencionAmbulatoria(pacienteEnConsulta, medico); }, [pacienteEnConsulta, medico]);
@@ -36,7 +37,7 @@ export function ConsultorioView({ medico, initialSubview = 'consulta', initialPa
     window.addEventListener('consulta:volver-al-listado', volverAlListado);
     return () => window.removeEventListener('consulta:volver-al-listado', volverAlListado);
   }, []);
-  return <section className="consultorio-vista"><nav className="consultorio-subvistas" aria-label="Subvistas de Consultorio médico">{subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => { setSubvista(item.id); if (item.id === 'consulta') setPacienteEnConsulta(null); }}><span className="consultorio-subvista-icono"><Icon name={item.icono} size={18} /></span><span>{item.nombre}</span></button>)}</nav>{subvista === 'consulta' ? (pacienteEnConsulta ? <ConsultaMedicaView key={`${pacienteEnConsulta.id}-${pacienteEnConsulta.fecha}-${pacienteEnConsulta.hora}`} paciente={pacienteEnConsulta} medico={medico} /> : <AgendaAmbulatoriaView medico={medico} onAtender={setPacienteEnConsulta} />) : subvista === 'historias' ? <HistoriasClinicasView /> : <FavoritosPaquetes medico={medico} />}</section>;
+  return <section className="consultorio-vista"><nav className="consultorio-subvistas" aria-label="Subvistas de Consultorio médico">{subvistas.map((item) => <button key={item.id} className={subvista === item.id ? 'activo' : ''} onClick={() => { setSubvista(item.id); if (item.id === 'consulta') setPacienteEnConsulta(null); }}><span className="consultorio-subvista-icono"><Icon name={item.icono} size={18} /></span><span>{item.nombre}</span></button>)}</nav>{subvista === 'consulta' ? (pacienteEnConsulta ? <ConsultaMedicaView key={`${pacienteEnConsulta.id}-${pacienteEnConsulta.fecha}-${pacienteEnConsulta.hora}`} paciente={pacienteEnConsulta} medico={medico} signos={signos} estadoSignos={estadoSignos} /> : <AgendaAmbulatoriaView medico={medico} onAtender={setPacienteEnConsulta} />) : subvista === 'historias' ? <HistoriasClinicasView /> : <FavoritosPaquetes medico={medico} />}</section>;
 }
 
 export function HistoriasClinicasView() {

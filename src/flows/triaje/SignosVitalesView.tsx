@@ -4,6 +4,9 @@ import './SignosVitalesView.css';
 import './ColaTriaje.css';
 import type { SignoVitalConfig } from './ConfiguracionSignosVitalesView';
 import { guardarSignosVitales } from './registroSignosVitales';
+import { useServiciosSignosVitales } from './ServiciosSignosVitales';
+import { camposParaServicio, compararReferencia } from './camposSignosVitales';
+import { apiFetch } from '../../radius/api';
 
 type PacienteEnEspera = {
   id: string;
@@ -16,17 +19,11 @@ type PacienteEnEspera = {
   edad: number;
   doctor: string;
   especialidad: string;
+  signosRegistrados?: boolean;
 };
 type PacienteAtendido = PacienteEnEspera & { valores: Record<string, string>; registrado: string };
 
-const fechaDemo = () => new Date().toISOString().slice(0, 10);
-const colaInicial: PacienteEnEspera[] = [
-  { id: 'triaje-demo-1', paciente: 'María Fernanda López', ci: '6894521', edad: 42, doctor: 'Administrador del sistema', especialidad: 'Medicina Interna', fecha: fechaDemo(), hora: '08:00', estado: 'confirmada' },
-  { id: 'triaje-demo-2', paciente: 'Carlos Mendoza Rojas', ci: '7459823', edad: 55, doctor: 'Administrador del sistema', especialidad: 'Cardiología', fecha: fechaDemo(), hora: '08:30', estado: 'confirmada' },
-  { id: 'triaje-demo-3', paciente: 'Lucía Valdez Herrera', ci: '5128934', edad: 36, doctor: 'Administrador del sistema', especialidad: 'Neumología', fecha: fechaDemo(), hora: '09:30', estado: 'confirmada' },
-  { id: 'triaje-demo-4', paciente: 'Jorge Ramírez Soria', ci: '8246175', edad: 61, doctor: 'Administrador del sistema', especialidad: 'Medicina Interna', fecha: fechaDemo(), hora: '10:00', estado: 'confirmada' },
-  { id: 'triaje-demo-5', paciente: 'Sofía Quispe Flores', ci: '6381942', edad: 9, doctor: 'Administrador del sistema', especialidad: 'Pediatría', fecha: fechaDemo(), hora: '10:30', estado: 'confirmada' },
-];
+const colaInicial: PacienteEnEspera[] = [];
 const atendidosIniciales: PacienteAtendido[] = [];
 
 const camposVitalesPredeterminados = [
@@ -39,9 +36,21 @@ const camposVitalesPredeterminados = [
 ] as const;
 
 export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?: SignoVitalConfig[] }) {
+  const catalogoServicios = useServiciosSignosVitales();
   const [cola, setCola] = useState(colaInicial);
   const [errorPacientes, setErrorPacientes] = useState('');
-  useEffect(()=>{setCola(colaInicial);setErrorPacientes('');return;},[]);
+  useEffect(() => {
+    const controller = new AbortController();
+    apiFetch('/api/citas', { signal: controller.signal }).then(async respuesta => {
+      if (!respuesta.ok) throw new Error('No se pudieron cargar las consultas.');
+      const citas: PacienteEnEspera[] = await respuesta.json();
+      const activas = citas.filter(cita => cita.estado === 'confirmada' || cita.estado === 'por_confirmar');
+      setCola(activas.filter(cita => !cita.signosRegistrados));
+      setAtendidos(activas.filter(cita => cita.signosRegistrados).map(cita => ({ ...cita, valores: {}, registrado: 'Registrado' })));
+      setErrorPacientes('');
+    }).catch(error => { if (!controller.signal.aborted) setErrorPacientes(error instanceof Error ? error.message : 'No se pudieron cargar las consultas.'); });
+    return () => controller.abort();
+  }, []);
   const [busqueda, setBusqueda] = useState('');
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState<PacienteEnEspera | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});
@@ -49,21 +58,38 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
   const [panelAtendidosAbierto, setPanelAtendidosAbierto] = useState(true);
   const [busquedaAtendidos, setBusquedaAtendidos] = useState('');
   const [editandoAtendido, setEditandoAtendido] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [errorRegistro, setErrorRegistro] = useState('');
+  const [versionValoracion, setVersionValoracion] = useState<number | null>(null);
   const atendidosVisibles = atendidos.filter((paciente) =>
     `${paciente.paciente} ${paciente.ci} ${paciente.doctor}`.toLocaleLowerCase().includes(busquedaAtendidos.toLocaleLowerCase()),
   );
   const visibles = cola.filter((paciente) =>
     `${paciente.paciente} ${paciente.ci} ${paciente.doctor}`.toLowerCase().includes(busqueda.toLowerCase()),
   );
-  const camposVitales = camposConfigurados?.flatMap((campo) => campo.componentes?.length
-    ? campo.componentes.map((componente) => ({ id: `${campo.id}::${componente.id}`, etiqueta: `${campo.nombre} · ${componente.nombre}`, unidad: campo.abreviatura, tipo: 'Número decimal', rango: componente.rangoReferencia }))
-    : [{ id: campo.id, etiqueta: campo.nombre, unidad: campo.abreviatura, tipo: campo.tipo, rango: campo.rangoReferencia }])
-    ?? camposVitalesPredeterminados.map(([id, etiqueta, unidad]) => ({ id, etiqueta, unidad, tipo: 'Número decimal', rango: undefined }));
+  const idsAmbulatorio = catalogoServicios.servicios.find(servicio => servicio.id === 'consulta-ambulatoria')?.signos;
+  const camposVitales = camposConfigurados ? camposParaServicio(camposConfigurados, idsAmbulatorio ?? [])
+    : camposVitalesPredeterminados.map(([id, etiqueta, unidad]) => ({ id, etiqueta, unidad, tipo: 'Número decimal', rango: undefined }));
+  const gruposVitales = camposVitales.reduce<{ id: string; nombre: string; campos: typeof camposVitales }[]>((grupos, campo) => {
+    const separador = campo.id.indexOf('::');
+    const id = separador < 0 ? campo.id : campo.id.slice(0, separador);
+    let grupo = grupos.find(actual => actual.id === id);
+    if (!grupo) { grupo = { id, nombre: camposConfigurados?.find(signo => signo.id === id)?.nombre || campo.etiqueta, campos: [] }; grupos.push(grupo); }
+    grupo.campos.push(campo);
+    return grupos;
+  }, []);
 
-  const guardar = (evento: React.FormEvent) => {
+  const guardar = async (evento: React.FormEvent) => {
     evento.preventDefault();
     if (!pacienteSeleccionado) return;
-    guardarSignosVitales(pacienteSeleccionado.ci, valores);
+    const datos = Object.fromEntries(camposVitales.map(campo => [campo.id, (valores[campo.id] || '').trim()]).filter(([, valor]) => valor));
+    if (!Object.keys(datos).length) { setErrorRegistro('Registra al menos una medición.'); return; }
+    setGuardando(true); setErrorRegistro('');
+    try {
+      const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(pacienteSeleccionado.id)}/signos-vitales`, { method: 'POST', body: JSON.stringify({ valores: datos, version: versionValoracion }) });
+      const resultado = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(resultado.message || 'No se pudieron guardar los signos vitales.');
+      guardarSignosVitales(pacienteSeleccionado, resultado.data.valores);
     if (editandoAtendido) {
       setAtendidos((actual) => actual.map((item) => item.id === pacienteSeleccionado.id ? { ...item, valores, registrado: 'Ahora' } : item));
     } else {
@@ -73,8 +99,21 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
     setPacienteSeleccionado(null);
     setValores({});
     setEditandoAtendido(false);
+    } catch (error) { setErrorRegistro(error instanceof Error ? error.message : 'No se pudieron guardar los signos vitales.'); }
+    finally { setGuardando(false); }
   };
 
+  const editar = async (paciente: PacienteAtendido) => {
+    setErrorPacientes('');
+    try {
+      const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/signos-vitales`);
+      if (!respuesta.ok) throw new Error('No se pudo cargar la valoración.');
+      const resultado = await respuesta.json();
+      setValores(resultado.data?.valores ?? {}); setVersionValoracion(resultado.data?.id ?? null); setPacienteSeleccionado(paciente); setEditandoAtendido(true); setErrorRegistro('');
+    } catch (error) { setErrorPacientes(error instanceof Error ? error.message : 'No se pudo cargar la valoración.'); }
+  };
+
+  if (pacienteSeleccionado && (catalogoServicios.cargando || catalogoServicios.error || !idsAmbulatorio)) return <section className="signos-vitales-vista"><p role={catalogoServicios.cargando ? 'status' : 'alert'}>{catalogoServicios.cargando ? 'Cargando signos configurados…' : catalogoServicios.error || 'No se encontró la configuración de consulta ambulatoria.'}</p><button type="button" onClick={() => setPacienteSeleccionado(null)}>Volver a la cola</button></section>;
   if (pacienteSeleccionado) return <section className="signos-vitales-vista">
     <header className="signos-vitales-cabecera">
       <div><p>TRIAJE DE ENFERMERÍA</p><h2>Registro de signos vitales</h2><small>Complete la valoración inicial antes de la consulta ambulatoria.</small></div>
@@ -90,13 +129,26 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
         <label className="formulario-paciente">Especialidad<input value={pacienteSeleccionado.especialidad} disabled /></label>
       </section>
       <section className="formulario-signos-campos">
-        {camposVitales.map(({id, etiqueta, unidad, tipo, rango}) => {
+        <div className="triaje-mediciones-cabecera"><div><strong>Mediciones</strong><small>Completa los signos vitales configurados para consulta ambulatoria.</small></div><span>{gruposVitales.length} signos</span></div>
+        {!camposVitales.length && <p role="status">Este servicio no tiene signos vitales asignados. Configúralos antes de registrar la valoración.</p>}
+        {[...gruposVitales].sort((a, b) => Number(b.campos.length > 1) - Number(a.campos.length > 1)).map(grupo => <div className={`triaje-signo-grupo ${grupo.campos.length > 1 ? 'triaje-signo-grupo-multiple' : ''}`} key={grupo.id}>
+          {grupo.campos.length > 1 && <strong className="triaje-signo-grupo-titulo">{grupo.nombre}</strong>}
+          <div className="triaje-signo-componentes">{grupo.campos.map(({id, etiqueta, unidad, tipo, rango}, indice) => {
           const texto = tipo === 'Texto';
           const entero = tipo === 'N\u00famero entero';
-          return <label key={id}>{etiqueta}<span><input type={texto ? 'text' : 'number'} step={entero ? '1' : 'any'} inputMode={texto ? 'text' : entero ? 'numeric' : 'decimal'} aria-describedby={rango ? `referencia-${id}` : undefined} value={valores[id] || ''} onChange={(evento) => setValores((actual) => ({ ...actual, [id]: evento.target.value }))} />{unidad && <em>{unidad}</em>}</span>{rango && <small id={`referencia-${id}`}>{rango.nombre || 'Referencia'}: {rango.minimo} - {rango.maximo} {unidad}{rango.contexto && <>. {rango.contexto}</>}{rango.fuente && <> <a href={rango.fuente} target="_blank" rel="noreferrer">Consultar fuente</a></>}</small>}</label>;
-        })}
+          const estado = compararReferencia(valores[id] || '', rango, pacienteSeleccionado.edad > 0 ? pacienteSeleccionado.edad : null);
+          const nombreCampo = grupo.campos.length > 1 ? etiqueta.slice(grupo.nombre.length).replace(/^\s*·\s*/, '') : etiqueta;
+          return <div className="triaje-signo-campo" key={id}>
+            {indice > 0 && <span className="triaje-signo-barra" aria-hidden="true">/</span>}
+            <label htmlFor={`triaje-signo-${id}`}>{nombreCampo}</label>
+            <div className={`triaje-signo-entrada ${estado ? `triaje-signo-${estado}` : ''}`}><input id={`triaje-signo-${id}`} type={texto ? 'text' : 'number'} step={entero ? '1' : 'any'} inputMode={texto ? 'text' : entero ? 'numeric' : 'decimal'} aria-label={grupo.campos.length > 1 ? etiqueta : undefined} aria-describedby={[rango && `referencia-${id}`, estado && `estado-${id}`].filter(Boolean).join(' ') || undefined} value={valores[id] || ''} onChange={(evento) => setValores((actual) => ({ ...actual, [id]: evento.target.value }))} placeholder="—" />{unidad && <span>{unidad}</span>}</div>
+            {estado && <small className={`triaje-signo-estado ${estado}`} id={`estado-${id}`} role="status">{estado === 'alto' ? 'Sobre la referencia' : 'Bajo la referencia'} · Orientativo</small>}
+            {rango && <details className="triaje-signo-referencia" id={`referencia-${id}`}><summary>Ref. {rango.minimo}–{rango.maximo} {unidad}</summary><div><strong>{rango.nombre || 'Referencia'}</strong>{rango.contexto && <p>{rango.contexto}</p>}{rango.fuente && <a href={rango.fuente} target="_blank" rel="noreferrer">Consultar fuente</a>}</div></details>}
+          </div>;
+        })}</div></div>)}
       </section>
-      <footer><button className="signos-cancelar" type="button" onClick={() => { setPacienteSeleccionado(null); setValores({}); setEditandoAtendido(false); }}>Cancelar</button><button className="signos-guardar" type="submit"><Icon name="check" size={16} /> {editandoAtendido ? 'Actualizar signos vitales' : 'Guardar signos vitales'}</button></footer>
+      {errorRegistro && <p role="alert">{errorRegistro}</p>}
+      <footer><button className="signos-cancelar" type="button" disabled={guardando} onClick={() => { setPacienteSeleccionado(null); setValores({}); setEditandoAtendido(false); }}>Cancelar</button><button className="signos-guardar" type="submit" disabled={!camposVitales.length || guardando}><Icon name="check" size={16} /> {guardando ? 'Guardando…' : editandoAtendido ? 'Actualizar signos vitales' : 'Guardar signos vitales'}</button></footer>
     </form>
   </section>;
 
@@ -114,15 +166,15 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
           <time dateTime={`${paciente.fecha}T${paciente.hora}`}><strong>{paciente.hora}</strong><small>{paciente.fecha.split('-').reverse().join('/')}</small></time>
           <div className="signos-paciente"><span>{paciente.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span><div><strong>{paciente.paciente}</strong><small>CI {paciente.ci}</small></div></div>
           <div className="signos-consulta"><strong>{paciente.doctor}</strong><small>{paciente.especialidad}</small>{paciente.estado === 'por_confirmar' && <small>Por confirmar · Cobro pendiente de verificar</small>}</div>
-          <button className="accion-registrar-signos" type="button" onClick={() => setPacienteSeleccionado(paciente)}><Icon name="patient" size={16} /> Registrar</button>
+          <button className="accion-registrar-signos" type="button" onClick={() => { setVersionValoracion(null); setErrorRegistro(''); setPacienteSeleccionado(paciente); }}><Icon name="patient" size={16} /> Registrar</button>
         </article>)}
         {!visibles.length && <p className="signos-vitales-vacio">{busqueda ? 'No hay pacientes que coincidan con la búsqueda.' : 'No hay consultas pendientes de atención.'}</p>}
       </section>
       <aside id="cola-atendidos" hidden={!panelAtendidosAbierto} className="signos-atendidos" aria-label="Pacientes atendidos">
           <div className="signos-atendidos-contenido">
-          <header><div><p>ATENDIDOS HOY</p><strong>Signos vitales registrados</strong></div><b>{atendidos.length}</b></header>
+          <header><div><p>SIGNOS REGISTRADOS</p><strong>Signos vitales registrados</strong></div><b>{atendidos.length}</b></header>
           <label className="cola-buscar-atendidos"><Icon name="search" size={15} /><input aria-label="Buscar pacientes atendidos" value={busquedaAtendidos} onChange={(evento) => setBusquedaAtendidos(evento.target.value)} placeholder="Buscar atendido…" /></label>
-          {atendidosVisibles.length ? <div className="cola-historial">{atendidosVisibles.map((paciente) => <article key={paciente.id}><span>{paciente.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span><div><strong>{paciente.paciente}</strong><small>Consulta {paciente.hora} · Registrado {paciente.registrado}</small><small>{paciente.doctor}</small></div><button type="button" aria-label={`Editar signos vitales de ${paciente.paciente}`} onClick={() => { setPacienteSeleccionado(paciente); setValores(paciente.valores); setEditandoAtendido(true); }}><Icon name="edit" size={15} /></button></article>)}</div> : <div className="cola-vacio"><Icon name="userCheck" size={28} /><strong>{atendidos.length ? 'Sin coincidencias' : 'Aún no hay atendidos'}</strong><p>{atendidos.length ? 'Prueba con otro nombre, CI o médico.' : 'Al guardar los signos vitales, el paciente aparecerá aquí.'}</p></div>}
+          {atendidosVisibles.length ? <div className="cola-historial">{atendidosVisibles.map((paciente) => <article key={paciente.id}><span>{paciente.paciente.split(' ').map((parte) => parte[0]).slice(0, 2).join('')}</span><div><strong>{paciente.paciente}</strong><small>Consulta {paciente.hora} · Registrado {paciente.registrado}</small><small>{paciente.doctor}</small></div><button type="button" aria-label={`Editar signos vitales de ${paciente.paciente}`} onClick={() => void editar(paciente)}><Icon name="edit" size={15} /></button></article>)}</div> : <div className="cola-vacio"><Icon name="userCheck" size={28} /><strong>{atendidos.length ? 'Sin coincidencias' : 'Aún no hay atendidos'}</strong><p>{atendidos.length ? 'Prueba con otro nombre, CI o médico.' : 'Al guardar los signos vitales, el paciente aparecerá aquí.'}</p></div>}
         </div>
       </aside>
     </div>

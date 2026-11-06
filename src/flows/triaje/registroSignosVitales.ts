@@ -6,10 +6,13 @@ type Suscriptor = () => void;
 const registros = new Map<string, RegistroSignosVitales>();
 const suscriptores = new Set<Suscriptor>();
 
-export function obtenerSignosVitales(ci: string) { return registros.get(ci); }
+type ConsultaSignos = { id: string };
+const claveConsulta = (consulta: ConsultaSignos) => consulta.id;
 
-export function guardarSignosVitales(ci: string, valores: RegistroSignosVitales) {
-  registros.set(ci, { ...valores });
+export function obtenerSignosVitales(consulta: ConsultaSignos) { return registros.get(claveConsulta(consulta)); }
+
+export function guardarSignosVitales(consulta: ConsultaSignos, valores: RegistroSignosVitales) {
+  registros.set(claveConsulta(consulta), { ...valores });
   suscriptores.forEach((suscriptor) => suscriptor());
 }
 

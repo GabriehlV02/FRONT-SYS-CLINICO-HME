@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import Icon from '../../radius/componentes/Icono';
 
 const sistemas = [
@@ -12,17 +12,38 @@ const sistemas = [
   ['musculoesqueletico', 'Sistema musculoesquelético', 'Columna, extremidades, músculos y articulaciones'],
   ['piel', 'Piel y tejidos blandos', 'Piel, mucosas y tejido subcutáneo'],
 ] as const;
-const opciones = ['Estable', 'Con dolor', 'Alteración observada', 'No evaluable', 'Otro'];
-type Registro = { estados: string[]; detalle: string };
-
 export function RevisionConsulta({ pacienteId }: { pacienteId: string }) {
-  const [registros, setRegistros] = useState<Record<string, Registro>>({});
-  const marcar = (id: string, opcion: string) => setRegistros(actual => {
-    const registro = actual[id] || { estados: [], detalle: '' };
-    let estados = registro.estados.includes(opcion) ? registro.estados.filter(item => item !== opcion) : [...registro.estados, opcion];
-    if (estados.includes(opcion)) estados = ['Estable', 'No evaluable'].includes(opcion) ? [opcion] : estados.filter(item => !['Estable', 'No evaluable'].includes(item));
-    return { ...actual, [id]: { ...registro, estados } };
-  });
-  const actualizarDetalle = (id: string, detalle: string) => setRegistros(actual => ({ ...actual, [id]: { ...(actual[id] || { estados: [] }), detalle } }));
-  return <details className="consulta-seguimiento-panel consulta-revision-sistemas"><summary><span>Revisión por Sistema · Examen Físico</span><Icon name="chevronRight" size={18} /></summary><div className="consulta-revision-contenido"><small>Selecciona los hallazgos y describe su localización o características.</small><section className="consulta-revision-lista">{sistemas.map(([id, nombre, descripcion]) => { const registro = registros[id] || { estados: [], detalle: '' }; return <fieldset key={`${pacienteId}-${id}`}><legend>{nombre}</legend><p>{descripcion}</p><div className="consulta-revision-opciones">{opciones.map(opcion => <label key={opcion} className={registro.estados.includes(opcion) ? 'seleccionada' : ''}><input type="checkbox" checked={registro.estados.includes(opcion)} onChange={() => marcar(id, opcion)} />{opcion}</label>)}</div><label className="consulta-revision-detalle">{registro.estados.includes('Otro') ? 'Especificar otro hallazgo' : 'Observaciones'}<textarea rows={2} value={registro.detalle} onChange={event => actualizarDetalle(id, event.target.value)} placeholder="Localización, características y otros hallazgos…" /></label></fieldset>; })}</section></div></details>;
+  const [registros, setRegistros] = useState<Record<string, string>>({});
+  const [seleccionado, setSeleccionado] = useState<(typeof sistemas)[number] | null>(null);
+  const [observacion, setObservacion] = useState('');
+  const modal = useRef<HTMLDialogElement>(null);
+  const abrir = (sistema: (typeof sistemas)[number]) => {
+    setSeleccionado(sistema);
+    setObservacion(registros[sistema[0]] === 'Negativo' ? '' : registros[sistema[0]] || '');
+    modal.current?.showModal();
+  };
+  const guardar = (evento: FormEvent) => {
+    evento.preventDefault();
+    if (!seleccionado) return;
+    setRegistros(actual => ({ ...actual, [seleccionado[0]]: observacion.trim() || 'Negativo' }));
+    modal.current?.close();
+  };
+  return <details className="consulta-seguimiento-panel consulta-revision-sistemas">
+    <summary><span>Revisión por sistema · Examen físico</span><Icon name="chevronRight" size={18} /></summary>
+    <div className="consulta-revision-contenido"><small>Selecciona un sistema para registrar su observación.</small>
+      <div className="revision-compacta" aria-label="Revisión por sistema">{sistemas.map(sistema => {
+        const [id, nombre] = sistema;
+        const valor = registros[id];
+        return <button type="button" className="revision-sistema-fila" key={`${pacienteId}-${id}`} onClick={() => abrir(sistema)}>
+          <strong>{nombre}</strong><span className={valor && valor !== 'Negativo' ? 'revision-sistema-observacion' : 'revision-sistema-negativo'}>{valor || 'Negativo'}{!valor && <small> · Sin confirmar</small>}</span><Icon name="edit" size={15} />
+        </button>;
+      })}</div>
+      <dialog className="revision-sistema-modal" ref={modal} aria-labelledby="revision-modal-titulo" onClose={() => setSeleccionado(null)}>
+        <form onSubmit={guardar}><header><div><strong id="revision-modal-titulo">{seleccionado?.[1]}</strong><small>{seleccionado?.[2]}</small></div><button type="button" aria-label="Cerrar" onClick={() => modal.current?.close()}>×</button></header>
+          <label htmlFor="revision-modal-observacion">Observaciones</label><textarea id="revision-modal-observacion" value={observacion} onChange={evento => setObservacion(evento.target.value)} maxLength={1000} placeholder="Describe los hallazgos observados…" rows={4} />
+          <small>Si guardas sin observaciones, se registrará como negativo.</small><footer><button type="button" onClick={() => modal.current?.close()}>Cancelar</button><button type="submit">Guardar</button></footer>
+        </form>
+      </dialog>
+    </div>
+  </details>;
 }

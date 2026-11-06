@@ -2,6 +2,7 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
 import { obtenerRangos, type RangoReferencia } from "./rangosReferencia";
 import { SelectorUnidad } from "./SelectorUnidad";
+import { ServiciosSignosVitales, useServiciosSignosVitales } from "./ServiciosSignosVitales";
 import { UnidadesMedidaView, useUnidadesMedida, type UnidadMedida } from "./UnidadesMedidaView";
 import "./ConfiguracionSignosVitalesView.css";
 import "./ConfiguracionSignosVitalesViewEspacio.css";
@@ -371,7 +372,7 @@ function EditorSignosVitalesView({
       <div className="config-signos-distribucion">
         <dialog
           ref={modal}
-          className="config-signos-modal"
+          className="config-signos-modal config-signos-modal-registro"
           aria-labelledby="config-signos-titulo"
           aria-describedby="config-signos-descripcion"
           onCancel={cancelar}
@@ -663,22 +664,9 @@ function EditorSignosVitalesView({
   );
 }
 
-type ServicioSignos = string;
-
-const serviciosIniciales: { id: ServicioSignos; nombre: string; descripcion: string }[] = [
-  { id: "consulta-ambulatoria", nombre: "Servicio de Consulta Ambulatoria", descripcion: "Signos para consulta externa y agenda médica." },
-  { id: "emergencias", nombre: "Servicio de Emergencias", descripcion: "Signos para triaje y atención de urgencias." },
-  { id: "internacion", nombre: "Servicio de Internación", descripcion: "Monitoreo de pacientes hospitalizados." },
-  { id: "terapia-intensiva", nombre: "Servicio de Terapia Intensiva", descripcion: "Vigilancia clínica de alta frecuencia." },
-  { id: "quirofano", nombre: "Servicio de Quirófano", descripcion: "Control pre, intra y postoperatorio." },
-];
-
 export function ConfiguracionSignosVitalesView({ signos, onChange }: { signos: SignoVitalConfig[]; onChange: (signos: SignoVitalConfig[]) => Promise<void> }) {
-  const [servicioActivo, setServicioActivo] = useState<ServicioSignos | null>(null);
   const [vistaConfiguracion, setVistaConfiguracion] = useState<'servicios' | 'signos' | 'unidades'>('servicios');
   const catalogoUnidades = useUnidadesMedida();
-  const [busquedaAsignados, setBusquedaAsignados] = useState('');
-  const signosPorServicio = Object.fromEntries(serviciosIniciales.map(servicio => [servicio.id, signos])) as Record<ServicioSignos, SignoVitalConfig[]>;
-  const servicio = serviciosIniciales.find(actual => actual.id === servicioActivo);
-  return <section className="config-signos-servicios" aria-label="Configuración de signos vitales">{servicioActivo && servicio ? <section className="config-signos-asignacion"><button type="button" className="config-signos-volver" onClick={() => setServicioActivo(null)}><Icon name="chevronLeft" size={16} /> Volver a servicios</button><header className="config-signos-datos-servicio"><div><span>Servicio de atención</span><h2>{servicio.nombre}</h2><small>{servicio.descripcion}</small></div><b>{signosPorServicio[servicioActivo].length} signos asignados</b></header><section className="config-signos-lista"><header><div><strong>Signos vitales asignados</strong><small>Estos son los campos activos para este servicio.</small></div></header><div className="config-signos-asignados-herramientas"><label><Icon name="search" size={16} /><input value={busquedaAsignados} onChange={evento => setBusquedaAsignados(evento.target.value)} placeholder="Buscar signo vital" aria-label="Buscar signo vital asignado" /></label><button type="button" onClick={() => { setServicioActivo(null); setVistaConfiguracion('signos'); }}><Icon name="plus" size={16} /> Nuevo signo vital</button></div><div className="config-signos-asignados">{signosPorServicio[servicioActivo].filter(signo => `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`.toLowerCase().includes(busquedaAsignados.toLowerCase())).map(signo => <article key={signo.id}><div><strong>{signo.nombre}</strong><small>{signo.unidad}</small></div><b>{signo.abreviatura}</b></article>)}{!signosPorServicio[servicioActivo].some(signo => `${signo.nombre} ${signo.unidad} ${signo.abreviatura}`.toLowerCase().includes(busquedaAsignados.toLowerCase())) && <p className="config-signos-sin-resultados">No hay signos vitales que coincidan.</p>}</div></section></section> : <><nav className="config-signos-subvistas" aria-label="Sub-vistas de configuración"><button type="button" className={vistaConfiguracion === 'servicios' ? 'activa' : ''} onClick={() => setVistaConfiguracion('servicios')}>Servicios de atención</button><button type="button" className={vistaConfiguracion === 'signos' ? 'activa' : ''} onClick={() => setVistaConfiguracion('signos')}>Signos vitales</button><button type="button" className={vistaConfiguracion === 'unidades' ? 'activa' : ''} onClick={() => setVistaConfiguracion('unidades')}>Unidades de medida</button></nav>{vistaConfiguracion === 'unidades' ? <UnidadesMedidaView catalogo={catalogoUnidades} /> : vistaConfiguracion === 'signos' ? <><header><h2>Signos vitales</h2></header><EditorSignosVitalesView signos={signos} onChange={onChange} unidadesRegistradas={catalogoUnidades.unidades} /></> : <><header><h2>Signos vitales por servicios de atención</h2></header><section className="config-signos-lista config-signos-tabla-servicios"><header><div><strong>Servicios asistenciales</strong><small>Ingresa a un servicio para asignar los signos vitales que utilizará.</small></div></header><div className="config-signos-tabla"><div className="config-signos-encabezado config-signos-encabezado-servicios"><span>Servicio</span><span>Signos configurados</span><span>Acción</span></div>{serviciosIniciales.map(servicio => <article className="config-signos-fila-servicio" key={servicio.id}><strong>{servicio.nombre}</strong><b>{signosPorServicio[servicio.id].length} campos</b><button type="button" className="config-signos-accion-editar" onClick={() => setServicioActivo(servicio.id)}><Icon name="edit" size={15} /> Asignar signos</button></article>)}</div></section></>}</>}</section>;
+  const catalogoServicios = useServiciosSignosVitales();
+  return <section className="config-signos-servicios" aria-label="Configuración de signos vitales"><nav className="config-signos-subvistas" aria-label="Subvistas de configuración"><button type="button" className={vistaConfiguracion === 'servicios' ? 'activa' : ''} onClick={() => setVistaConfiguracion('servicios')}>Servicios de atención</button><button type="button" className={vistaConfiguracion === 'signos' ? 'activa' : ''} onClick={() => setVistaConfiguracion('signos')}>Signos vitales</button><button type="button" className={vistaConfiguracion === 'unidades' ? 'activa' : ''} onClick={() => setVistaConfiguracion('unidades')}>Unidades de medida</button></nav>{vistaConfiguracion === 'unidades' ? <UnidadesMedidaView catalogo={catalogoUnidades} /> : vistaConfiguracion === 'signos' ? <><header><h2>Signos vitales</h2></header><EditorSignosVitalesView signos={signos} onChange={onChange} unidadesRegistradas={catalogoUnidades.unidades} /></> : <ServiciosSignosVitales signos={signos} catalogo={catalogoServicios} />}</section>;
 }

@@ -4,28 +4,19 @@ import { HojaLaboratorios } from './HojaLaboratorios';
 import type { CitaConfirmada } from './AgendaAmbulatoriaView';
 import './ConsultaMedicaView.css';
 import './ConsultaImpresion.css';
-import { obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registroSignosVitales';
+import { guardarSignosVitales, obtenerSignosVitales, suscribirSignosVitales } from '../triaje/registroSignosVitales';
+import { apiFetch } from '../../radius/api';
+import { useServiciosSignosVitales } from '../triaje/ServiciosSignosVitales';
+import { camposParaServicio } from '../triaje/camposSignosVitales';
+import type { SignoVitalConfig } from '../triaje/ConfiguracionSignosVitalesView';
 import { guardarEpisodio, obtenerAtencionAmbulatoria, obtenerEpisodios, origenConsultaAmbulatoria, suscribirEpisodios, type DocumentoEpisodio } from './registroHistoria';
 import { RecetarioMedico } from './RecetarioMedico';
 import { leerPaquetes, type Paquete } from './FavoritosPaquetes';
 import { crearSolicitudLaboratorio, leerSolicitudesLaboratorio, suscribirLaboratorio, type SolicitudLaboratorio } from '../laboratorio/almacenLaboratorio';
 import { OrdenInternacionMedica } from './OrdenInternacionMedica';
 import { RevisionConsulta } from './RevisionConsulta';
+import { BuscadorDiagnostico } from './BuscadorDiagnostico';
 import '../laboratorio/LaboratorioView.css';
-
-const registrosTriaje: Record<string, Record<string, string>> = {
-  '4839201': { temperatura: '36.7 °C', presionSistolica: '118 mmHg', presionDiastolica: '76 mmHg', frecuencia: '74 lpm', respiratoria: '18 rpm', saturacion: '98 %', peso: '64 kg', estatura: '162 cm', imc: '24.4' },
-  '7281044': { temperatura: '36.8 °C', presionSistolica: '122 mmHg', presionDiastolica: '80 mmHg', frecuencia: '78 lpm', respiratoria: '18 rpm', saturacion: '97 %', peso: '76 kg' },
-  '6102837': { temperatura: '36.5 °C', presionSistolica: '110 mmHg', presionDiastolica: '70 mmHg', frecuencia: '68 lpm', respiratoria: '16 rpm', saturacion: '99 %', peso: '58 kg', estatura: '157 cm', imc: '23.5' },
-  '7013659': { temperatura: '36.7 °C', presionSistolica: '118 mmHg', presionDiastolica: '76 mmHg', frecuencia: '74 lpm', respiratoria: '18 rpm', saturacion: '98 %', peso: '64 kg', estatura: '162 cm', imc: '24.4' },
-};
-const campos = [
-  ['temperatura', 'Temperatura'], ['glicemia', 'Glicemia capilar'], ['frecuencia', 'Frec. cardíaca'], ['respiratoria', 'Frec. respiratoria'],
-  ['presionSistolica', 'Presión sistólica'], ['presionDiastolica', 'Presión diastólica'], ['saturacion', 'Saturación ambiente'],
-  ['oxigeno', 'Oxígeno'], ['saturacionOxigeno', 'Saturación con oxígeno'], ['peso', 'Peso'],
-  ['estatura', 'Estatura'], ['imc', 'IMC'], ['perimetroCintura', 'Perímetro cintura'], ['perimetroCadera', 'Perímetro cadera'],
-] as const;
-const unidadesVitales: Record<string, string> = { temperatura: '°C', glicemia: 'mg/dL', frecuencia: 'P/min', respiratoria: 'Res/min', presionSistolica: 'mmHg', presionDiastolica: 'mmHg', saturacion: '%', oxigeno: 'lts', saturacionOxigeno: '%', peso: 'kg', estatura: 'cm', perimetroCintura: 'cm', perimetroCadera: 'cm' };
 
 type TipoOrden = 'laboratorio' | 'imagenologia' | 'internacion';
 type SeccionConsulta = 'atencion' | 'resultados' | 'historia' | 'tratamientos';
@@ -53,14 +44,23 @@ function OrdenesConsulta({ paciente, onAbrir, onAbrirRecetario }: { paciente: Ci
   return <><nav className="consulta-ordenes"><button className="orden-laboratorio" type="button" onClick={() => abrir('laboratorio')}><Icon name="lab" size={17} /> Orden de laboratorio</button><button className="orden-imagenologia" type="button" onClick={() => abrir('imagenologia')}><Icon name="image" size={17} /> Orden de imagenología</button><button className="orden-recetario" type="button" onClick={() => { if (!paciente) { setMensaje('Selecciona primero un paciente en atención.'); return; } setMensaje(''); onAbrirRecetario?.(); }}><Icon name="fileText" size={17} /> Recetario médico</button><button className="orden-internacion" type="button" onClick={() => abrir('internacion')}><Icon name="patient" size={17} /> Orden de internación</button></nav>{mensaje && <em className="consulta-aviso">{mensaje}</em>}</>;
 }
 
-export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirmada | null; medico: string }) {
+export function ConsultaMedicaView({ paciente, medico, signos, estadoSignos }: { paciente: CitaConfirmada | null; medico: string; signos: SignoVitalConfig[]; estadoSignos: 'cargando' | 'listo' | 'error' }) {
+  const catalogoServicios = useServiciosSignosVitales();
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [seccion, setSeccion] = useState<SeccionConsulta>('atencion');
   const [recetarioAbierto, setRecetarioAbierto] = useState(false);
   const [paqueteId, setPaqueteId] = useState('');
   const [paqueteAplicado, setPaqueteAplicado] = useState<Paquete | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(true);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [vitales, setVitales] = useState<Record<string, string>>({});
+  const [cargandoValoracion, setCargandoValoracion] = useState(true);
+  const [guardandoValoracion, setGuardandoValoracion] = useState(false);
+  const [errorValoracion, setErrorValoracion] = useState('');
+  const [cargaValoracionFallida, setCargaValoracionFallida] = useState(false);
+  const [mensajeValoracion, setMensajeValoracion] = useState('');
+  const [versionValoracion, setVersionValoracion] = useState<number | null>(null);
+  const [conflictoValoracion, setConflictoValoracion] = useState(false);
+  const [recargaValoracion, setRecargaValoracion] = useState(0);
   const [notasMedicas, setNotasMedicas] = useState<Record<string, string>>({});
   const [antecedentes, setAntecedentes] = useState<Record<string, string>>({});
   const [diagnosticosFinales, setDiagnosticosFinales] = useState<Record<string, DiagnosticoConPlan[]>>({});
@@ -83,18 +83,37 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
     cargar();
     return suscribirLaboratorio(cargar);
   }, [paciente?.ci]);
-  useSyncExternalStore(suscribirSignosVitales, () => 0, () => 0);
-  const registroTriaje = paciente ? obtenerSignosVitales(paciente.ci) : undefined;
-  const vitalesTriaje: Record<string, string> | undefined = registroTriaje ? {
-    ...registroTriaje,
-    frecuencia: registroTriaje.frecuenciaCardiaca,
-    respiratoria: registroTriaje.frecuenciaRespiratoria,
-    saturacion: registroTriaje.saturacionAmbiente,
-  } : undefined;
+  const vitalesTriaje = useSyncExternalStore(suscribirSignosVitales, () => paciente ? obtenerSignosVitales(paciente) : undefined, () => undefined);
+  useEffect(() => {
+    if (!paciente) { setCargandoValoracion(false); return; }
+    const controller = new AbortController();
+    setCargandoValoracion(true); setErrorValoracion(''); setCargaValoracionFallida(false); setConflictoValoracion(false);
+    apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/signos-vitales`, { signal: controller.signal }).then(async respuesta => {
+      if (!respuesta.ok) throw new Error('No se pudo cargar la valoración de esta consulta.');
+      const resultado = await respuesta.json();
+      if (!controller.signal.aborted) { guardarSignosVitales(paciente, resultado.data?.valores ?? {}); setVersionValoracion(resultado.data?.id ?? null); }
+    }).catch(error => { if (!controller.signal.aborted) { setCargaValoracionFallida(true); setErrorValoracion(error instanceof Error ? error.message : 'No se pudo cargar la valoración.'); } })
+      .finally(() => { if (!controller.signal.aborted) setCargandoValoracion(false); });
+    return () => controller.abort();
+  }, [paciente?.id, recargaValoracion]);
   if (!paciente) return <section className="consulta-inicio consulta-inicio-sin-lista"><section className="consulta-area panel"><header><div><p>CONSULTA MÉDICA</p><h2>Sin paciente en atención</h2><small>La información se cargará al pulsar “Atender” desde la Agenda.</small></div><OrdenesConsulta paciente={null} /></header><div className="consulta-area-vacia"><Icon name="userCheck" size={30} /><strong>Aún no hay una consulta iniciada</strong><small>Selecciona “Atender” en la Agenda para cargar los datos del paciente.</small></div></section></section>;
-  const datos = Object.keys(vitales).length ? vitales : (vitalesTriaje ?? {});
-  const camposConResultado = campos.filter(([id]) => datos[id] !== undefined && datos[id] !== '');
   const episodioActual = obtenerAtencionAmbulatoria(paciente);
+  const idsAmbulatorio = catalogoServicios.servicios.find(servicio => servicio.id === 'consulta-ambulatoria')?.signos;
+  const campos = camposParaServicio(signos, idsAmbulatorio ?? []);
+  const datos = { ...(vitalesTriaje ?? {}), ...vitales };
+  const camposConResultado = campos.filter(campo => datos[campo.id] !== undefined && datos[campo.id] !== '');
+  const guardarValoracion = async () => {
+    const valores = Object.fromEntries(campos.map(campo => [campo.id, (datos[campo.id] || '').trim()]).filter(([, valor]) => valor));
+    if (!Object.keys(valores).length) { setErrorValoracion('Registra al menos una medición.'); return; }
+    setGuardandoValoracion(true); setErrorValoracion(''); setMensajeValoracion(''); setConflictoValoracion(false);
+    try {
+      const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/signos-vitales`, { method: 'POST', body: JSON.stringify({ valores, version: versionValoracion }) });
+      const resultado = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) { if (respuesta.status === 409) setConflictoValoracion(true); throw new Error(resultado.message || 'No se pudieron guardar los signos vitales.'); }
+      guardarSignosVitales(paciente, resultado.data.valores); setVersionValoracion(resultado.data.id); setVitales({}); setMostrarFormulario(false); setMensajeValoracion('Signos vitales guardados.');
+    } catch (error) { setErrorValoracion(error instanceof Error ? error.message : 'No se pudieron guardar los signos vitales.'); }
+    finally { setGuardandoValoracion(false); }
+  };
   const origenConsulta = origenConsultaAmbulatoria(paciente);
   const datosClinicosPaciente = datosClinicos[paciente.ci] ?? { motivoConsulta: episodioActual?.motivo || '', enfermedadActual: episodioActual?.enfermedadActual || '', examenFisico: episodioActual?.examenFisico || '' };
   const atencionFinalizada = Boolean(atencionesCerradas[paciente.ci] || episodioActual?.finalizadaEn);
@@ -138,6 +157,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
   const finalizarAtencion = () => { guardarEnHistoria(true); setVistaImpresionAbierta(true); };
   return <section className="consulta-medica" aria-label={`Consulta de ${paciente.paciente}`}>
     <section className="consulta-activa-derecha">
+      <div className="consulta-cabecera-fija">
       <header className="consulta-area-cabecera"><div className="consulta-resumen-paciente"><div><p>CONSULTA MÉDICA</p><small>CI {paciente.ci}</small><dl className="consulta-datos-personales"><div><dt>Nombre</dt><dd>{nombre}</dd></div><div><dt>Apellidos</dt><dd>{apellidos}</dd></div><div><dt>Edad</dt><dd>{paciente.edad ?? 'No registrado'}</dd></div><div><dt>Fecha de nacimiento</dt><dd>{paciente.fechaNacimiento ?? 'No registrada'}</dd></div></dl></div><section className="consulta-contexto-clinico" aria-label="Resumen de antecedentes del paciente"><header><p>RESUMEN CLÍNICO</p></header><dl><div><dt>Antecedentes</dt><dd>{antecedentesPaciente}</dd></div><div><dt>Alergias</dt><dd>{alergiasPaciente}</dd></div><div><dt>Diagnósticos previos</dt><dd>{diagnosticosPrevios.length ? diagnosticosPrevios.join(' · ') : 'Sin diagnósticos registrados'}</dd></div><div><dt>Última consulta</dt><dd>{ultimaConsulta ? `${ultimaConsulta.fecha} · ${ultimaConsulta.motivo || 'Sin motivo registrado'}` : 'Sin consultas previas'}</dd></div></dl></section></div></header>
       <div className="consulta-secciones-bar">
       <nav className="consulta-secciones" aria-label="Secciones de la consulta">
@@ -145,6 +165,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
         {seccionesConsulta.map(item => <button key={item.id} type="button" className={seccion === item.id ? 'activo' : ''} aria-current={seccion === item.id ? 'page' : undefined} onClick={() => setSeccion(item.id)}><Icon name={item.icono} size={16} /><span>{item.nombre}</span></button>)}
       </nav>
       {seccion === 'atencion' && <div className="consulta-guardar-historia consulta-guardar-en-barra"><button type="button" onClick={() => guardarEnHistoria()} disabled={!datosClinicosPaciente.motivoConsulta.trim()}><Icon name="fileText" size={16} /> Guardar episodio cl&iacute;nico</button>{episodioGuardado && <span>Episodio {episodioGuardado} actualizado en la historia cl&iacute;nica.</span>}</div>}
+      </div>
       </div>
       {seccion === 'atencion' && <>
       <div className="consulta-paquete"><label>Paquete favorito<select value={paqueteId} onChange={e => setPaqueteId(e.target.value)}><option value="">Seleccionar paquete</option>{leerPaquetes(medico).map(p => <option key={p.id} value={p.id}>{p.nombre}</option>)}</select></label><button type="button" disabled={!paqueteId || atencionFinalizada} onClick={() => { const paquete = leerPaquetes(medico).find(p => p.id === paqueteId); if (!paquete) return; setPaqueteAplicado(paquete); if (paquete.indicaciones.length) setDiagnosticosFinales(actual => ({ ...actual, [paciente.ci]: [...(actual[paciente.ci] ?? diagnosticosPaciente), { id: crypto.randomUUID(), diagnostico: '', planes: [...paquete.indicaciones] }] })); }}>Cargar paquete</button>{paqueteAplicado && <><p>Paquete «{paqueteAplicado.nombre}» cargado. Revisa las indicaciones y prepara los documentos correspondientes.</p>{paqueteAplicado.medicamentos.length > 0 && <button type="button" onClick={() => { setSeccion('tratamientos'); setRecetarioAbierto(true); }}>Revisar receta ({paqueteAplicado.medicamentos.length})</button>}{paqueteAplicado.laboratorios.length > 0 && <button type="button" onClick={() => setTipoOrden('laboratorio')}>Revisar laboratorios ({paqueteAplicado.laboratorios.length})</button>}</>}</div>
@@ -155,15 +176,32 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
       {ordenInternacionEmitida && <p className="consulta-aviso consulta-aviso-internacion" role="status">Orden emitida para {ordenInternacionEmitida}. Enfermería y Recepción la verán como preinternación.</p>}
       <div className="consulta-atencion-superior">
         <div className="consulta-atencion-principal">
-          <section className="consulta-signos panel"><header><div><p>SIGNOS VITALES</p></div><button className="secundario" type="button" onClick={() => { if (!mostrarFormulario) setVitales((actual) => ({ ...(vitalesTriaje ?? {}), ...actual })); setMostrarFormulario((actual) => !actual); }}><Icon name="edit" size={15} /> {mostrarFormulario ? 'Ocultar formulario' : 'Editar opcionalmente'}</button></header>{camposConResultado.length ? <div className="consulta-signos-grid">{camposConResultado.map(([id, etiqueta]) => <article key={id}><small>{etiqueta}</small><strong>{datos[id]}{unidadesVitales[id] ? ` ${unidadesVitales[id]}` : ''}</strong></article>)}</div> : null}{mostrarFormulario && <div className="consulta-signos-form">{campos.map(([id, etiqueta]) => <label key={id}>{etiqueta}<input value={vitales[id] || ''} onChange={(event) => setVitales((actual) => ({ ...actual, [id]: event.target.value }))} placeholder="Opcional" /></label>)}</div>}</section>
+          <section className="consulta-signos panel"><header><div><p>SIGNOS VITALES</p></div><button className="secundario" type="button" aria-expanded={mostrarFormulario} disabled={guardandoValoracion || cargandoValoracion} onClick={() => { if (mostrarFormulario) { setVitales({}); setErrorValoracion(''); setConflictoValoracion(false); } setMensajeValoracion(''); setMostrarFormulario(actual => !actual); }}><Icon name="edit" size={15} /> {mostrarFormulario ? 'Cancelar edición' : 'Editar signos vitales'}</button></header>
+          {(estadoSignos === 'cargando' || catalogoServicios.cargando) && <p role="status">Cargando signos configurados...</p>}
+          {cargandoValoracion && <p role="status">Cargando valoración de la consulta…</p>}
+          {errorValoracion && <p role="alert">{errorValoracion}</p>}
+          {(conflictoValoracion || cargaValoracionFallida) && <button className="secundario consulta-signos-recargar" type="button" onClick={() => { setVitales({}); setRecargaValoracion(actual => actual + 1); }}>{conflictoValoracion ? 'Descartar cambios y cargar versión actual' : 'Reintentar carga'}</button>}
+          {mensajeValoracion && <p role="status">{mensajeValoracion}</p>}
+          {(estadoSignos === 'error' || catalogoServicios.error || (!catalogoServicios.cargando && !idsAmbulatorio)) && <p role="alert">{catalogoServicios.error || 'No se pudo cargar la configuración de signos para consulta ambulatoria.'}</p>}
+          {estadoSignos === 'listo' && !catalogoServicios.cargando && !catalogoServicios.error && idsAmbulatorio && <>
+            {campos.length === 0 && <p>No hay signos vitales asignados a consulta ambulatoria.</p>}
+            {!mostrarFormulario && camposConResultado.length > 0 && <div className="consulta-signos-grid" role="region" aria-label="Signos vitales registrados, desplazamiento horizontal" tabIndex={0}>{camposConResultado.map(({id, etiqueta, unidad}) => <article key={id}><small>{etiqueta}</small><strong>{datos[id]}{unidad ? ' ' + unidad : ''}</strong></article>)}</div>}
+            {!mostrarFormulario && !cargandoValoracion && !cargaValoracionFallida && campos.length > 0 && camposConResultado.length === 0 && <p className="consulta-signos-sin-datos">No hay signos vitales registrados para esta consulta.</p>}
+            {mostrarFormulario && !cargandoValoracion && !cargaValoracionFallida && <><div className="consulta-signos-form">{campos.map(({id, etiqueta, unidad, tipo, rango}) => <div className="consulta-signo-campo" key={id}>
+              <label htmlFor={`consulta-signo-${id}`}>{etiqueta}</label>
+              <div className="consulta-signo-entrada"><input id={`consulta-signo-${id}`} type={tipo === 'Texto' ? 'text' : 'number'} step={tipo === 'Número entero' ? '1' : 'any'} value={datos[id] ?? ''} disabled={guardandoValoracion} onChange={event => setVitales(actual => ({ ...actual, [id]: event.target.value }))} placeholder="—" />{unidad && <span>{unidad}</span>}</div>
+              {rango && <details className="consulta-signo-referencia"><summary>Ref. {rango.minimo}–{rango.maximo} {unidad}</summary><div><strong>{rango.nombre || 'Referencia'}</strong>{rango.contexto && <p>{rango.contexto}</p>}{rango.fuente && <a href={rango.fuente} target="_blank" rel="noreferrer">Consultar fuente</a>}</div></details>}
+            </div>)}</div><button className="primario consulta-signos-guardar" type="button" disabled={guardandoValoracion || conflictoValoracion || !campos.length} onClick={() => void guardarValoracion()}>{guardandoValoracion ? 'Guardando…' : 'Guardar signos vitales'}</button></>}
+          </>}
+          </section>
           <section className="consulta-seguimiento-clinico" aria-label="Seguimiento clínico de la consulta">
             <details className="consulta-seguimiento-panel" open><summary><span>Anamnesis · Relato cronológico</span><Icon name="chevronRight" size={18} /></summary><div><textarea aria-label="Anamnesis" value={antecedentes[paciente.ci] ?? ''} onChange={(event) => setAntecedentes((actual) => ({ ...actual, [paciente.ci]: event.target.value }))} placeholder="Describe el relato cronológico, antecedentes relevantes y evolución del cuadro actual..." /></div></details>
             <RevisionConsulta pacienteId={paciente.ci} />
             <section className="consulta-seguimiento-panel consulta-diagnostico-final">
-              <header><div><h3>Diagnósticos y plan médico</h3><small>Registra los planes o indicaciones que correspondan a cada diagnóstico.</small></div><button type="button" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: [...(actual[paciente.ci] ?? []), { id: `diagnostico-${Date.now()}`, diagnostico: '', planes: [''] }] }))}><Icon name="plus" size={15} /> Añadir diagnóstico</button></header>
+              <header><div><h3>Diagnósticos y plan médico</h3><small>Registra los planes o indicaciones que correspondan a cada diagnóstico.</small></div><button type="button" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: [...(actual[paciente.ci] ?? diagnosticosPaciente), { id: crypto.randomUUID(), diagnostico: '', planes: [''] }] }))}><Icon name="plus" size={15} /> Añadir diagnóstico</button></header>
               <div className="consulta-diagnosticos-lista">
                 {(diagnosticosPaciente.length ? diagnosticosPaciente : [{ id: 'nuevo', diagnostico: '', planes: [''] }]).map((entrada) => <article className="consulta-diagnostico-item" key={entrada.id}>
-                  <label>Diagnóstico<textarea value={entrada.diagnostico} onChange={(event) => setDiagnosticosFinales((actual) => { const lista = actual[paciente.ci] ?? []; const existe = lista.some(item => item.id === entrada.id); const actualizado = existe ? lista.map(item => item.id === entrada.id ? { ...item, diagnostico: event.target.value } : item) : [{ ...entrada, diagnostico: event.target.value }]; return { ...actual, [paciente.ci]: actualizado }; })} placeholder="Ej.: infección respiratoria alta" /></label>
+                  <BuscadorDiagnostico valor={entrada.diagnostico} onSeleccionar={(diagnostico) => setDiagnosticosFinales((actual) => { const lista = actual[paciente.ci] ?? diagnosticosPaciente; const existe = lista.some(item => item.id === entrada.id); const actualizado = existe ? lista.map(item => item.id === entrada.id ? { ...item, diagnostico } : item) : [...lista, { ...entrada, diagnostico }]; return { ...actual, [paciente.ci]: actualizado }; })} />
                   <div className="consulta-planes-diagnostico"><strong>Plan médico / indicaciones</strong>{entrada.planes.map((plan, indice) => <div className="consulta-plan-campo" key={`${entrada.id}-${indice}`}><textarea aria-label={`Plan médico ${indice + 1}`} value={plan} onChange={(event) => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? [entrada]).map(item => item.id === entrada.id ? { ...item, planes: item.planes.map((valor, posicion) => posicion === indice ? event.target.value : valor) } : item) }))} placeholder="Escribe la indicación o plan de contingencia..." />{entrada.planes.length > 1 && <button type="button" aria-label="Quitar plan" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? []).map(item => item.id === entrada.id ? { ...item, planes: item.planes.filter((_, posicion) => posicion !== indice) } : item) }))}>×</button>}</div>)}<button className="consulta-agregar-plan" type="button" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? [entrada]).map(item => item.id === entrada.id ? { ...item, planes: [...item.planes, ''] } : item) }))}><Icon name="plus" size={14} /> Añadir indicación</button></div>
                   {diagnosticosPaciente.length > 1 && <button className="consulta-quitar-diagnostico" type="button" aria-label="Quitar diagnóstico" onClick={() => setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: (actual[paciente.ci] ?? []).filter(item => item.id !== entrada.id) }))}>×</button>}
                 </article>)}
@@ -180,7 +218,7 @@ export function ConsultaMedicaView({ paciente, medico }: { paciente: CitaConfirm
       {seccion === 'resultados' && <section className="consulta-seccion-contenido panel"><header><span><Icon name="lab" size={20} /></span><div><p>RESULTADOS DE ESTUDIOS</p><h3>Laboratorio e imagenología</h3><small>Resultados de laboratorio registrados para {paciente.paciente}.</small></div></header>{resultadosLaboratorio.length ? <div className="consulta-resultados-lab">{resultadosLaboratorio.map(s => <article key={s.id}><small>{new Date(s.finalizadoEn || s.fecha).toLocaleString('es-BO')} · {s.registradoPor}</small>{s.estudios.map(e => <section key={e.id}><h4>{e.nombre}</h4>{e.resultados.map(r => <p key={r.id}><strong>{r.parametro}:</strong> {r.valor} {r.unidad}{r.referencia && <small> · Referencia: {r.referencia}</small>}</p>)}</section>)}{s.observacion && <p>Observaciones: {s.observacion}</p>}</article>)}</div> : <div className="consulta-estado-vacio"><Icon name="fileText" size={30} /><strong>No hay resultados disponibles</strong><small>Los resultados finalizados en Laboratorio aparecerán aquí.</small></div>}</section>}
       {seccion === 'historia' && <section className="consulta-seccion-contenido panel"><header><span><Icon name="fileText" size={20} /></span><div><p>HISTORIA CLÍNICA</p><h3>Antecedentes y consultas previas</h3><small>Resumen cronológico de atenciones del paciente.</small></div></header><div className="consulta-resumen-clinico"><article><small>Antecedentes patológicos</small><strong>Sin antecedentes registrados</strong></article><article><small>Alergias</small><strong>Sin alergias registradas</strong></article><article><small>Cirugías previas</small><strong>Sin cirugías registradas</strong></article></div><div className="consulta-estado-vacio compacto"><Icon name="calendar" size={27} /><strong>Sin consultas anteriores</strong><small>Las atenciones finalizadas se mostrarán aquí en orden cronológico.</small></div></section>}
       {seccion === 'tratamientos' && <RecetarioMedico paciente={paciente} medico={paciente.doctor && paciente.doctor !== 'Agenda ambulatoria' ? paciente.doctor : medico} abierto={recetarioAbierto} medicamentosIniciales={paqueteAplicado?.medicamentos} onAbrir={() => setRecetarioAbierto(true)} onCerrar={() => setRecetarioAbierto(false)} onGuardar={guardarReceta} />}
-      {vistaImpresionAbierta && <div className="consulta-impresion-fondo" role="presentation"><section className="consulta-impresion-modal" role="dialog" aria-modal="true" aria-label="Vista previa de historia clínica"><header><div><p>ATENCIÓN FINALIZADA</p><h3>Vista previa de impresión</h3><small>Historia clínica y documentos asociados a la consulta.</small></div><button type="button" onClick={() => setVistaImpresionAbierta(false)} aria-label="Cerrar vista previa">×</button></header><div className="consulta-hojas"><article className="consulta-hoja"><span>HOJA 1 · HISTORIA CLÍNICA</span><h2>{paciente.paciente}</h2><small>CI {paciente.ci} · {paciente.especialidad} · {paciente.fecha} {paciente.hora}</small><h4>Anamnesis</h4><p>{antecedentes[paciente.ci] || 'Sin registro.'}</p><h4>Signos vitales</h4><p>{camposConResultado.map(([id, etiqueta]) => `${etiqueta}: ${datos[id] || '—'}`).join(' · ') || 'Sin registro.'}</p><h4>Diagnósticos y plan médico</h4>{diagnosticosPaciente.filter(item => item.diagnostico).map(item => <p key={item.id}><strong>{item.diagnostico}.</strong> {item.planes.filter(Boolean).join(' · ')}</p>)}</article><article className="consulta-hoja consulta-hoja-doble"><div><span>HOJA 2 · ORDEN DE IMAGENOLOGÍA</span><h4>Estudios solicitados</h4><p>{detalleOrden || 'Sin orden de imagenología.'}</p></div><div><span>HOJA 2 · RECETARIO</span><h4>Indicaciones médicas</h4><p>{ordenesPaciente.length ? ordenesPaciente.join(' · ') : 'Sin recetas o indicaciones registradas.'}</p></div></article><article className="consulta-hoja"><span>REVERSO · ORDEN DE LABORATORIO</span><h4>Laboratorio solicitado</h4><p>{laboratoriosElegidos || 'Sin orden de laboratorio.'}</p></article></div><footer><button type="button" onClick={() => setVistaImpresionAbierta(false)}>Cerrar</button><button type="button" onClick={() => window.print()}><Icon name="fileText" size={16} /> Imprimir documentos</button></footer></section></div>}
+      {vistaImpresionAbierta && <div className="consulta-impresion-fondo" role="presentation"><section className="consulta-impresion-modal" role="dialog" aria-modal="true" aria-label="Vista previa de historia clínica"><header><div><p>ATENCIÓN FINALIZADA</p><h3>Vista previa de impresión</h3><small>Historia clínica y documentos asociados a la consulta.</small></div><button type="button" onClick={() => setVistaImpresionAbierta(false)} aria-label="Cerrar vista previa">×</button></header><div className="consulta-hojas"><article className="consulta-hoja"><span>HOJA 1 · HISTORIA CLÍNICA</span><h2>{paciente.paciente}</h2><small>CI {paciente.ci} · {paciente.especialidad} · {paciente.fecha} {paciente.hora}</small><h4>Anamnesis</h4><p>{antecedentes[paciente.ci] || 'Sin registro.'}</p><h4>Signos vitales</h4><p>{camposConResultado.map(({id, etiqueta, unidad}) => `${etiqueta}: ${datos[id] || '—'}${unidad ? ' ' + unidad : ''}`).join(' · ') || 'Sin registro.'}</p><h4>Diagnósticos y plan médico</h4>{diagnosticosPaciente.filter(item => item.diagnostico).map(item => <p key={item.id}><strong>{item.diagnostico}.</strong> {item.planes.filter(Boolean).join(' · ')}</p>)}</article><article className="consulta-hoja consulta-hoja-doble"><div><span>HOJA 2 · ORDEN DE IMAGENOLOGÍA</span><h4>Estudios solicitados</h4><p>{detalleOrden || 'Sin orden de imagenología.'}</p></div><div><span>HOJA 2 · RECETARIO</span><h4>Indicaciones médicas</h4><p>{ordenesPaciente.length ? ordenesPaciente.join(' · ') : 'Sin recetas o indicaciones registradas.'}</p></div></article><article className="consulta-hoja"><span>REVERSO · ORDEN DE LABORATORIO</span><h4>Laboratorio solicitado</h4><p>{laboratoriosElegidos || 'Sin orden de laboratorio.'}</p></article></div><footer><button type="button" onClick={() => setVistaImpresionAbierta(false)}>Cerrar</button><button type="button" onClick={() => window.print()}><Icon name="fileText" size={16} /> Imprimir documentos</button></footer></section></div>}
     </section>
   </section>;
 }

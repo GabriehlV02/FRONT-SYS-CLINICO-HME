@@ -138,3 +138,39 @@
 .config-signos-preview-separador { color: #0875b9; font-weight: 700; }
 .config-signos-preview-caja { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid #d3e8ec; border-radius: 6px; background: #fff; color: #668096; overflow-wrap: anywhere; }
 .config-signos-preview-caja b { flex-shrink: 0; }
+.servicio-signos-editor { padding: 20px; border: 1px solid #cfe2ee; border-radius: 12px; background: #fff; }
+.servicio-signos-editor-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.servicio-signos-editor-cabecera strong { color: #19384f; }
+.servicio-signos-editor-cabecera p { margin: 6px 0 0; color: #58758c; font-size: 13px; }
+.servicio-signos-editor-cabecera button { min-height: 42px; padding: 0 16px; border: 0; border-radius: 8px; color: white; background: #087fbd; font-weight: 700; cursor: pointer; }
+.servicio-signos-editor-cabecera button:disabled { opacity: .6; }
+.servicio-signos-busqueda { display: flex; align-items: center; gap: 8px; margin: 18px 0; padding: 0 12px; height: 42px; border: 1px solid #bfd8e7; border-radius: 8px; color: #1475a6; }
+.servicio-signos-busqueda input { width: 100%; border: 0; outline: 0; background: transparent; }
+.servicio-signos-opciones { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; }
+.servicio-signos-opcion { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #d9e9f1; border-radius: 8px; cursor: pointer; }
+.servicio-signos-opcion:has(input:checked) { border-color: #86c9e2; background: #edf9fc; }
+.servicio-signos-opcion input { width: 18px; height: 18px; flex: none; accent-color: #087fbd; }
+.servicio-signos-opcion span { display: grid; gap: 4px; min-width: 0; }
+.servicio-signos-opcion strong { color: #19384f; font-size: 13px; }
+.servicio-signos-opcion small { color: #668096; }
+.servicio-signos-error { color: #a1283b; }
+@media (max-width: 600px) { .servicio-signos-editor-cabecera { align-items: stretch; flex-direction: column; } }
+
+.config-signos-modal-registro {
+  box-sizing: border-box;
+  width: min(820px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+}
+
+@media (min-width: 700px) {
+  .config-signos-modal-registro .config-signos-componentes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+  .config-signos-modal-registro .config-signos-componentes > :is(strong, small) {
+    grid-column: 1 / -1;
+  }
+  .config-signos-modal-registro .config-signos-componente {
+    min-width: 0;
+  }
+}

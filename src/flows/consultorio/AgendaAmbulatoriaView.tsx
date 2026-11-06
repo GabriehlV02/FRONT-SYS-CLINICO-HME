@@ -9,7 +9,7 @@ import './AgendaAmbulatoriaView.css';
 import './AgendaAmbulatoriaViewAlineacion.css';
 import './AgendaMotivo.css';
 
-export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; estado?: string; consultorio?: string; motivoOperativo?: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
+export type CitaConfirmada = { id: string; pacienteId?: string; profesionalId?: string; paciente: string; ci: string; doctor: string; especialidad: string; fecha: string; hora: string; estado?: string; signosRegistrados?: boolean; consultorio?: string; motivoOperativo?: string; nombre?: string; apellidos?: string; domicilio?: string; edad?: string | number; fechaNacimiento?: string };
 // La agenda almacena la fecha como YYYY-MM-DD. No se usa toLocaleDateString
 // porque el resultado varía según el navegador y puede devolver M/D/YYYY.
 const fechaHoy = () => {
@@ -19,21 +19,6 @@ const fechaHoy = () => {
 const fechaHoyDe = (valor: string) => {
   const fecha = new Date(valor);
   return Number.isNaN(fecha.getTime()) ? '' : `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}-${String(fecha.getDate()).padStart(2, '0')}`;
-};
-const citasOperativasLocales = (): CitaConfirmada[] => {
-  try { const datos = JSON.parse(localStorage.getItem('clinico_citas_operativas_v1') || '[]'); return Array.isArray(datos) ? datos : []; }
-  catch { return []; }
-};
-const citasDemoDelMedico = (medico: string): CitaConfirmada[] => {
-  const fecha = fechaHoy();
-  return [
-    { id: 'demo-consulta-001', pacienteId: 'demo-pac-001', paciente: 'María Fernanda López', ci: '6894521', doctor: medico, especialidad: 'Medicina Interna', motivoOperativo: 'Tos seca y congestión nasal', fecha, hora: '08:00', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 42, fechaNacimiento: '1984-03-14' },
-    { id: 'demo-consulta-002', pacienteId: 'demo-pac-002', paciente: 'Carlos Mendoza Rojas', ci: '7459823', doctor: medico, especialidad: 'Cardiología', motivoOperativo: 'Control de presión arterial', fecha, hora: '08:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 55, fechaNacimiento: '1971-08-22' },
-    { id: 'demo-consulta-003', pacienteId: 'demo-pac-003', paciente: 'Lucía Valdez Herrera', ci: '5128934', doctor: medico, especialidad: 'Neumología', motivoOperativo: 'Dificultad respiratoria leve', fecha, hora: '09:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 36, fechaNacimiento: '1990-11-05' },
-    { id: 'demo-consulta-004', pacienteId: 'demo-pac-004', paciente: 'Jorge Ramírez Soria', ci: '8246175', doctor: medico, especialidad: 'Medicina Interna', fecha, hora: '10:00', estado: 'por_confirmar', consultorio: 'Consultorio 1', edad: 61, fechaNacimiento: '1965-01-28' },
-    { id: 'demo-consulta-005', pacienteId: 'demo-pac-005', paciente: 'Sofía Quispe Flores', ci: '6381942', doctor: medico, especialidad: 'Pediatría', fecha, hora: '10:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 9, fechaNacimiento: '2017-06-10' },
-    { id: 'demo-consulta-006', pacienteId: 'demo-pac-006', paciente: 'Elena Paredes Vargas', ci: '4712058', doctor: medico, especialidad: 'Cardiología', fecha, hora: '11:30', estado: 'confirmada', consultorio: 'Consultorio 1', edad: 48, fechaNacimiento: '1978-12-03' },
-  ];
 };
 export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; onAtender?: (cita: CitaConfirmada) => void }) {
   const {profesionales}=useProfesionales();
@@ -51,18 +36,16 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
     const cancelarSuscripcion = suscribirSignosVitales(() => setCitas((actuales) => [...actuales]));
     return () => { cancelarSuscripcion(); };
   }, []);
-  useEffect(() => { if (import.meta.env.VITE_USE_API !== 'true') return; void apiFetch('/api/citas').then(async (response) => {
-    if (!response.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
-    const datos = await response.json() as Array<CitaConfirmada & { estado: string }>;
-    setCitas(datos.filter(cita => cita.estado === 'confirmada' || cita.estado === 'por_confirmar'));
-  }).catch(() => undefined); }, []);
   useEffect(() => {
-    const cargarCitas = () => setCitas([...citasDemoDelMedico(medico), ...citasOperativasLocales()]);
-    cargarCitas();
-    window.addEventListener('agenda:operativa-actualizada', cargarCitas);
-    setErrorPacientes('');
-    return () => window.removeEventListener('agenda:operativa-actualizada', cargarCitas);
-  }, [medico]);
+    const controller = new AbortController();
+    apiFetch('/api/citas', { signal: controller.signal }).then(async response => {
+      if (!response.ok) throw new Error('No se pudo consultar la agenda de pacientes.');
+      const datos: CitaConfirmada[] = await response.json();
+      setCitas(datos.filter(cita => cita.estado === 'confirmada' || cita.estado === 'por_confirmar'));
+      setErrorPacientes('');
+    }).catch(error => { if (!controller.signal.aborted) setErrorPacientes(error instanceof Error ? error.message : 'No se pudo consultar la agenda.'); });
+    return () => controller.abort();
+  }, []);
 
   // El backend limita la agenda del médico autenticado; este filtro evita una
   // exposición momentánea mientras se carga el perfil profesional.
@@ -73,7 +56,7 @@ export function AgendaAmbulatoriaView({ medico, onAtender }: { medico: string; o
   const pendientes = visibles.filter((cita) => coincideFecha(cita) && !obtenerAtencionAmbulatoria(cita)?.finalizadaEn && coincide(cita, busqueda));
   const atendidasHoy = visibles.filter((cita) => { const finalizada = obtenerAtencionAmbulatoria(cita)?.finalizadaEn; return finalizada && fechaHoy() === fechaHoyDe(finalizada) && coincide(cita, busquedaAtendidas); });
   const atender = (cita: CitaConfirmada) => { registrarAtencionAmbulatoria(cita, medico); onAtender?.(cita); };
-  const signosRegistrados = (cita: CitaConfirmada) => Object.values(obtenerSignosVitales(cita.ci) ?? {}).some(Boolean);
+  const signosRegistrados = (cita: CitaConfirmada) => Boolean(cita.signosRegistrados) || Object.values(obtenerSignosVitales(cita) ?? {}).some(Boolean);
 
   return <section className="agenda-ambulatoria" aria-label="Consultas ambulatorias pendientes de atención">{errorPacientes && <p role="alert">{errorPacientes}</p>}
     <div className="agenda-herramientas">

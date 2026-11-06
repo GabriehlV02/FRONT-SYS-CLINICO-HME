@@ -55,7 +55,10 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
   const visibles = cola.filter((paciente) =>
     `${paciente.paciente} ${paciente.ci} ${paciente.doctor}`.toLowerCase().includes(busqueda.toLowerCase()),
   );
-  const camposVitales = camposConfigurados?.map((campo) => [campo.id, campo.nombre, campo.abreviatura] as const) ?? camposVitalesPredeterminados;
+  const camposVitales = camposConfigurados?.flatMap((campo) => campo.componentes?.length
+    ? campo.componentes.map((componente) => ({ id: `${campo.id}::${componente.id}`, etiqueta: `${campo.nombre} · ${componente.nombre}`, unidad: campo.abreviatura, tipo: 'Número decimal', rango: componente.rangoReferencia }))
+    : [{ id: campo.id, etiqueta: campo.nombre, unidad: campo.abreviatura, tipo: campo.tipo, rango: campo.rangoReferencia }])
+    ?? camposVitalesPredeterminados.map(([id, etiqueta, unidad]) => ({ id, etiqueta, unidad, tipo: 'Número decimal', rango: undefined }));
 
   const guardar = (evento: React.FormEvent) => {
     evento.preventDefault();
@@ -87,12 +90,10 @@ export function SignosVitalesView({ camposConfigurados }: { camposConfigurados?:
         <label className="formulario-paciente">Especialidad<input value={pacienteSeleccionado.especialidad} disabled /></label>
       </section>
       <section className="formulario-signos-campos">
-        {camposVitales.map(([id, etiqueta, unidad]) => {
-          const config = camposConfigurados?.find((campo) => campo.id === id);
-          const texto = config?.tipo === 'Texto';
-          const entero = config?.tipo === 'N\u00famero entero';
-          const rango = config?.rangoReferencia;
-          return <label key={id}>{etiqueta}<span><input type={texto ? 'text' : 'number'} step={entero ? '1' : 'any'} inputMode={texto ? 'text' : entero ? 'numeric' : 'decimal'} aria-describedby={rango ? `referencia-${id}` : undefined} value={valores[id] || ''} onChange={(evento) => setValores((actual) => ({ ...actual, [id]: evento.target.value }))} />{unidad && <em>{unidad}</em>}</span>{rango && <small id={`referencia-${id}`}>{rango.nombre || 'Referencia'}: {rango.minimo} - {rango.maximo} {unidad}</small>}</label>;
+        {camposVitales.map(({id, etiqueta, unidad, tipo, rango}) => {
+          const texto = tipo === 'Texto';
+          const entero = tipo === 'N\u00famero entero';
+          return <label key={id}>{etiqueta}<span><input type={texto ? 'text' : 'number'} step={entero ? '1' : 'any'} inputMode={texto ? 'text' : entero ? 'numeric' : 'decimal'} aria-describedby={rango ? `referencia-${id}` : undefined} value={valores[id] || ''} onChange={(evento) => setValores((actual) => ({ ...actual, [id]: evento.target.value }))} />{unidad && <em>{unidad}</em>}</span>{rango && <small id={`referencia-${id}`}>{rango.nombre || 'Referencia'}: {rango.minimo} - {rango.maximo} {unidad}{rango.contexto && <>. {rango.contexto}</>}{rango.fuente && <> <a href={rango.fuente} target="_blank" rel="noreferrer">Consultar fuente</a></>}</small>}</label>;
         })}
       </section>
       <footer><button className="signos-cancelar" type="button" onClick={() => { setPacienteSeleccionado(null); setValores({}); setEditandoAtendido(false); }}>Cancelar</button><button className="signos-guardar" type="submit"><Icon name="check" size={16} /> {editandoAtendido ? 'Actualizar signos vitales' : 'Guardar signos vitales'}</button></footer>

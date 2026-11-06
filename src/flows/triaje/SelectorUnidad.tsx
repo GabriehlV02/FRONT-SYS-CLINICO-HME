@@ -26,7 +26,7 @@ export function SelectorUnidad({ valor, unidades, abreviaturas, onChange, onSele
       <input ref={input} id={id} role="combobox" aria-expanded={abierto} aria-controls={`${id}-lista`} aria-autocomplete="list"
         aria-activedescendant={abierto && activo >= 0 && opciones[activo] ? `${id}-opcion-${activo}` : undefined}
         aria-describedby={`${id}-ayuda`} autoComplete="off" value={valor} maxLength={80} required
-        placeholder="Selecciona o escribe una unidad" onFocus={abrir} onClick={() => { if (!abierto) abrir(); }}
+        placeholder="Buscar una unidad registrada" onFocus={abrir} onClick={() => { if (!abierto) abrir(); }}
         onChange={(evento) => { onChange(evento.target.value); setFiltrar(true); setAbierto(true); setActivo(-1); }}
         onKeyDown={(evento) => {
           if (evento.key === 'ArrowDown' || evento.key === 'ArrowUp') {
@@ -47,9 +47,9 @@ export function SelectorUnidad({ valor, unidades, abreviaturas, onChange, onSele
         {opciones.map((unidad, indice) => <li key={unidad} id={`${id}-opcion-${indice}`} role="option" aria-selected={valor === unidad}
           className={activo === indice ? 'activa' : undefined} onMouseDown={(evento) => evento.preventDefault()}
           onClick={() => seleccionar(unidad)}>{etiqueta(unidad)}{valor === unidad && <span aria-hidden="true">✓</span>}</li>)}
-        {!opciones.length && <li className="config-signos-unidad-vacia" role="presentation">Sin coincidencias. Puedes usar la unidad que escribiste.</li>}
+        {!opciones.length && <li className="config-signos-unidad-vacia" role="presentation">Sin coincidencias. Registra la unidad en «Unidades de medida».</li>}
       </ul>}
     </div>
-    <small id={`${id}-ayuda`}>Puedes elegir una unidad existente o escribir una nueva.</small>
+    <small id={`${id}-ayuda`}>Busca y selecciona una unidad registrada.</small>
   </div>;
 }

@@ -126,3 +126,15 @@
     padding-inline: 12px;
   }
 }
+.config-signos-formulario .config-signos-multiples-toggle { display: flex; align-items: center; gap: 9px; }
+.config-signos-formulario .config-signos-multiples-toggle input { width: 18px; height: 18px; flex: none; }
+.config-signos-componentes { display: grid; gap: 12px; padding: 15px; border: 1px solid #d0e4f0; border-radius: 10px; background: #f4f9fc; }
+.config-signos-componentes > small { color: #58758c; }
+.config-signos-componente { display: grid; gap: 10px; padding: 12px; background: white; border: 1px solid #deebf3; border-radius: 8px; }
+.config-signos-componentes button { justify-self: start; padding: 7px 10px; border: 1px solid #bad8e8; border-radius: 6px; background: white; color: #006fa5; cursor: pointer; }
+.config-signos-componentes button:disabled { opacity: .5; cursor: default; }
+.config-signos-preview-multiples { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.config-signos-preview-grupo { display: flex; align-items: center; flex: 1 1 150px; min-width: 0; gap: 8px; }
+.config-signos-preview-separador { color: #0875b9; font-weight: 700; }
+.config-signos-preview-caja { display: flex; flex: 1; min-width: 0; align-items: center; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid #d3e8ec; border-radius: 6px; background: #fff; color: #668096; overflow-wrap: anywhere; }
+.config-signos-preview-caja b { flex-shrink: 0; }

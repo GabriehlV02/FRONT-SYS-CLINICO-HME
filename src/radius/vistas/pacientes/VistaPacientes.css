@@ -772,6 +772,38 @@
   color: #69869b;
   font-size: 11px;
 }
+
+.inspeccion-imagenologia .inspeccion-paciente {
+  min-width: 0;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid #0786c1;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(110deg, #087cba, #0a9bc9);
+}
+.inspeccion-imagenologia .inspeccion-paciente > span {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  color: #fff;
+  background: #ffffff2e;
+  border: 1px solid #ffffff55;
+}
+.inspeccion-imagenologia .inspeccion-paciente > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  min-width: 0;
+}
+.inspeccion-imagenologia .inspeccion-paciente :is(small, h2, p) {
+  margin: 0;
+  color: #fff;
+}
+.inspeccion-imagenologia .inspeccion-paciente small { opacity: .9; }
+.inspeccion-imagenologia .inspeccion-paciente h2 { overflow-wrap: anywhere; }
+.inspeccion-imagenologia .inspeccion-paciente p { font-weight: 600; }
 .inspeccion-filtros {
   display: grid;
   grid-template-columns: minmax(260px, 1fr) 190px 150px 150px auto;

@@ -172,6 +172,14 @@
   width: auto !important;
   max-width: 100%;
   flex: 0 0 auto !important;
+  border-color: #0873b9 !important;
+  color: #fff !important;
+  background: #0873b9 !important;
+  box-shadow: 0 3px 8px rgba(8, 115, 185, 0.18);
+}
+.historias-tabla .historia-acciones .historia-ver:hover {
+  border-color: #055a93 !important;
+  background: #055a93 !important;
 }
 .historia-acciones .historia-ver,
 .historia-acciones .historia-file {

@@ -966,7 +966,9 @@ function AtencionPaciente({
       {},
     ),
     [observacionSignos, setObservacionSignos] = useState("");
-  const [signoEvolucion, setSignoEvolucion] = useState("temperatura");
+  const [signosEvolucion, setSignosEvolucion] = useState<string[]>([
+    "temperatura",
+  ]);
   const [registroSignosAbierto, setRegistroSignosAbierto] = useState(false),
     [horaSignos, setHoraSignos] = useState(horaActual());
   const evolucionDialogo = useRef<HTMLDialogElement>(null);
@@ -2135,25 +2137,45 @@ function AtencionPaciente({
                     <div
                       className="em-evolucion-controles"
                       role="group"
-                      aria-label="Signo vital a graficar"
+                      aria-label="Signos vitales a graficar"
                     >
                       {vitales.map(([clave, titulo, unidad]) => (
                         <button
                           key={clave}
                           type="button"
-                          className={signoEvolucion === clave ? "activo" : ""}
-                          aria-pressed={signoEvolucion === clave}
-                          onClick={() => setSignoEvolucion(clave)}
+                          className={
+                            signosEvolucion.includes(clave) ? "activo" : ""
+                          }
+                          aria-pressed={signosEvolucion.includes(clave)}
+                          onClick={() =>
+                            setSignosEvolucion((actuales) =>
+                              actuales.includes(clave)
+                                ? actuales.filter((signo) => signo !== clave)
+                                : [...actuales, clave],
+                            )
+                          }
                         >
                           {titulo}
                           <small>{unidad}</small>
                         </button>
                       ))}
                     </div>
-                    <GraficaEvolucionSignos
-                      mediciones={cuenta.signos}
-                      signo={signoEvolucion}
-                    />
+                    {signosEvolucion.length ? (
+                      <div className="em-evolucion-graficas">
+                        {signosEvolucion.map((signo) => (
+                          <GraficaEvolucionSignos
+                            key={signo}
+                            mediciones={cuenta.signos}
+                            signo={signo}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="em-evolucion-sin-datos">
+                        Selecciona uno o más signos vitales para ver su
+                        evolución.
+                      </p>
+                    )}
                     <details className="em-evolucion-tabla">
                       <summary>
                         Ver mediciones registradas ({cuenta.signos.length})

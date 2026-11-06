@@ -1670,6 +1670,7 @@
   margin: 18px 0 14px;
 }
 .em-evolucion-controles button {
+  position: relative;
   display: grid;
   gap: 2px;
   padding: 8px 11px;
@@ -1699,6 +1700,21 @@
 .em-evolucion-controles button.activo small {
   color: #d9f2ff;
 }
+.em-evolucion-controles button.activo::after {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  display: grid;
+  width: 15px;
+  height: 15px;
+  place-items: center;
+  border-radius: 50%;
+  color: #087fb7;
+  background: #fff;
+  content: "✓";
+  font-size: 10px;
+  font-weight: 900;
+}
 .em-evolucion-controles button:focus-visible {
   outline: 2px solid #ef9a1a;
   outline-offset: 2px;
@@ -1708,6 +1724,14 @@
   border-radius: 10px;
   padding: 14px 14px 6px;
   background: linear-gradient(180deg, #fbfdff, #f5faff);
+}
+.em-evolucion-graficas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 14px;
+}
+.em-evolucion-graficas .em-grafica-signos {
+  min-width: 0;
 }
 .em-grafica-resumen {
   display: flex;

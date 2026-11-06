@@ -64,6 +64,33 @@
   background: rgba(12, 43, 64, 0.48);
   backdrop-filter: blur(3px);
 }
+.internacion-imagenologia-vacia {
+  position: relative;
+  width: min(1100px, 100%);
+  height: min(700px, 80vh);
+  border: 1px solid #c5dfec;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(5, 48, 79, 0.28);
+}
+.internacion-imagenologia-vacia > button {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid #c5dfec;
+  border-radius: 9px;
+  color: #245578;
+  background: #fff;
+  cursor: pointer;
+}
+.internacion-imagenologia-vacia > button:focus-visible {
+  outline: 2px solid #087fc0;
+  outline-offset: 2px;
+}
 .orden-medica-dialogo {
   width: min(560px, 100%);
   overflow: hidden;

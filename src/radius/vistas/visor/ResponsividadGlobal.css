@@ -874,6 +874,55 @@ video {
   font-weight: 800;
   line-height: 1.15;
 }
+.cola-atencion-seccion > header p {
+  color: #087fc0;
+}
+.cola-atencion-emergencias > header p {
+  color: #c55a21;
+}
+.cola-atencion-emergencias article {
+  border-color: #f0d4c3;
+  background: #fffdfb;
+}
+.cola-atencion-emergencias .cola-atencion-datos b {
+  color: #9c3f14;
+  background: #fff0e8;
+}
+.cola-atencion-emergencias .cola-atencion-datos small {
+  border-color: #f0c8b1;
+  color: #a84d20;
+  background: #fff7f2;
+}
+.cola-atencion-emergencias article button {
+  border-color: #d66a30;
+  background: #d66a30;
+}
+.cola-atencion-emergencias article button:hover {
+  background: #b95220;
+}
+.cola-atencion-terapia > header p {
+  color: #6e4aa3;
+}
+.cola-atencion-terapia article {
+  border-color: #ded2ef;
+  background: #fefcff;
+}
+.cola-atencion-terapia .cola-atencion-datos b {
+  color: #64438e;
+  background: #f1eafb;
+}
+.cola-atencion-terapia .cola-atencion-datos small {
+  border-color: #d8caed;
+  color: #694995;
+  background: #f7f3fd;
+}
+.cola-atencion-terapia article button {
+  border-color: #7454aa;
+  background: #7454aa;
+}
+.cola-atencion-terapia article button:hover {
+  background: #5d3f91;
+}
 .cola-atencion-modal {
   position: fixed;
   inset: 0;

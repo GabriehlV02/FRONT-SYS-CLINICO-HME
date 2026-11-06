@@ -430,6 +430,24 @@ const subvistasPacientes: {
   { id: "estudios", nombre: "Estudios del paciente", icono: "image" },
 ];
 
+// Muestra visual de la cola. Nunca se guarda ni participa en los flujos clínicos.
+const ejemplosConsultorioCola: CitaConfirmada[] = [
+  { id: "COLA-DEMO-C1", paciente: "Gabriela Rojas Méndez", ci: "6548123", doctor: "Dra. Valeria Quiroga", especialidad: "Medicina familiar", fecha: "2026-11-06", hora: "09:30" },
+  { id: "COLA-DEMO-C2", paciente: "Diego Fernández Lima", ci: "7836142", doctor: "Dr. Daniel Siles", especialidad: "Medicina interna", fecha: "2026-11-06", hora: "10:15" },
+];
+const ejemplosInternacionCola = [
+  { id: "COLA-DEMO-I1", paciente: "Luis Esteban Escobar Rocha", sala: "108", cama: "B", horaIngreso: "09:20" },
+  { id: "COLA-DEMO-I2", paciente: "Mariana Flores Cárdenas", sala: "204", cama: "A", horaIngreso: "11:40" },
+];
+const ejemplosEmergenciasCola = [
+  { id: "COLA-DEMO-E1", paciente: "Ana Lucía Pérez Salinas", detalle: "Cubículo 2 · Prioridad II", hora: "08:45" },
+  { id: "COLA-DEMO-E2", paciente: "Jorge Luis Condori", detalle: "Cubículo 4 · Prioridad III", hora: "10:05" },
+];
+const ejemplosTerapiaCola = [
+  { id: "COLA-DEMO-U1", paciente: "Carmen Villca Apaza", detalle: "UCI · Cama 3", hora: "07:30" },
+  { id: "COLA-DEMO-U2", paciente: "Roberto Salazar Flores", detalle: "UCI · Cama 5", hora: "12:10" },
+];
+
 const modulos: Modulo[] = [
   {
     id: "recepcion",
@@ -985,6 +1003,12 @@ export default function Aplicacion() {
       (esAdministrador ||
         normalizarNombre(internacion.medico) === nombreSesion),
   );
+  const citasVisiblesCola = !errorColaAtencion && citasColaAtencion.length
+    ? citasColaAtencion
+    : ejemplosConsultorioCola;
+  const internacionesVisiblesCola = internacionesColaAtencion.length
+    ? internacionesColaAtencion
+    : ejemplosInternacionCola;
   useEffect(() => {
     if (!colaAtencionAbierta) return;
     const controller = new AbortController();
@@ -1615,21 +1639,14 @@ export default function Aplicacion() {
                 {cargandoColaAtencion && (
                   <p className="cola-atencion-estado">Cargando agenda…</p>
                 )}
-                {!cargandoColaAtencion && errorColaAtencion && (
-                  <p className="cola-atencion-estado" role="alert">
-                    {errorColaAtencion}
-                  </p>
-                )}
                 {!cargandoColaAtencion &&
-                  !errorColaAtencion &&
-                  !citasColaAtencion.length && (
+                  !citasVisiblesCola.length && (
                     <p className="cola-atencion-estado">
                       No tienes pacientes confirmados para atender hoy.
                     </p>
                   )}
                 {!cargandoColaAtencion &&
-                  !errorColaAtencion &&
-                  citasColaAtencion.map((cita, indice) => (
+                  citasVisiblesCola.map((cita, indice) => (
                     <article key={cita.id}>
                       <span className="cola-atencion-numero">{indice + 1}</span>
                       <div className="cola-atencion-datos">
@@ -1661,8 +1678,8 @@ export default function Aplicacion() {
                     <p>PACIENTES INTERNADOS</p>
                     <small>Pacientes actualmente a tu cargo.</small>
                   </header>
-                  {internacionesColaAtencion.length ? (
-                    internacionesColaAtencion.map((internacion, indice) => (
+                  {internacionesVisiblesCola.length ? (
+                    internacionesVisiblesCola.map((internacion, indice) => (
                       <article key={internacion.id}>
                         <span className="cola-atencion-numero">
                           {indice + 1}
@@ -1692,6 +1709,64 @@ export default function Aplicacion() {
                       No hay pacientes internados asignados actualmente.
                     </p>
                   )}
+                </section>
+                <section
+                  className="cola-atencion-internados cola-atencion-seccion cola-atencion-emergencias"
+                  aria-label="Pacientes de emergencias"
+                >
+                  <header>
+                    <p>EMERGENCIAS</p>
+                    <small>Atenciones activas en cubículos.</small>
+                  </header>
+                  {ejemplosEmergenciasCola.map((paciente, indice) => (
+                    <article key={paciente.id}>
+                      <span className="cola-atencion-numero">{indice + 1}</span>
+                      <div className="cola-atencion-datos">
+                        <b>En atención</b>
+                        <strong>{paciente.paciente}</strong>
+                        <small>{paciente.detalle}</small>
+                      </div>
+                      <time>{paciente.hora}</time>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setColaAtencionAbierta(false);
+                          setModulo("atencion-urgencias");
+                        }}
+                      >
+                        Ver emergencia
+                      </button>
+                    </article>
+                  ))}
+                </section>
+                <section
+                  className="cola-atencion-internados cola-atencion-seccion cola-atencion-terapia"
+                  aria-label="Pacientes de terapia intensiva"
+                >
+                  <header>
+                    <p>TERAPIA INTENSIVA</p>
+                    <small>Pacientes que requieren seguimiento prioritario.</small>
+                  </header>
+                  {ejemplosTerapiaCola.map((paciente, indice) => (
+                    <article key={paciente.id}>
+                      <span className="cola-atencion-numero">{indice + 1}</span>
+                      <div className="cola-atencion-datos">
+                        <b>UCI</b>
+                        <strong>{paciente.paciente}</strong>
+                        <small>{paciente.detalle}</small>
+                      </div>
+                      <time>{paciente.hora}</time>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setColaAtencionAbierta(false);
+                          setModulo("enfermera-terapia-intensiva");
+                        }}
+                      >
+                        Ver terapia
+                      </button>
+                    </article>
+                  ))}
                 </section>
               </div>
             </aside>

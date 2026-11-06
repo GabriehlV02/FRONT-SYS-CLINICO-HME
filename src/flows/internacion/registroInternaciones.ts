@@ -25,24 +25,31 @@ export type RegistroInternacion = {
 const clave = "hme:internaciones";
 const evento = "internacion:actualizada";
 let cache: RegistroInternacion[] | null = null;
-const ejemploConfirmado: RegistroInternacion = {
-  id: "INT-108B",
-  paciente: "Luis Esteban Escobar Rocha",
-  ci: "9392922",
-  medico: "Dr. responsable",
-  motivo: "Seguimiento de internación",
-  fecha: "13/10/2026",
-  estado: "confirmada",
-  sala: "108",
-  cama: "B",
-  tipoSala: "Sala compartida",
-  datosPaciente: {
-    responsableNombre: "María Elena Rocha Vargas · Madre",
-    responsableTelefono: "72014568",
-    responsableCi: "4578921",
-    responsableDireccion: "Zona Miraflores, La Paz",
+const ejemplosConfirmados: RegistroInternacion[] = [
+  {
+    id: "INT-DEMO-108B", paciente: "Luis Esteban Escobar Rocha", ci: "9392922", medico: "Dra. Valeria Quiroga", motivo: "Neumonía adquirida en comunidad", fecha: "04/11/2026", fechaIngreso: "04/11/2026", horaIngreso: "09:20", estado: "confirmada", sala: "108", cama: "B", tipoSala: "Sala compartida", servicio: "Medicina interna",
+    datosPaciente: { responsableNombre: "María Elena Rocha Vargas · Madre", responsableTelefono: "72014568", responsableCi: "4578921", responsableDireccion: "Zona Miraflores, La Paz" },
   },
-};
+  {
+    id: "INT-DEMO-204A", paciente: "Mariana Flores Cárdenas", ci: "7845126", medico: "Dr. Daniel Siles", motivo: "Control postoperatorio de colecistectomía", fecha: "05/11/2026", fechaIngreso: "05/11/2026", horaIngreso: "11:40", estado: "confirmada", sala: "204", cama: "A", tipoSala: "Sala quirúrgica", servicio: "Cirugía general",
+    datosPaciente: { responsableNombre: "Jorge Flores Cárdenas · Hermano", responsableTelefono: "76543210", responsableCi: "6123456", responsableDireccion: "Sopocachi, La Paz" },
+  },
+  {
+    id: "INT-DEMO-110A", paciente: "Carlos Andrés Mamani Quispe", ci: "6978314", medico: "Dra. Paula Ríos", motivo: "Descompensación diabética", fecha: "06/11/2026", fechaIngreso: "06/11/2026", horaIngreso: "07:55", estado: "confirmada", sala: "110", cama: "A", tipoSala: "Sala compartida", servicio: "Medicina interna",
+    datosPaciente: { responsableNombre: "Elena Quispe Choque · Esposa", responsableTelefono: "70128394", responsableCi: "5567812", responsableDireccion: "Villa Fátima, La Paz" },
+  },
+  {
+    id: "INT-DEMO-302C", paciente: "Sofía Belén Vargas Arce", ci: "8246153", medico: "Dr. Mauricio Fernández", motivo: "Observación por crisis asmática", fecha: "06/11/2026", fechaIngreso: "06/11/2026", horaIngreso: "14:10", estado: "confirmada", sala: "302", cama: "C", tipoSala: "Sala de observación", servicio: "Neumología",
+    datosPaciente: { responsableNombre: "Rosa Arce Vargas · Madre", responsableTelefono: "68923451", responsableCi: "4987612", responsableDireccion: "Obrajes, La Paz" },
+  },
+];
+
+export function obtenerEjemplosInternacion(): RegistroInternacion[] {
+  return ejemplosConfirmados.map((registro) => ({
+    ...registro,
+    datosPaciente: { ...registro.datosPaciente },
+  }));
+}
 
 function disponible() {
   return typeof window !== "undefined";
@@ -53,23 +60,15 @@ export function leerInternaciones(): RegistroInternacion[] {
   if (!disponible()) return (cache = []);
   try {
     const guardadas = JSON.parse(window.localStorage.getItem(clave) ?? "[]");
-    if (!Array.isArray(guardadas)) return (cache = [ejemploConfirmado]);
-    return (cache = guardadas.filter(
-      (item) => item?.id !== ejemploConfirmado.id,
-    ));
+    return (cache = Array.isArray(guardadas) ? guardadas : []);
   } catch {
-    return (cache = [ejemploConfirmado]);
+    return (cache = []);
   }
 }
 
 function guardar(registros: RegistroInternacion[]) {
   cache = registros;
-  const persistentes = cache.filter(
-    (item) =>
-      item.id !== ejemploConfirmado.id ||
-      JSON.stringify(item) !== JSON.stringify(ejemploConfirmado),
-  );
-  window.localStorage.setItem(clave, JSON.stringify(persistentes));
+  window.localStorage.setItem(clave, JSON.stringify(cache));
   window.dispatchEvent(new Event(evento));
 }
 
@@ -106,7 +105,7 @@ export function crearPreinternacion(
     estado: "preinternacion",
   };
   guardar([
-    ...leerInternaciones().filter((item) => item.id !== ejemploConfirmado.id),
+    ...leerInternaciones(),
     registro,
   ]);
   return registro;

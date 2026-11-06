@@ -4101,3 +4101,171 @@
 .sistema-app .area-trabajo .em-triaje-cabecera > button.em-volver-listado svg {
   color: inherit !important;
 }
+
+/* Inicio de atención: una lectura rápida en un momento de urgencia. */
+.em-modal-inicio {
+  padding: 24px;
+  background: linear-gradient(135deg, #12324bcc 0%, #0a4866b8 100%);
+  backdrop-filter: blur(5px);
+}
+.em-inicio-atencion.em-panel {
+  width: min(1100px, 100%);
+  padding: 0;
+  overflow: hidden auto;
+  border: 1px solid #b9d8e9;
+  border-radius: 18px;
+  box-shadow: 0 28px 70px #061e3194;
+}
+.em-inicio-atencion .em-inicio-cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.85fr);
+  align-items: end;
+  gap: 24px;
+  padding: 24px 64px 22px 26px;
+  border-bottom: 1px solid #d8e9f3;
+  background: linear-gradient(115deg, #f8fcff 0%, #edf8fd 100%);
+}
+.em-inicio-atencion .em-inicio-cabecera > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.em-inicio-atencion .em-inicio-cabecera h3 {
+  margin: 0;
+  color: #123d62;
+  font-size: 20px;
+  letter-spacing: -0.25px;
+}
+.em-inicio-atencion .em-inicio-cabecera small {
+  max-width: 530px;
+  color: #577b96;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.em-inicio-atencion .em-selector-cubiculo {
+  padding: 11px 12px;
+  border: 1px solid #c5e2f0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 5px 14px #184a650a;
+}
+.em-inicio-atencion .em-selector-cubiculo > span {
+  color: #2c5878;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.em-inicio-atencion .em-selector-cubiculo > button {
+  min-height: 38px;
+  padding: 8px 0 0;
+  border: 0;
+  border-top: 1px solid #e3eef4;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #15577e;
+  font-weight: 750;
+}
+.em-inicio-atencion > .em-fecha-hora-ingreso,
+.em-inicio-atencion > .em-datos-iniciales,
+.em-inicio-atencion > .em-acompanante-toggle,
+.em-inicio-atencion > .em-acciones,
+.em-inicio-atencion > .em-error-cubiculo {
+  margin-right: 26px;
+  margin-left: 26px;
+}
+.em-inicio-atencion > .em-fecha-hora-ingreso {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px 0 4px;
+}
+.em-inicio-atencion > .em-fecha-hora-ingreso label {
+  gap: 7px;
+  padding: 11px 13px;
+  border: 1px solid #d7e8f2;
+  border-radius: 11px;
+  background: #fbfdff;
+  color: #416b88;
+}
+.em-inicio-atencion > .em-fecha-hora-ingreso input {
+  min-height: 30px;
+  padding: 3px 0 0;
+  border: 0;
+  border-top: 1px solid #e5eff5;
+  border-radius: 0;
+  background: transparent;
+  color: #143f63;
+  font-size: 15px;
+  font-weight: 750;
+  box-shadow: none;
+}
+.em-inicio-atencion > .em-datos-iniciales {
+  padding: 17px 17px 16px;
+  border: 1px solid #d5e7f1;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fbfeff 0%, #f4faff 100%);
+}
+.em-inicio-atencion > .em-datos-iniciales legend {
+  padding: 0 9px;
+  color: #17638d;
+  font-size: 12px;
+  font-weight: 800;
+}
+.em-inicio-atencion .em-acompanante-toggle {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 13px;
+}
+.em-inicio-atencion .em-acompanante-toggle button {
+  min-height: 39px;
+  padding: 9px 13px;
+  border: 1px dashed #9ecde4;
+  border-radius: 9px;
+  background: #f5fbfe;
+  color: #17638d;
+  font-weight: 700;
+}
+.em-inicio-atencion .em-acompanante-toggle button:hover:not(:disabled) {
+  border-style: solid;
+  background: #e8f6fc;
+}
+.em-inicio-atencion > .em-acciones {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  align-items: center;
+  margin-top: 19px;
+  padding: 16px 0 20px;
+  border-top: 1px solid #dceaf2;
+  background: #fff;
+}
+.em-inicio-atencion > .em-acciones button {
+  min-height: 40px;
+  padding: 9px 16px;
+  border-radius: 9px;
+  font-weight: 750;
+}
+.em-inicio-atencion > .em-acciones .em-primario {
+  min-width: 136px;
+  box-shadow: 0 6px 14px #087fb72b;
+}
+.em-inicio-atencion .em-cerrar-modal {
+  top: 18px;
+  right: 20px;
+  border-radius: 10px;
+  border-color: #c7dfec;
+  background: #fff;
+  color: #246087;
+}
+@media (max-width: 760px) {
+  .em-modal-inicio { padding: 10px; }
+  .em-inicio-atencion .em-inicio-cabecera { grid-template-columns: 1fr; gap: 15px; padding: 21px 57px 18px 18px; }
+  .em-inicio-atencion > .em-fecha-hora-ingreso { grid-template-columns: 1fr; padding-top: 13px; }
+  .em-inicio-atencion > .em-fecha-hora-ingreso,
+  .em-inicio-atencion > .em-datos-iniciales,
+  .em-inicio-atencion > .em-acompanante-toggle,
+  .em-inicio-atencion > .em-acciones,
+  .em-inicio-atencion > .em-error-cubiculo { margin-right: 18px; margin-left: 18px; }
+}

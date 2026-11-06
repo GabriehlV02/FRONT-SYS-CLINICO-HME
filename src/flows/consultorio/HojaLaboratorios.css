@@ -2,47 +2,89 @@
   position: fixed;
   inset: 0;
   z-index: 1200;
-  background: #14283888;
+  background: linear-gradient(135deg, #0d3555a8, #12314bbd);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
 .hoja-lab {
-  background: #f5f7fa;
-  width: min(1560px, 100%);
-  height: min(900px, 95vh);
+  overflow: hidden;
+  background: #f8fbfd;
+  width: min(1420px, 100%);
+  height: min(820px, 92vh);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 270px;
+  grid-template-columns: minmax(0, 1fr) 284px;
   grid-template-rows: auto minmax(0, 1fr);
-  box-shadow: 0 20px 60px #14283866;
+  border: 1px solid #c4dce9;
+  border-radius: 16px;
+  box-shadow: 0 28px 70px #071d2c94;
 }
 .hoja-lab > header {
   grid-column: 1/-1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 20px;
-  background: white;
-  border-bottom: 1px solid #d6dce2;
+  padding: 18px 22px;
+  background: linear-gradient(110deg, #fff 0%, #f0f9fd 100%);
+  border-bottom: 1px solid #d8e8f1;
 }
 .hoja-lab > header div {
   display: flex;
   flex-direction: column;
 }
+.hoja-lab > header strong {
+  color: #153f61;
+  font-size: 16px;
+}
 .hoja-lab > header small {
-  color: #65717c;
+  margin-top: 5px;
+  color: #5d7b94;
+  font-size: 12px;
 }
 .hoja-lab > header button {
-  border: 0;
-  background: transparent;
-  font-size: 28px;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #cce1ed;
+  border-radius: 9px;
+  color: #2b6387;
+  background: #fff;
+  font-size: 21px;
   cursor: pointer;
 }
 .hoja-lab-contenido {
   overflow: auto;
-  padding: 10px 16px;
+  padding: 20px 22px;
 }
+.hoja-lab-vacio {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  max-width: 650px;
+  margin: 46px auto;
+  padding: 22px;
+  border: 1px dashed #a8cde1;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fff 0%, #f1faff 100%);
+}
+.hoja-lab-vacio > span {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 12px;
+  color: #087fc0;
+  background: #dff3fc;
+  font-size: 28px;
+  font-weight: 800;
+}
+.hoja-lab-vacio div { display: grid; gap: 5px; }
+.hoja-lab-vacio strong { color: #1c4e71; font-size: 14px; }
+.hoja-lab-vacio p { margin: 0; color: #5c7c95; font-size: 12px; line-height: 1.55; }
 .hoja-lab-grupos {
   columns: 4 230px;
   column-gap: 16px;
@@ -76,47 +118,64 @@
   min-width: 37px;
 }
 .hoja-lab-acciones {
-  border-left: 5px solid #75bdbb;
-  padding: 16px;
+  border-left: 1px solid #d4e5ee;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 10px;
+  background: linear-gradient(180deg, #f4fbfe 0%, #fff 68%);
 }
 .hoja-lab-acciones button {
-  border: 1px solid #a9d5df;
-  border-radius: 7px;
-  padding: 10px;
+  min-height: 42px;
+  border: 1px solid #c3dbe8;
+  border-radius: 9px;
+  padding: 10px 12px;
   cursor: pointer;
-  background: transparent;
-  color: #397f9e;
+  background: #fff;
+  color: #2e6489;
+  font-size: 12px;
+  font-weight: 700;
 }
-.hoja-lab-acciones button:first-child {
-  color: #da8b16;
-  border-color: #edba77;
+.hoja-lab-acciones .hoja-lab-deseleccionar {
+  color: #b76a13;
+  border-color: #edb36c;
+  background: #fffaf3;
 }
-.hoja-lab-acciones button:nth-child(3) {
-  background: #f44336;
-  color: white;
-  border: 0;
+.hoja-lab-acciones .hoja-lab-imprimir { color: #5c7b91; }
+.hoja-lab-acciones .hoja-lab-cancelar {
+  margin-top: auto;
+  color: #a13739;
+  border-color: #e2b9bd;
+  background: #fffafb;
 }
 .hoja-lab-acciones .hoja-lab-aceptar {
-  background: #4caf50;
+  background: #087fc0;
   color: white;
-  border: 0;
+  border-color: #087fc0;
+  box-shadow: 0 6px 14px #087fc02b;
 }
 .hoja-lab-acciones button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .hoja-lab-total {
-  border: 1px solid #bbb;
-  border-radius: 7px;
-  padding: 7px 12px;
+  order: -1;
+  margin-bottom: 6px;
+  border: 1px solid #b9dce9;
+  border-radius: 10px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  background: #fff;
 }
 .hoja-lab-total small {
-  color: #64717e;
+  color: #638097;
+  font-size: 11px;
+}
+.hoja-lab-total strong {
+  color: #0875ae;
+  font-size: 20px;
 }
 @media (max-width: 700px) {
   .hoja-lab {

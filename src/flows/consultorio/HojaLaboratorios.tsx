@@ -126,11 +126,17 @@ export function HojaLaboratorios({
           {cargando && <p>Cargando laboratorios…</p>}
           {error && <p role="alert">{error}</p>}
           {!cargando && !error && !catalogo.length && (
-            <p>
-              {permitirEstudiosLocales
-                ? "No hay tipos activos. Crea y activa un tipo desde Laboratorio → Tipos de laboratorio."
-                : "No hay servicios de laboratorio activos en el catálogo contable."}
-            </p>
+            <section className="hoja-lab-vacio">
+              <span aria-hidden="true">⌁</span>
+              <div>
+                <strong>Catálogo sin estudios disponibles</strong>
+                <p>
+                  {permitirEstudiosLocales
+                    ? "Crea y activa un tipo desde Laboratorio → Tipos de laboratorio para comenzar a solicitar estudios."
+                    : "No hay servicios de laboratorio activos en el catálogo contable."}
+                </p>
+              </div>
+            </section>
           )}
           <div className="hoja-lab-grupos">
             {Object.entries(grupos).map(([grupo, items]) => (
@@ -162,17 +168,22 @@ export function HojaLaboratorios({
           </div>
         </div>
         <aside className="hoja-lab-acciones">
-          <button type="button" onClick={() => setSeleccion([])}>
+          <button
+            type="button"
+            className="hoja-lab-deseleccionar"
+            onClick={() => setSeleccion([])}
+          >
             Deseleccionar
           </button>
           <button
             type="button"
+            className="hoja-lab-imprimir"
             onClick={() => window.print()}
             disabled={!elegidos.length}
           >
             Imprimir
           </button>
-          <button type="button" onClick={onCerrar}>
+          <button type="button" className="hoja-lab-cancelar" onClick={onCerrar}>
             Cancelar
           </button>
           <button

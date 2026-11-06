@@ -696,7 +696,6 @@ export function AsistenteFarmaciaView() {
   const peticionInventarios = useRef(0);
   const [escuchando, setEscuchando] = useState(false);
   const [vozManosLibres, setVozManosLibres] = useState(false);
-  const [pruebaMicrofono, setPruebaMicrofono] = useState(false);
   const [avisoVoz, setAvisoVoz] = useState("");
   const [vozMarcelo, setVozMarcelo] = useState<SpeechSynthesisVoice | null>(
     null,
@@ -705,7 +704,10 @@ export function AsistenteFarmaciaView() {
   const escuchandoRef = useRef(false);
   const modoManosLibresRef = useRef(false);
   const procesandoVozRef = useRef(false);
-  const pruebaMicrofonoRef = useRef(false);
+  const cancelarEscuchaRef = useRef(false);
+  const inventarioActivoRef = useRef<InventarioFisico | null>(null);
+  const mensajesRef = useRef<MensajeChat[]>([saludo]);
+  const pensandoRef = useRef(false);
   const finConversacion = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -796,6 +798,7 @@ export function AsistenteFarmaciaView() {
       const datos = await respuesta.json().catch(() => ({}));
       if (respuesta.ok) {
         const activo: InventarioFisico | null = datos.data || null;
+        inventarioActivoRef.current = activo;
         setInventarioActivo(activo);
         return activo;
       }
@@ -819,13 +822,20 @@ export function AsistenteFarmaciaView() {
   useEffect(() => {
     if (subvista === "chat") void cargarInventarioActivo();
   }, [subvista]);
-  useEffect(() => () => reconocimiento.current?.stop(), []);
+  useEffect(() => () => {
+    modoManosLibresRef.current = false;
+    cancelarEscuchaRef.current = true;
+    reconocimiento.current?.stop();
+    window.speechSynthesis?.cancel();
+  }, []);
   useEffect(() => {
     if (subvista === "chat") return;
     modoManosLibresRef.current = false;
+    cancelarEscuchaRef.current = true;
     procesandoVozRef.current = false;
     setVozManosLibres(false);
     reconocimiento.current?.stop();
+    window.speechSynthesis?.cancel();
     escuchandoRef.current = false;
     setEscuchando(false);
   }, [subvista]);
@@ -855,7 +865,7 @@ export function AsistenteFarmaciaView() {
 
   const enviarConsulta = async (textoEntrada: string, porVoz = false) => {
     const texto = textoEntrada.trim();
-    if (!texto || pensando) {
+    if (!texto || pensandoRef.current) {
       procesandoVozRef.current = false;
       return;
     }
@@ -869,11 +879,13 @@ export function AsistenteFarmaciaView() {
       texto,
       hora: ahora,
     };
-    const conversacion = [...mensajes, mensajeUsuario];
+    const conversacion = [...mensajesRef.current, mensajeUsuario];
+    mensajesRef.current = conversacion;
     setMensajes(conversacion);
-    setMensaje("");
+    if (!porVoz) setMensaje("");
     setAvisoVoz("");
     setErrorChat("");
+    pensandoRef.current = true;
     setPensando(true);
     try {
       const respuesta = await apiFetch("/api/farmacia/tomi/chat", {
@@ -895,9 +907,7 @@ export function AsistenteFarmaciaView() {
         );
       const inventarioDescargaId =
         Number(datos.inventarioFinalizadoId) || undefined;
-      setMensajes((actuales) => [
-        ...actuales,
-        {
+      const mensajeRespuesta: MensajeChat = {
           id: Date.now() + 1,
           rol: "assistant",
           texto: datos.message,
@@ -906,23 +916,13 @@ export function AsistenteFarmaciaView() {
             minute: "2-digit",
           }).format(new Date()),
           inventarioDescargaId,
-        },
-      ]);
-      const inventarioActual = await cargarInventarioActivo();
+        };
+      mensajesRef.current = [...mensajesRef.current, mensajeRespuesta];
+      setMensajes(mensajesRef.current);
+      await cargarInventarioActivo();
       if (inventarioDescargaId) void descargarExcel(inventarioDescargaId);
-      if (porVoz && modoManosLibresRef.current && !inventarioActual) {
-        modoManosLibresRef.current = false;
-        setVozManosLibres(false);
-      }
-      if (porVoz && inventarioActual) {
-        modoManosLibresRef.current = true;
-        setVozManosLibres(true);
-      }
       if (porVoz || modoManosLibresRef.current)
-        escucharRespuesta(
-          datos.message,
-          Boolean(modoManosLibresRef.current && inventarioActual),
-        );
+        escucharRespuesta(datos.message, modoManosLibresRef.current);
     } catch (error) {
       const detalle = error instanceof Error ? error.message : "";
       const mensajeTecnico =
@@ -937,16 +937,16 @@ export function AsistenteFarmaciaView() {
       );
       const mensajeError = porVoz
         ? falloConexion || falloRegistro
-          ? "No pude confirmar si el conteo se guardó. Revisa el progreso del inventario antes de repetirlo."
-          : "No te escuché. Repítelo otra vez, por favor."
+          ? inventarioActivoRef.current
+            ? "No pude confirmar si el conteo se guardó. Revisa el progreso del inventario antes de repetirlo."
+            : "No pude obtener una respuesta. Revisa tu conexión e inténtalo de nuevo."
+          : "No pude completar tu consulta. Inténtalo de nuevo."
         : mensajeTecnico
           ? "No se pudo completar la respuesta. Actualiza la página e inténtalo otra vez."
           : detalle || "No se pudo conectar con TOMI.";
       setErrorChat(mensajeError);
       if (porVoz || modoManosLibresRef.current) {
-        setMensajes((actuales) => [
-          ...actuales,
-          {
+        const respuestaError: MensajeChat = {
             id: Date.now() + 1,
             rol: "assistant",
             texto: mensajeError,
@@ -954,11 +954,13 @@ export function AsistenteFarmaciaView() {
               hour: "2-digit",
               minute: "2-digit",
             }).format(new Date()),
-          },
-        ]);
+          };
+        mensajesRef.current = [...mensajesRef.current, respuestaError];
+        setMensajes(mensajesRef.current);
         escucharRespuesta(mensajeError, modoManosLibresRef.current);
       }
     } finally {
+      pensandoRef.current = false;
       setPensando(false);
     }
   };
@@ -977,8 +979,6 @@ export function AsistenteFarmaciaView() {
       (window as SpeechWindow).SpeechRecognition ||
       (window as SpeechWindow).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      pruebaMicrofonoRef.current = false;
-      setPruebaMicrofono(false);
       modoManosLibresRef.current = false;
       setVozManosLibres(false);
       setAvisoVoz(
@@ -987,6 +987,7 @@ export function AsistenteFarmaciaView() {
       return;
     }
     const instancia = new SpeechRecognition();
+    cancelarEscuchaRef.current = false;
     instancia.lang = "es-BO";
     instancia.continuous = true;
     instancia.interimResults = true;
@@ -998,23 +999,9 @@ export function AsistenteFarmaciaView() {
       temporizador = null;
       let texto = segmentos.join(" ").trim();
       segmentos = [];
+      if (cancelarEscuchaRef.current) return;
       if (!texto) return;
-      if (pruebaMicrofonoRef.current) {
-        pruebaMicrofonoRef.current = false;
-        setPruebaMicrofono(false);
-        setMensaje(texto);
-        setAvisoVoz(
-          `Te escuché: “${texto}”. La prueba del micrófono funcionó.`,
-        );
-        procesandoVozRef.current = false;
-        instancia.stop();
-        escucharRespuesta(
-          "Prueba de micrófono correcta. Te escuché decir: " + texto + ".",
-          false,
-        );
-        return;
-      }
-      if (modoManosLibresRef.current) {
+      if (modoManosLibresRef.current && inventarioActivoRef.current) {
         const comandoTomi = texto.match(/^tomi[\s,:-]+(.+)$/i);
         if (!comandoTomi) {
           setAvisoVoz(
@@ -1034,12 +1021,12 @@ export function AsistenteFarmaciaView() {
         return;
       }
       procesandoVozRef.current = true;
-      setMensaje(texto);
       setAvisoVoz("");
       instancia.stop();
       void enviarConsulta(texto, true);
     };
     instancia.onresult = (event) => {
+      if (cancelarEscuchaRef.current) return;
       for (
         let indice = event.resultIndex;
         indice < event.results.length;
@@ -1065,9 +1052,8 @@ export function AsistenteFarmaciaView() {
         event.error === "not-allowed" ||
         event.error === "service-not-allowed"
       ) {
-        pruebaMicrofonoRef.current = false;
-        setPruebaMicrofono(false);
         modoManosLibresRef.current = false;
+        cancelarEscuchaRef.current = true;
         procesandoVozRef.current = false;
         setVozManosLibres(false);
         setAvisoVoz(
@@ -1078,13 +1064,6 @@ export function AsistenteFarmaciaView() {
     instancia.onend = () => {
       escuchandoRef.current = false;
       setEscuchando(false);
-      if (pruebaMicrofonoRef.current && !segmentos.length) {
-        pruebaMicrofonoRef.current = false;
-        setPruebaMicrofono(false);
-        setAvisoVoz(
-          "No detecté voz. Revisa el permiso y el micrófono e inténtalo de nuevo.",
-        );
-      }
       if (segmentos.length) enviarSegmentos();
       if (
         modoManosLibresRef.current &&
@@ -1104,9 +1083,9 @@ export function AsistenteFarmaciaView() {
     };
     reconocimiento.current = instancia;
     setAvisoVoz(
-      manosLibres
-        ? "TOMI está escuchando. Di el código y la cantidad."
-        : "Habla después de iniciar el micrófono.",
+      manosLibres && inventarioActivoRef.current
+        ? "TOMI está escuchando. Di TOMI, el código y la cantidad."
+        : "TOMI está escuchando. Habla y responderé al terminar.",
     );
     escuchandoRef.current = true;
     setEscuchando(true);
@@ -1114,17 +1093,21 @@ export function AsistenteFarmaciaView() {
       instancia.start();
     } catch {
       escuchandoRef.current = false;
+      modoManosLibresRef.current = false;
       setEscuchando(false);
+      setVozManosLibres(false);
       setAvisoVoz("No se pudo iniciar el micrófono. Inténtalo de nuevo.");
     }
   };
 
   const alternarVoz = () => {
-    if (escuchandoRef.current) {
+    if (modoManosLibresRef.current || escuchandoRef.current) {
       modoManosLibresRef.current = false;
       procesandoVozRef.current = false;
+      cancelarEscuchaRef.current = true;
       setVozManosLibres(false);
       reconocimiento.current?.stop();
+      window.speechSynthesis?.cancel();
       escuchandoRef.current = false;
       setEscuchando(false);
       setAvisoVoz("Escucha manos libres detenida.");
@@ -1139,10 +1122,9 @@ export function AsistenteFarmaciaView() {
       );
       return;
     }
-    const manosLibres = Boolean(inventarioActivo);
-    modoManosLibresRef.current = manosLibres;
-    setVozManosLibres(manosLibres);
-    iniciarReconocimiento(manosLibres);
+    modoManosLibresRef.current = true;
+    setVozManosLibres(true);
+    iniciarReconocimiento(true);
   };
 
   const escucharRespuesta = (texto: string, reanudarEscucha = false) => {
@@ -1152,7 +1134,10 @@ export function AsistenteFarmaciaView() {
       finalizada = true;
       procesandoVozRef.current = false;
       if (reanudarEscucha && modoManosLibresRef.current)
-        window.setTimeout(() => iniciarReconocimiento(true), 300);
+        window.setTimeout(() => {
+          if (modoManosLibresRef.current && !pensandoRef.current && !escuchandoRef.current)
+            iniciarReconocimiento(true);
+        }, 300);
     };
     if (!("speechSynthesis" in window)) {
       reanudar();
@@ -1173,22 +1158,6 @@ export function AsistenteFarmaciaView() {
     escucharRespuesta(
       "¡Hola! Soy TOMI, tu asistente de farmacia. Cuéntame qué producto buscas y con gusto te ayudo a revisar la información disponible.",
     );
-  const probarMicrofono = () => {
-    if (escuchandoRef.current) {
-      setAvisoVoz("Pausa la escucha de TOMI antes de probar el micrófono.");
-      return;
-    }
-    modoManosLibresRef.current = false;
-    procesandoVozRef.current = false;
-    setVozManosLibres(false);
-    setEscuchando(false);
-    pruebaMicrofonoRef.current = true;
-    setPruebaMicrofono(true);
-    setAvisoVoz(
-      "Cuando se active el micrófono, di una frase corta para comprobar el audio.",
-    );
-    iniciarReconocimiento(false);
-  };
 
   const verSucursal = async (sucursal: SucursalFarmacia) => {
     setMensajeDistribucion("");
@@ -1629,11 +1598,11 @@ export function AsistenteFarmaciaView() {
                 <button
                   className="farmacia-ia-probar-voz"
                   type="button"
-                  onClick={probarMicrofono}
-                  disabled={pruebaMicrofono}
+                  onClick={alternarVoz}
+                  aria-pressed={vozManosLibres}
                 >
                   <Icon name="mic" size={15} />{" "}
-                  {pruebaMicrofono ? "Probando micrófono…" : "Probar micrófono"}
+                  {vozManosLibres ? "Pausar conversación" : "Hablar con TOMI"}
                 </button>
                 <button
                   className="farmacia-ia-probar-voz farmacia-ia-probar-audio"
@@ -1736,24 +1705,24 @@ export function AsistenteFarmaciaView() {
               />
               <button
                 type="button"
-                className={`farmacia-ia-microfono ${escuchando ? "escuchando" : ""}`}
+                className={`farmacia-ia-microfono ${vozManosLibres ? "escuchando" : ""}`}
                 onClick={alternarVoz}
                 aria-label={
-                  escuchando
+                  vozManosLibres
                     ? "Pausar escucha de TOMI"
                     : inventarioActivo
                       ? "Reanudar escucha de TOMI"
                       : "Dictar consulta por voz"
                 }
                 title={
-                  escuchando
+                  vozManosLibres
                     ? "Pausar escucha de TOMI"
                     : inventarioActivo
                       ? "Reanudar escucha de TOMI"
                       : "Dictar por voz"
                 }
               >
-                <Icon name={escuchando ? "check" : "mic"} size={18} />
+                <Icon name={vozManosLibres ? "check" : "mic"} size={18} />
               </button>
               <button
                 type="submit"
@@ -1767,9 +1736,9 @@ export function AsistenteFarmaciaView() {
                 {errorChat ||
                   avisoVoz ||
                   (escuchando
-                    ? vozManosLibres
-                      ? "TOMI espera su palabra de activación. Di TOMI, seguido del código y la cantidad."
-                      : "Escuchando; pulsa el micrófono para detener."
+                    ? inventarioActivo
+                      ? "TOMI escucha. Di TOMI, seguido del código y la cantidad."
+                      : "TOMI escucha; responderá al terminar. Pulsa el micrófono para pausar."
                     : inventarioActivo
                       ? "Escucha pausada. Pulsa el micrófono para reanudar el conteo por voz."
                       : "Dictado por voz. Verifica la información con el personal farmacéutico.")}

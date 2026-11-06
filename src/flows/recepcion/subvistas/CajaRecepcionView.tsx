@@ -419,6 +419,8 @@ export function CajaRecepcionView({
   const [fechaConsulta, setFechaConsulta] = useState("");
   const [horaConsulta, setHoraConsulta] = useState("");
   const [motivoOperativoConsulta, setMotivoOperativoConsulta] = useState("");
+  const [citasCronograma, setCitasCronograma] = useState<Array<{ id: string; profesionalId?: string; doctor?: string; fecha: string; hora: string; estado?: string }>>([]);
+  const [estadoCronograma, setEstadoCronograma] = useState<"cargando" | "listo" | "error">("cargando");
   const [precioConsulta, setPrecioConsulta] = useState(80);
   const [cajasVenta, setCajasVenta] = useState<CajaVenta[]>([]);
   const [cajaVentaId, setCajaVentaId] = useState("");
@@ -636,6 +638,34 @@ export function CajaRecepcionView({
     pendiente = Math.max(total - pagado, 0),
     cambio = Math.max(pagado - total, 0);
   const profesionalConsulta = resolver(medicoConsulta);
+  useEffect(() => {
+    if (!consultaParaAgendar) return;
+    const controller = new AbortController();
+    setEstadoCronograma("cargando");
+    void apiFetch("/api/citas", { signal: controller.signal })
+      .then(async (respuesta) => {
+        if (!respuesta.ok) throw new Error("No se pudo consultar la agenda.");
+        const citas: unknown = await respuesta.json();
+        if (!Array.isArray(citas)) throw new Error("Agenda no disponible.");
+        if (!controller.signal.aborted) {
+          setCitasCronograma(citas);
+          setEstadoCronograma("listo");
+        }
+      })
+      .catch(() => { if (!controller.signal.aborted) setEstadoCronograma("error"); });
+    return () => controller.abort();
+  }, [consultaParaAgendar]);
+  const fechasCronograma = useMemo(() => {
+    if (!consultaParaAgendar) return [];
+    const hoy = new Date();
+    hoy.setHours(12, 0, 0, 0);
+    return Array.from({ length: 8 }, (_, indice) => {
+      const dia = new Date(hoy);
+      dia.setDate(hoy.getDate() + indice);
+      const clave = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, "0")}-${String(dia.getDate()).padStart(2, "0")}`;
+      return { dia, clave };
+    });
+  }, [consultaParaAgendar]);
   const diasAtencionConsulta = profesionalConsulta?.horario?.startsWith("Lun")
     ? [1, 3, 5]
     : [2, 4, 6];
@@ -679,6 +709,7 @@ export function CajaRecepcionView({
       setMedicoConsulta(medicosPorEspecialidad["Medicina Interna"]?.[0] || "");
       setFechaConsulta("");
       setHoraConsulta("");
+      setMotivoOperativoConsulta("");
       return;
     }
     if (item.categoria === "Imagenología") {
@@ -707,6 +738,7 @@ export function CajaRecepcionView({
     setMedicoConsulta(medicosPorEspecialidad["Medicina Interna"]?.[0] || "");
     setFechaConsulta("");
     setHoraConsulta("");
+    setMotivoOperativoConsulta("");
   };
   const agendarConsulta = async () => {
     if (!consultaParaAgendar || !fechaConsulta || !horaConsulta)
@@ -721,10 +753,7 @@ export function CajaRecepcionView({
       );
     const ficha = fichasPacientes.find((p) => p.ci === ciPaciente),
       profesional = resolver(medicoConsulta);
-    const motivoCapturado =
-      motivoOperativoConsulta.trim() ||
-      window.prompt("Motivo de consulta para el médico (opcional):")?.trim() ||
-      "";
+    const motivoCapturado = motivoOperativoConsulta.trim();
     if (!ficha || !profesional)
       return setMensaje(
         "Selecciona un paciente registrado y un médico activo.",
@@ -1260,6 +1289,7 @@ export function CajaRecepcionView({
               setConsultaParaAgendar(null);
           }}
         >
+          <div className="punto-consulta-distribucion">
           <form
             className="punto-imagen-modal punto-consulta-modal"
             role="dialog"
@@ -1374,6 +1404,15 @@ export function CajaRecepcionView({
                 />
               </label>
             </div>
+            <label>
+              Motivo de consulta (opcional)
+              <input
+                type="text"
+                value={motivoOperativoConsulta}
+                onChange={(evento) => setMotivoOperativoConsulta(evento.target.value)}
+                placeholder="Describe brevemente el motivo de la consulta"
+              />
+            </label>
             <footer>
               <button
                 type="button"
@@ -1387,6 +1426,29 @@ export function CajaRecepcionView({
               </button>
             </footer>
           </form>
+          <aside className="punto-consulta-cronograma" aria-label="Cronograma semanal del médico">
+            <header>
+              <span>AGENDA MÉDICA</span>
+              <h3>Cronograma de atención</h3>
+              <p>{profesionalConsulta?.nombre || "Selecciona un médico"}</p>
+              <small>Desde hoy hasta el mismo día de la próxima semana</small>
+            </header>
+            {estadoCronograma === "error" && <p className="punto-cronograma-aviso" role="status">No se pudieron consultar las citas. Verifica la agenda antes de confirmar.</p>}
+            {estadoCronograma === "cargando" && <p className="punto-cronograma-aviso" role="status">Consultando citas…</p>}
+            <div className="punto-cronograma-dias">
+              {fechasCronograma.map(({ dia, clave }) => {
+                const atiende = Boolean(profesionalConsulta?.horario) && diasAtencionConsulta.includes(dia.getDay());
+                const citasDia = citasCronograma.filter((cita) => cita.fecha === clave && cita.estado !== "cancelada" && (cita.profesionalId ? cita.profesionalId === profesionalConsulta?.id : cita.doctor === profesionalConsulta?.nombre));
+                return (
+                  <button key={clave} type="button" className={fechaConsulta === clave ? "seleccionado" : ""} disabled={!atiende} onClick={() => setFechaConsulta(clave)}>
+                    <span><strong>{new Intl.DateTimeFormat("es-BO", { weekday: "short", day: "numeric", month: "short" }).format(dia)}</strong><small>{atiende ? `${horasAtencionConsulta[0]} – ${profesionalConsulta?.horario?.match(/\d{2}:\d{2}[–-](\d{2}:\d{2})/)?.[1] || horasAtencionConsulta.at(-1)}` : "Sin turno"}</small></span>
+                    {atiende && estadoCronograma === "listo" && <b>{citasDia.length} {citasDia.length === 1 ? "cita" : "citas"}</b>}
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+          </div>
         </div>
       )}
       {imagenParaAgregar && (

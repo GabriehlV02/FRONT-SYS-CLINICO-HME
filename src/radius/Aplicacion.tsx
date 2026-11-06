@@ -952,6 +952,10 @@ export default function Aplicacion() {
     }
   };
   const [colaAtencionVersion, setColaAtencionVersion] = useState(0);
+  const [abrirFormularioQuirofano, setAbrirFormularioQuirofano] = useState(false);
+  useEffect(() => {
+    if (modulo !== "cuenta-quirofano") setAbrirFormularioQuirofano(false);
+  }, [modulo]);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
   const [pacienteColaAtencion, setPacienteColaAtencion] =
     useState<CitaConfirmada | null>(null);
@@ -1932,6 +1936,10 @@ export default function Aplicacion() {
                 key={subvistaRecepcion}
                 initialSubview={subvistaRecepcion}
                 onAbrirModulo={setModulo}
+                onAgendarCirugia={() => {
+                  setAbrirFormularioQuirofano(true);
+                  setModulo("cuenta-quirofano");
+                }}
               />
             ) : modulo === "atencion-agenda" ? (
               subvistaAtencionAgenda === "pacientes" ? (
@@ -2622,7 +2630,7 @@ export default function Aplicacion() {
                 ]}
               />
             ) : modulo === "cuenta-quirofano" ? (
-              <CuentaQuirofanoView />
+              <CuentaQuirofanoView abrirFormulario={abrirFormularioQuirofano} />
             ) : modulo === "imagenologia" &&
               subvistaImagenologia === "radiografias" &&
               subvistaModalidad === "estudios" ? (

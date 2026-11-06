@@ -70,7 +70,7 @@ const calcularEdad = (fecha: string) => {
   return edad;
 };
 
-export function CuentaQuirofanoView() {
+export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormulario?: boolean }) {
   const { medicos, resolver } = useProfesionales();
   const { pacientes: fichasPacientes, errorPacientes } = usePacientes();
   const pacientes: Paciente[] = fichasPacientes.map((p) => ({
@@ -82,7 +82,7 @@ export function CuentaQuirofanoView() {
   const [registroPacienteAbierto, setRegistroPacienteAbierto] = useState(false);
   const [vista, setVista] = useState<
     "cuenta" | "programar" | "cronograma" | "historial" | "cirugias-admin"
-  >("programar");
+  >(abrirFormulario ? "cuenta" : "programar");
   const [cirugias, setCirugias] = useState(leerCronograma);
   const [fechaCronograma, setFechaCronograma] = useState("");
   const [errorCuenta, setErrorCuenta] = useState("");

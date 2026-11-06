@@ -2889,16 +2889,21 @@
 }
 .punto-carrito-lineas button {
   height: 30px;
-  border: 1px solid #bce6f1;
+  border: 1px solid #087fbc;
   border-radius: 8px;
-  color: #087ea7;
-  background: #effbff;
+  color: #fff;
+  background: #087fbc;
+  font-weight: 700;
+  cursor: pointer;
 }
 .punto-carrito-lineas .punto-quitar {
-  color: #dc3737;
-  border-color: #f2c3c3;
-  background: #fff0f0;
+  color: #fff;
+  border-color: #d84747;
+  background: #d84747;
 }
+.punto-carrito-lineas button:hover:not(:disabled) { background: #066c9f; border-color: #066c9f; }
+.punto-carrito-lineas .punto-quitar:hover:not(:disabled) { background: #b52e35; border-color: #b52e35; }
+.punto-carrito-lineas button:focus-visible { outline: 2px solid #064f7b; outline-offset: 2px; }
 .punto-cantidad-input {
   width: 100%;
   min-width: 0;

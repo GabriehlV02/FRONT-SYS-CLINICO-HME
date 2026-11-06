@@ -61,10 +61,12 @@ export function RecepcionView({
   initialAgenda = false,
   initialSubview,
   onAbrirModulo,
+  onAgendarCirugia,
 }: {
   initialAgenda?: boolean;
   initialSubview?: SubvistaRecepcion;
   onAbrirModulo?: (modulo: string) => void;
+  onAgendarCirugia?: () => void;
 }) {
   const [subvista, setSubvista] = useState<SubvistaRecepcion>(
     initialSubview ?? (initialAgenda ? "citas" : "caja"),
@@ -105,7 +107,7 @@ export function RecepcionView({
       {subvista === "caja" && (
         <CajaRecepcionView
           navegacion={navegacion}
-          onAgendarCirugia={() => onAbrirModulo?.("cuenta-quirofano")}
+          onAgendarCirugia={onAgendarCirugia ?? (() => onAbrirModulo?.("cuenta-quirofano"))}
           onConsultaExterna={() => {
             setConsultaExterna(true);
             setSubvista("citas");

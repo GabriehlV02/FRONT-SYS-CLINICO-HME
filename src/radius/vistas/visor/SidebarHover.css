@@ -11,9 +11,7 @@
     margin-left: 76px;
   }
   .sistema-app.sidebar-replegado .sistema-sidebar .sistema-marca {
-    height: 90px !important;
-    padding: 14px 10px !important;
-    justify-content: center;
+    display: none;
   }
   .sistema-app.sidebar-replegado .sistema-sidebar .marca-icono {
     width: 48px;
@@ -82,6 +80,8 @@
       :focus-within
     )
     .sistema-marca {
+    display: flex;
+    height: 90px !important;
     justify-content: flex-start;
     padding: 14px 20px !important;
   }

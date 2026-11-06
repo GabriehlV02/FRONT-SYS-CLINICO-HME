@@ -8,6 +8,48 @@
   background: rgba(12, 38, 61, 0.48);
   backdrop-filter: blur(3px);
 }
+.punto-consulta-distribucion {
+  display: grid;
+  grid-template-columns: minmax(320px, 460px) minmax(290px, 390px);
+  gap: 0;
+  align-items: stretch;
+  width: min(864px, 100%);
+  max-height: calc(100dvh - 36px);
+  overflow-y: auto;
+  border: 1px solid #c9dfed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(9, 44, 70, .25);
+}
+.punto-consulta-distribucion .punto-consulta-modal { width: 100%; border: 0; border-radius: 0; box-shadow: none; }
+.punto-consulta-cronograma {
+  box-sizing: border-box;
+  padding: 20px;
+  border: 0;
+  border-left: 1px solid #dcebf3;
+  border-radius: 0;
+  color: #173d5b;
+  background: #f8fcff;
+  box-shadow: none;
+}
+.punto-consulta-cronograma > header { padding-bottom: 12px; border-bottom: 1px solid #e1edf4; }
+.punto-consulta-cronograma > header > span { color: #087db8; font-size: 9px; font-weight: 850; letter-spacing: .09em; }
+.punto-consulta-cronograma h3 { margin: 5px 0; color: #143d5c; font-size: 17px; }
+.punto-consulta-cronograma header p { margin: 5px 0; color: #246489; font-size: 12px; font-weight: 700; }
+.punto-consulta-cronograma header small { color: #6c8398; font-size: 11px; }
+.punto-cronograma-aviso { margin: 10px 0 0; color: #95601b; font-size: 11px; line-height: 1.4; }
+.punto-cronograma-dias { display: grid; gap: 6px; margin-top: 12px; }
+.punto-cronograma-dias button { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 8px 11px; border: 1px solid #d6e7f0; border-radius: 9px; text-align: left; color: #194d70; background: #f8fcff; cursor: pointer; }
+.punto-cronograma-dias button > span { display: grid; gap: 3px; }
+.punto-cronograma-dias button strong { font-size: 12px; text-transform: capitalize; }
+.punto-cronograma-dias button small { color: #658399; font-size: 11px; }
+.punto-cronograma-dias button b { padding: 4px 7px; border-radius: 20px; color: #0871a5; background: #e6f5fc; font-size: 10px; white-space: nowrap; }
+.punto-cronograma-dias button:hover:not(:disabled), .punto-cronograma-dias button.seleccionado { border-color: #078fc7; background: #eaf8fe; }
+.punto-cronograma-dias button:disabled { color: #8496a5; background: #f7f9fa; cursor: default; }
+@media (max-width: 760px) {
+  .punto-consulta-distribucion { grid-template-columns: minmax(0, 1fr); width: min(460px, 100%); }
+  .punto-consulta-cronograma { border-left: 0; border-top: 1px solid #dcebf3; }
+}
 .punto-imagen-modal {
   box-sizing: border-box;
   width: min(460px, 100%);

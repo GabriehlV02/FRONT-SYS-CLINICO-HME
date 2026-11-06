@@ -1115,7 +1115,7 @@ export function ConsultaMedicaView({
                                     setDiagnosticosFinales((actual) => ({
                                       ...actual,
                                       [paciente.ci]: (
-                                        actual[paciente.ci] ?? [entrada]
+                                        actual[paciente.ci] ?? (diagnosticosPaciente.length ? diagnosticosPaciente : [entrada])
                                       ).map((item) =>
                                         item.id === entrada.id
                                           ? {
@@ -1141,7 +1141,7 @@ export function ConsultaMedicaView({
                                       setDiagnosticosFinales((actual) => ({
                                         ...actual,
                                         [paciente.ci]: (
-                                          actual[paciente.ci] ?? []
+                                          actual[paciente.ci] ?? diagnosticosPaciente
                                         ).map((item) =>
                                           item.id === entrada.id
                                             ? {
@@ -1168,7 +1168,7 @@ export function ConsultaMedicaView({
                                 setDiagnosticosFinales((actual) => ({
                                   ...actual,
                                   [paciente.ci]: (
-                                    actual[paciente.ci] ?? [entrada]
+                                    actual[paciente.ci] ?? (diagnosticosPaciente.length ? diagnosticosPaciente : [entrada])
                                   ).map((item) =>
                                     item.id === entrada.id
                                       ? {
@@ -1192,7 +1192,7 @@ export function ConsultaMedicaView({
                                 setDiagnosticosFinales((actual) => ({
                                   ...actual,
                                   [paciente.ci]: (
-                                    actual[paciente.ci] ?? []
+                                    actual[paciente.ci] ?? diagnosticosPaciente
                                   ).filter((item) => item.id !== entrada.id),
                                 }))
                               }

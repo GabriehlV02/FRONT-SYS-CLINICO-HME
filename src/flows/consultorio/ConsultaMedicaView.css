@@ -2366,6 +2366,8 @@ body:has(.consulta-cabecera-fija),
   resize: vertical;
 }
 .consulta-planes-diagnostico {
+  align-content: start;
+  min-width: 0;
   padding-left: 12px;
   border-left: 1px solid #d9eaf3;
 }

@@ -36,7 +36,6 @@ export function BuscadorPacienteInternacion({ valor, ci, ciInicial, onCambiar, o
   const consulta = normalizar(valor);
   const coincidencias = consulta ? pacientes.filter(p => consulta.split(/\s+/).every(parte => normalizar(`${nombrePaciente(p)} ${p.numeroDocumento}`).includes(parte))).slice(0, 8) : [];
   const elegir = (p: PacienteDemo) => { onSeleccionar(p); setAbierto(false); setActivo(-1); };
-  const iniciales = (p: PacienteDemo) => nombrePaciente(p).split(' ').filter(Boolean).slice(0, 2).map(parte => parte[0]).join('').toUpperCase();
   return <div className="internacion-buscador doble">
     <label htmlFor={campoId}>Buscar paciente por nombre o CI{requerido ? ' *' : ''}</label>
     <div className="internacion-buscador-control"><Icon name="search" size={18}/><input id={campoId} name="nombre" required={requerido} pattern=".*\S.*" role="combobox" aria-autocomplete="list" aria-expanded={abierto && Boolean(consulta)} aria-controls={listaId} aria-activedescendant={abierto && activo >= 0 && coincidencias[activo] ? `${listaId}-${activo}` : undefined} autoComplete="off" value={valor} placeholder="Escribe el nombre o CI para buscar un paciente" onFocus={() => setAbierto(true)} onChange={e => { onCambiar(e.target.value); setAbierto(true); setActivo(-1); }} onKeyDown={e => {
@@ -45,8 +44,7 @@ export function BuscadorPacienteInternacion({ valor, ci, ciInicial, onCambiar, o
       if (e.key === 'Escape' && abierto) { e.preventDefault(); e.stopPropagation(); setAbierto(false); }
     }} /></div>
     {abierto && consulta && <div className="internacion-buscador-resultados">
-      {coincidencias.length > 0 && <header className="internacion-resultados-encabezado"><span>{coincidencias.length} {coincidencias.length === 1 ? 'paciente encontrado' : 'pacientes encontrados'}</span><small>↑↓ para navegar · Enter para seleccionar</small></header>}
-      <ul id={listaId} role="listbox" aria-label="Pacientes registrados">{coincidencias.map((p, i) => <li key={p.id} id={`${listaId}-${i}`} role="option" aria-selected={i === activo} onMouseDown={e => e.preventDefault()} onMouseMove={() => setActivo(i)} onClick={() => elegir(p)}><span className="internacion-paciente-iniciales" aria-hidden="true">{iniciales(p)}</span><span className="internacion-paciente-datos"><strong>{nombrePaciente(p)}</strong><small>CI <b>{p.numeroDocumento}</b></small></span><Icon name="chevronRight" size={16} aria-hidden="true" /></li>)}</ul>
+      <ul id={listaId} role="listbox" aria-label="Pacientes registrados">{coincidencias.map((p, i) => <li key={p.id} id={`${listaId}-${i}`} role="option" aria-selected={i === activo} onMouseDown={e => e.preventDefault()} onMouseMove={() => setActivo(i)} onClick={() => elegir(p)}><strong>{nombrePaciente(p)}</strong><span>CI {p.numeroDocumento}</span></li>)}</ul>
       {!coincidencias.length && <p role="status">{cargando ? 'Buscando pacientes…' : 'Sin coincidencias. Utiliza Registrar paciente para crear su ficha.'}</p>}
     </div>}
     <div className="internacion-buscador-pie"><small>{aviso || 'Busca por nombre, apellidos o CI y selecciona un paciente para cargar sus datos.'}</small><button type="button" onClick={() => setRegistrando(true)}><Icon name="plus" size={16}/> Registrar nuevo paciente</button></div>

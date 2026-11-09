@@ -20,6 +20,7 @@ type PacienteEnEspera = {
   edad: number;
   doctor: string;
   especialidad: string;
+  motivoConsulta?: string;
   signosRegistrados?: boolean;
 };
 type PacienteAtendido = PacienteEnEspera & {
@@ -124,7 +125,12 @@ export function SignosVitalesView({
       .then(async (respuesta) => {
         if (!respuesta.ok)
           throw new Error("No se pudieron cargar las consultas.");
-        const citas: PacienteEnEspera[] = await respuesta.json();
+        const citas: PacienteEnEspera[] = (await respuesta.json()).map(
+          (cita: PacienteEnEspera & { motivo?: string; motivoOperativo?: string }) => ({
+            ...cita,
+            motivoConsulta: cita.motivoConsulta || cita.motivo || cita.motivoOperativo || "",
+          }),
+        );
         const activas = citas.filter(
           (cita) =>
             cita.estado === "confirmada" || cita.estado === "por_confirmar",
@@ -155,6 +161,7 @@ export function SignosVitalesView({
   const [pacienteSeleccionado, setPacienteSeleccionado] =
     useState<PacienteEnEspera | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});
+  const [motivoConsulta, setMotivoConsulta] = useState("");
   const [atendidos, setAtendidos] =
     useState<PacienteAtendido[]>(() => esDemo ? leerListaDemo(claveAtendidosDemo, atendidosIniciales) : []);
   const [panelAtendidosAbierto, setPanelAtendidosAbierto] = useState(true);
@@ -232,7 +239,11 @@ export function SignosVitalesView({
           `/api/v1/citas/${encodeURIComponent(pacienteSeleccionado.id)}/signos-vitales`,
           {
             method: "POST",
-            body: JSON.stringify({ valores: datos, version: versionValoracion }),
+          body: JSON.stringify({
+            valores: datos,
+            version: versionValoracion,
+            motivoConsulta: motivoConsulta.trim(),
+          }),
           },
         );
         const resultado = await respuesta.json().catch(() => ({}));
@@ -261,6 +272,7 @@ export function SignosVitalesView({
       }
       setPacienteSeleccionado(null);
       setValores({});
+      setMotivoConsulta("");
       setEditandoAtendido(false);
     } catch (error) {
       setErrorRegistro(
@@ -277,6 +289,7 @@ export function SignosVitalesView({
     setErrorPacientes("");
     if (esDemo) {
       setValores(paciente.valores);
+      setMotivoConsulta(paciente.motivoConsulta || "");
       setVersionValoracion(1);
       setPacienteSeleccionado(paciente);
       setEditandoAtendido(true);
@@ -290,6 +303,7 @@ export function SignosVitalesView({
       if (!respuesta.ok) throw new Error("No se pudo cargar la valoración.");
       const resultado = await respuesta.json();
       setValores(resultado.data?.valores ?? {});
+      setMotivoConsulta(paciente.motivoConsulta || "");
       setVersionValoracion(resultado.data?.id ?? null);
       setPacienteSeleccionado(paciente);
       setEditandoAtendido(true);
@@ -327,9 +341,6 @@ export function SignosVitalesView({
           <div>
             <p>TRIAJE DE ENFERMERÍA</p>
             <h2>Registro de signos vitales</h2>
-            <small>
-              Complete la valoración inicial antes de la consulta ambulatoria.
-            </small>
           </div>
           <button
             className="signos-volver"
@@ -337,6 +348,7 @@ export function SignosVitalesView({
             onClick={() => {
               setPacienteSeleccionado(null);
               setValores({});
+              setMotivoConsulta("");
               setEditandoAtendido(false);
             }}
           >
@@ -368,6 +380,20 @@ export function SignosVitalesView({
             <label className="formulario-paciente">
               Especialidad
               <input value={pacienteSeleccionado.especialidad} disabled />
+            </label>
+            <label className="formulario-motivo-consulta">
+              Motivo de consulta
+              <textarea
+                value={motivoConsulta}
+                onChange={(evento) => setMotivoConsulta(evento.target.value)}
+                maxLength={1000}
+                rows={3}
+                placeholder="Describe el motivo de consulta referido por el paciente o su acompañante."
+              />
+              <small>
+                {motivoConsulta.length}/1000 caracteres
+                {!motivoConsulta.trim() && " · Completa este dato si no fue registrado en recepción."}
+              </small>
             </label>
           </section>
           <section className="formulario-signos-campos">
@@ -582,9 +608,10 @@ export function SignosVitalesView({
         >
           {errorPacientes && <p role="alert">{errorPacientes}</p>}
           <header>
-            <span>Consulta</span>
+            <span>Hora / fecha</span>
             <span>Paciente</span>
-            <span>Médico / especialidad</span>
+            <span>Médico</span>
+            <span>Especialidad</span>
             <span>Acción</span>
           </header>
           {visibles.map((paciente) => (
@@ -608,11 +635,11 @@ export function SignosVitalesView({
               </div>
               <div className="signos-consulta">
                 <strong>{paciente.doctor}</strong>
-                <small>{paciente.especialidad}</small>
                 {paciente.estado === "por_confirmar" && (
                   <small>Por confirmar · Cobro pendiente de verificar</small>
                 )}
               </div>
+              <div className="signos-especialidad">{paciente.especialidad}</div>
               <button
                 className="accion-registrar-signos"
                 type="button"

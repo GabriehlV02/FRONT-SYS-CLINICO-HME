@@ -614,6 +614,14 @@ export function TriajeEmergenciasView({
     intentoConsumo = useRef<{ clave: string; id: string } | null>(null);
   const cuenta = cuentas.find((c) => c.id === activa),
     item = catalogo.find((i) => i.id === itemId);
+  useEffect(() => {
+    if (!identidad || recepcion) return;
+    const overflowAnterior = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = overflowAnterior;
+    };
+  }, [identidad, recepcion]);
   async function cargar(): Promise<boolean> {
     if (operacionActiva.current) return true;
     const lectura = ++ultimaLectura.current;
@@ -882,16 +890,19 @@ export function TriajeEmergenciasView({
   function abrirDatosPaciente() {
     if (!cuenta) return;
     setSeccionClinica("paciente");
-    setIdentidad(cuenta.identidad || {});
+    const guardada = cuenta.identidad || {};
+    const apellidos = (guardada.apellidos || "").trim().split(/\s+/).filter(Boolean);
+    const sexo = guardada.sexo?.toLocaleLowerCase("es");
+    setIdentidad({
+      ...guardada,
+      apellidoPaterno: guardada.apellidoPaterno || apellidos[0] || "",
+      apellidoMaterno: guardada.apellidoMaterno || apellidos.slice(1).join(" "),
+      sexo:
+        sexo === "femenino" ? "Femenino" :
+        sexo === "masculino" ? "Masculino" :
+        sexo === "otro" ? "Otro" : guardada.sexo || "",
+    });
     setRevisionIdentidad(cuenta.revision);
-    window.setTimeout(
-      () =>
-        datosPacienteRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        }),
-      0,
-    );
   }
   const visibles = cuentas.filter(
     (c) =>
@@ -1620,9 +1631,22 @@ export function TriajeEmergenciasView({
                 </>
               )}
               {(recepcion || seccionClinica === "paciente") && (
+                <div
+                  className={identidad && !recepcion ? "em-identidad-modal-fondo" : "em-identidad-enlinea"}
+                  onMouseDown={(evento) => {
+                    if (evento.target === evento.currentTarget) setIdentidad(null);
+                  }}
+                  onKeyDown={(evento) => {
+                    if (evento.key === "Escape" && identidad && !recepcion)
+                      setIdentidad(null);
+                  }}
+                >
                 <section
                   ref={datosPacienteRef}
-                  className={`em-panel em-identidad-panel ${!cuenta.identidad ? "pendiente" : ""}`}
+                  className={`em-panel em-identidad-panel ${!cuenta.identidad ? "pendiente" : ""} ${identidad && !recepcion ? "em-identidad-panel-modal" : ""}`}
+                  role={identidad && !recepcion ? "dialog" : undefined}
+                  aria-modal={identidad && !recepcion ? true : undefined}
+                  aria-label={identidad && !recepcion ? "Editar datos del paciente" : undefined}
                 >
                   <header className="em-panel-titulo">
                     <div className="em-identidad-titulo">
@@ -1631,18 +1655,36 @@ export function TriajeEmergenciasView({
                       </span>
                       <div>
                         <small>IDENTIFICACIÓN DE LA CUENTA</small>
-                        <h3>Datos del paciente y acompañante</h3>
+                        <h3>
+                          {identidad && !recepcion
+                            ? "Editar datos del paciente"
+                            : "Datos del paciente y acompañante"}
+                        </h3>
                       </div>
                     </div>
+                    {identidad && !recepcion && (
+                      <button
+                        type="button"
+                        className="em-identidad-modal-cerrar"
+                        aria-label="Cerrar edición de datos"
+                        onClick={() => setIdentidad(null)}
+                      >
+                        <Icon name="close" size={19} />
+                      </button>
+                    )}
                   </header>
                   {identidad && (
                     <form
                       onSubmit={async (e) => {
                         e.preventDefault();
+                        const apellidos = [
+                          identidad.apellidoPaterno || "",
+                          identidad.apellidoMaterno || "",
+                        ].filter(Boolean).join(" ");
                         if (
                           await guardar(
                             `/${cuenta.id}/identidad`,
-                            { ...identidad, revision: revisionIdentidad },
+                            { ...identidad, apellidos, revision: revisionIdentidad },
                             "Datos guardados en la cuenta.",
                           )
                         )
@@ -1657,6 +1699,8 @@ export function TriajeEmergenciasView({
                                 ? {
                                     ...actual,
                                     nombres: p.nombres,
+                                    apellidoPaterno: p.primerApellido,
+                                    apellidoMaterno: p.segundoApellido,
                                     apellidos: [
                                       p.primerApellido,
                                       p.segundoApellido,
@@ -1664,46 +1708,126 @@ export function TriajeEmergenciasView({
                                       .filter(Boolean)
                                       .join(" "),
                                     documento: p.numeroDocumento,
+                                    complemento: p.complementoCi || "",
+                                    expedidoEn: p.expedidoEn || "",
+                                    ciConQr: String(Boolean(p.ciConQr)),
+                                    nit: p.nit || "",
+                                    razonSocial: p.razonSocial || "",
                                     nacimiento: p.fechaNacimiento,
-                                    sexo: p.sexo,
+                                    sexo:
+                                      p.sexo === "femenino" ? "Femenino" :
+                                      p.sexo === "masculino" ? "Masculino" :
+                                      p.sexo === "otro" ? "Otro" : p.sexo,
                                     telefono: p.telefono,
+                                    pais: p.pais || "Bolivia",
+                                    departamento: p.departamento || "",
+                                    ciudad: p.ciudad || "",
+                                    zonaBarrio: p.zonaBarrio || "",
                                     direccion: p.direccion,
+                                    familiar: p.responsableNombre || "",
+                                    documentoFamiliar: p.responsableCi || "",
+                                    telefonoFamiliar: p.responsableTelefono || "",
+                                    parentesco: p.responsableParentesco || "",
                                   }
                                 : actual,
                             );
                         }}
                       />
-                      <div className="em-form-grid">
-                        {[
-                          ["nombres", "Nombres"],
-                          ["apellidos", "Apellidos"],
-                          ["documento", "Documento de identidad"],
-                          ["nacimiento", "Fecha de nacimiento"],
-                          ["telefono", "Teléfono del paciente"],
-                          ["direccion", "Dirección"],
-                          ["familiar", "Nombre del familiar / acompañante"],
-                          ["parentesco", "Parentesco"],
-                          ["referenciaFamiliar", "Número de referencia"],
-                          ["telefonoFamiliar", "Teléfono del acompañante"],
-                          ["documentoFamiliar", "Documento del acompañante"],
-                        ].map(([k, titulo]) => (
-                          <label key={k}>
-                            {titulo}
-                            <input
-                              type={k === "nacimiento" ? "date" : "text"}
-                              maxLength={200}
-                              value={identidad[k] || ""}
-                              onChange={(e) =>
-                                setIdentidad({
-                                  ...identidad,
-                                  [k]: e.target.value,
-                                })
-                              }
-                            />
-                          </label>
-                        ))}
-                      </div>
-                      <div className="em-acciones">
+                      {[
+                        {
+                          titulo: "Datos del paciente",
+                          campos: [
+                            ["nombres", "Nombres"],
+                            ["apellidoPaterno", "Apellido paterno"],
+                            ["apellidoMaterno", "Apellido materno"],
+                            ["documento", "CI / documento"],
+                            ["complemento", "Complemento"],
+                            ["expedidoEn", "Expedido en"],
+                            ["nit", "NIT"],
+                            ["razonSocial", "Razón social"],
+                            ["nacimiento", "Fecha de nacimiento"],
+                            ["telefono", "Teléfono"],
+                            ["sexo", "Género"],
+                          ],
+                        },
+                        {
+                          titulo: "Domicilio",
+                          campos: [
+                            ["pais", "País"],
+                            ["departamento", "Departamento"],
+                            ["ciudad", "Ciudad"],
+                            ["zonaBarrio", "Zona / barrio"],
+                            ["direccion", "Dirección"],
+                          ],
+                        },
+                        {
+                          titulo: "Familiar o responsable",
+                          campos: [
+                            ["familiar", "Nombre completo"],
+                            ["documentoFamiliar", "CI del responsable"],
+                            ["telefonoFamiliar", "Teléfono del responsable"],
+                            ["parentesco", "Parentesco"],
+                            ["referenciaFamiliar", "Número de referencia"],
+                          ],
+                        },
+                        {
+                          titulo: "Información adicional",
+                          campos: [
+                            ["comoSeEntero", "¿Cómo se enteró del servicio?"],
+                            ["observaciones", "Observaciones"],
+                          ],
+                        },
+                      ].map((grupo) => (
+                        <fieldset className="em-identidad-grupo" key={grupo.titulo}>
+                          <legend>{grupo.titulo}</legend>
+                          <div className="em-identidad-form-grid">
+                            {grupo.campos.map(([k, titulo]) => (
+                              <label
+                                className={k === "direccion" || k === "observaciones" ? "em-identidad-campo-amplio" : ""}
+                                key={k}
+                              >
+                                {titulo}
+                                {k === "sexo" ? (
+                                  <select
+                                    value={identidad[k] || ""}
+                                    onChange={(e) => setIdentidad({ ...identidad, [k]: e.target.value })}
+                                  >
+                                    <option value="">Seleccionar</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Otro">Otro</option>
+                                  </select>
+                                ) : k === "observaciones" ? (
+                                  <textarea
+                                    rows={3}
+                                    maxLength={500}
+                                    value={identidad[k] || ""}
+                                    onChange={(e) => setIdentidad({ ...identidad, [k]: e.target.value })}
+                                  />
+                                ) : (
+                                  <input
+                                    type={k === "nacimiento" ? "date" : "text"}
+                                    maxLength={200}
+                                    value={identidad[k] || ""}
+                                    onChange={(e) => setIdentidad({ ...identidad, [k]: e.target.value })}
+                                  />
+                                )}
+                              </label>
+                            ))}
+                            {grupo.titulo === "Datos del paciente" && (
+                              <label className="em-identidad-qr">
+                                <input
+                                  type="checkbox"
+                                  checked={identidad.ciConQr === "true"}
+                                  onChange={(e) => setIdentidad({ ...identidad, ciConQr: String(e.target.checked) })}
+                                />
+                                CI con QR
+                              </label>
+                            )}
+                          </div>
+                        </fieldset>
+                      ))}
+                      <div className="em-acciones em-identidad-acciones">
                         <button
                           type="button"
                           onClick={() => setIdentidad(null)}
@@ -1748,6 +1872,7 @@ export function TriajeEmergenciasView({
                       </div>
                     ))}
                 </section>
+                </div>
               )}
               {!recepcion && (
                 <section className="em-atencion-clinica">

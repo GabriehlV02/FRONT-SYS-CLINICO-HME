@@ -70,10 +70,13 @@
 .signos-vitales-lista > header,
 .signos-vitales-lista article {
   display: grid;
-  grid-template-columns: 84px minmax(220px, 1.25fr) minmax(190px, 1fr) auto;
+  grid-template-columns: minmax(96px, .72fr) minmax(250px, 1.8fr) minmax(180px, 1.2fr) minmax(160px, 1fr) minmax(125px, .75fr);
   align-items: center;
-  gap: 16px;
-  padding: 13px 17px;
+  gap: 18px;
+  padding: 13px 20px;
+}
+.signos-vitales-lista > header > span:last-child {
+  text-align: center;
 }
 .signos-vitales-lista > header {
   padding-block: 10px;
@@ -89,9 +92,16 @@
   border-top: 1px solid #e4edf3;
 }
 .signos-vitales-lista time {
+  display: grid;
+  gap: 4px;
   color: #0875b9;
   font-size: 14px;
   font-weight: 850;
+}
+.signos-vitales-lista time small {
+  color: #71899b;
+  font-size: 11px;
+  font-weight: 550;
 }
 .signos-paciente {
   display: flex;
@@ -113,6 +123,10 @@
 .signos-consulta {
   display: grid;
   gap: 3px;
+}
+.signos-especialidad {
+  color: #607a90;
+  font-size: 11px;
 }
 .signos-paciente strong,
 .signos-consulta strong {
@@ -139,6 +153,10 @@
   font-weight: 800;
   white-space: nowrap;
 }
+.signos-vitales-lista article .accion-registrar-signos {
+  justify-self: stretch;
+  min-width: 118px;
+}
 .signos-vitales-lista article button:hover {
   background: #075e96;
 }
@@ -159,7 +177,7 @@
   }
   .signos-vitales-lista > header,
   .signos-vitales-lista article {
-    min-width: 680px;
+    min-width: 900px;
   }
   .signos-vitales-vista {
     padding-bottom: 12px;
@@ -233,6 +251,40 @@
   opacity: 1;
   color: #31576f;
   background: #f4f8fa;
+}
+.formulario-signos-datos .formulario-motivo-consulta {
+  grid-column: 1 / -1;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid #d4e8f2;
+  border-radius: 9px;
+  color: #244e69;
+  background: linear-gradient(115deg, #f5fbfe, #fff);
+  font-size: 12px;
+}
+.formulario-motivo-consulta textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 78px;
+  padding: 10px 11px;
+  border: 1px solid #bdd6e5;
+  border-radius: 8px;
+  outline: 0;
+  color: #173b54;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.formulario-motivo-consulta textarea:focus {
+  border-color: #0787bd;
+  box-shadow: 0 0 0 3px rgba(7, 135, 189, .12);
+}
+.formulario-motivo-consulta small {
+  color: #678297;
+  font-size: 10px;
+  font-weight: 500;
 }
 .formulario-signos-campos {
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -69,6 +69,7 @@ const catalogoOrdenesMedicas = [
   "Internación",
   "Control de signos vitales",
 ];
+const normalizarBusquedaOrden = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
 
 const resultadosDemo = (paciente: CitaConfirmada): SolicitudLaboratorio[] => [
   {
@@ -230,6 +231,7 @@ export function ConsultaMedicaView({
   >({});
   const [vistaImpresionAbierta, setVistaImpresionAbierta] = useState(false);
   const [busquedaOrdenMedica, setBusquedaOrdenMedica] = useState("");
+  const [buscadorOrdenAbierto, setBuscadorOrdenAbierto] = useState(false);
   const [ordenesMedicas, setOrdenesMedicas] = useState<
     Record<string, string[]>
   >({});
@@ -420,7 +422,7 @@ export function ConsultaMedicaView({
     .filter(Boolean);
   const ordenesFiltradas = catalogoOrdenesMedicas.filter(
     (orden) =>
-      orden.toLowerCase().includes(busquedaOrdenMedica.toLowerCase()) &&
+      normalizarBusquedaOrden(orden).includes(normalizarBusquedaOrden(busquedaOrdenMedica)) &&
       !ordenesPaciente.includes(orden),
   );
   const partesNombre = paciente.paciente.trim().split(/\s+/);
@@ -1247,18 +1249,24 @@ export function ConsultaMedicaView({
                       setRecetarioAbierto(true);
                     }}
                   />
+                  <div className="consulta-buscador-orden-contenedor" onBlur={(evento) => { if (!evento.currentTarget.contains(evento.relatedTarget as Node | null)) setBuscadorOrdenAbierto(false); }} onKeyDown={(evento) => { if (evento.key === 'Escape') setBuscadorOrdenAbierto(false); }}>
                   <label className="consulta-buscador-orden">
                     <Icon name="search" size={16} />
                     <input
+                      aria-label="Buscar orden médica"
+                      aria-expanded={buscadorOrdenAbierto && Boolean(busquedaOrdenMedica.trim())}
+                      aria-controls="consulta-opciones-ordenes"
                       value={busquedaOrdenMedica}
+                      onFocus={() => setBuscadorOrdenAbierto(true)}
                       onChange={(event) =>
-                        setBusquedaOrdenMedica(event.target.value)
+                        { setBusquedaOrdenMedica(event.target.value); setBuscadorOrdenAbierto(true); }
                       }
                       placeholder="Buscar orden médica"
                     />
+                    {busquedaOrdenMedica && <button type="button" className="consulta-limpiar-busqueda-orden" aria-label="Limpiar búsqueda de órdenes" onClick={() => setBusquedaOrdenMedica('')}>×</button>}
                   </label>
-                  {busquedaOrdenMedica && (
-                    <div className="consulta-resultados-orden">
+                  {buscadorOrdenAbierto && Boolean(busquedaOrdenMedica.trim()) && (
+                    <div className="consulta-resultados-orden" id="consulta-opciones-ordenes">
                       {ordenesFiltradas.length ? (
                         ordenesFiltradas.map((orden) => (
                           <button
@@ -1273,17 +1281,18 @@ export function ConsultaMedicaView({
                                 ],
                               }));
                               setBusquedaOrdenMedica("");
+                              setBuscadorOrdenAbierto(false);
                             }}
                           >
                             <span>{orden}</span>
-                            <Icon name="plus" size={15} />
                           </button>
                         ))
                       ) : (
-                        <p>No hay órdenes disponibles.</p>
+                        <p>No se encontraron órdenes disponibles. Prueba con otro término.</p>
                       )}
                     </div>
                   )}
+                  </div>
                   <section className="consulta-lista-ordenes">
                     <header>
                       <strong>Listado de órdenes</strong>

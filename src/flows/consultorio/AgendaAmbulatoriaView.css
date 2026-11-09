@@ -159,6 +159,31 @@
 .agenda-cola button:hover {
   background: #066aab;
 }
+
+/* En teléfonos cada consulta conserva todos sus datos sin desplazar la tabla. */
+@media (max-width: 560px) {
+  .agenda-ambulatoria .agenda-herramientas { grid-template-columns: minmax(0, 1fr); }
+  .agenda-cola > header { display: none; }
+  .agenda-ambulatoria .agenda-cola > article {
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px 12px;
+    padding: 15px;
+  }
+  .agenda-cola > article > time { grid-column: 2; grid-row: 1; text-align: right; }
+  .agenda-cola > article > div:first-of-type { grid-column: 1; grid-row: 1; padding-left: 0; min-width: 0; }
+  .agenda-cola > article > .agenda-medico,
+  .agenda-cola > article > .agenda-motivo { grid-column: 1 / -1; min-width: 0; justify-self: stretch; text-align: left; }
+  .agenda-ambulatoria .agenda-motivo strong { white-space: normal; overflow-wrap: anywhere; }
+  .agenda-ambulatoria .agenda-cola > article > div:first-of-type { justify-self: stretch; text-align: left; }
+  .agenda-cola > article > .agenda-medico::before,
+  .agenda-cola > article > .agenda-motivo::before { display: block; margin-bottom: 3px; color: #69869b; font-size: 10px; font-weight: 700; }
+  .agenda-cola > article > .agenda-medico::before { content: 'Especialidad'; }
+  .agenda-cola > article > .agenda-motivo::before { content: 'Motivo de consulta'; }
+  .agenda-cola > article > .agenda-signos { grid-column: 1; white-space: normal; }
+  .agenda-cola > article > button { grid-column: 2; min-height: 44px; justify-content: center; }
+}
 .agenda-lateral {
   overflow: hidden;
   border: 1px solid #c9dfed;

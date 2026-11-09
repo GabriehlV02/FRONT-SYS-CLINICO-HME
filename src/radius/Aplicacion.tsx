@@ -27,6 +27,7 @@ import "./vistas/visor/NotificacionesTopbar.css";
 
 import type { CitaConfirmada } from "../flows/consultorio/AgendaAmbulatoriaView";
 import type { SignoVitalConfig } from "../flows/triaje/ConfiguracionSignosVitalesView";
+import { cargarSignos, guardarSignos } from "../flows/triaje/almacenSignos";
 import { HorizontalSubvistaNav } from "../ui/components/HorizontalSubvistaNav";
 import { InstrumentistaPreparacionView } from "../flows/quirofano/InstrumentistaPreparacionView";
 import { CirculanteAsistenciaView } from "../flows/quirofano/CirculanteAsistenciaView";
@@ -754,7 +755,7 @@ export default function Aplicacion() {
   const ubicacionInicial = leerUbicacion();
   useEffect(() => {
     // Durante el desarrollo exclusivo de frontend, Triaje usa la configuración local.
-    setSignosVitalesConfigurados([]);
+    setSignosVitalesConfigurados(cargarSignos(signosVitalesIniciales));
     setEstadoSignos("listo");
     return;
     if (!sesion?.token) return;
@@ -929,6 +930,14 @@ export default function Aplicacion() {
   const [versionSignos, setVersionSignos] = useState(0);
   useEffect(() => {
     if (!sesion?.token) return;
+    if (
+      import.meta.env.DEV &&
+      sesion.token === "frontend-demo-local"
+    ) {
+      setSignosVitalesConfigurados(cargarSignos(signosVitalesIniciales));
+      setEstadoSignos("listo");
+      return;
+    }
     const controller = new AbortController();
     setEstadoSignos("cargando");
     apiFetch("/api/v1/configuracion/signos-vitales", {
@@ -949,6 +958,14 @@ export default function Aplicacion() {
     return () => controller.abort();
   }, [sesion?.token, versionSignos]);
   const actualizarSignosVitales = async (siguientes: SignoVitalConfig[]) => {
+    if (
+      import.meta.env.DEV &&
+      sesion?.token === "frontend-demo-local"
+    ) {
+      guardarSignos(siguientes);
+      setSignosVitalesConfigurados(siguientes);
+      return;
+    }
     const agregado = siguientes.find(
       (signo) =>
         !signosVitalesConfigurados.some((actual) => actual.id === signo.id),

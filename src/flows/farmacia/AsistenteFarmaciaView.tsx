@@ -647,8 +647,37 @@ function VistaDetalleSucursal({
   );
 }
 
+function RostroTomi({ clase = "" }: { clase?: string }) {
+  return (
+    <svg
+      className={clase}
+      viewBox="0 0 120 120"
+      fill="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M60 7C27 7 9 22 8 55l-1 16c-1 27 17 41 53 42s54-13 53-41l-1-18C111 22 93 7 60 7Z"
+        fill="#F7F8F7"
+        stroke="#D7DCE0"
+        strokeWidth="2"
+      />
+      <path
+        d="M60 20c-27 0-42 11-43 35l-1 14c-1 22 14 33 44 34 29 1 44-10 43-33l-1-15c-1-24-16-35-42-35Z"
+        fill="#1D1B1D"
+        stroke="#85898D"
+        strokeWidth="2.5"
+      />
+      <path d="M31 57V46h6v-8h16v8h5v11M64 57V46h6v-8h16v8h5v11" stroke="#20B7DE" strokeWidth="4.5" strokeLinejoin="miter" />
+      <path d="M46 72h28v13h-6v6H52v-6h-6V72Z" stroke="#20B7DE" strokeWidth="4.5" strokeLinejoin="miter" />
+      <path d="M86 27c7 2 12 7 15 14" stroke="#B7BDC1" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function AsistenteFarmaciaView() {
   const [subvista, setSubvista] = useState<SubvistaFarmaciaIa>("chat");
+  const [panelTomiExpandido, setPanelTomiExpandido] = useState(true);
   const [configuracion, setConfiguracion] = useState<ConfiguracionIa>(() => {
     const guardada = leerConfiguracion();
     return { ...guardada, modelo: guardada.modelo || "gpt-6-luna" };
@@ -1483,14 +1512,32 @@ export function AsistenteFarmaciaView() {
 
       {subvista === "chat" ? (
         <section
-          className="farmacia-ia-chat"
+          className={`farmacia-ia-chat ${panelTomiExpandido ? "" : "tomi-panel-replegado"}`}
           role="tabpanel"
           aria-label="Conversación con TOMI"
         >
           <aside className="farmacia-ia-lateral farmacia-ia-panel-modo">
-            <div className="farmacia-ia-tomi-avatar">
-              <Icon name="sparkles" size={25} />
+            <div className="farmacia-ia-tomi-cabecera">
+              <div className="farmacia-ia-tomi-avatar">
+                <RostroTomi clase="farmacia-ia-tomi-rostro" />
+              </div>
+              <button
+                className="farmacia-ia-tomi-alternar"
+                type="button"
+                aria-expanded={panelTomiExpandido}
+                aria-controls="farmacia-ia-panel-tomi-detalle"
+                aria-label={panelTomiExpandido ? "Replegar panel de TOMI" : "Desplegar panel de TOMI"}
+                title={panelTomiExpandido ? "Replegar panel" : "Desplegar panel"}
+                onClick={() => setPanelTomiExpandido((actual) => !actual)}
+              >
+                <Icon name={panelTomiExpandido ? "chevronLeft" : "chevronRight"} size={17} />
+              </button>
             </div>
+            <div
+              id="farmacia-ia-panel-tomi-detalle"
+              className="farmacia-ia-panel-tomi-detalle"
+              hidden={!panelTomiExpandido}
+            >
             <h2>TOMI</h2>
             <p>Asistente de farmacia</p>
             <span
@@ -1580,6 +1627,7 @@ export function AsistenteFarmaciaView() {
               <Icon name="check" size={14} /> Cada conteo por voz se confirma
               antes de guardarse.
             </div>
+            </div>
           </aside>
           <div className="farmacia-ia-sala">
             <div className="farmacia-ia-sala-cabecera">
@@ -1622,7 +1670,7 @@ export function AsistenteFarmaciaView() {
                   >
                     {item.rol === "assistant" && (
                       <span className="farmacia-ia-avatar">
-                        <Icon name="sparkles" size={15} />
+                        <RostroTomi clase="farmacia-ia-tomi-rostro-chat" />
                       </span>
                     )}
                     <div className="farmacia-ia-emisor">

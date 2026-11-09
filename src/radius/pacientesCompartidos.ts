@@ -1,4 +1,6 @@
 import { apiFetch } from "./api";
+import { obtenerPacientes } from "./datos/almacenDemo";
+import { leerSesion } from "./types/sesion";
 
 export type DatosPacienteCompartido = {
   nombres?: string;
@@ -21,6 +23,19 @@ export async function sincronizarPaciente(datos: DatosPacienteCompartido) {
     throw new Error(
       "Selecciona un paciente registrado o completa su registro en Pacientes.",
     );
+  if (
+    import.meta.env.DEV &&
+    leerSesion()?.token === "frontend-demo-local"
+  ) {
+    const paciente = obtenerPacientes().find(
+      (item) => item.numeroDocumento.trim() === ci.trim(),
+    );
+    if (!paciente)
+      throw new Error(
+        "No encontramos esa ficha de demostración. Selecciona un paciente de la lista.",
+      );
+    return { data: { id: paciente.id } };
+  }
   const respuesta = await apiFetch(
     `/api/v1/pacientes/buscar?ci=${encodeURIComponent(ci.trim())}`,
     { headers: { Accept: "application/json" } },

@@ -94,6 +94,68 @@ const lecturasEnCurso = new Map<string, Promise<unknown>>();
 const cacheLecturas = new Map<string, { expira: number; valor: unknown }>();
 const ttlLecturaMs = 2_000;
 
+function cuentasEmergenciaDemo(): CuentaEmergencia[] {
+  const ahora = new Date();
+  const haceUnaHora = new Date(ahora.getTime() - 60 * 60 * 1000).toISOString();
+  const haceTreintaMinutos = new Date(
+    ahora.getTime() - 30 * 60 * 1000,
+  ).toISOString();
+  return [
+    {
+      id: "demo-cuenta-luis-morales",
+      cubiculo: "1",
+      inicio: haceUnaHora,
+      fin: null,
+      revision: 2,
+      identidad: {
+        nombres: "Luis Eduardo",
+        apellidos: "Morales Rojas",
+        documento: "6543210",
+        nacimiento: "1986-06-14",
+        sexo: "Masculino",
+        historiaClinica: "HC-DEMO-001",
+        medicoAdmision: "Dra. Andrea Vargas",
+      },
+      signos: [],
+      consumos: [
+        {
+          id: "demo-consumo-consulta",
+          codigo: "DEMO-CONS-01",
+          nombre: "Consulta de emergencia",
+          tipo: "servicio",
+          unidad: "servicio",
+          precio: 80,
+          categoria: "Atención",
+          itemId: "demo-consumo-consulta",
+          registroId: "demo-registro-consulta",
+          cantidad: 1,
+          porHora: false,
+          inicio: haceTreintaMinutos,
+          fin: haceTreintaMinutos,
+        },
+        {
+          id: "demo-consumo-nebulizacion",
+          codigo: "DEMO-NEB-01",
+          nombre: "Nebulización",
+          tipo: "servicio",
+          unidad: "sesión",
+          precio: 35,
+          categoria: "Procedimiento",
+          itemId: "demo-consumo-nebulizacion",
+          registroId: "demo-registro-nebulizacion",
+          cantidad: 1,
+          porHora: false,
+          inicio: haceTreintaMinutos,
+          fin: haceTreintaMinutos,
+        },
+      ],
+      evaluaciones: [],
+      ordenes: [],
+      registrosEnfermeria: [],
+    },
+  ];
+}
+
 function claveLectura(ruta: string) {
   return `emergencias:${ruta || "cuentas"}`;
 }
@@ -105,9 +167,15 @@ export function invalidarCacheEmergencias() {
 async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
   if (import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local") {
     const clave = "clinico-emergencias-demo-v1";
-    const cuentas: CuentaEmergencia[] = JSON.parse(
+    const guardadas: CuentaEmergencia[] = JSON.parse(
       sessionStorage.getItem(clave) || "[]",
     );
+    const cuentas = [
+      ...cuentasEmergenciaDemo().filter(
+        (demo) => !guardadas.some((cuenta) => cuenta.id === demo.id),
+      ),
+      ...guardadas,
+    ];
     const datos = (body || {}) as Record<string, any>;
     const fecha = new Date().toISOString();
     if (ruta === "/catalogo")

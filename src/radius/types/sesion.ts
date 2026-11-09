@@ -98,7 +98,7 @@ export const leerSesion = (): Sesion | null => {
   if (!guardada) return null;
   try {
     const parsed = JSON.parse(guardada) as Partial<Sesion>;
-    if (parsed.token === "frontend-demo-local")
+    if (import.meta.env.PROD && parsed.token === "frontend-demo-local")
       throw new Error("Sesión demo no válida");
     if (
       typeof parsed.token !== "string" ||

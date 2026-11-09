@@ -7,12 +7,19 @@ import ModalRegistroPaciente, {
 import { listarPacientes, pacienteParaVista } from "./pacientesApi";
 import {
   guardarArchivoEstudio,
+  guardarPacientes,
   guardarEstudios,
+  obtenerFamiliaresPacienteDemo,
+  obtenerHistorialPacienteDemo,
   obtenerEstudios,
   seleccionarEstudio,
   type EstudioDemo,
+  type FamiliarPacienteDemo,
+  type MovimientoPacienteDemo,
   type PacienteDemo as Paciente,
+  vincularFamiliarPacienteDemo,
 } from "../../datos/almacenDemo";
+import { leerSesion } from "../../types/sesion";
 import "../usuarios/VistaUsuarios.css";
 import "./VistaPacientes.css";
 import "./TablaPacientes.css";
@@ -326,16 +333,114 @@ function InspeccionPaciente({
 
 function FichaPacienteCompleta({
   paciente,
+  pacientes,
   estudios,
   onVolver,
+  onEditar,
+  onVerFamiliar,
 }: {
   paciente: Paciente;
+  pacientes: Paciente[];
   estudios: EstudioDemo[];
   onVolver: () => void;
+  onEditar: () => void;
+  onVerFamiliar: (familiar: Paciente) => void;
 }) {
-  const consumos = estudios.filter(
+  const demoLocal =
+    import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+  const [vincularAbierto, setVincularAbierto] = useState(false);
+  const [busquedaFamiliar, setBusquedaFamiliar] = useState("");
+  const [parentesco, setParentesco] = useState("Familiar");
+  const [familiarElegido, setFamiliarElegido] = useState("");
+  const [errorVinculo, setErrorVinculo] = useState("");
+  const [movimientoDetalle, setMovimientoDetalle] =
+    useState<MovimientoPacienteDemo | null>(null);
+  const [familiares, setFamiliares] = useState<FamiliarPacienteDemo[]>(() =>
+    obtenerFamiliaresPacienteDemo(paciente.id),
+  );
+  useEffect(() => {
+    setFamiliares(obtenerFamiliaresPacienteDemo(paciente.id));
+  }, [paciente.id]);
+  const consultaFamiliar = busquedaFamiliar
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("es")
+    .trim();
+  const pacientesCoincidentes = pacientes.filter((candidato) => {
+    if (candidato.id === paciente.id) return false;
+    const texto = `${nombreCompleto(candidato)} ${candidato.numeroDocumento}`
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase("es");
+    return (
+      !consultaFamiliar ||
+      consultaFamiliar.split(/\s+/).every((parte) => texto.includes(parte))
+    );
+  });
+  const familiaresVisibles = familiares
+    .map((vinculo) => ({
+      vinculo,
+      paciente: pacientes.find((item) => item.id === vinculo.familiarId),
+    }))
+    .filter((item) => item.paciente);
+  const vincularFamiliar = () => {
+    if (!familiarElegido) {
+      setErrorVinculo("Selecciona un paciente para vincularlo.");
+      return;
+    }
+    try {
+      setFamiliares(
+        vincularFamiliarPacienteDemo(paciente.id, familiarElegido, parentesco),
+      );
+      setVincularAbierto(false);
+      setBusquedaFamiliar("");
+      setFamiliarElegido("");
+      setParentesco("Familiar");
+      setErrorVinculo("");
+    } catch (error) {
+      setErrorVinculo(
+        error instanceof Error ? error.message : "No se pudo vincular al familiar.",
+      );
+    }
+  };
+  const estudiosPaciente = estudios.filter(
     (estudio) => estudio.pacienteId === paciente.id,
   );
+  const historial: MovimientoPacienteDemo[] = [
+    ...obtenerHistorialPacienteDemo(paciente.id),
+    ...estudiosPaciente.map((estudio) => ({
+      id: estudio.id,
+      pacienteId: estudio.pacienteId,
+      tipo: "consumo" as const,
+      concepto: estudio.titulo,
+      categoria: estudio.categoria,
+      fecha: estudio.creadaEn,
+      importe: 0,
+    })),
+  ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+  const totalConsumido = historial
+    .filter((movimiento) => movimiento.tipo === "consumo")
+    .reduce((total, movimiento) => total + movimiento.importe, 0);
+  const totalPagado = historial
+    .filter((movimiento) => movimiento.tipo === "pago")
+    .reduce((total, movimiento) => total + movimiento.importe, 0);
+  const historialPorFecha = Array.from(
+    historial.reduce((grupos, movimiento) => {
+      const fecha = new Date(movimiento.fecha);
+      const clave = [fecha.getFullYear(), String(fecha.getMonth() + 1).padStart(2, "0"), String(fecha.getDate()).padStart(2, "0")].join("-");
+      const grupo = grupos.get(clave) ?? [];
+      grupo.push(movimiento);
+      grupos.set(clave, grupo);
+      return grupos;
+    }, new Map<string, MovimientoPacienteDemo[]>()),
+  );
+  const desglosePagoDetalle = movimientoDetalle?.tipo === "pago"
+    ? movimientoDetalle.desglosePagos?.length
+      ? movimientoDetalle.desglosePagos
+      : movimientoDetalle.metodoPago
+        ? [{ metodo: movimientoDetalle.metodoPago, importe: movimientoDetalle.importe }]
+        : []
+    : [];
   const datos = [
     ["Nombres", paciente.nombres],
     ["Apellido paterno", paciente.primerApellido],
@@ -397,6 +502,23 @@ function FichaPacienteCompleta({
         <button type="button" onClick={onVolver}>
           <Icon name="chevronLeft" size={17} /> Volver al listado
         </button>
+        <div className="ficha-paciente-acciones">
+          <button type="button" className="ficha-accion-editar" onClick={onEditar}>
+            <Icon name="edit" size={17} /> Editar datos
+          </button>
+          {demoLocal && (
+            <button
+              type="button"
+              className="ficha-accion-familiar"
+              onClick={() => {
+                setVincularAbierto(true);
+                setErrorVinculo("");
+              }}
+            >
+              <Icon name="users" size={17} /> Vincular familiar
+            </button>
+          )}
+        </div>
       </div>
       <div className="ficha-paciente-completa-cuerpo">
         <section className="ficha-paciente-informacion">
@@ -418,6 +540,33 @@ function FichaPacienteCompleta({
               </article>
             ))}
           </div>
+          <section className="ficha-familiares-vinculados" aria-label="Familiares relacionados">
+            <header>
+              <div><span>RED DE APOYO</span><h4>Familiares relacionados</h4></div>
+              <small>{familiaresVisibles.length} {familiaresVisibles.length === 1 ? "familiar" : "familiares"}</small>
+            </header>
+            {familiaresVisibles.length ? (
+              <div className="ficha-familiares-tabla-contenedor">
+                <table className="ficha-familiares-tabla">
+                  <thead>
+                    <tr><th>CI</th><th>Nombre completo</th><th>Grado familiar</th><th>Ver paciente</th></tr>
+                  </thead>
+                  <tbody>
+                    {familiaresVisibles.map(({ vinculo, paciente: familiar }) => (
+                      <tr key={vinculo.familiarId}>
+                        <td>{familiar!.numeroDocumento}</td>
+                        <td><strong>{nombreCompleto(familiar!)}</strong></td>
+                        <td><span className="ficha-familiar-parentesco">{vinculo.parentesco}</span></td>
+                        <td><button type="button" onClick={() => onVerFamiliar(familiar!)}>Ver paciente <Icon name="chevronRight" size={15} /></button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="ficha-familiares-vacio">Todavía no hay familiares relacionados con este paciente.</p>
+            )}
+          </section>
         </section>
         <aside className="ficha-paciente-consumos">
           <header>
@@ -425,22 +574,46 @@ function FichaPacienteCompleta({
               <span>HISTORIAL</span>
               <h3>Consumos y pagos</h3>
             </div>
-            <small>{consumos.length} registrados</small>
+            <small>{historial.length} movimientos</small>
           </header>
-          {consumos.length ? (
+          {historial.length ? (
             <div className="ficha-consumos-lista">
-              {consumos.map((consumo) => (
-                <article key={consumo.id}>
-                  <strong>{consumo.titulo}</strong>
-                  <span>{consumo.categoria}</span>
-                  <footer>
-                    <time>
-                      {new Date(consumo.creadaEn).toLocaleDateString("es-BO")}
-                    </time>
-                    <b>Registrado</b>
+              <div className="ficha-consumos-resumen">
+                <div><span>Consumido</span><strong>Bs {totalConsumido.toFixed(2)}</strong></div>
+                <div><span>Pagado</span><strong>Bs {totalPagado.toFixed(2)}</strong></div>
+                <div className="pendiente"><span>Saldo</span><strong>Bs {Math.max(0, totalConsumido - totalPagado).toFixed(2)}</strong></div>
+              </div>
+              <p className="ficha-consumos-demo">Historial de ejemplo · datos locales</p>
+              <div className="ficha-consumos-fechas">
+              {historialPorFecha.map(([fecha, movimientos]) => {
+                const fechaTexto = new Date(`${fecha}T12:00:00`).toLocaleDateString("es-BO", {
+                  weekday: "long", day: "numeric", month: "long", year: "numeric",
+                });
+                return (
+                  <section className="ficha-consumos-grupo-fecha" key={fecha}>
+                    <h4><span>{fechaTexto}</span><small>{movimientos.length} {movimientos.length === 1 ? "movimiento" : "movimientos"}</small></h4>
+                    <div className="ficha-consumos-tarjetas">
+                    {movimientos.map((movimiento) => (
+                <article className={`ficha-consumo-movimiento ${movimiento.tipo}`} key={movimiento.id}>
+                  <div className="ficha-consumo-encabezado">
+                    <strong>{movimiento.concepto}</strong>
+                    <b>{movimiento.tipo === "pago" ? "−" : ""}Bs {movimiento.importe.toFixed(2)}</b>
+                  </div>
+                  <span>{movimiento.tipo === "pago" ? "Pago recibido" : movimiento.categoria}{movimiento.tipo === "pago" && (movimiento.desglosePagos?.length ?? 0) > 1 ? ` · ${movimiento.desglosePagos!.map((pago) => pago.metodo).join(" + ")}` : movimiento.metodoPago ? ` · ${movimiento.metodoPago}` : ""}</span>
+                <footer>
+                    <time>{new Date(movimiento.fecha).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}</time>
+                  <span>{movimiento.referencia || (movimiento.tipo === "pago" ? "Pago recibido" : "Consumo registrado")}</span>
+                  <button type="button" onClick={() => setMovimientoDetalle(movimiento)}>
+                    Ver detalle <Icon name="chevronRight" size={14} />
+                  </button>
                   </footer>
                 </article>
-              ))}
+                    ))}
+                    </div>
+                  </section>
+                );
+              })}
+              </div>
             </div>
           ) : (
             <div className="ficha-consumos-vacio">
@@ -453,6 +626,88 @@ function FichaPacienteCompleta({
           )}
         </aside>
       </div>
+      {movimientoDetalle && (
+        <div
+          className="ficha-detalle-movimiento-fondo"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setMovimientoDetalle(null);
+          }}
+        >
+          <section className="ficha-detalle-movimiento" role="dialog" aria-modal="true" aria-labelledby="titulo-detalle-movimiento">
+            <header>
+              <div>
+                <span>DETALLE DE {movimientoDetalle.tipo === "pago" ? "PAGO" : "CONSUMO"}</span>
+                <h3 id="titulo-detalle-movimiento">{movimientoDetalle.concepto}</h3>
+                <small>{nombreCompleto(paciente)} · {paciente.tipoDocumento} {paciente.numeroDocumento}</small>
+              </div>
+              <button type="button" aria-label="Cerrar detalle" onClick={() => setMovimientoDetalle(null)}><Icon name="close" size={19} /></button>
+            </header>
+            <div className="ficha-detalle-movimiento-resumen">
+              <span><b>Fecha y hora</b>{new Date(movimientoDetalle.fecha).toLocaleString("es-BO", { dateStyle: "long", timeStyle: "short" })}</span>
+              <span><b>Estado</b>{movimientoDetalle.tipo === "pago" ? "Registrado" : "Consumido"}</span>
+              {movimientoDetalle.tipo === "pago" && desglosePagoDetalle.length > 0 && (
+                <span><b>Métodos de pago</b>{desglosePagoDetalle.map((pago) => pago.metodo).join(" + ")}</span>
+              )}
+              <span><b>Referencia</b>{movimientoDetalle.referencia || "Sin referencia registrada"}</span>
+            </div>
+            <section className="ficha-detalle-movimiento-items">
+              <div className="ficha-detalle-movimiento-titulo"><span>{movimientoDetalle.tipo === "pago" ? "PAGO REGISTRADO" : "CONSUMO REGISTRADO"}</span></div>
+              <div className="ficha-detalle-movimiento-fila">
+                <strong>{movimientoDetalle.concepto}</strong>
+                <b>Bs {movimientoDetalle.importe.toFixed(2)}</b>
+              </div>
+            </section>
+            {movimientoDetalle.tipo === "pago" && desglosePagoDetalle.length > 0 && (
+              <section className="ficha-detalle-desglose-pago" aria-label="Desglose por método de pago">
+                <header><span>DESGLOSE DEL PAGO</span><small>Importe recibido con cada método</small></header>
+                <div>
+                  {desglosePagoDetalle.map((pago, indice) => (
+                    <article key={`${pago.metodo}-${indice}`}>
+                      <span className="ficha-detalle-pago-indicador" />
+                      <strong>{pago.metodo}</strong>
+                      <b>Bs {pago.importe.toFixed(2)}</b>
+                    </article>
+                  ))}
+                </div>
+                <footer><span>Total recibido</span><strong>Bs {desglosePagoDetalle.reduce((total, pago) => total + pago.importe, 0).toFixed(2)}</strong></footer>
+              </section>
+            )}
+            <footer>
+              <span>{movimientoDetalle.tipo === "pago" ? "Importe recibido" : "Total del consumo"}<strong>Bs {movimientoDetalle.importe.toFixed(2)}</strong></span>
+              <button type="button" onClick={() => setMovimientoDetalle(null)}>Cerrar detalle</button>
+            </footer>
+          </section>
+        </div>
+      )}
+      {vincularAbierto && demoLocal && (
+        <div className="familiar-vinculo-fondo" onMouseDown={(event) => { if (event.target === event.currentTarget) setVincularAbierto(false); }}>
+          <section className="familiar-vinculo-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-vincular-familiar">
+            <header>
+              <div><span>FICHA FAMILIAR</span><h3 id="titulo-vincular-familiar">Vincular familiar</h3><p>Busca un paciente existente y relaciónalo con {nombreCompleto(paciente)}.</p></div>
+              <button type="button" aria-label="Cerrar" onClick={() => setVincularAbierto(false)}><Icon name="close" size={18} /></button>
+            </header>
+            <label className="familiar-vinculo-busqueda">Buscar paciente
+              <span><Icon name="search" size={18} /><input autoFocus value={busquedaFamiliar} onChange={(event) => { setBusquedaFamiliar(event.target.value); setFamiliarElegido(""); setErrorVinculo(""); }} placeholder="Nombre, apellido o CI" /></span>
+            </label>
+            <div className="familiar-vinculo-resultados" role="listbox" aria-label="Pacientes encontrados">
+              {pacientesCoincidentes.length ? pacientesCoincidentes.slice(0, 8).map((candidato) => (
+                <button type="button" role="option" aria-selected={familiarElegido === candidato.id} className={familiarElegido === candidato.id ? "seleccionado" : ""} key={candidato.id} onClick={() => { setFamiliarElegido(candidato.id); setErrorVinculo(""); }}>
+                  <span className="familiar-avatar">{candidato.nombres[0]}{candidato.primerApellido[0]}</span><span><strong>{nombreCompleto(candidato)}</strong><small>{candidato.tipoDocumento} {candidato.numeroDocumento}</small></span><i>{familiarElegido === candidato.id ? "✓" : ""}</i>
+                </button>
+              )) : <p>No se encontraron pacientes con esos datos.</p>}
+            </div>
+            <label className="familiar-vinculo-parentesco">Parentesco
+              <select value={parentesco} onChange={(event) => setParentesco(event.target.value)}>
+                {["Familiar", "Cónyuge", "Madre", "Padre", "Hijo/a", "Hermano/a", "Tutor/a", "Otro"].map((opcion) => <option key={opcion}>{opcion}</option>)}
+              </select>
+            </label>
+            {errorVinculo && <p className="familiar-vinculo-error" role="alert">{errorVinculo}</p>}
+            <p className="familiar-vinculo-nota">El vínculo se guarda en los datos locales de este navegador.</p>
+            <footer><button type="button" onClick={() => setVincularAbierto(false)}>Cancelar</button><button type="button" disabled={!familiarElegido} onClick={vincularFamiliar}>Vincular familiar</button></footer>
+          </section>
+        </div>
+      )}
     </section>
   );
 }
@@ -482,6 +737,7 @@ export default function VistaPacientes({
     [error, setError] = useState(""),
     [guardando, setGuardando] = useState(false),
     [editando, setEditando] = useState<Paciente | null>(null),
+    [volverAFichaTrasEditar, setVolverAFichaTrasEditar] = useState(false),
     [viendo, setViendo] = useState<Paciente | null>(null),
     [pacienteSeleccionado, setPacienteSeleccionado] = useState<Paciente | null>(
       null,
@@ -573,12 +829,15 @@ export default function VistaPacientes({
     fn();
     setPagina(1);
   };
-  const cerrar = () => {
-    if (guardando) return;
+  const cerrar = (forzar = false) => {
+    if (guardando && !forzar) return;
+    const regresar = volverAFichaTrasEditar ? editando : null;
     setAbierto(false);
     setEditando(null);
     setForm(inicial);
     setError("");
+    setVolverAFichaTrasEditar(false);
+    if (regresar) setPacienteSeleccionado(regresar);
   };
   const pacienteRegistrado = (registrado: PacienteRegistrado) => {
     const nuevo = pacienteParaVista(registrado);
@@ -596,15 +855,27 @@ export default function VistaPacientes({
   const replegarSidebar = () =>
     window.dispatchEvent(new Event("clinico:replegar-sidebar"));
   const historialConsumos = useMemo(
-    () =>
-      pacienteSeleccionado
-        ? estudios.filter(
-            (estudio) => estudio.pacienteId === pacienteSeleccionado.id,
-          )
-        : [],
+    (): MovimientoPacienteDemo[] => {
+      if (!pacienteSeleccionado) return [];
+      return [
+        ...obtenerHistorialPacienteDemo(pacienteSeleccionado.id),
+        ...estudios
+          .filter((estudio) => estudio.pacienteId === pacienteSeleccionado.id)
+          .map((estudio) => ({
+            id: estudio.id,
+            pacienteId: estudio.pacienteId,
+            tipo: "consumo" as const,
+            concepto: estudio.titulo,
+            categoria: estudio.categoria,
+            fecha: estudio.creadaEn,
+            importe: 0,
+          })),
+      ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+    },
     [estudios, pacienteSeleccionado],
   );
-  const abrirEditar = (p: Paciente) => {
+  const abrirEditar = (p: Paciente, desdeFicha = false) => {
+    setVolverAFichaTrasEditar(desdeFicha);
     setEditando(p);
     setForm({
       nombres: p.nombres,
@@ -626,6 +897,7 @@ export default function VistaPacientes({
     setError("");
     try {
       const d: Paciente = {
+        ...(editando || {} as Paciente),
         ...form,
         id: editando?.id || `pac-${crypto.randomUUID()}`,
         creadoEn: editando?.creadoEn || new Date().toISOString(),
@@ -634,6 +906,16 @@ export default function VistaPacientes({
         throw new Error(
           "Utiliza Registrar paciente para crear una ficha completa.",
         );
+      const volverAFicha = volverAFichaTrasEditar;
+      const persistirDemo = import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+      if (persistirDemo) {
+        const nuevos = pacientes.map((p) => p.id === editando.id ? d : p);
+        guardarPacientes(nuevos);
+        setPacientes(nuevos);
+        cerrar(true);
+        if (volverAFicha) setPacienteSeleccionado(d);
+        return;
+      }
       const respuesta = await apiFetch(`/api/v1/pacientes/${editando.id}`, {
         method: "PUT",
         headers: { Accept: "application/json" },
@@ -664,7 +946,8 @@ export default function VistaPacientes({
         : [guardado, ...pacientes];
       window.dispatchEvent(new Event("pacientes:actualizados"));
       setPacientes(nuevos);
-      cerrar();
+      cerrar(true);
+      if (volverAFicha) setPacienteSeleccionado(guardado);
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo guardar.");
     } finally {
@@ -777,8 +1060,15 @@ export default function VistaPacientes({
     return (
       <FichaPacienteCompleta
         paciente={pacienteSeleccionado}
+        pacientes={pacientes}
         estudios={estudios}
         onVolver={() => setPacienteSeleccionado(null)}
+        onEditar={() => {
+          const actual = pacienteSeleccionado;
+          setPacienteSeleccionado(null);
+          if (actual) abrirEditar(actual, true);
+        }}
+        onVerFamiliar={(familiar) => setPacienteSeleccionado(familiar)}
       />
     );
   return (
@@ -1065,18 +1355,18 @@ export default function VistaPacientes({
             <div className="historial-lista">
               {historialConsumos.length ? (
                 historialConsumos.map((estudio) => (
-                  <article className="consumo-card pagado" key={estudio.id}>
-                    <strong>{estudio.titulo}</strong>
-                    <span>HOSPITAL MARÍA ESPERANZA</span>
-                    <small>{estudio.categoria}</small>
+                  <article className={`consumo-card ${estudio.tipo}`} key={estudio.id}>
+                    <strong>{estudio.concepto}</strong>
+                    <span>{estudio.categoria}{estudio.metodoPago ? ` · ${estudio.metodoPago}` : ""}</span>
+                    <small>{estudio.referencia || (estudio.tipo === "pago" ? "Pago recibido" : "Consumo registrado")}</small>
                     <footer>
                       <time>
-                        {new Date(estudio.creadaEn).toLocaleDateString(
+                        {new Date(estudio.fecha).toLocaleDateString(
                           "es-BO",
                           { day: "numeric", month: "long", year: "numeric" },
                         )}
                       </time>
-                      <b>Registrado</b>
+                      <b>{estudio.tipo === "pago" ? "−" : ""}Bs {estudio.importe.toFixed(2)}</b>
                     </footer>
                   </article>
                 ))
@@ -1095,7 +1385,7 @@ export default function VistaPacientes({
         )}
       </div>
       {abierto && editando && (
-        <div className="usuario-modal-fondo" onClick={cerrar}>
+        <div className="usuario-modal-fondo" onClick={() => cerrar()}>
           <form
             className="usuario-modal usuario-formulario"
             onSubmit={guardar}
@@ -1104,7 +1394,7 @@ export default function VistaPacientes({
             <button
               type="button"
               className="usuario-modal-cerrar"
-              onClick={cerrar}
+              onClick={() => cerrar()}
             >
               <Icon name="close" />
             </button>
@@ -1244,7 +1534,7 @@ export default function VistaPacientes({
               </label>
             </div>
             <div className="usuario-form-acciones">
-              <button type="button" onClick={cerrar}>
+              <button type="button" onClick={() => cerrar()}>
                 Cancelar
               </button>
               <button className="usuarios-crear" disabled={guardando}>

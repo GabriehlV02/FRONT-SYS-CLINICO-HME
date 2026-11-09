@@ -1,15 +1,42 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { apiFetch } from "../../radius/api";
+import { leerSesion } from "../../radius/types/sesion";
 import "./UnidadesMedidaView.css";
 
 export type UnidadMedida = { id: number; nombre: string; abreviatura: string };
 const url = "/api/v1/configuracion/unidades-signos-vitales";
+const claveUnidadesDemo = "clinico.triaje.unidades-signos-vitales.v1";
+const unidadesDemo: UnidadMedida[] = [
+  { id: 1, nombre: "Grados Celsius", abreviatura: "°C" },
+  { id: 2, nombre: "Pulsaciones por minuto", abreviatura: "P/min" },
+  { id: 3, nombre: "Respiraciones por minuto", abreviatura: "Res/min" },
+  { id: 4, nombre: "Milímetros de mercurio", abreviatura: "mmHg" },
+  { id: 5, nombre: "Porcentaje", abreviatura: "%" },
+  { id: 6, nombre: "Miligramos por decilitro", abreviatura: "mg/dL" },
+  { id: 7, nombre: "Kilogramos", abreviatura: "kg" },
+  { id: 8, nombre: "Centímetros", abreviatura: "cm" },
+  { id: 9, nombre: "Litros por minuto", abreviatura: "L/min" },
+];
+
+function leerUnidadesDemo(): UnidadMedida[] {
+  try {
+    const guardadas = localStorage.getItem(claveUnidadesDemo);
+    return guardadas ? JSON.parse(guardadas) as UnidadMedida[] : unidadesDemo;
+  } catch {
+    return unidadesDemo;
+  }
+}
 
 export function useUnidadesMedida() {
   const [unidades, setUnidades] = useState<UnidadMedida[]>([]);
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(true);
   useEffect(() => {
+    if (import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local") {
+      setUnidades(leerUnidadesDemo());
+      setCargando(false);
+      return;
+    }
     const controller = new AbortController();
     apiFetch(url, { signal: controller.signal })
       .then(async (respuesta) => {
@@ -29,6 +56,20 @@ export function useUnidadesMedida() {
   }, []);
 
   async function crear(nombre: string, abreviatura: string) {
+    if (import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local") {
+      const actuales = leerUnidadesDemo();
+      const siguiente: UnidadMedida = {
+        id: Math.max(0, ...actuales.map((unidad) => unidad.id)) + 1,
+        nombre,
+        abreviatura,
+      };
+      const nuevas = [...actuales, siguiente].sort((a, b) =>
+        a.nombre.localeCompare(b.nombre, "es"),
+      );
+      localStorage.setItem(claveUnidadesDemo, JSON.stringify(nuevas));
+      setUnidades(nuevas);
+      return;
+    }
     const respuesta = await apiFetch(url, {
       method: "POST",
       body: JSON.stringify({ nombre, abreviatura }),

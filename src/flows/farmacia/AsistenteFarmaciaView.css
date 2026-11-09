@@ -1213,6 +1213,79 @@
     flex-basis: 100%;
   }
 }
+
+.farmacia-ia-tomi-cabecera {
+  position: relative;
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+.farmacia-ia-tomi-alternar {
+  position: absolute;
+  top: -9px;
+  right: -10px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid #cde3ef;
+  border-radius: 10px;
+  color: #176b99;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+.farmacia-ia-tomi-alternar:hover {
+  border-color: #079bd2;
+  color: #fff;
+  background: #0789c2;
+}
+.farmacia-ia-panel-tomi-detalle {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+}
+.farmacia-ia-panel-tomi-detalle[hidden] {
+  display: none;
+}
+.farmacia-ia-chat.tomi-panel-replegado {
+  grid-template-columns: 94px minmax(0, 1fr);
+}
+.farmacia-ia-chat.tomi-panel-replegado .farmacia-ia-panel-modo {
+  padding: 17px 9px;
+}
+.farmacia-ia-chat.tomi-panel-replegado .farmacia-ia-tomi-cabecera {
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.farmacia-ia-chat.tomi-panel-replegado .farmacia-ia-tomi-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+}
+.farmacia-ia-tomi-rostro {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.farmacia-ia-tomi-rostro-chat {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.farmacia-ia-chat.tomi-panel-replegado .farmacia-ia-tomi-alternar {
+  position: static;
+}
+@media (max-width: 650px) {
+  .farmacia-ia-chat.tomi-panel-replegado {
+    grid-template-columns: 1fr;
+  }
+}
 .farmacia-ia-sucursales {
   padding: clamp(20px, 3vw, 34px) clamp(18px, 3vw, 36px);
   background:

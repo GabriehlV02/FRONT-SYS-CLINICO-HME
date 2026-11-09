@@ -7,6 +7,7 @@ import "./LoginRefinamiento.css";
 import "../../../ui/styles/LoginFields.css";
 import Icon from "../../componentes/Icono";
 import type { Sesion } from "../../types/sesion";
+import { obtenerEstudios, obtenerPacientes } from "../../datos/almacenDemo";
 
 type Props = { onLogin: (sesion: Sesion) => void };
 
@@ -77,6 +78,37 @@ export default function VistaInicioSesion({ onLogin }: Props) {
     event.preventDefault();
     setError("");
     setLoading(true);
+    if (
+      import.meta.env.DEV &&
+      form.usuario.trim().toLocaleLowerCase("es") === "admin" &&
+      form.password === "admin"
+    ) {
+      obtenerPacientes();
+      obtenerEstudios();
+      const sesion: Sesion = {
+        token: "frontend-demo-local",
+        expiresAt: Date.now() + 12 * 60 * 60 * 1000,
+        usuario: {
+          id: "admin-demo",
+          usuario: "admin",
+          nombre: "Administrador",
+          apellidos: "Demo",
+          correo: "admin@demo.local",
+          rol: "Administrador",
+          permisos: [],
+          tipoInicio: "admin_sistema",
+        },
+      };
+      localStorage.removeItem("pulso_session");
+      sessionStorage.removeItem("pulso_session");
+      (recordar ? localStorage : sessionStorage).setItem(
+        "pulso_session",
+        JSON.stringify(sesion),
+      );
+      onLogin(sesion);
+      setLoading(false);
+      return;
+    }
     const controlador = new AbortController();
     const limite = window.setTimeout(() => controlador.abort(), 8000);
     try {
@@ -287,6 +319,12 @@ export default function VistaInicioSesion({ onLogin }: Props) {
               <p className="login-subtitulo">
                 Ingresa con tu cuenta institucional.
               </p>
+              {import.meta.env.DEV && (
+                <p className="login-demo-hint">
+                  Modo desarrollo frontend · usuario <strong>admin</strong> ·
+                  contraseÃ±a <strong>admin</strong>
+                </p>
+              )}
               {error && (
                 <div className="login-error" role="alert" aria-live="polite">
                   <Icon name="close" size={17} />

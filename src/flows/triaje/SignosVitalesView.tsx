@@ -7,6 +7,7 @@ import { guardarSignosVitales } from "./registroSignosVitales";
 import { useServiciosSignosVitales } from "./ServiciosSignosVitales";
 import { camposParaServicio, compararReferencia } from "./camposSignosVitales";
 import { apiFetch } from "../../radius/api";
+import { leerSesion } from "../../radius/types/sesion";
 
 type PacienteEnEspera = {
   id: string;
@@ -26,8 +27,69 @@ type PacienteAtendido = PacienteEnEspera & {
   registrado: string;
 };
 
-const colaInicial: PacienteEnEspera[] = [];
-const atendidosIniciales: PacienteAtendido[] = [];
+const claveColaDemo = "clinico.triaje.cola-demo.v1";
+const claveAtendidosDemo = "clinico.triaje.atendidos-demo.v1";
+const colaInicial: PacienteEnEspera[] = [
+  {
+    id: "demo-cita-luis-morales",
+    pacienteId: "demo-pac-luis-morales",
+    hora: "09:15",
+    fecha: "2026-11-09",
+    estado: "confirmada",
+    paciente: "Luis Eduardo Morales Rojas",
+    ci: "6543210",
+    edad: 40,
+    doctor: "Dra. Andrea Vargas",
+    especialidad: "Medicina general",
+  },
+  {
+    id: "demo-cita-ana-quispe",
+    pacienteId: "demo-pac-003",
+    hora: "09:40",
+    fecha: "2026-11-09",
+    estado: "confirmada",
+    paciente: "Ana Sofía Quispe Vargas",
+    ci: "7319845",
+    edad: 31,
+    doctor: "Dr. Martín Rojas",
+    especialidad: "Medicina general",
+  },
+];
+const atendidosIniciales: PacienteAtendido[] = [
+  {
+    id: "demo-cita-carlos-mendoza",
+    pacienteId: "demo-pac-002",
+    hora: "08:50",
+    fecha: "2026-11-09",
+    estado: "confirmada",
+    paciente: "Carlos Alberto Mendoza Rojas",
+    ci: "5987412",
+    edad: 51,
+    doctor: "Dra. Andrea Vargas",
+    especialidad: "Medicina general",
+    signosRegistrados: true,
+    valores: {
+      temperatura: "36.7",
+      frecuenciaCardiaca: "76",
+      frecuenciaRespiratoria: "16",
+      presionSistolica: "120",
+      presionDiastolica: "78",
+      saturacionAmbiente: "98",
+      peso: "72.4",
+      estatura: "168",
+    },
+    registrado: "08:55",
+  },
+];
+
+function leerListaDemo<T>(clave: string, inicial: T[]): T[] {
+  try {
+    const guardada = localStorage.getItem(clave);
+    return guardada ? JSON.parse(guardada) as T[] : inicial;
+  } catch {
+    return inicial;
+  }
+}
 
 const camposVitalesPredeterminados = [
   ["temperatura", "Temperatura", "°C"],
@@ -52,9 +114,11 @@ export function SignosVitalesView({
   camposConfigurados?: SignoVitalConfig[];
 }) {
   const catalogoServicios = useServiciosSignosVitales();
-  const [cola, setCola] = useState(colaInicial);
+  const esDemo = import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+  const [cola, setCola] = useState(() => esDemo ? leerListaDemo(claveColaDemo, colaInicial) : []);
   const [errorPacientes, setErrorPacientes] = useState("");
   useEffect(() => {
+    if (esDemo) return;
     const controller = new AbortController();
     apiFetch("/api/citas", { signal: controller.signal })
       .then(async (respuesta) => {
@@ -86,13 +150,13 @@ export function SignosVitalesView({
           );
       });
     return () => controller.abort();
-  }, []);
+  }, [esDemo]);
   const [busqueda, setBusqueda] = useState("");
   const [pacienteSeleccionado, setPacienteSeleccionado] =
     useState<PacienteEnEspera | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});
   const [atendidos, setAtendidos] =
-    useState<PacienteAtendido[]>(atendidosIniciales);
+    useState<PacienteAtendido[]>(() => esDemo ? leerListaDemo(claveAtendidosDemo, atendidosIniciales) : []);
   const [panelAtendidosAbierto, setPanelAtendidosAbierto] = useState(true);
   const [busquedaAtendidos, setBusquedaAtendidos] = useState("");
   const [editandoAtendido, setEditandoAtendido] = useState(false);
@@ -101,6 +165,11 @@ export function SignosVitalesView({
   const [versionValoracion, setVersionValoracion] = useState<number | null>(
     null,
   );
+  useEffect(() => {
+    if (!esDemo) return;
+    localStorage.setItem(claveColaDemo, JSON.stringify(cola));
+    localStorage.setItem(claveAtendidosDemo, JSON.stringify(atendidos));
+  }, [esDemo, cola, atendidos]);
   const atendidosVisibles = atendidos.filter((paciente) =>
     `${paciente.paciente} ${paciente.ci} ${paciente.doctor}`
       .toLocaleLowerCase()
@@ -158,19 +227,21 @@ export function SignosVitalesView({
     setGuardando(true);
     setErrorRegistro("");
     try {
-      const respuesta = await apiFetch(
-        `/api/v1/citas/${encodeURIComponent(pacienteSeleccionado.id)}/signos-vitales`,
-        {
-          method: "POST",
-          body: JSON.stringify({ valores: datos, version: versionValoracion }),
-        },
-      );
-      const resultado = await respuesta.json().catch(() => ({}));
-      if (!respuesta.ok)
-        throw new Error(
-          resultado.message || "No se pudieron guardar los signos vitales.",
+      if (!esDemo) {
+        const respuesta = await apiFetch(
+          `/api/v1/citas/${encodeURIComponent(pacienteSeleccionado.id)}/signos-vitales`,
+          {
+            method: "POST",
+            body: JSON.stringify({ valores: datos, version: versionValoracion }),
+          },
         );
-      guardarSignosVitales(pacienteSeleccionado, resultado.data.valores);
+        const resultado = await respuesta.json().catch(() => ({}));
+        if (!respuesta.ok)
+          throw new Error(
+            resultado.message || "No se pudieron guardar los signos vitales.",
+          );
+      }
+      guardarSignosVitales(pacienteSeleccionado, datos);
       if (editandoAtendido) {
         setAtendidos((actual) =>
           actual.map((item) =>
@@ -204,6 +275,14 @@ export function SignosVitalesView({
 
   const editar = async (paciente: PacienteAtendido) => {
     setErrorPacientes("");
+    if (esDemo) {
+      setValores(paciente.valores);
+      setVersionValoracion(1);
+      setPacienteSeleccionado(paciente);
+      setEditandoAtendido(true);
+      setErrorRegistro("");
+      return;
+    }
     try {
       const respuesta = await apiFetch(
         `/api/v1/citas/${encodeURIComponent(paciente.id)}/signos-vitales`,

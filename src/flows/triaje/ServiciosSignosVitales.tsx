@@ -1,16 +1,40 @@
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../../radius/api';
 import Icon from '../../radius/componentes/Icono';
+import { leerSesion } from '../../radius/types/sesion';
 import type { SignoVitalConfig } from './ConfiguracionSignosVitalesView';
 
 export type ServicioSignos = { id: string; nombre: string; descripcion: string; signos: string[] };
 const url = '/api/v1/configuracion/servicios-signos-vitales';
+const claveDemo = 'clinico.triaje.servicios-signos-vitales.v1';
+const idsSignosDemo = ['temperatura', 'glicemia', 'frecuenciaCardiaca', 'frecuenciaRespiratoria', 'presionSistolica', 'presionDiastolica', 'saturacionAmbiente', 'oxigeno', 'saturacionOxigeno', 'peso', 'estatura', 'imc'];
+const serviciosDemo: ServicioSignos[] = [
+  { id: 'consulta-ambulatoria', nombre: 'Servicio de Consulta Ambulatoria', descripcion: 'Signos para consulta externa y agenda médica.', signos: idsSignosDemo },
+  { id: 'emergencias', nombre: 'Servicio de Emergencias', descripcion: 'Signos para triaje y atención de urgencias.', signos: idsSignosDemo },
+  { id: 'internacion', nombre: 'Servicio de Internación', descripcion: 'Monitoreo de pacientes hospitalizados.', signos: idsSignosDemo },
+  { id: 'terapia-intensiva', nombre: 'Servicio de Terapia Intensiva', descripcion: 'Vigilancia clínica de alta frecuencia.', signos: idsSignosDemo },
+  { id: 'quirofano', nombre: 'Servicio de Quirófano', descripcion: 'Control pre, intra y postoperatorio.', signos: idsSignosDemo },
+];
+
+function leerServiciosDemo(): ServicioSignos[] {
+  try {
+    const guardados = localStorage.getItem(claveDemo);
+    return guardados ? JSON.parse(guardados) as ServicioSignos[] : serviciosDemo;
+  } catch {
+    return serviciosDemo;
+  }
+}
 
 export function useServiciosSignosVitales() {
   const [servicios, setServicios] = useState<ServicioSignos[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {
+    if (import.meta.env.DEV && leerSesion()?.token === 'frontend-demo-local') {
+      setServicios(leerServiciosDemo());
+      setCargando(false);
+      return;
+    }
     const controller = new AbortController();
     apiFetch(url, { signal: controller.signal }).then(async (respuesta) => {
       if (!respuesta.ok) throw new Error('No se pudieron cargar las asignaciones de signos vitales.');
@@ -21,6 +45,12 @@ export function useServiciosSignosVitales() {
     return () => controller.abort();
   }, []);
   async function guardar(id: string, signos: string[]) {
+    if (import.meta.env.DEV && leerSesion()?.token === 'frontend-demo-local') {
+      const siguientes = servicios.map(servicio => servicio.id === id ? { ...servicio, signos } : servicio);
+      localStorage.setItem(claveDemo, JSON.stringify(siguientes));
+      setServicios(siguientes);
+      return;
+    }
     const respuesta = await apiFetch(`${url}/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ signos }) });
     if (!respuesta.ok) {
       const resultado = await respuesta.json().catch(() => ({}));

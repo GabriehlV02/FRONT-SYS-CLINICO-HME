@@ -8,6 +8,7 @@ export function cargarSignos(
     const valor: unknown = JSON.parse(localStorage.getItem(clave) || "null");
     if (
       !Array.isArray(valor) ||
+      valor.length === 0 ||
       !valor.every(
         (s) =>
           s &&

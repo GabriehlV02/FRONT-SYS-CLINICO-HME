@@ -1,5 +1,6 @@
 import { apiFetch } from "../../api";
-import type { PacienteDemo } from "../../datos/almacenDemo";
+import { obtenerPacientes, type PacienteDemo } from "../../datos/almacenDemo";
+import { leerSesion } from "../../types/sesion";
 import type { PacienteRegistrado } from "./ModalRegistroPaciente";
 
 export function pacienteParaVista(paciente: PacienteRegistrado): PacienteDemo {
@@ -45,6 +46,49 @@ export function pacienteParaVista(paciente: PacienteRegistrado): PacienteDemo {
 export async function listarFichasPacientes(
   signal?: AbortSignal,
 ): Promise<PacienteRegistrado[]> {
+  if (
+    import.meta.env.DEV &&
+    leerSesion()?.token === "frontend-demo-local"
+  ) {
+    return obtenerPacientes().map((paciente) => ({
+      id: paciente.id,
+      nombres: paciente.nombres,
+      apellido_paterno: paciente.primerApellido,
+      apellido_materno: paciente.segundoApellido,
+      ci: paciente.numeroDocumento,
+      fecha_nacimiento: paciente.fechaNacimiento,
+      genero: paciente.sexo,
+      telefono: paciente.telefono,
+      complemento_ci: paciente.complementoCi,
+      expedido_en: paciente.expedidoEn,
+      nit: paciente.nit,
+      razon_social: paciente.razonSocial,
+      ci_con_qr: paciente.ciConQr,
+      pais: paciente.pais,
+      departamento: paciente.departamento,
+      ciudad: paciente.ciudad,
+      zona_barrio: paciente.zonaBarrio,
+      direccion_domicilio: paciente.direccion,
+      created_at: paciente.creadoEn,
+      responsables: paciente.responsableNombre
+        ? [
+            {
+              nombre_completo: paciente.responsableNombre,
+              ci: paciente.responsableCi,
+              telefono: paciente.responsableTelefono,
+              parentesco: paciente.responsableParentesco,
+            },
+          ]
+        : [],
+      registros_admision: [
+        {
+          como_se_entero: paciente.comoSeEntero,
+          observaciones: paciente.observaciones,
+          habilitado: paciente.habilitado ?? true,
+        },
+      ],
+    }));
+  }
   const pacientes: PacienteRegistrado[] = [];
   let pagina = 1;
   let ultimaPagina = 1;

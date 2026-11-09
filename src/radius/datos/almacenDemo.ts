@@ -46,12 +46,158 @@ export type InformeDemo = {
   mime: string;
   creadoEn: string;
 };
+export type MovimientoPacienteDemo = {
+  id: string;
+  pacienteId: string;
+  tipo: "consumo" | "pago";
+  concepto: string;
+  categoria: string;
+  fecha: string;
+  importe: number;
+  metodoPago?: string;
+  desglosePagos?: { metodo: string; importe: number }[];
+  referencia?: string;
+};
+export type FamiliarPacienteDemo = {
+  pacienteId: string;
+  familiarId: string;
+  parentesco: string;
+  vinculadoEn: string;
+};
 
 const PACIENTES = "pulso_local_pacientes_v1",
   ESTUDIOS = "pulso_local_estudios_v1",
   SELECCION = "radiuus_estudio_seleccionado",
   INFORMES = "pulso_local_informes_v1",
   MUESTRA_PACIENTES = "pulso_local_pacientes_muestra_v1";
+const HISTORIAL_PACIENTES = "pulso_local_historial_pacientes_v1";
+const FAMILIARES_PACIENTES = "pulso_local_familiares_pacientes_v1";
+const HISTORIAL_LUIS_DEMO: MovimientoPacienteDemo[] = [
+  {
+    id: "demo-luis-consulta-emergencia",
+    pacienteId: "demo-pac-luis-morales",
+    tipo: "consumo",
+    concepto: "Consulta de emergencia",
+    categoria: "Atención médica",
+    fecha: "2026-11-08T09:05:00-04:00",
+    importe: 80,
+  },
+  {
+    id: "demo-luis-hemograma",
+    pacienteId: "demo-pac-luis-morales",
+    tipo: "consumo",
+    concepto: "Hemograma completo",
+    categoria: "Laboratorio",
+    fecha: "2026-11-08T09:22:00-04:00",
+    importe: 65,
+  },
+  {
+    id: "demo-luis-nebulizacion",
+    pacienteId: "demo-pac-luis-morales",
+    tipo: "consumo",
+    concepto: "Nebulización",
+    categoria: "Procedimiento",
+    fecha: "2026-11-08T09:40:00-04:00",
+    importe: 35,
+  },
+  {
+    id: "demo-luis-pago-efectivo",
+    pacienteId: "demo-pac-luis-morales",
+    tipo: "pago",
+    concepto: "Pago en caja",
+    categoria: "Pago recibido",
+    fecha: "2026-11-08T10:10:00-04:00",
+    importe: 80,
+    metodoPago: "Efectivo",
+    referencia: "REC-DEMO-001",
+  },
+  {
+    id: "demo-luis-pago-qr",
+    pacienteId: "demo-pac-luis-morales",
+    tipo: "pago",
+    concepto: "Pago parcial de cuenta",
+    categoria: "Pago recibido",
+    fecha: "2026-11-08T10:24:00-04:00",
+    importe: 80,
+    metodoPago: "QR",
+    desglosePagos: [
+      { metodo: "QR", importe: 30 },
+      { metodo: "Efectivo", importe: 50 },
+    ],
+    referencia: "REC-DEMO-002",
+  },
+];
+
+export function obtenerHistorialPacienteDemo(
+  pacienteId: string,
+): MovimientoPacienteDemo[] {
+  const historial = leer<MovimientoPacienteDemo[]>(HISTORIAL_PACIENTES, []);
+  const iniciales =
+    pacienteId === "demo-pac-luis-morales" ? HISTORIAL_LUIS_DEMO : [];
+  const combinadosBase = [
+    ...iniciales.filter(
+      (movimiento) => !historial.some((guardado) => guardado.id === movimiento.id),
+    ),
+    ...historial,
+  ];
+  const combinados = combinadosBase.map((movimiento) => {
+    const inicial = iniciales.find((item) => item.id === movimiento.id);
+    return !movimiento.desglosePagos && inicial?.desglosePagos
+      ? { ...movimiento, desglosePagos: inicial.desglosePagos }
+      : movimiento;
+  });
+  if (
+    combinados.length !== historial.length ||
+    combinados.some((movimiento) => {
+      const anterior = historial.find((item) => item.id === movimiento.id);
+      return anterior && JSON.stringify(anterior) !== JSON.stringify(movimiento);
+    })
+  ) {
+    localStorage.setItem(HISTORIAL_PACIENTES, JSON.stringify(combinados));
+  }
+  return combinados
+    .filter((movimiento) => movimiento.pacienteId === pacienteId)
+    .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+}
+
+export function obtenerFamiliaresPacienteDemo(
+  pacienteId: string,
+): FamiliarPacienteDemo[] {
+  try {
+    const vinculos = JSON.parse(
+      localStorage.getItem(FAMILIARES_PACIENTES) || "[]",
+    ) as FamiliarPacienteDemo[];
+    return vinculos.filter((vinculo) => vinculo.pacienteId === pacienteId);
+  } catch {
+    return [];
+  }
+}
+
+export function vincularFamiliarPacienteDemo(
+  pacienteId: string,
+  familiarId: string,
+  parentesco: string,
+): FamiliarPacienteDemo[] {
+  if (pacienteId === familiarId)
+    throw new Error("El paciente no puede vincularse consigo mismo.");
+  const guardados = JSON.parse(
+    localStorage.getItem(FAMILIARES_PACIENTES) || "[]",
+  ) as FamiliarPacienteDemo[];
+  if (
+    guardados.some(
+      (vinculo) =>
+        vinculo.pacienteId === pacienteId && vinculo.familiarId === familiarId,
+    )
+  )
+    throw new Error("Este familiar ya está vinculado a la ficha.");
+  const siguientes = [
+    ...guardados,
+    { pacienteId, familiarId, parentesco, vinculadoEn: new Date().toISOString() },
+  ];
+  localStorage.setItem(FAMILIARES_PACIENTES, JSON.stringify(siguientes));
+  window.dispatchEvent(new Event("radiuus:datos-demo"));
+  return obtenerFamiliaresPacienteDemo(pacienteId);
+}
 export const pacientesIniciales: PacienteDemo[] = [
   {
     id: "demo-pac-001",
@@ -192,6 +338,20 @@ export const pacientesIniciales: PacienteDemo[] = [
     direccion: "Zona Sud",
     sucursal: "Sur",
     creadoEn: "2026-10-01T08:45:00.000Z",
+  },
+  {
+    id: "demo-pac-luis-morales",
+    nombres: "Luis Eduardo",
+    primerApellido: "Morales",
+    segundoApellido: "Rojas",
+    tipoDocumento: "CI",
+    numeroDocumento: "6543210",
+    fechaNacimiento: "1986-06-14",
+    sexo: "masculino",
+    telefono: "70765432",
+    direccion: "Av. América, Cochabamba",
+    sucursal: "Central",
+    creadoEn: "2026-11-01T08:00:00.000Z",
   },
   {
     id: "demo-pac-yarela-copa",

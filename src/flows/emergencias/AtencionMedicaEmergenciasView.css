@@ -1361,7 +1361,7 @@
     display: grid;
     grid-template-columns:
       92px minmax(200px, 1.3fr)
-      105px 70px 88px 105px minmax(170px, 1fr) 100px;
+      105px 70px 88px 105px 100px;
     align-items: center;
     gap: 12px;
     box-sizing: border-box;
@@ -1404,7 +1404,7 @@
     grid-column: 1;
     grid-template-columns:
       92px minmax(200px, 1.3fr)
-      105px 70px 88px 105px minmax(170px, 1fr) 100px;
+      105px 70px 88px 105px 100px;
     min-height: 70px;
     padding: 10px 16px;
     text-align: left;
@@ -1479,9 +1479,12 @@
 /* Cabecera y filas comparten la misma retícula y el mismo eje de lectura. */
 @media (min-width: 761px) {
   .em-medica-layout > .em-cubiculos {
-    --em-medica-columnas: 92px minmax(200px, 1.3fr) 105px 70px 88px 105px
-      minmax(170px, 1fr) 100px;
-    --em-medica-separacion: 12px;
+    --em-medica-columnas:
+      minmax(112px, 0.82fr) minmax(260px, 2.1fr) minmax(130px, 0.95fr)
+      minmax(90px, 0.65fr) minmax(100px, 0.75fr) minmax(125px, 0.9fr)
+      minmax(120px, 0.85fr);
+    --em-medica-separacion: 16px;
+    min-width: 0;
   }
 
   .em-medica-layout > .em-cubiculos > .em-lista-cabecera,
@@ -1490,14 +1493,31 @@
     column-gap: var(--em-medica-separacion) !important;
   }
 
-  /* Cubículo, paciente y médico se leen desde el mismo borde izquierdo. */
-  .em-lista-cabecera > :is(:nth-child(1), :nth-child(2), :nth-child(7)),
+  /* Cubículo y paciente se leen desde el mismo borde izquierdo. */
+  .em-lista-cabecera > :is(:nth-child(1), :nth-child(2)),
   .em-medica-layout
     > .em-cubiculos
     > .em-cubiculo
-    > :is(:nth-child(1), :nth-child(2), :nth-child(7)) {
+    > :is(:nth-child(1), :nth-child(2)) {
     justify-self: start;
     text-align: left;
+  }
+
+  .em-lista-cabecera > :nth-child(2),
+  .em-medica-layout
+    > .em-cubiculos
+    > .em-cubiculo
+    > :nth-child(2) {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .em-medica-layout > .em-cubiculos > .em-cubiculo > :last-child {
+    width: 100%;
+    max-width: 132px;
+    justify-self: end;
   }
 
   /* Datos cortos y acción mantienen un eje central exacto entre título y valor. */
@@ -1507,7 +1527,7 @@
       :nth-child(4),
       :nth-child(5),
       :nth-child(6),
-      :nth-child(8)
+      :nth-child(7)
     ),
   .em-medica-layout
     > .em-cubiculos
@@ -1517,7 +1537,7 @@
       :nth-child(4),
       :nth-child(5),
       :nth-child(6),
-      :nth-child(8)
+      :nth-child(7)
     ) {
     justify-self: stretch;
     text-align: center;
@@ -1529,7 +1549,7 @@
       :nth-child(4),
       :nth-child(5),
       :nth-child(6),
-      :nth-child(8)
+      :nth-child(7)
     ) {
     justify-content: center;
   }

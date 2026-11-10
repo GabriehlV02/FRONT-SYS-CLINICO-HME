@@ -528,7 +528,6 @@ export function AtencionMedicaEmergenciasView({
           </button>
         )}
         <div className="em-cabecera-titulo">
-          <p>EMERGENCIAS · ATENCIÓN MÉDICA</p>
           {!cuenta && (
             <HorizontalSubvistaNav
               className="em-subvistas"
@@ -831,7 +830,6 @@ export function AtencionMedicaEmergenciasView({
                 <span>Edad</span>
                 <span>Sexo</span>
                 <span>Hora ingreso</span>
-                <span>Médico de admisión</span>
                 <span>Acción</span>
               </div>
             )}
@@ -859,7 +857,6 @@ export function AtencionMedicaEmergenciasView({
                 <span>{edadPaciente(c.identidad?.nacimiento)}</span>
                 <span>{c.identidad?.sexo || "No registrado"}</span>
                 <time>{horaIngreso(c.inicio)}</time>
-                <span>{c.identidad?.medicoAdmision || "Médico de turno"}</span>
                 <span className="em-accion-lista">Atender</span>
               </button>
             ))}

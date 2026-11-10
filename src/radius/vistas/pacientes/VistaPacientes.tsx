@@ -5,6 +5,7 @@ import ModalRegistroPaciente, {
   type PacienteRegistrado,
 } from "./ModalRegistroPaciente";
 import { listarPacientes, pacienteParaVista } from "./pacientesApi";
+import { useEstudiosPacientes } from "./useEstudiosPacientes";
 import {
   guardarArchivoEstudio,
   guardarPacientes,
@@ -721,6 +722,7 @@ export default function VistaPacientes({
   soloConEstudio?: boolean;
   modoClinico?: boolean;
 }) {
+  const { estudios: solicitudesImagen, errorEstudios } = useEstudiosPacientes(!modoClinico);
   const [errorListado, setErrorListado] = useState("");
   const [recarga, setRecarga] = useState(0);
   const [pacientes, setPacientes] = useState<Paciente[]>([]),
@@ -785,11 +787,12 @@ export default function VistaPacientes({
     };
   }, []);
   const estudiosModalidad = useMemo(
-    () =>
-      modalidad
-        ? estudios.filter((estudio) => estudio.categoria === modalidad)
-        : estudios,
-    [estudios, modalidad],
+    () => {
+      if (modoClinico) return estudios;
+      const modalidades: Record<string, string> = { RADIOGRAFIA: 'Radiografía', TOMOGRAFIA: 'Tomografía', ECOGRAFIA: 'Ecografía', ECOCARDIOGRAMA: 'Ecocardiograma' };
+      return solicitudesImagen.filter((solicitud) => modalidades[solicitud.tipo] && (!modalidad || modalidades[solicitud.tipo] === modalidad)).map((solicitud) => ({ id: solicitud.id, pacienteId: solicitud.paciente_id, paciente: [solicitud.nombres, solicitud.apellido_paterno, solicitud.apellido_materno].filter(Boolean).join(' '), titulo: solicitud.nombre, categoria: modalidades[solicitud.tipo], descripcion: solicitud.indicaciones || '', nombreArchivo: '', mime: '', creadaEn: solicitud.solicitado_en }));
+    },
+    [estudios, modalidad, modoClinico, solicitudesImagen],
   );
   const pacientesVisibles = useMemo(() => {
     const unicos = [
@@ -802,14 +805,14 @@ export default function VistaPacientes({
         ]),
       ).values(),
     ];
-    return soloConEstudio || Boolean(modalidad)
+    return !modoClinico || soloConEstudio || Boolean(modalidad)
       ? unicos.filter((paciente) =>
           estudiosModalidad.some(
             (estudio) => estudio.pacienteId === paciente.id,
           ),
         )
       : unicos;
-  }, [pacientes, estudiosModalidad, soloConEstudio]);
+  }, [pacientes, estudiosModalidad, soloConEstudio, modoClinico]);
   const filtrados = useMemo(
     () =>
       pacientesVisibles.filter(
@@ -1052,7 +1055,7 @@ export default function VistaPacientes({
     return (
       <InspeccionPaciente
         paciente={viendo}
-        estudios={estudios}
+        estudios={estudiosModalidad}
         onVolver={() => setViendo(null)}
       />
     );
@@ -1087,6 +1090,7 @@ export default function VistaPacientes({
           </button>
         </div>
       )}
+      {!modoClinico && errorEstudios && <div role="alert">{errorEstudios}</div>}
       <div className="usuarios-herramientas">
         <label className="pacientes-buscador">
           <Icon name="search" size={18} />
@@ -1221,10 +1225,10 @@ export default function VistaPacientes({
                           <strong className="dato-movil">Estado</strong>
                           <span
                             className={
-                              estudio ? "estado-cargado" : "estado-pendiente"
+                              estudio && solicitudesImagen.find((solicitud) => solicitud.id === estudio.id)?.estado === 'EN_PROCESO' ? "estado-cargado" : "estado-pendiente"
                             }
                           >
-                            {estudio ? "Cargada" : "Pendiente"}
+                            {estudio && solicitudesImagen.find((solicitud) => solicitud.id === estudio.id)?.estado === 'EN_PROCESO' ? 'En proceso' : 'Solicitado'}
                           </span>
                         </div>
                       </>
@@ -1245,10 +1249,6 @@ export default function VistaPacientes({
                         <button
                           className="usuario-accion"
                           onClick={() => {
-                            if (modalidad === "Tomografía" && estudio) {
-                              seleccionarEstudio(estudio.id);
-                              return;
-                            }
                             setViendo(p);
                           }}
                           title={
@@ -1276,7 +1276,7 @@ export default function VistaPacientes({
                   <Icon name="users" size={25} />
                 </span>
                 <strong>No hay pacientes para mostrar</strong>
-                <small>Registra el primer paciente o cambia los filtros.</small>
+                <small>{modoClinico ? 'Registra el primer paciente o cambia los filtros.' : 'No hay solicitudes de imagenología pendientes para los filtros seleccionados.'}</small>
               </div>
             )}
           </div>

@@ -446,3 +446,17 @@
     display: block !important;
   }
 }
+
+/* Los grupos del menu conservan su altura natural aunque un rol tenga pocos modulos. */
+.sistema-app .sistema-sidebar .sistema-nav {
+  display: block;
+  min-height: 0;
+}
+.sistema-app .sistema-sidebar .sistema-nav > section {
+  display: block;
+  height: auto;
+  min-height: 0;
+}
+.sistema-app .sistema-sidebar .sistema-nav > section > p {
+  margin-bottom: 8px;
+}

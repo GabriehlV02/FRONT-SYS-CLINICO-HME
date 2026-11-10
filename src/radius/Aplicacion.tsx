@@ -1109,7 +1109,9 @@ export default function Aplicacion() {
       });
     return () => controller.abort();
   }, [colaAtencionAbierta]);
+  const accesoSoloInventario = sesion?.usuario.rol === "Inventario de esterilizacion";
   const modulosVisibles = modulos.filter((item) => {
+    if (accesoSoloInventario) return item.id === "central-esterilizacion";
     const perfil = sesion?.usuario.perfilAtencion;
     if (perfil === "enfermera")
       return [
@@ -1328,7 +1330,7 @@ export default function Aplicacion() {
     subvistasImagenologia.find((item) => item.id === subvistaImagenologia) ??
     subvistasImagenologia[0];
   const actual = moduloActual;
-  const opcionesBusqueda = [...modulos, ...subvistasImagenologia];
+  const opcionesBusqueda = accesoSoloInventario ? modulosVisibles : [...modulos, ...subvistasImagenologia];
   const textoBusqueda = busqueda
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -2659,7 +2661,7 @@ export default function Aplicacion() {
             ) : modulo === "central-esterilizacion" ? (
               <EsterilizacionView
                 titulo="Inventario de material"
-                subvistasVisibles={["inventario", "kits", "paquetes", "roperia"]}
+                subvistasVisibles={accesoSoloInventario ? ["inventario"] : ["inventario", "kits", "paquetes", "roperia"]}
               />
             ) : modulo === "recepcion-material-sucio" ? (
               <EsterilizacionView

@@ -464,15 +464,15 @@ const EJEMPLO: EstadoEsterilizacion = {
 export function leerEsterilizacion(): EstadoEsterilizacion {
   try {
     const guardado = localStorage.getItem(CLAVE);
-    if (guardado === null) return EJEMPLO;
+    if (guardado === null) return VACIO;
     const datos: unknown = JSON.parse(guardado);
     if (!datos || typeof datos !== "object") return VACIO;
     const estado = datos as Partial<EstadoEsterilizacion>;
     return {
-      materiales: Array.isArray(estado.materiales) ? estado.materiales : [],
-      kits: Array.isArray(estado.kits) ? estado.kits : [],
-      movimientos: Array.isArray(estado.movimientos) ? estado.movimientos : [],
-      recepciones: Array.isArray(estado.recepciones) ? estado.recepciones : [],
+      materiales: Array.isArray(estado.materiales) ? estado.materiales.filter(item => !item.id.startsWith("demo-material-")) : [],
+      kits: Array.isArray(estado.kits) ? estado.kits.filter(item => !item.id.startsWith("demo-kit-")) : [],
+      movimientos: Array.isArray(estado.movimientos) ? estado.movimientos.filter(item => !item.id.startsWith("demo-") && !item.materialId.startsWith("demo-material-")) : [],
+      recepciones: Array.isArray(estado.recepciones) ? estado.recepciones.filter(item => !item.id.startsWith("demo-") && !item.materialId.startsWith("demo-material-")) : [],
     };
   } catch {
     return VACIO;

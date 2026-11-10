@@ -9,7 +9,6 @@ import { nombrePacienteClinico } from "../../../radius/vistas/pacientes/paciente
 import Icon from "../../../radius/componentes/Icono";
 import { notificar } from "../../../radius/componentes/Notificaciones";
 import { apiContableFetch, apiFetch } from "../../../radius/api";
-import { registrarSolicitudesImagenologia } from "../../../radius/datos/solicitudesImagenologiaDemo";
 import "./CajaImagenologiaDemo.css";
 import "./CatalogoTarjetas.css";
 import { InternacionModal } from "./InternacionModal";
@@ -369,6 +368,27 @@ export function CajaRecepcionView({
       );
   };
   const [catalogo, setCatalogo] = useState<Item[]>(catalogoEjemplo);
+  useEffect(() => {
+    const controller = new AbortController();
+    let ejecutando = false;
+    const recuperar = async () => {
+      if (ejecutando || controller.signal.aborted) return;
+      ejecutando = true;
+      try {
+        const respuesta = await apiFetch('/api/v1/recepcion/ordenes/recuperar', { method: 'POST', signal: controller.signal });
+        if (!respuesta.ok) return;
+        const resultado = await respuesta.json() as { ventas_revisadas: number; pendientes: number };
+        if (!controller.signal.aborted && resultado.ventas_revisadas > 0 && resultado.pendientes === 0) {
+          notificar('exito', 'Órdenes recuperadas', 'Se sincronizaron las órdenes pendientes de ventas anteriores.');
+          window.dispatchEvent(new Event('pacientes:actualizados'));
+        }
+      } catch { /* Se volverá a intentar mientras recepción esté abierta. */ }
+      finally { ejecutando = false; }
+    };
+    void recuperar();
+    const intervalo = window.setInterval(() => { void recuperar(); }, 30000);
+    return () => { controller.abort(); window.clearInterval(intervalo); };
+  }, []);
   const [errorCatalogo, setErrorCatalogo] = useState("");
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
   const [recargaCatalogo, setRecargaCatalogo] = useState(0);
@@ -425,7 +445,9 @@ export function CajaRecepcionView({
   const [cajasVenta, setCajasVenta] = useState<CajaVenta[]>([]);
   const [cajaVentaId, setCajaVentaId] = useState("");
   const [almacenVentaId, setAlmacenVentaId] = useState("");
-  const solicitudVenta = useRef(crypto.randomUUID());
+  const claveSolicitudVenta = 'recepcion_solicitud_venta_pendiente';
+  const solicitudVenta = useRef(sessionStorage.getItem(claveSolicitudVenta) || crypto.randomUUID());
+  const [verificandoVenta, setVerificandoVenta] = useState(Boolean(sessionStorage.getItem(claveSolicitudVenta)));
   const cajaVenta = cajasVenta.find((caja) => String(caja.id) === cajaVentaId);
   useEffect(() => {
     const controller = new AbortController();
@@ -456,6 +478,25 @@ export function CajaRecepcionView({
   const [cargandoHistorial, setCargandoHistorial] = useState(false);
   const [errorHistorial, setErrorHistorial] = useState("");
   const [revisionHistorial, setRevisionHistorial] = useState(0);
+  useEffect(() => {
+    const pendiente = sessionStorage.getItem(claveSolicitudVenta);
+    if (!pendiente) return;
+    const controller = new AbortController();
+    apiFetch(`/api/v1/recepcion/ventas/solicitud/${encodeURIComponent(pendiente)}`, { signal: controller.signal })
+      .then(async respuesta => {
+        if (!respuesta.ok) return;
+        const resultado = await respuesta.json() as { data?: { codigo?: string } };
+        if (!resultado.data || controller.signal.aborted) return;
+        sessionStorage.removeItem(claveSolicitudVenta);
+        solicitudVenta.current = crypto.randomUUID();
+        setMensaje(`${resultado.data.codigo || 'La venta'} ya fue registrada. Revisa su orden antes de cobrar nuevamente.`, 'advertencia');
+        setRecargaCatalogo(valor => valor + 1);
+        setRevisionHistorial(valor => valor + 1);
+      })
+      .catch(() => { /* Se conserva la solicitud para evitar un cobro duplicado. */ })
+      .finally(() => { if (!controller.signal.aborted) setVerificandoVenta(false); });
+    return () => controller.abort();
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     setVentasPaciente([]);
@@ -710,13 +751,6 @@ export function CajaRecepcionView({
       setFechaConsulta("");
       setHoraConsulta("");
       setMotivoOperativoConsulta("");
-      return;
-    }
-    if (item.categoria === "Imagenología") {
-      setImagenParaAgregar(item);
-      setTipoEstudioImagen("Rayos X");
-      setPiezaEstudioImagen("Tórax");
-      setOtraPiezaImagen("");
       return;
     }
     agregar(item);
@@ -1011,16 +1045,15 @@ export function CajaRecepcionView({
     }
   };
   const cobrar = async () => {
-    if (!lineas.length || pendiente > 0) return;
+    if (!lineas.length || pendiente > 0 || verificandoVenta) return;
     if (
       lineas.some(
         (linea) =>
-          !["Producto", "Insumo"].includes(linea.tipo) ||
-          !/^item-\d+$/.test(linea.id),
+          !((['Producto', 'Insumo'].includes(linea.tipo) && /^item-\d+$/.test(linea.id)) || (linea.tipo === 'Servicio' && /^servicio-\d+$/.test(linea.id))),
       )
     ) {
       setMensaje(
-        "Por ahora solo se pueden registrar ventas de productos e insumos. Retira los servicios del carrito.",
+        "El carrito contiene un artículo de ejemplo o no disponible para la venta.",
         "advertencia",
       );
       return;
@@ -1039,10 +1072,7 @@ export function CajaRecepcionView({
       );
       return;
     }
-    const estudiosImagen = lineas.filter(
-      (linea) => linea.estudioImagen && linea.piezaImagen,
-    );
-    if (estudiosImagen.length && (!paciente.trim() || !ciPaciente.trim())) {
+    if (lineas.some(linea => linea.tipo === 'Servicio') && !clienteSeleccionado.paciente_id) {
       setMensaje(
         "Selecciona al paciente y verifica su CI antes de cobrar el estudio de imagenología.",
         "advertencia",
@@ -1064,7 +1094,7 @@ export function CajaRecepcionView({
             .filter((pago) => Number(pago.monto) > 0)
             .map((pago) => ({ metodo: pago.metodo, monto: pago.monto })),
           detalles: lineas.map((linea) => ({
-            item_id: Number(linea.id.slice(5)),
+            ...(linea.tipo === 'Servicio' ? { servicio_id: Number(linea.id.slice(9)) } : { item_id: Number(linea.id.slice(5)) }),
             cantidad: linea.cantidad,
             precio_unitario: linea.precio,
           })),
@@ -1072,6 +1102,7 @@ export function CajaRecepcionView({
       });
       const resultado = (await respuesta.json()) as {
         data?: { codigo?: string };
+        ordenes_pendientes?: boolean;
         message?: string;
         errors?: Record<string, string[]>;
       };
@@ -1082,53 +1113,9 @@ export function CajaRecepcionView({
         );
       }
 
-      if (estudiosImagen.length) {
-        const fichaPaciente = fichasPacientes.find(
-          (ficha) => ficha.ci === ciPaciente,
-        );
-        if (!fichaPaciente)
-          throw new Error(
-            "No se encontró la ficha clínica del paciente para programar el estudio.",
-          );
-        const respuestasEstudios = await Promise.all(
-          estudiosImagen.map((linea) =>
-            apiFetch(`/api/v1/pacientes/${fichaPaciente.id}/estudios`, {
-              method: "POST",
-              headers: { Accept: "application/json" },
-              body: JSON.stringify({
-                tipo: "RADIOGRAFIA",
-                nombre: `Radiografía de ${linea.piezaImagen} AP`,
-                indicaciones:
-                  "Proyección AP. Verificar preparación y datos del paciente antes de la toma.",
-                solicitado_por: "Recepción",
-                estado_detalle: "Cobrado en caja",
-              }),
-            }),
-          ),
-        );
-        const falloEstudio = respuestasEstudios.find(
-          (respuesta) => !respuesta.ok,
-        );
-        if (falloEstudio) {
-          const datos = await falloEstudio.json();
-          throw new Error(
-            datos.message ||
-              "El cobro fue registrado, pero no se pudo programar el estudio en la agenda.",
-          );
-        }
-        registrarSolicitudesImagenologia(
-          paciente,
-          ciPaciente,
-          estudiosImagen.map((linea) => ({
-            estudio: linea.estudioImagen!,
-            pieza: linea.piezaImagen!,
-            precio: linea.precio,
-            cantidad: linea.cantidad,
-          })),
-        );
-      }
       setMensaje(
-        `${resultado.data.codigo || "Venta"} registrada correctamente.`,
+        resultado.ordenes_pendientes ? `${resultado.data.codigo || 'Venta'} cobrada. La orden está pendiente de sincronización; no repitas el cobro.` : `${resultado.data.codigo || "Venta"} registrada correctamente.`,
+        resultado.ordenes_pendientes ? 'advertencia' : 'exito',
       );
       solicitudVenta.current = crypto.randomUUID();
       setRecargaCatalogo((valor) => valor + 1);

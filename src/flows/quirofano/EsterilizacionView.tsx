@@ -1,3 +1,4 @@
+import { apiFetch } from "../../radius/api";
 ﻿import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
@@ -257,7 +258,38 @@ export function EsterilizacionView({
     "material" | "kit" | "agregar" | "estado" | "recepcion" | "etiqueta" | null
   >(null);
   const [formMaterial, setFormMaterial] = useState(MATERIAL_VACIO);
+  const [guardandoMaterial, setGuardandoMaterial] = useState(false);
+  const cantidadDialog = useRef<HTMLDialogElement>(null);
+  const [materialCantidad, setMaterialCantidad] = useState<MaterialEsteril | null>(null);
+  const [cantidadNueva, setCantidadNueva] = useState('');
+  const [guardandoCantidad, setGuardandoCantidad] = useState(false);
+  const [errorCantidad, setErrorCantidad] = useState('');
+  const abrirCantidad = (material: MaterialEsteril) => {
+    setMaterialCantidad(material);
+    setCantidadNueva(String(material.cantidad ?? 0));
+    setErrorCantidad('');
+    cantidadDialog.current?.showModal();
+  };
+  const guardarCantidad = async (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault();
+    if (!materialCantidad || guardandoCantidad) return;
+    setGuardandoCantidad(true);
+    setErrorCantidad('');
+    try {
+      const respuesta = await apiFetch(`/api/v1/instrumental/${encodeURIComponent(materialCantidad.id)}/cantidad`, {
+        method: 'PATCH', body: JSON.stringify({ cantidad: Number(cantidadNueva) }),
+      });
+      const resultado = await respuesta.json();
+      if (!respuesta.ok) throw new Error(Object.values(resultado.errors || {}).flat()[0] as string || resultado.message || 'No se pudo actualizar la cantidad.');
+      setDatos(actual => ({ ...actual, materiales: actual.materiales.map(item => item.id === materialCantidad.id ? { ...item, cantidad: resultado.data.cantidad } : item) }));
+      cantidadDialog.current?.close();
+      setAviso('Cantidad actualizada correctamente.');
+    } catch (causa) {
+      setErrorCantidad(causa instanceof Error ? causa.message : 'No se pudo actualizar la cantidad.');
+    } finally { setGuardandoCantidad(false); }
+  };
   const [formKit, setFormKit] = useState(KIT_VACIO);
+  const ampliarImagenDialog = useRef<HTMLDialogElement>(null);
   const inputCamaraMaterial = useRef<HTMLInputElement>(null);
   const inputArchivoMaterial = useRef<HTMLInputElement>(null);
   const videoMaterialRef = useRef<HTMLVideoElement>(null);
@@ -306,6 +338,22 @@ export function EsterilizacionView({
     useState<MaterialEsteril | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    apiFetch('/api/v1/instrumental', { signal: controller.signal }).then(async respuesta => {
+      if (respuesta.status === 401) throw new Error('La sesi?n de demostraci?n no permite acceder al inventario. Cierra sesi?n e ingresa con una cuenta registrada.');
+      if (respuesta.status === 403) throw new Error('Tu cuenta no tiene acceso al inventario de instrumental.');
+      if (!respuesta.ok) throw new Error('No se pudo cargar el instrumental del servidor.');
+      const resultado = await respuesta.json() as { data: Array<{ id: string; codigo: string; nombre: string; lote: string | null; cantidad: number; descripcion: string | null; ubicacion: string; estado: EstadoMaterial; updated_at: string }> };
+      setDatos(actual => {
+        const materiales = resultado.data.map(item => ({ id: item.id, codigo: item.codigo, nombre: item.nombre, lote: item.lote || '', cantidad: item.cantidad, descripcion: item.descripcion || '', sector: item.ubicacion, estado: item.estado, actualizadoEn: item.updated_at, imagen: '', tipo: 'Instrumento', marca: '', serie: '', cirugiaId: '' }));
+        const ids = new Set(materiales.map(item => item.id));
+        return { ...actual, materiales: [...actual.materiales.filter(item => !ids.has(item.id)), ...materiales] };
+      });
+    }).catch((causa: unknown) => { if (!controller.signal.aborted) setError(causa instanceof Error ? causa.message : 'No se pudo cargar el instrumental del servidor.'); });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
     const actualizar = () => {
       setDatos(leerEsterilizacion());
       setCirugias(leerCirugiasEsterilizacion());
@@ -317,6 +365,18 @@ export function EsterilizacionView({
   useEffect(() => {
     setSubvista(subvistaInicial);
   }, [subvistaInicial]);
+
+  useEffect(() => {
+    if (!seguimientoAbierto || !materialAbierto) return;
+    const material = datos.materiales.find(item => item.id === materialAbierto);
+    if (!material || material.imagen || !/^[0-9a-f]{8}-/i.test(material.id)) return;
+    const controller = new AbortController();
+    apiFetch(`/api/v1/instrumental/${encodeURIComponent(material.id)}/imagen`, { signal: controller.signal })
+      .then(respuesta => respuesta.ok ? respuesta.blob() : null)
+      .then(blob => { if (!blob || controller.signal.aborted) return; const url = URL.createObjectURL(blob); setDatos(actual => ({ ...actual, materiales: actual.materiales.map(item => item.id === material.id ? { ...item, imagen: url } : item) })); })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [seguimientoAbierto, materialAbierto]);
 
   useEffect(() => {
     const dialogo = seguimientoDialog.current;
@@ -469,7 +529,7 @@ export function EsterilizacionView({
     ),
   );
 
-  const crearMaterial = (evento: FormEvent<HTMLFormElement>) => {
+  const crearMaterial = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     const codigo = formMaterial.codigo.trim();
     const materialesActuales = leerEsterilizacion().materiales;
@@ -481,47 +541,29 @@ export function EsterilizacionView({
       setError("Ya existe un material con ese código único. Ingresa uno diferente.");
       return;
     }
-    const fecha = new Date().toISOString();
-    const material: MaterialEsteril = {
-      id: crypto.randomUUID(),
-      codigo,
-      nombre: formMaterial.nombre.trim(),
-      lote: formMaterial.lote.trim(),
-      cantidad: Math.max(1, Number(formMaterial.cantidad) || 1),
-      imagen: formMaterial.imagen,
-      descripcion: formMaterial.descripcion.trim(),
-      tipo: "Instrumento",
-      marca: "",
-      serie: "",
-      sector: "Central de esterilizaciÃ³n",
-      estado: "pendiente",
-      cirugiaId: "",
-      actualizadoEn: fecha,
-    };
-    if (
-      guardar(
-        {
-          ...datos,
-          materiales: [...datos.materiales, material],
-          movimientos: [
-            ...datos.movimientos,
-            {
-              id: crypto.randomUUID(),
-              materialId: material.id,
-              desde: "registro",
-              hacia: "pendiente",
-              cirugiaId: "",
-              fecha,
-            },
-          ],
-        },
-        `Material ${material.codigo} registrado. EstÃ¡ pendiente de esterilizaciÃ³n.`,
-      )
-    ) {
+    if (guardandoMaterial) return;
+    setGuardandoMaterial(true);
+    setError('');
+    try {
+      const cuerpo = new FormData();
+      cuerpo.set('codigo', codigo);
+      cuerpo.set('nombre', formMaterial.nombre.trim());
+      cuerpo.set('lote', formMaterial.lote.trim());
+      cuerpo.set('cantidad', formMaterial.cantidad);
+      cuerpo.set('descripcion', formMaterial.descripcion.trim());
+      if (formMaterial.imagen) cuerpo.set('imagen', await (await fetch(formMaterial.imagen)).blob(), 'instrumental.jpg');
+      const respuesta = await apiFetch('/api/v1/instrumental', { method: 'POST', body: cuerpo });
+      const resultado = await respuesta.json();
+      if (!respuesta.ok) throw new Error(Object.values(resultado.errors || {}).flat()[0] as string || resultado.message || 'No se pudo registrar el material.');
+      const registro = resultado.data;
+      const material: MaterialEsteril = { id: registro.id, codigo: registro.codigo, nombre: registro.nombre, lote: registro.lote || '', cantidad: registro.cantidad, imagen: formMaterial.imagen, descripcion: registro.descripcion || '', tipo: 'Instrumento', marca: '', serie: '', sector: registro.ubicacion, estado: 'pendiente', cirugiaId: '', actualizadoEn: registro.updated_at };
+      setDatos(actual => ({ ...actual, materiales: [...actual.materiales, material] }));
       setFormMaterial(MATERIAL_VACIO);
-      setMaterialEtiqueta(material);
-      setModal("etiqueta");
-    }
+      cerrarModal();
+      setAviso('Material registrado correctamente.');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'No se pudo registrar el material.');
+    } finally { setGuardandoMaterial(false); }
   };
 
   const cargarImagenMaterial = async (archivo?: File) => {
@@ -1111,21 +1153,7 @@ export function EsterilizacionView({
 
       {subvista === "inventario" && (
         <section className="est-panel">
-          <header>
-            <h3>Inventario de material</h3>
-            <button
-              className="est-principal"
-              type="button"
-              onClick={() => {
-                setError("");
-                setFormMaterial(MATERIAL_VACIO);
-                setModal("material");
-              }}
-            >
-              <Icon name="plus" size={16} /> Registrar nuevo material
-            </button>
-          </header>
-          <div className="est-filtros">
+          <div className="est-filtros est-filtros-inventario">
             <label>
               <Icon name="search" size={16} />
               <input
@@ -1165,11 +1193,22 @@ export function EsterilizacionView({
                 </option>
               ))}
             </select>
+            <button
+              className="est-principal"
+              type="button"
+              onClick={() => {
+                setError("");
+                setFormMaterial(MATERIAL_VACIO);
+                setModal("material");
+              }}
+            >
+              <Icon name="plus" size={16} /> Registrar nuevo material
+            </button>
           </div>
           <PaginacionInventario pagina={paginaActualInventario} totalPaginas={totalPaginasInventario} total={materialesVisibles.length} inicio={inicioInventario} cantidad={materialesPagina.length} onCambiar={setPaginaInventario} />
           <div className="est-tabla-scroll">
             <table className="est-tabla-inventario" aria-label="Inventario de material">
-              <thead><tr><th>Código</th><th>Nombre</th><th>Lote</th><th>Cantidad</th><th>Imagen</th><th>Descripción / observaciones</th><th>Acciones</th></tr></thead>
+              <thead><tr><th>Código</th><th>Nombre</th><th>Lote</th><th>Cantidad</th><th>Ubicación</th><th>Descripción / observaciones</th><th>Acciones</th></tr></thead>
               <tbody>
                 {materialesPagina.map((item) => (
                   <tr key={item.id}>
@@ -1177,9 +1216,9 @@ export function EsterilizacionView({
                     <td><strong>{item.nombre}</strong></td>
                     <td>{item.lote || "-"}</td>
                     <td>{item.cantidad ?? 1}</td>
-                    <td>{item.imagen ? <img className="est-miniatura-material" src={item.imagen} alt={`Imagen de ${item.nombre}`} /> : <span className="est-sin-imagen"><Icon name="image" size={18} /></span>}</td>
+                    <td>{ubicacionMaterial(item, cirugias)}</td>
                     <td className="est-descripcion-material">{item.descripcion || "-"}</td>
-                    <td><button type="button" onClick={() => verSeguimiento(item.id)}>Ver</button></td>
+                    <td><div className="est-acciones-instrumental"><button type="button" title="Ver detalle" aria-label={`Ver detalle de ${item.nombre}`} onClick={() => verSeguimiento(item.id)}><Icon name="eye" size={17} /></button><button type="button" title="Editar cantidad" aria-label={`Editar cantidad de ${item.nombre}`} onClick={() => abrirCantidad(item)}><Icon name="edit" size={17} /></button></div></td>
                   </tr>
                 ))}
                 {!materialesVisibles.length && <tr><td colSpan={7}>No hay materiales que coincidan con la busqueda.</td></tr>}
@@ -1445,14 +1484,14 @@ export function EsterilizacionView({
         {materialSeleccionado && (
           <div className="est-seguimiento-contenido">
             <div className="est-modal-identidad">
-              <div><small>INSTRUMENTO QUIRÃšRGICO</small><strong>{materialSeleccionado.codigo}</strong></div>
+              <div><small>INSTRUMENTO QUIRÚRGICO</small><strong>{materialSeleccionado.codigo}</strong></div>
               <span className={`est-estado ${materialSeleccionado.estado}`}>
                 {ETIQUETAS_ESTADO[materialSeleccionado.estado]}
               </span>
             </div>
             <section
               className="est-ficha-material"
-              aria-label="InformaciÃ³n y trazabilidad actual del instrumento"
+              aria-label="Información y trazabilidad actual del instrumento"
             >
               <div className="est-ficha-datos">
                 <h4>Datos del material</h4>
@@ -1471,12 +1510,12 @@ export function EsterilizacionView({
                   </dl>
                 </div>
                 <div className="est-ficha-observaciones">
-                  <span>DescripciÃ³n / observaciones</span>
-                  <p>{materialSeleccionado.descripcion || "Sin descripciÃ³n u observaciones."}</p>
+                  <span>Descripción / observaciones</span>
+                  <p>{materialSeleccionado.descripcion || "Sin descripción u observaciones."}</p>
                 </div>
               </div>
               <div className="est-ficha-situacion">
-                <h4>SituaciÃ³n actual</h4>
+                <h4>Situación actual</h4>
                 <article>
                   <span>
                     <Icon name="package" size={17} />
@@ -1485,7 +1524,7 @@ export function EsterilizacionView({
                     <strong>
                       {ubicacionMaterial(materialSeleccionado, cirugias)}
                     </strong>
-                    <small>UbicaciÃ³n actual del instrumento</small>
+                    <small>Ubicación actual del instrumento</small>
                   </div>
                 </article>
                 <article
@@ -1507,14 +1546,14 @@ export function EsterilizacionView({
                     <strong>
                       {materialSeleccionado.estado === "reservado" &&
                       cirugiaAsignadaMaterial
-                        ? `Reservado Â· ${etiquetaCirugia(cirugiaAsignadaMaterial)}`
+                        ? `Reservado · ${etiquetaCirugia(cirugiaAsignadaMaterial)}`
                         : materialSeleccionado.estado === "limpio"
-                          ? "Libre para una prÃ³xima cirugÃ­a"
+                          ? "Libre para una próxima cirugía"
                           : ETIQUETAS_ESTADO[materialSeleccionado.estado]}
                     </strong>
                     <small>
                       {materialSeleccionado.estado === "reservado"
-                        ? "No disponible hasta terminar la cirugÃ­a asignada."
+                        ? "No disponible hasta terminar la cirugía asignada."
                         : materialSeleccionado.estado === "limpio"
                           ? "Puede entregarse o reservarse para un nuevo procedimiento."
                           : "Disponibilidad condicionada por su estado de reprocesamiento."}
@@ -1523,7 +1562,7 @@ export function EsterilizacionView({
                 </article>
               </div>
               <div className="est-ficha-ultimo-uso">
-                <h4>Ãšltima cirugÃ­a o procedimiento</h4>
+                <h4>Última cirugía o procedimiento</h4>
                 {ultimoMovimientoConCirugia ? (
                   <>
                     <strong>
@@ -1538,7 +1577,7 @@ export function EsterilizacionView({
                       {new Date(
                         ultimoMovimientoConCirugia.fecha,
                       ).toLocaleString("es-BO")}{" "}
-                      Â· {ETIQUETAS_ESTADO[ultimoMovimientoConCirugia.hacia]}
+                      · {ETIQUETAS_ESTADO[ultimoMovimientoConCirugia.hacia]}
                     </small>
                   </>
                 ) : ultimaRecepcionMaterial ? (
@@ -1551,14 +1590,14 @@ export function EsterilizacionView({
                       {new Date(ultimaRecepcionMaterial.fecha).toLocaleString(
                         "es-BO",
                       )}{" "}
-                      Â· Recibido desde quirÃ³fano
+                      · Recibido desde quirófano
                     </small>
                   </>
                 ) : (
                   <>
-                    <strong>Sin uso quirÃºrgico registrado</strong>
+                    <strong>Sin uso quirúrgico registrado</strong>
                     <small>
-                      El historial aparecerÃ¡ cuando el material sea asignado o
+                      El historial aparecerá cuando el material sea asignado o
                       recibido de un procedimiento.
                     </small>
                   </>
@@ -1579,14 +1618,14 @@ export function EsterilizacionView({
                     </strong>
                     <small>
                       {cirugias.find((c) => c.id === item.cirugiaId)?.cuenta ||
-                        "Sin cirugÃ­a asignada"}
+                        "Sin cirugía asignada"}
                     </small>
                   </div>
                 ))}
               </div>
             ) : (
               <p className="est-ayuda">
-                Este material todavÃ­a no tiene movimientos registrados.
+                Este material todavía no tiene movimientos registrados.
               </p>
             )}
             <footer>
@@ -1599,6 +1638,15 @@ export function EsterilizacionView({
             </footer>
           </div>
         )}
+      </dialog>
+      <dialog ref={cantidadDialog} className="est-modal est-cantidad-dialog" aria-labelledby="cantidad-instrumental-titulo" onClose={() => setMaterialCantidad(null)}>
+        <header><div><p>INVENTARIO DE MATERIAL</p><h3 id="cantidad-instrumental-titulo">Editar cantidad</h3></div><button type="button" aria-label="Cerrar" onClick={() => cantidadDialog.current?.close()}><Icon name="close" size={17} /></button></header>
+        <form onSubmit={guardarCantidad}>
+          <p>{materialCantidad?.nombre} ? {materialCantidad?.codigo}</p>
+          <label>Cantidad disponible<input autoFocus type="number" min="0" max="1000000" step="1" required value={cantidadNueva} onChange={evento => setCantidadNueva(evento.target.value)} /></label>
+          {errorCantidad && <p className="est-error" role="alert">{errorCantidad}</p>}
+          <footer><button type="button" disabled={guardandoCantidad} onClick={() => cantidadDialog.current?.close()}>Cancelar</button><button type="submit" disabled={guardandoCantidad}>{guardandoCantidad ? 'Guardando...' : 'Guardar cantidad'}</button></footer>
+        </form>
       </dialog>
       {modal && (
         <div
@@ -1836,7 +1884,14 @@ export function EsterilizacionView({
                     <input ref={inputArchivoMaterial} className="est-input-archivo-oculto" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Cargar imagen del material" onChange={(e) => { cargarImagenMaterial(e.target.files?.[0]); e.currentTarget.value = ""; }} />
                     {formMaterial.imagen && (
                       <span className="est-imagen-previsualizacion">
-                        <img src={formMaterial.imagen} alt="Vista previa del material" />
+                        <button type="button" className="est-ampliar-imagen" aria-label="Ampliar imagen del material" onClick={() => ampliarImagenDialog.current?.showModal()}>
+                          <img src={formMaterial.imagen} alt="Vista previa del material" />
+                          <span>Ampliar imagen</span>
+                        </button>
+                        <dialog ref={ampliarImagenDialog} className="est-imagen-dialogo" aria-label="Imagen ampliada del material" onClick={(evento) => { if (evento.target === evento.currentTarget) evento.currentTarget.close(); }}>
+                          <button type="button" onClick={() => ampliarImagenDialog.current?.close()} aria-label="Cerrar imagen ampliada">Cerrar</button>
+                          <img src={formMaterial.imagen} alt="Imagen ampliada del material" />
+                        </dialog>
                         <button type="button" onClick={() => setFormMaterial({ ...formMaterial, imagen: "" })}>Quitar imagen</button>
                       </span>
                     )}
@@ -1868,7 +1923,7 @@ export function EsterilizacionView({
                     </div>
                   </div>
                 </div>
-                <p className="est-ayuda">Ubicación inicial: Central de esterilización.</p>
+                <p className="est-ayuda">Ubicación inicial: Almacén esterilización.</p>
                 {error && (
                   <p className="est-error" role="alert">
                     {error}

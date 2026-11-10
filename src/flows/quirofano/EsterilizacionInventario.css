@@ -457,7 +457,22 @@
 }
 
 .est-tabla-inventario {
-  min-width: 1020px;
+  min-width: 1050px;
+  table-layout: fixed;
+}
+.est-tabla-inventario th:nth-child(1) { width: 10%; }
+.est-tabla-inventario th:nth-child(2) { width: 20%; }
+.est-tabla-inventario th:nth-child(3) { width: 8%; }
+.est-tabla-inventario th:nth-child(4) { width: 8%; }
+.est-tabla-inventario th:nth-child(5) { width: 17%; }
+.est-tabla-inventario th:nth-child(6) { width: 29%; }
+.est-tabla-inventario th:nth-child(7) { width: 8%; }
+.est-tabla-inventario th, .est-tabla-inventario td {
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+.est-tabla-inventario th:last-child, .est-tabla-inventario td:last-child {
+  text-align: center;
 }
 
 .est-paginacion-inventario {
@@ -550,3 +565,81 @@
     font-size: 11px;
   }
 }
+
+.est-imagen-previsualizacion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.est-imagen-previsualizacion .est-ampliar-imagen {
+  display: grid;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: #eaf3f8;
+}
+.est-imagen-previsualizacion .est-ampliar-imagen img {
+  width: 100%;
+  max-height: 340px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
+.est-ampliar-imagen span { padding: 8px; }
+.est-imagen-dialogo {
+  width: min(90vw, 1000px);
+  max-width: 1000px;
+  max-height: 90vh;
+  border: 0;
+  border-radius: 12px;
+  padding: 16px;
+  background: white;
+}
+.est-imagen-dialogo::backdrop { background: rgb(0 18 32 / 78%); }
+.est-imagen-dialogo > button { display: block; margin: 0 0 12px auto; }
+.est-imagen-dialogo > img { display: block; width: 100%; max-height: 75vh; object-fit: contain; }
+
+/* La vista previa ocupa el ancho de su panel; las miniaturas no deben limitarla. */
+.est-campo-imagen > .est-imagen-previsualizacion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: min(100%, 440px);
+  align-items: stretch;
+}
+.est-campo-imagen .est-ampliar-imagen img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 340px;
+  aspect-ratio: 1 / 1;
+  object-fit: contain;
+}
+.est-campo-imagen .est-imagen-dialogo > img {
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+  object-fit: contain;
+}
+
+.est-acciones-instrumental { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; }
+.est-cantidad-dialog { width: min(440px, calc(100vw - 32px)); max-height: 90vh; padding: 0; border: 0; border-radius: 12px; }
+.est-cantidad-dialog::backdrop { background: rgb(12 37 55 / 58%); }
+.est-cantidad-dialog form { display: grid; gap: 16px; padding: 20px; }
+.est-cantidad-dialog form p { margin: 0; }
+.est-cantidad-dialog label { display: grid; gap: 8px; font-weight: 700; }
+.est-cantidad-dialog input { width: 100%; min-height: 42px; box-sizing: border-box; padding: 8px 10px; border: 1px solid #bcd6e8; border-radius: 7px; }
+.est-tabla-inventario .est-acciones-instrumental { display: flex; flex-wrap: nowrap; justify-content: center; gap: 8px; }
+.est-tabla-inventario .est-acciones-instrumental button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #c5dfed;
+  border-radius: 8px;
+  color: #087bb5;
+  background: #f2f9fd;
+  cursor: pointer;
+}
+.est-tabla-inventario .est-acciones-instrumental button:hover { background: #e1f2fa; border-color: #70b9dc; }
+.est-tabla-inventario .est-acciones-instrumental button:focus-visible { outline: 2px solid #087bb5; outline-offset: 2px; }

@@ -15,10 +15,11 @@ export type EstudioPaciente = {
   solicitado_en: string;
 };
 
-export function useEstudiosPacientes() {
+export function useEstudiosPacientes(habilitado = true) {
   const [estudios, setEstudios] = useState<EstudioPaciente[]>([]);
   const [errorEstudios, setError] = useState("");
   useEffect(() => {
+    if (!habilitado) return;
     let controller: AbortController | undefined;
     const cargar = () => {
       controller?.abort();
@@ -51,6 +52,6 @@ export function useEstudiosPacientes() {
       window.removeEventListener("focus", cargar);
       window.removeEventListener("pacientes:actualizados", cargar);
     };
-  }, []);
+  }, [habilitado]);
   return { estudios, errorEstudios };
 }

@@ -44,6 +44,32 @@ const ejemplosConfirmados: RegistroInternacion[] = [
   },
 ];
 
+export function obtenerEjemploPacienteEnfermeria(): RegistroInternacion {
+  const fecha = new Date().toLocaleDateString("es-BO");
+  return {
+    id: "INT-DEMO-PACIENTE-PRUEBA",
+    paciente: "Paciente de Prueba Consultorio Demo",
+    ci: "TEST-HME-2026-01",
+    medico: "Dra. Andrea Vargas",
+    motivo: "Registro de demostración",
+    fecha,
+    fechaIngreso: fecha,
+    horaIngreso: "09:30",
+    estado: "confirmada",
+    sala: "101",
+    cama: "A",
+    tipoSala: "Sala compartida",
+    servicio: "Medicina interna",
+    origen: "Demostración",
+    datosPaciente: {
+      nacimiento: "1990-01-15",
+      sexo: "Femenino",
+      responsableNombre: "Familiar de prueba",
+      responsableTelefono: "",
+    },
+  };
+}
+
 export function obtenerEjemplosInternacion(): RegistroInternacion[] {
   return ejemplosConfirmados.map((registro) => ({
     ...registro,

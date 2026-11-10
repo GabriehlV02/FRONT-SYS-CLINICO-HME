@@ -5,6 +5,7 @@ import Icon from "../../radius/componentes/Icono";
 import {
   camaDisponible,
   confirmarInternacion,
+  obtenerEjemploPacienteEnfermeria,
   leerInternaciones,
   suscribirInternaciones,
   type RegistroInternacion,
@@ -16,6 +17,10 @@ type Subvista = "internados" | "altas";
 
 export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   const registros = useInternacionesVinculadas();
+  const registrosVista =
+    subvista === "internados" && registros.length === 0
+      ? [obtenerEjemploPacienteEnfermeria()]
+      : registros;
   const [seleccionada, setSeleccionada] = useState<RegistroInternacion | null>(
     null,
   );
@@ -28,11 +33,11 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   const [cama, setCama] = useState("");
   const [tipoSala, setTipoSala] = useState("Sala compartida");
   const [busqueda, setBusqueda] = useState("");
-  const pendientes = registros.filter(
+  const pendientes = registrosVista.filter(
     (item) => item.estado === "preinternacion",
   );
-  const internados = registros.filter((item) => item.estado === "confirmada");
-  const altas = registros.filter((item) => item.estado === "alta");
+  const internados = registrosVista.filter((item) => item.estado === "confirmada");
+  const altas = registrosVista.filter((item) => item.estado === "alta");
   const pacientesVisibles = subvista === "internados" ? internados : altas;
   const termino = busqueda.trim().toLocaleLowerCase("es");
   const pacientesFiltrados = pacientesVisibles.filter(
@@ -64,7 +69,7 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
     setSeleccionada(null);
   };
 
-  const pacienteAtendido = registros.find(
+  const pacienteAtendido = registrosVista.find(
     (item) => item.id === atencionId && item.estado === "confirmada",
   );
   if (pacienteAtendido && subvista === "internados") {

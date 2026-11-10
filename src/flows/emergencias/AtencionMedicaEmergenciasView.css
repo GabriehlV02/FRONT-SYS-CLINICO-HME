@@ -153,7 +153,7 @@
 .em-medica-cabecera-acciones {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 .em-medica-cabecera-acciones button {
   display: inline-flex;
@@ -475,17 +475,17 @@
 }
 .em-ficha-persona {
   min-width: 0;
-  padding: 11px 12px;
+  padding: 10px;
   border: 1px solid #d7e8f2;
-  border-radius: 9px;
-  background: #f9fcfe;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #f7fbfe, #fff);
 }
 .em-ficha-persona > header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 9px;
+  margin-bottom: 7px;
 }
 .em-ficha-persona > header b {
   color: #087fb7;
@@ -506,17 +506,28 @@
 .em-ficha-familiar > header b {
   color: #6952b3;
 }
+.em-ficha-familiar dl > div {
+  border-color: #ebe7f7;
+  background: #fff;
+}
 .em-ficha-persona dl {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
   margin: 0;
 }
 .em-ficha-persona dl > div {
   min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #e0ebf2;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 86%);
+}
+.em-ficha-persona dl > .em-ficha-nombre-completo {
+  grid-column: span 2;
 }
 .em-ficha-persona dt {
-  margin-bottom: 2px;
+  margin-bottom: 3px;
   color: #668299;
   font-size: 9px;
   font-weight: 800;
@@ -567,7 +578,7 @@
     grid-template-columns: 1fr;
   }
   .em-ficha-persona dl {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -2136,4 +2147,45 @@
   font-weight: 600 !important;
   line-height: 1.3;
   letter-spacing: 0.03em;
+}
+
+/* Ficha médica compacta: deja a la vista solo los datos de identificación y contacto clave. */
+.sistema-app .emergencias-vista .em-ficha-resumen {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sistema-app .emergencias-vista .em-ficha-persona {
+  padding: 8px 10px;
+}
+.sistema-app .emergencias-vista .em-ficha-persona > header {
+  margin-bottom: 5px;
+}
+.sistema-app .emergencias-vista .em-ficha-persona dl {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+.sistema-app .emergencias-vista .em-ficha-persona dl > div {
+  padding: 6px 8px;
+}
+.sistema-app .emergencias-vista .em-ficha-persona:not(.em-ficha-familiar) dl > div:nth-child(2),
+.sistema-app .emergencias-vista .em-ficha-persona:not(.em-ficha-familiar) dl > div:nth-child(4),
+.sistema-app .emergencias-vista .em-ficha-persona:not(.em-ficha-familiar) dl > div:nth-child(5),
+.sistema-app .emergencias-vista .em-ficha-familiar dl > div:nth-child(3),
+.sistema-app .emergencias-vista .em-ficha-familiar dl > div:nth-child(4) {
+  display: none;
+}
+.sistema-app .emergencias-vista .em-ficha-familiar dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.sistema-app .emergencias-vista .em-ficha-nombre-completo {
+  grid-column: span 2;
+}
+.sistema-app .emergencias-vista .em-ficha-nombre {
+  min-height: 0;
+  margin: 4px 0 7px;
+}
+@media (max-width: 760px) {
+  .sistema-app .emergencias-vista .em-ficha-persona dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

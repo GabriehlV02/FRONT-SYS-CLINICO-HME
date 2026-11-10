@@ -60,7 +60,7 @@ export function AgendaAmbulatoriaView({
   const profesionalActual = profesionales.find(
     (p) => p.usuario_id === String(leerSesion()?.usuario.id),
   );
-  const [errorPacientes, setErrorPacientes] = useState("");
+  const [agendaReintentando, setAgendaReintentando] = useState(false);
   const [citas, setCitas] = useState<CitaConfirmada[]>([]);
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [busqueda, setBusqueda] = useState("");
@@ -79,10 +79,14 @@ export function AgendaAmbulatoriaView({
   }, []);
   useEffect(() => {
     const controller = new AbortController();
-    apiFetch("/api/citas", { signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok)
-          throw new Error("No se pudo consultar la agenda de pacientes.");
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+    let demoraReintento = 3000;
+    const consultarAgenda = async () => {
+      try {
+        const response = await apiFetch("/api/citas", {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Agenda no disponible");
         const datos: CitaConfirmada[] = await response.json();
         setCitas(
           datos.filter(
@@ -90,17 +94,21 @@ export function AgendaAmbulatoriaView({
               cita.estado === "confirmada" || cita.estado === "por_confirmar",
           ),
         );
-        setErrorPacientes("");
-      })
-      .catch((error) => {
-        if (!controller.signal.aborted)
-          setErrorPacientes(
-            error instanceof Error
-              ? error.message
-              : "No se pudo consultar la agenda.",
-          );
-      });
-    return () => controller.abort();
+        setAgendaReintentando(false);
+        demoraReintento = 3000;
+        temporizador = setTimeout(consultarAgenda, 30000);
+      } catch {
+        if (controller.signal.aborted) return;
+        setAgendaReintentando(true);
+        temporizador = setTimeout(consultarAgenda, demoraReintento);
+        demoraReintento = Math.min(demoraReintento * 2, 30000);
+      }
+    };
+    void consultarAgenda();
+    return () => {
+      controller.abort();
+      if (temporizador) clearTimeout(temporizador);
+    };
   }, []);
 
   // El backend limita la agenda del médico autenticado; este filtro evita una
@@ -155,7 +163,11 @@ export function AgendaAmbulatoriaView({
       className="agenda-ambulatoria"
       aria-label="Consultas ambulatorias pendientes de atención"
     >
-      {errorPacientes && <p role="alert">{errorPacientes}</p>}
+      {agendaReintentando && (
+        <p className="agenda-reintentando" role="status" aria-live="polite">
+          Reconectando con la agenda… Las citas se actualizarán automáticamente.
+        </p>
+      )}
       <div className="agenda-herramientas">
         <label>
           <Icon name="search" size={17} />

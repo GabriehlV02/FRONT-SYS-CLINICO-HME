@@ -1494,7 +1494,16 @@ export function EsterilizacionView({
               aria-label="Información y trazabilidad actual del instrumento"
             >
               <div className="est-ficha-datos">
-                <h4>Datos del material</h4>
+                <div className="est-ficha-identidad">
+                  <div>
+                    <small>INSTRUMENTO QUIRÚRGICO · CÓDIGO</small>
+                    <strong className="est-ficha-codigo">{materialSeleccionado.codigo}</strong>
+                    <h4>{materialSeleccionado.nombre}</h4>
+                  </div>
+                  <span className={`est-estado ${materialSeleccionado.estado}`}>
+                    {ETIQUETAS_ESTADO[materialSeleccionado.estado]}
+                  </span>
+                </div>
                 <div className="est-ficha-principal">
                   <div className="est-ficha-imagen">
                     {materialSeleccionado.imagen ? (
@@ -1560,8 +1569,7 @@ export function EsterilizacionView({
                     </small>
                   </div>
                 </article>
-              </div>
-              <div className="est-ficha-ultimo-uso">
+                <article className="est-ficha-ultimo-uso">
                 <h4>Última cirugía o procedimiento</h4>
                 {ultimoMovimientoConCirugia ? (
                   <>
@@ -1602,6 +1610,7 @@ export function EsterilizacionView({
                     </small>
                   </>
                 )}
+                </article>
               </div>
             </section>
             <h4>Historial de movimientos</h4>

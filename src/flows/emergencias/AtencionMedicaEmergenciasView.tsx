@@ -1105,7 +1105,6 @@ function AtencionPaciente({
           <div className="em-ficha-principal">
             <p>ATENCIÓN MÉDICA · {nombreCubiculo(cuenta.cubiculo)}</p>
             <div className="em-ficha-nombre">
-              <h2>{nombrePaciente(cuenta)}</h2>
               {!cuenta.fin && (
                 <label className={`em-selector-estado ${estadoActual.clase}`}>
                   <span>Estado</span>
@@ -1133,12 +1132,16 @@ function AtencionPaciente({
             <div className="em-ficha-resumen">
               <section className="em-ficha-persona">
                 <header>
-                  <b>Paciente</b>
+                  <b>Datos del paciente</b>
                   <span>
                     {datosPaciente.historiaClinica || "Sin historia clínica"}
                   </span>
                 </header>
                 <dl>
+                  <div className="em-ficha-nombre-completo">
+                    <dt>Paciente</dt>
+                    <dd>{nombrePaciente(cuenta)}</dd>
+                  </div>
                   <div>
                     <dt>Documento</dt>
                     <dd>{datosPaciente.documento || "Sin registro"}</dd>

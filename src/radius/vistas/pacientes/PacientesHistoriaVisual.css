@@ -1819,6 +1819,19 @@
   border-color: #52afd9;
   background: #f1fbff;
 }
+.ficha-paciente-regreso > button:first-child {
+  border-color: #c62828;
+  color: #fff;
+  background: #c62828;
+}
+.ficha-paciente-regreso > button:first-child:hover {
+  border-color: #a91f1f;
+  background: #a91f1f;
+}
+.ficha-paciente-regreso > button:first-child:focus-visible {
+  outline: 3px solid rgb(198 40 40 / 28%);
+  outline-offset: 2px;
+}
 @media (max-width: 560px) {
   .ficha-paciente-regreso {
     align-items: stretch;

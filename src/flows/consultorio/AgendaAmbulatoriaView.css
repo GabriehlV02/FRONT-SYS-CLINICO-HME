@@ -3,6 +3,15 @@
   gap: 14px;
   color: #173d60;
 }
+.agenda-reintentando {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid #c9e5f2;
+  border-radius: 8px;
+  color: #386b87;
+  background: #f2faff;
+  font-size: 12px;
+}
 .agenda-herramientas {
   display: flex;
   align-items: center;

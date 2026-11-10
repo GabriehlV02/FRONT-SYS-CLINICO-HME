@@ -321,8 +321,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
               </p>
               {import.meta.env.DEV && (
                 <p className="login-demo-hint">
-                  Modo desarrollo frontend · usuario <strong>admin</strong> ·
-                  contraseÃ±a <strong>admin</strong>
+                  <span aria-hidden="true">●</span> Entorno local de demostración
                 </p>
               )}
               {error && (

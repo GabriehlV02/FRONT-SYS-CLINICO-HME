@@ -69,6 +69,38 @@
   border-color: #c3e2f1 !important;
   background: #f7fbfe !important;
 }
+.esterilizacion-vista .subvistas-carrusel:has(.cuatro-subvistas) { width: min(100%, 900px); }
+.esterilizacion-vista .recepcion-subvistas.cuatro-subvistas {
+  grid-template-columns: repeat(4, minmax(190px, 1fr));
+  box-sizing: border-box;
+  padding: 6px !important;
+}
+.esterilizacion-vista .recepcion-subvistas.cuatro-subvistas > button { justify-content: center !important; }
+.esterilizacion-vista .recepcion-subvistas.cuatro-subvistas > button > strong { overflow: visible; text-overflow: clip; }
+.esterilizacion-vista .subvistas-carrusel:has(.tres-subvistas) {
+  width: min(100%, 720px);
+}
+.esterilizacion-vista .recepcion-subvistas.tres-subvistas {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  box-sizing: border-box;
+  padding: 6px !important;
+  gap: 6px !important;
+}
+.esterilizacion-vista .recepcion-subvistas.tres-subvistas > button {
+  justify-content: center !important;
+  min-height: 48px;
+  padding: 8px 12px !important;
+  border-radius: 9px;
+}
+.esterilizacion-vista .recepcion-subvistas.tres-subvistas > button > strong {
+  overflow: visible;
+  text-overflow: clip;
+  font-size: 13px;
+}
+.esterilizacion-vista .recepcion-subvistas.tres-subvistas > button:focus-visible {
+  outline: 2px solid #075f9b;
+  outline-offset: -3px;
+}
 .sistema-nav
   :is(
     .nav-central-esterilizacion,
@@ -115,6 +147,19 @@
     width: auto !important;
     min-width: 154px !important;
   }
+  .esterilizacion-vista .recepcion-subvistas.tres-subvistas {
+    display: flex !important;
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+  .esterilizacion-vista .recepcion-subvistas.tres-subvistas > button {
+    flex: 1 0 auto;
+    width: auto !important;
+    min-width: max-content !important;
+    padding-inline: 16px !important;
+  }
+  .esterilizacion-vista .recepcion-subvistas.cuatro-subvistas { display: flex !important; width: 100% !important; }
+  .esterilizacion-vista .recepcion-subvistas.cuatro-subvistas > button { flex: 0 0 auto; width: auto !important; min-width: max-content !important; padding-inline: 16px !important; }
 }
 .est-cabecera,
 .est-panel {

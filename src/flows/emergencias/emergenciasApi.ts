@@ -55,6 +55,7 @@ export type CuentaEmergencia = {
     porHora: boolean;
     inicio: string;
     fin: string | null;
+    tiempoAcumuladoMs?: number;
     ordenId?: string;
   })[];
   evaluaciones?: {
@@ -282,7 +283,7 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
         const item = datos.item as ItemEmergencia | undefined;
         if (!item?.id)
           throw new Error("Selecciona un servicio válido del catálogo.");
-        (cuenta.consumos ||= []).push({
+        const nuevoConsumo = {
           ...item,
           itemId: String(datos.itemId || item.id),
           registroId: String(datos.registroId || crypto.randomUUID()),
@@ -290,8 +291,47 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
           porHora: Boolean(datos.porHora),
           inicio: fecha,
           fin: null,
+          ...(datos.porHora ? { tiempoAcumuladoMs: 0 } : {}),
           ...(datos.ordenId ? { ordenId: String(datos.ordenId) } : {}),
-        });
+        };
+        const existentes = cuenta.consumos || [];
+        const indiceReanudado = nuevoConsumo.porHora
+          ? existentes.findIndex(
+              (consumo) =>
+                consumo.registroId === nuevoConsumo.registroId &&
+                consumo.itemId === nuevoConsumo.itemId &&
+                consumo.porHora,
+            )
+          : -1;
+        if (indiceReanudado >= 0) {
+          const reanudado = existentes[indiceReanudado];
+          if (!reanudado.fin)
+            throw new Error("El servicio ya estÃ¡ en uso.");
+          let tiempoAcumuladoMs =
+            reanudado.tiempoAcumuladoMs ??
+            Math.max(0, Date.parse(reanudado.fin) - Date.parse(reanudado.inicio));
+          cuenta.consumos = existentes.filter((consumo, indice) => {
+            if (
+              indice === indiceReanudado ||
+              consumo.itemId !== nuevoConsumo.itemId ||
+              !consumo.porHora ||
+              !consumo.fin
+            )
+              return true;
+            tiempoAcumuladoMs +=
+              consumo.tiempoAcumuladoMs ??
+              Math.max(0, Date.parse(consumo.fin) - Date.parse(consumo.inicio));
+            return false;
+          });
+          cuenta.consumos[indiceReanudado] = {
+            ...reanudado,
+            ...nuevoConsumo,
+            tiempoAcumuladoMs,
+          };
+        } else {
+          existentes.push(nuevoConsumo);
+          cuenta.consumos = existentes;
+        }
       } else if (accion === "finalizar-consumo") {
         const consumo = cuenta.consumos.find(
           (c) => c.registroId === datos.registroId && c.porHora && !c.fin,
@@ -299,6 +339,9 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
         if (!consumo)
           throw new Error("El contador ya está pausado o no existe.");
         consumo.fin = fecha;
+        consumo.tiempoAcumuladoMs =
+          (consumo.tiempoAcumuladoMs || 0) +
+          Math.max(0, Date.parse(fecha) - Date.parse(consumo.inicio));
       } else if (accion === "cierre") {
         cuenta.fin = fecha;
         cuenta.consumos = cuenta.consumos.map((consumo) =>

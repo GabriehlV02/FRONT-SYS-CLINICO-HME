@@ -97,3 +97,41 @@
     flex-direction: column;
   }
 }
+
+.roperia-lista { padding: 18px 20px 24px; }
+.roperia-busqueda { display: flex; align-items: center; gap: 10px; max-width: 620px; padding: 0 13px; border: 1px solid #cce3f1; border-radius: 9px; color: #087fbe; background: #f9fcff; }
+.roperia-busqueda input { width: 100%; min-height: 44px; border: 0; outline: 0; color: #173d60; background: transparent; font: inherit; }
+.roperia-busqueda:focus-within { outline: 2px solid #087fbe; outline-offset: 2px; }
+.roperia-tabla-scroll { margin-top: 18px; overflow-x: auto; border: 1px solid #dcebf3; border-radius: 10px; }
+.roperia-tabla-scroll table { width: 100%; min-width: 900px; border-collapse: collapse; text-align: left; }
+.roperia-tabla-scroll th { padding: 13px; color: #65819a; background: #f4f9fc; font-size: 11px; text-transform: uppercase; }
+.roperia-tabla-scroll td { padding: 12px 13px; border-top: 1px solid #e1edf4; color: #264f6d; font-size: 13px; }
+.roperia-tabla-scroll td:nth-child(6) { max-width: 300px; overflow-wrap: anywhere; }
+.roperia-miniatura, .roperia-sin-imagen { display: grid; width: 54px; height: 54px; place-items: center; border: 1px solid #d6e8f2; border-radius: 8px; color: #89a6b9; background: #f4f9fc; object-fit: contain; }
+.roperia-vacio { display: grid; gap: 8px; justify-items: center; padding: 65px 15px; color: #718da1; text-align: center; }
+.roperia-vacio strong { color: #174b70; font-size: 15px; }
+.roperia-dialogo { width: min(880px, calc(100% - 32px)); max-height: 90vh; padding: 0; border: 1px solid #c9dfed; border-radius: 14px; color: #173d60; box-shadow: 0 20px 60px #061f3855; }
+.roperia-dialogo::backdrop { background: #0a263c99; }
+.roperia-dialogo form > header { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 20px 24px; border-bottom: 1px solid #dcebf3; }
+.roperia-dialogo h3 { margin: 0; color: #064773; font-size: 19px; }
+.roperia-vista .roperia-dialogo form > header button { justify-content: center; width: 38px; padding: 0; color: #174d72; background: #f2f9fd; font-size: 24px; }
+.roperia-formulario { padding: 24px; }
+.roperia-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.roperia-campos label { display: grid; gap: 7px; color: #234e70; font-size: 13px; font-weight: 700; }
+.roperia-campos input, .roperia-campos textarea { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c9dfed; border-radius: 8px; color: #173d60; background: #f9fcfe; font: inherit; }
+.roperia-campos textarea { resize: vertical; }
+.roperia-ancho { grid-column: 1 / -1; }
+.roperia-foto { display: grid; gap: 9px; margin-top: 22px; padding: 18px; border: 1px solid #dcebf3; border-radius: 10px; background: #f9fcfe; }
+.roperia-foto > strong { color: #174b70; font-size: 13px; }
+.roperia-foto > span { color: #66839d; font-size: 12px; }
+.roperia-foto-acciones, .roperia-camara > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.roperia-vista .roperia-foto button, .roperia-vista .roperia-dialogo footer button:first-child { border: 1px solid #bcdceb; color: #08689f; background: #fff; cursor: pointer; }
+.roperia-oculto { display: none; }
+.roperia-camara { display: grid; gap: 10px; padding: 10px; border-radius: 10px; background: #102f44; }
+.roperia-camara video { width: 100%; max-height: 300px; border-radius: 7px; background: #081c29; object-fit: contain; }
+.roperia-vista .roperia-camara p { margin: 0; color: #fff; font-size: 12px; letter-spacing: 0; }
+.roperia-preview { display: flex; align-items: center; gap: 12px; }
+.roperia-preview img { width: 110px; height: 110px; border: 1px solid #d6e8f2; border-radius: 8px; object-fit: contain; background: #fff; }
+.roperia-vista .roperia-error { margin: 16px 0 0; color: #ad2929; font-size: 13px; letter-spacing: 0; }
+.roperia-dialogo footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #dcebf3; }
+@media (max-width: 600px) { .roperia-campos { grid-template-columns: 1fr; } .roperia-ancho { grid-column: auto; } .roperia-formulario { padding: 18px; } .roperia-lista { padding: 16px; } }

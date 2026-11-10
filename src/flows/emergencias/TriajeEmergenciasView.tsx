@@ -35,6 +35,7 @@ type Consumo = Item & {
   porHora: boolean;
   inicio: string;
   fin: string | null;
+  tiempoAcumuladoMs?: number;
 };
 type PagoCobro = {
   id: string;
@@ -67,11 +68,23 @@ const edadPaciente = (nacimiento?: string) => {
     edad--;
   return edad >= 0 ? `${edad} años` : "No registrada";
 };
-const duracion = (c: Consumo, ahora: number) =>
-  Math.max(0, (c.fin ? Date.parse(c.fin) : ahora) - Date.parse(c.inicio));
+const duracion = (c: Consumo, ahora: number) => {
+  const tiempoGuardado = c.tiempoAcumuladoMs;
+  const tiempoEnCurso = c.fin ? 0 : ahora - Date.parse(c.inicio);
+  return Math.max(
+    0,
+    tiempoGuardado === undefined
+      ? (c.fin ? Date.parse(c.fin) : ahora) - Date.parse(c.inicio)
+      : tiempoGuardado + tiempoEnCurso,
+  );
+};
+const horasFacturables = (milisegundos: number) =>
+  Math.max(0.5, Math.ceil(milisegundos / (30 * 60 * 1000)) * 0.5);
 const importe = (c: Consumo, ahora: number) =>
   Math.round(
-    c.precio * (c.porHora ? duracion(c, ahora) / 3600000 : c.cantidad) * 100,
+    c.precio *
+      (c.porHora ? horasFacturables(duracion(c, ahora)) : c.cantidad) *
+      100,
   ) / 100;
 const reloj = (ms: number) => {
   const s = Math.floor(ms / 1000);
@@ -866,6 +879,12 @@ export function TriajeEmergenciasView({
   );
   function iniciarServicioHora(item: Item) {
     if (!cuenta) return;
+    const consumoPausado = [...cuenta.consumos]
+      .reverse()
+      .find(
+        (consumo) =>
+          consumo.itemId === item.id && consumo.porHora && consumo.fin,
+      );
     void guardar(
       `/${cuenta.id}/consumos`,
       {
@@ -874,7 +893,7 @@ export function TriajeEmergenciasView({
         precio: item.precio,
         cantidad: 1,
         porHora: true,
-        registroId: crypto.randomUUID(),
+        registroId: consumoPausado?.registroId || crypto.randomUUID(),
       },
       `${item.nombre}: contador iniciado.`,
     );

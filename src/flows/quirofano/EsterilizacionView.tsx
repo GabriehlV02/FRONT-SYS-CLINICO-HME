@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
 import { HorizontalSubvistaNav } from "../../ui/components/HorizontalSubvistaNav";
 import { RoperiaView } from "./RoperiaView";
+import { PaquetesQuirurgicosView } from "./PaquetesQuirurgicosView";
 import "../recepcion/RecepcionView.css";
 import "../cocina/CocinaVentasView.css";
 import { leerCronograma, type CirugiaProgramada } from "./cronogramaQuirofano";
@@ -20,6 +21,7 @@ import {
 import "./EsterilizacionView.css";
 import "./EsterilizacionNotificacion.css";
 import "./EsterilizacionImagenMaterial.css";
+import "./EsterilizacionInventario.css";
 import "./KitsEsterilizacion.css";
 import "./KitInstrumentosImagenes.css";
 import "./EsterilizacionSolicitudes.css";
@@ -28,22 +30,34 @@ import "./AreasEsterilizacion.css";
 const MATERIAL_VACIO = {
   codigo: "",
   nombre: "",
-  tipo: "",
-  marca: "",
-  serie: "",
-  sector: "",
+  lote: "",
+  cantidad: "1",
   descripcion: "",
   imagen: "",
 };
 const KIT_VACIO = { nombre: "", descripcion: "" };
-const ESPECIALIDADES = [
-  "Cirugía general",
-  "Ginecología y obstetricia",
-  "Traumatología",
-  "Urología",
-  "Pediatría",
-  "Otras",
-];
+
+function PaginacionInventario({ pagina, totalPaginas, total, inicio, cantidad, onCambiar }: {
+  pagina: number;
+  totalPaginas: number;
+  total: number;
+  inicio: number;
+  cantidad: number;
+  onCambiar: (pagina: number) => void;
+}) {
+  return (
+    <nav className="est-paginacion-inventario" aria-label="Paginación del inventario">
+      <span aria-live="polite">
+        {total ? `Mostrando ${inicio + 1}–${inicio + cantidad} de ${total} materiales` : "Sin materiales para mostrar"}
+      </span>
+      <div className="est-paginacion-controles">
+        <button type="button" onClick={() => onCambiar(pagina - 1)} disabled={pagina <= 1}>Anterior</button>
+        <span>Página <strong>{pagina}</strong> de {totalPaginas}</span>
+        <button type="button" onClick={() => onCambiar(pagina + 1)} disabled={pagina >= totalPaginas}>Siguiente</button>
+      </div>
+    </nav>
+  );
+}
 const estadoKit = (kit: KitEsteril, materiales: MaterialEsteril[]) => {
   const piezas = kit.materialIds.map((id) =>
     materiales.find((item) => item.id === id),
@@ -130,6 +144,7 @@ type SubvistaEsterilizacion =
   | "seguimiento"
   | "inventario"
   | "kits"
+  | "paquetes"
   | "roperia"
   | "solicitudes"
   | "cronograma"
@@ -171,8 +186,14 @@ const SUBVISTAS: SubvistaEsterilizacionConfig[] = [
   {
     id: "kits",
     icono: "package",
-    titulo: "Kits de instrumental",
+    titulo: "Cajas quirúrgicas",
     descripcion: "Grupos, reservas y preparación quirúrgica.",
+  },
+  {
+    id: "paquetes",
+    icono: "package",
+    titulo: "Paquetes quirúrgicos",
+    descripcion: "Agrupación de recursos para cirugías.",
   },
   {
     id: "roperia",
@@ -228,16 +249,21 @@ export function EsterilizacionView({
   const [busqueda, setBusqueda] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroSector, setFiltroSector] = useState("");
+  const [paginaInventario, setPaginaInventario] = useState(1);
   const [modal, setModal] = useState<
     "material" | "kit" | "agregar" | "estado" | "recepcion" | "etiqueta" | null
   >(null);
   const [formMaterial, setFormMaterial] = useState(MATERIAL_VACIO);
   const [formKit, setFormKit] = useState(KIT_VACIO);
+  const inputCamaraMaterial = useRef<HTMLInputElement>(null);
+  const inputArchivoMaterial = useRef<HTMLInputElement>(null);
+  const videoMaterialRef = useRef<HTMLVideoElement>(null);
+  const camaraStreamRef = useRef<MediaStream | null>(null);
+  const [camaraAbierta, setCamaraAbierta] = useState(false);
+  const [errorCamara, setErrorCamara] = useState("");
   const [materialesKit, setMaterialesKit] = useState<string[]>([]);
-  const [especialidadesKit, setEspecialidadesKit] = useState<string[]>([]);
   const [busquedaAsociar, setBusquedaAsociar] = useState("");
   const [busquedaKit, setBusquedaKit] = useState("");
-  const [filtroEspecialidad, setFiltroEspecialidad] = useState("");
   const [filtroKitEstado, setFiltroKitEstado] = useState("");
   const [kitAbierto, setKitAbierto] = useState<string | null>(null);
   const [inspeccionKitAbierta, setInspeccionKitAbierta] = useState(false);
@@ -285,6 +311,35 @@ export function EsterilizacionView({
     if (inspeccionKitAbierta && dialogo && !dialogo.open) dialogo.showModal();
   }, [inspeccionKitAbierta]);
 
+  useEffect(() => {
+    if (!camaraAbierta) return;
+    let activo = true;
+    let stream: MediaStream | null = null;
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: { ideal: "environment" } } })
+      .then((medio) => {
+        if (!activo) {
+          medio.getTracks().forEach((pista) => pista.stop());
+          return;
+        }
+        stream = medio;
+        camaraStreamRef.current = medio;
+        if (videoMaterialRef.current) {
+          videoMaterialRef.current.srcObject = medio;
+          void videoMaterialRef.current.play().catch(() => undefined);
+        }
+      })
+      .catch(() => {
+        if (activo) setErrorCamara("No se pudo abrir la cámara. Puedes cargar una imagen o usar la cámara del dispositivo.");
+      });
+    return () => {
+      activo = false;
+      stream?.getTracks().forEach((pista) => pista.stop());
+      camaraStreamRef.current = null;
+      if (videoMaterialRef.current) videoMaterialRef.current.srcObject = null;
+    };
+  }, [camaraAbierta]);
+
   const guardar = (nuevos: EstadoEsterilizacion, mensaje: string) => {
     try {
       guardarEsterilizacion(nuevos);
@@ -308,7 +363,7 @@ export function EsterilizacionView({
       datos.materiales
         .filter((item) => {
           const texto =
-            `${item.codigo} ${item.nombre} ${item.tipo} ${item.marca} ${item.serie}`.toLowerCase();
+            `${item.codigo} ${item.nombre} ${item.lote || ""} ${item.descripcion} ${item.tipo} ${item.marca} ${item.serie}`.toLowerCase();
           return (
             texto.includes(busqueda.toLowerCase()) &&
             (!filtroEstado || item.estado === filtroEstado) &&
@@ -328,19 +383,19 @@ export function EsterilizacionView({
       cirugias,
     ],
   );
-  const especialidades = [
-    ...new Set([
-      ...ESPECIALIDADES,
-      ...datos.kits.flatMap((item) => item.especialidades || []),
-    ]),
-  ];
+  const materialesPorPagina = 10;
+  const totalPaginasInventario = Math.max(1, Math.ceil(materialesVisibles.length / materialesPorPagina));
+  const paginaActualInventario = Math.min(paginaInventario, totalPaginasInventario);
+  const inicioInventario = (paginaActualInventario - 1) * materialesPorPagina;
+  const materialesPagina = materialesVisibles.slice(inicioInventario, inicioInventario + materialesPorPagina);
+  useEffect(() => {
+    setPaginaInventario((pagina) => Math.min(pagina, totalPaginasInventario));
+  }, [totalPaginasInventario]);
   const kitsVisibles = datos.kits.filter(
     (item) =>
-      `${item.nombre} ${item.descripcion} ${(item.especialidades || []).join(" ")}`
+      `${item.nombre} ${item.descripcion}`
         .toLowerCase()
         .includes(busquedaKit.toLowerCase()) &&
-      (!filtroEspecialidad ||
-        (item.especialidades || []).includes(filtroEspecialidad)) &&
       (!filtroKitEstado ||
         estadoKit(item, datos.materiales) === filtroKitEstado),
   );
@@ -400,12 +455,17 @@ export function EsterilizacionView({
     }
     const fecha = new Date().toISOString();
     const material: MaterialEsteril = {
-      ...formMaterial,
+      id: crypto.randomUUID(),
       codigo,
       nombre: formMaterial.nombre.trim(),
-      tipo: formMaterial.tipo.trim(),
-      sector: formMaterial.sector.trim(),
-      id: crypto.randomUUID(),
+      lote: formMaterial.lote.trim(),
+      cantidad: Math.max(1, Number(formMaterial.cantidad) || 1),
+      imagen: formMaterial.imagen,
+      descripcion: formMaterial.descripcion.trim(),
+      tipo: "Instrumento",
+      marca: "",
+      serie: "",
+      sector: "Central de esterilización",
       estado: "pendiente",
       cirugiaId: "",
       actualizadoEn: fecha,
@@ -436,35 +496,55 @@ export function EsterilizacionView({
     }
   };
 
-  const cargarImagenMaterial = (archivo?: File) => {
+  const cargarImagenMaterial = async (archivo?: File) => {
     if (!archivo) return;
     if (!archivo.type.startsWith("image/")) {
-      setError("Selecciona un archivo de imagen válido.");
+      setError("Selecciona un archivo de imagen valido.");
       return;
     }
-    if (archivo.size > 2 * 1024 * 1024) {
-      setError("La imagen debe pesar como máximo 2 MB.");
-      return;
-    }
-    const lector = new FileReader();
-    lector.onload = () => {
-      setFormMaterial((actual) => ({
-        ...actual,
-        imagen: String(lector.result || ""),
-      }));
+    try {
+      const bitmap = await createImageBitmap(archivo);
+      const escala = Math.min(1, 1200 / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(bitmap.width * escala));
+      canvas.height = Math.max(1, Math.round(bitmap.height * escala));
+      const contexto = canvas.getContext("2d");
+      if (!contexto) throw new Error("No se pudo preparar la imagen.");
+      contexto.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      bitmap.close();
+      setFormMaterial((actual) => ({ ...actual, imagen: canvas.toDataURL("image/jpeg", 0.8) }));
       setError("");
-    };
-    lector.readAsDataURL(archivo);
+    } catch {
+      setError("No se pudo abrir la imagen seleccionada.");
+    }
+  };
+
+  const capturarImagenMaterial = () => {
+    const video = videoMaterialRef.current;
+    if (!video?.videoWidth || !video.videoHeight) {
+      setErrorCamara("La cámara todavía se está preparando.");
+      return;
+    }
+    const escala = Math.min(1, 1200 / Math.max(video.videoWidth, video.videoHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(video.videoWidth * escala));
+    canvas.height = Math.max(1, Math.round(video.videoHeight * escala));
+    const contexto = canvas.getContext("2d");
+    if (!contexto) {
+      setErrorCamara("No se pudo capturar la imagen.");
+      return;
+    }
+    contexto.drawImage(video, 0, 0, canvas.width, canvas.height);
+    setFormMaterial((actual) => ({ ...actual, imagen: canvas.toDataURL("image/jpeg", 0.8) }));
+    setCamaraAbierta(false);
+    setErrorCamara("");
+    setError("");
   };
 
   const crearKit = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
-    if (!especialidadesKit.length) {
-      setError("Selecciona al menos una especialidad para el kit.");
-      return;
-    }
     if (!materialesKit.length) {
-      setError("Selecciona al menos un material para el kit.");
+      setError("Selecciona al menos un material para la caja quirúrgica.");
       return;
     }
     if (
@@ -473,25 +553,24 @@ export function EsterilizacionView({
           item.nombre.toLowerCase() === formKit.nombre.trim().toLowerCase(),
       )
     ) {
-      setError("Ya existe un kit con ese nombre.");
+      setError("Ya existe una caja con ese nombre.");
       return;
     }
     const kit: KitEsteril = {
       id: crypto.randomUUID(),
       nombre: formKit.nombre.trim(),
       descripcion: formKit.descripcion.trim(),
-      especialidades: especialidadesKit,
+      especialidades: [],
       materialIds: materialesKit,
     };
     if (
       guardar(
         { ...datos, kits: [...datos.kits, kit] },
-        `Kit ${kit.nombre} creado con ${kit.materialIds.length} materiales.`,
+        `Caja quirúrgica ${kit.nombre} creada con ${kit.materialIds.length} materiales.`,
       )
     ) {
       setFormKit(KIT_VACIO);
       setMaterialesKit([]);
-      setEspecialidadesKit([]);
       setKitAbierto(kit.id);
     }
   };
@@ -671,7 +750,7 @@ export function EsterilizacionView({
     );
     if (integrantes.some((item) => !item || item.estado !== "limpio")) {
       setError(
-        "Todos los materiales del kit deben estar limpios y disponibles para reservarlo.",
+        "Todos los materiales de la caja deben estar limpios y disponibles para reservarlo.",
       );
       return;
     }
@@ -705,7 +784,7 @@ export function EsterilizacionView({
             })),
         ],
       },
-      `Kit ${kitSeleccionado.nombre} reservado para la cirugía seleccionada.`,
+      `Caja ${kitSeleccionado.nombre} reservada para la cirug?a seleccionada.`,
     );
   };
 
@@ -750,13 +829,15 @@ export function EsterilizacionView({
       <div className="cocina-subvista-cabecera">
         {navegacionVisible.length > 1 && (
           <HorizontalSubvistaNav
-            className={`recepcion-subvistas ${navegacionVisible.length === 2 ? "dos-subvistas" : ""}`}
+            className={`recepcion-subvistas ${navegacionVisible.length === 2 ? "dos-subvistas" : ""} ${navegacionVisible.length === 3 ? "tres-subvistas" : ""} ${navegacionVisible.length === 4 ? "cuatro-subvistas" : ""}`}
             ariaLabel="Subvistas de Esterilización"
           >
             {navegacionVisible.map((item) => (
               <button
                 key={item.id}
+                type="button"
                 className={subvista === item.id ? "activo" : ""}
+                aria-current={subvista === item.id ? "page" : undefined}
                 onClick={() => cambiarSubvista(item.id)}
               >
                 <span>
@@ -774,7 +855,7 @@ export function EsterilizacionView({
           <p>QUIRÓFANO · ESTERILIZACIÓN</p>
           <h2>{titulo}</h2>
           <small>
-            Inventario, kits y trazabilidad del material utilizado en cirugía.
+            Inventario, cajas quirúrgicas y trazabilidad del material utilizado en cirugía.
           </small>
         </div>
         <span>
@@ -1013,14 +1094,14 @@ export function EsterilizacionView({
               <input
                 aria-label="Buscar material"
                 value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
+                onChange={(e) => { setBusqueda(e.target.value); setPaginaInventario(1); }}
                 placeholder="Buscar por código o nombre"
               />
             </label>
             <select
               aria-label="Filtrar por ubicación"
               value={filtroSector}
-              onChange={(e) => setFiltroSector(e.target.value)}
+              onChange={(e) => { setFiltroSector(e.target.value); setPaginaInventario(1); }}
             >
               <option value="">Todas las ubicaciones</option>
               {[
@@ -1038,7 +1119,7 @@ export function EsterilizacionView({
             <select
               aria-label="Filtrar por estado"
               value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
+              onChange={(e) => { setFiltroEstado(e.target.value); setPaginaInventario(1); }}
             >
               <option value="">Todos los estados</option>
               {Object.entries(ETIQUETAS_ESTADO).map(([id, nombre]) => (
@@ -1048,82 +1129,48 @@ export function EsterilizacionView({
               ))}
             </select>
           </div>
+          <PaginacionInventario pagina={paginaActualInventario} totalPaginas={totalPaginasInventario} total={materialesVisibles.length} inicio={inicioInventario} cantidad={materialesPagina.length} onCambiar={setPaginaInventario} />
           <div className="est-tabla-scroll">
-            <table aria-label="Inventario de material">
-              <thead>
-                <tr>
-                  <th>Código</th>
-                  <th>Nombre</th>
-                  <th>Ubicación</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
+            <table className="est-tabla-inventario" aria-label="Inventario de material">
+              <thead><tr><th>Código</th><th>Nombre</th><th>Lote</th><th>Cantidad</th><th>Imagen</th><th>Descripción / observaciones</th><th>Acciones</th></tr></thead>
               <tbody>
-                {materialesVisibles.map((item) => {
-                  const ubicacion = ubicacionMaterial(item, cirugias);
-                  return (
-                    <tr key={item.id}>
-                      <td>{item.codigo}</td>
-                      <td>{item.nombre}</td>
-                      <td>{ubicacion}</td>
-                      <td>
-                        <span className={`est-estado ${item.estado}`}>
-                          {ETIQUETAS_ESTADO[item.estado]}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => verSeguimiento(item.id)}
-                        >
-                          Ver
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-                {!materialesVisibles.length && (
-                  <tr>
-                    <td colSpan={5}>
-                      No hay materiales que coincidan con la búsqueda.
-                    </td>
+                {materialesPagina.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.codigo}</td>
+                    <td><strong>{item.nombre}</strong></td>
+                    <td>{item.lote || "-"}</td>
+                    <td>{item.cantidad ?? 1}</td>
+                    <td>{item.imagen ? <img className="est-miniatura-material" src={item.imagen} alt={`Imagen de ${item.nombre}`} /> : <span className="est-sin-imagen"><Icon name="image" size={18} /></span>}</td>
+                    <td className="est-descripcion-material">{item.descripcion || "-"}</td>
+                    <td><button type="button" onClick={() => verSeguimiento(item.id)}>Ver</button></td>
                   </tr>
-                )}
+                ))}
+                {!materialesVisibles.length && <tr><td colSpan={7}>No hay materiales que coincidan con la busqueda.</td></tr>}
               </tbody>
             </table>
           </div>
+          <PaginacionInventario pagina={paginaActualInventario} totalPaginas={totalPaginasInventario} total={materialesVisibles.length} inicio={inicioInventario} cantidad={materialesPagina.length} onCambiar={setPaginaInventario} />
         </section>
       )}
       {subvista === "kits" && (
         <section className="est-panel est-kits-panel">
           <header>
             <div>
-              <h3>Kits y grupos de instrumental</h3>
+              <h3>Cajas quirúrgicas</h3>
             </div>
           </header>
           <div className="est-filtros">
             <label>
               <Icon name="search" size={16} />
               <input
-                aria-label="Buscar kit"
+                aria-label="Buscar caja"
                 value={busquedaKit}
                 onChange={(e) => setBusquedaKit(e.target.value)}
-                placeholder="Buscar kit o especialidad"
+                placeholder="Buscar caja quirurgica"
               />
             </label>
-            <select
-              aria-label="Filtrar kits por especialidad"
-              value={filtroEspecialidad}
-              onChange={(e) => setFiltroEspecialidad(e.target.value)}
-            >
-              <option value="">Todas las especialidades</option>
-              {especialidades.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-            <select
-              aria-label="Filtrar kits por estado"
+<select
+              aria-label="Filtrar cajas por estado"
               value={filtroKitEstado}
               onChange={(e) => setFiltroKitEstado(e.target.value)}
             >
@@ -1141,12 +1188,11 @@ export function EsterilizacionView({
                 setError("");
                 setFormKit(KIT_VACIO);
                 setMaterialesKit([]);
-                setEspecialidadesKit([]);
                 setBusquedaAsociar("");
                 setModal("kit");
               }}
             >
-              <Icon name="plus" size={16} /> Crear nuevo kit
+              <Icon name="plus" size={16} /> Crear caja quirúrgica
             </button>
           </div>
           {kitsVisibles.length ? (
@@ -1164,11 +1210,7 @@ export function EsterilizacionView({
                     <Icon name="package" size={20} />
                     <span>
                       <strong>{kit.nombre}</strong>
-                      <small>
-                        {kit.materialIds.length} instrumentos ·{" "}
-                        {(kit.especialidades || []).join(", ") ||
-                          "Sin especialidad"}
-                      </small>
+                      <small>{kit.materialIds.length} materiales · {kit.descripcion || "Materiales de la caja"}</small>
                     </span>
                     <b
                       className={`est-kit-estado ${estadoKit(kit, datos.materiales)}`}
@@ -1200,12 +1242,13 @@ export function EsterilizacionView({
           ) : (
             <div className="est-vacio">
               <Icon name="package" size={26} />
-              <strong>No hay kits con estos filtros</strong>
-              <small>Crea un kit o ajusta la búsqueda.</small>
+              <strong>No hay cajas quirúrgicas con estos filtros</strong>
+              <small>Crea una caja o ajusta la búsqueda.</small>
             </div>
           )}
         </section>
       )}
+      {subvista === "paquetes" && <PaquetesQuirurgicosView materiales={datos.materiales} cajas={datos.kits} cirugiasProgramadas={cirugias} />}
       {subvista === "roperia" && <RoperiaView />}
 
       <dialog
@@ -1227,14 +1270,14 @@ export function EsterilizacionView({
       >
         <header>
           <div>
-            <p>INSPECCIÓN DEL KIT</p>
+             <p>CAJA QUIRÚRGICA</p>
             <h3 id="inspeccion-kit-titulo">
-              {kitSeleccionado?.nombre || "Inspección de kit"}
+              {kitSeleccionado?.nombre || "Contenido de la caja"}
             </h3>
           </div>
           <button
             type="button"
-            aria-label="Cerrar inspección del kit"
+            aria-label="Cerrar inspección de la caja"
             onClick={() => inspeccionKitDialog.current?.close()}
           >
             <Icon name="close" size={17} />
@@ -1245,10 +1288,7 @@ export function EsterilizacionView({
             <div className="est-kit-detalle-cabecera">
               <div>
                 <small>
-                  {(kitSeleccionado.especialidades || []).join(", ") ||
-                    "Sin especialidad"}{" "}
-                  · {kitSeleccionado.descripcion || "Listado de instrumental"}
-                </small>
+                  {kitSeleccionado.descripcion || "Materiales incluidos en la caja"}</small>
               </div>
               <button
                 type="button"
@@ -1278,8 +1318,7 @@ export function EsterilizacionView({
                       {item?.nombre || "Material no disponible"}{" "}
                       <small>
                         {item?.codigo || "Sin código"} ·{" "}
-                        {item?.serie ||
-                          item?.marca ||
+                        {item?.lote || item?.serie || item?.marca ||
                           item?.tipo ||
                           "Sin serie"}
                       </small>
@@ -1314,7 +1353,7 @@ export function EsterilizacionView({
                 onClick={reservarKit}
                 disabled={!cirugiasOrdenadas.length}
               >
-                Reservar kit
+                Reservar caja
               </button>
             </div>
             {error && (
@@ -1369,10 +1408,7 @@ export function EsterilizacionView({
         {materialSeleccionado && (
           <div className="est-seguimiento-contenido">
             <div className="est-modal-identidad">
-              <strong>{materialSeleccionado.codigo}</strong>
-              <small>
-                Ubicación: {ubicacionMaterial(materialSeleccionado, cirugias)}
-              </small>
+              <div><small>INSTRUMENTO QUIRÚRGICO</small><strong>{materialSeleccionado.codigo}</strong></div>
               <span className={`est-estado ${materialSeleccionado.estado}`}>
                 {ETIQUETAS_ESTADO[materialSeleccionado.estado]}
               </span>
@@ -1382,28 +1418,25 @@ export function EsterilizacionView({
               aria-label="Información y trazabilidad actual del instrumento"
             >
               <div className="est-ficha-datos">
-                <h4>Información del instrumento</h4>
-                <dl>
-                  <div>
-                    <dt>Tipo</dt>
-                    <dd>{materialSeleccionado.tipo || "Sin especificar"}</dd>
+                <h4>Datos del material</h4>
+                <div className="est-ficha-principal">
+                  <div className="est-ficha-imagen">
+                    {materialSeleccionado.imagen ? (
+                      <img src={materialSeleccionado.imagen} alt={`Imagen de ${materialSeleccionado.nombre}`} />
+                    ) : (
+                      <div className="est-ficha-sin-imagen"><Icon name="image" size={27} /><span>Sin imagen</span></div>
+                    )}
                   </div>
-                  <div>
-                    <dt>Marca</dt>
-                    <dd>{materialSeleccionado.marca || "Sin especificar"}</dd>
-                  </div>
-                  <div>
-                    <dt>Serie / lote</dt>
-                    <dd>{materialSeleccionado.serie || "Sin registro"}</dd>
-                  </div>
-                  <div>
-                    <dt>Descripción</dt>
-                    <dd>
-                      {materialSeleccionado.descripcion ||
-                        "Sin descripción registrada"}
-                    </dd>
-                  </div>
-                </dl>
+                  <dl>
+                    <div><dt>Nombre</dt><dd>{materialSeleccionado.nombre}</dd></div>
+                    <div><dt>Lote</dt><dd>{materialSeleccionado.lote || "No registrado"}</dd></div>
+                    <div><dt>Cantidad</dt><dd>{materialSeleccionado.cantidad ?? 1} {materialSeleccionado.cantidad === 1 || materialSeleccionado.cantidad == null ? "unidad" : "unidades"}</dd></div>
+                  </dl>
+                </div>
+                <div className="est-ficha-observaciones">
+                  <span>Descripción / observaciones</span>
+                  <p>{materialSeleccionado.descripcion || "Sin descripción u observaciones."}</p>
+                </div>
               </div>
               <div className="est-ficha-situacion">
                 <h4>Situación actual</h4>
@@ -1546,7 +1579,7 @@ export function EsterilizacionView({
                 : modal === "material"
                   ? "Registrar material estéril"
                   : modal === "kit"
-                    ? "Crear kit de instrumental"
+                    ? "Crear caja quirúrgica de instrumental"
                     : modal === "agregar"
                       ? "Añadir materiales al kit"
                       : "Registrar movimiento de material"
@@ -1562,7 +1595,7 @@ export function EsterilizacionView({
                     : modal === "material"
                       ? "Registrar nuevo material"
                       : modal === "kit"
-                        ? "Crear kit o grupo"
+                        ? "Crear caja quirúrgica"
                         : modal === "agregar"
                           ? `Añadir materiales · ${kitSeleccionado?.nombre || ""}`
                           : "Registrar movimiento"}
@@ -1660,7 +1693,7 @@ export function EsterilizacionView({
                             <span>
                               <strong>{item.nombre}</strong>
                               <small>
-                                {item.codigo} · {item.serie || item.tipo}
+                                {item.codigo} · {item.lote || item.serie || item.tipo}
                               </small>
                             </span>
                             <em>{kit?.nombre || "Pieza individual"}</em>
@@ -1726,136 +1759,62 @@ export function EsterilizacionView({
             )}
             {modal === "material" && (
               <form onSubmit={crearMaterial}>
-                <div className="est-form-grid">
+                <div className="est-form-grid est-form-material">
                   <label>
                     Código único *
-                    <input
-                      required
-                      value={formMaterial.codigo}
-                      onChange={(e) =>
-                        setFormMaterial({
-                          ...formMaterial,
-                          codigo: e.target.value,
-                        })
-                      }
-                      placeholder="Ej. INST-001"
-                    />
+                    <input required value={formMaterial.codigo} onChange={(e) => setFormMaterial({ ...formMaterial, codigo: e.target.value })} placeholder="Ej. INST-001" />
                   </label>
                   <label>
                     Nombre del material *
-                    <input
-                      required
-                      value={formMaterial.nombre}
-                      onChange={(e) =>
-                        setFormMaterial({
-                          ...formMaterial,
-                          nombre: e.target.value,
-                        })
-                      }
-                      placeholder="Ej. Pinza Kelly"
-                    />
+                    <input required value={formMaterial.nombre} onChange={(e) => setFormMaterial({ ...formMaterial, nombre: e.target.value })} placeholder="Ej. Pinza Kelly" />
                   </label>
                   <label>
-                    Tipo *
-                    <select
-                      required
-                      value={formMaterial.tipo}
-                      onChange={(e) =>
-                        setFormMaterial({
-                          ...formMaterial,
-                          tipo: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="">Seleccionar tipo</option>
-                      <option>Instrumento</option>
-                      <option>Material reutilizable</option>
-                      <option>Textil quirúrgico</option>
-                      <option>Contenedor</option>
-                      <option>Otro</option>
-                    </select>
+                    Lote
+                    <input value={formMaterial.lote} onChange={(e) => setFormMaterial({ ...formMaterial, lote: e.target.value })} placeholder="Número o referencia del lote" />
                   </label>
                   <label>
-                    Sector de origen *
-                    <input
-                      required
-                      value={formMaterial.sector}
-                      onChange={(e) =>
-                        setFormMaterial({
-                          ...formMaterial,
-                          sector: e.target.value,
-                        })
-                      }
-                      placeholder="Ej. Central de esterilización"
-                    />
+                    Cantidad *
+                    <input required type="number" min="1" step="1" value={formMaterial.cantidad} onChange={(e) => setFormMaterial({ ...formMaterial, cantidad: e.target.value })} />
                   </label>
-                  <label>
-                    Marca / fabricante
-                    <input
-                      value={formMaterial.marca}
-                      onChange={(e) =>
-                        setFormMaterial({
-                          ...formMaterial,
-                          marca: e.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <label>
-                    Número de serie / lote
-                    <input
-                      value={formMaterial.serie}
-                      onChange={(e) =>
-                        setFormMaterial({
-                          ...formMaterial,
-                          serie: e.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                  <label className="est-campo-ancho est-campo-imagen">
-                    Imagen del material
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(e) =>
-                        cargarImagenMaterial(e.target.files?.[0])
-                      }
-                    />
+                  <div className="est-campo-ancho est-campo-imagen">
+                    <span className="est-imagen-titulo">Imagen del material</span>
+                    <div className="est-imagen-acciones">
+                      <button type="button" onClick={() => { setErrorCamara(""); setCamaraAbierta(true); }}><Icon name="camera" size={16} /> Utilizar cámara</button>
+                      <button type="button" onClick={() => inputArchivoMaterial.current?.click()}><Icon name="image" size={16} /> Cargar imagen</button>
+                    </div>
+                    {camaraAbierta && (
+                      <div className="est-camara-vista">
+                        {errorCamara ? (
+                          <p role="status">{errorCamara}</p>
+                        ) : (
+                          <video ref={videoMaterialRef} autoPlay playsInline muted aria-label="Vista previa de la cámara" />
+                        )}
+                        <div>
+                          {errorCamara && (
+                            <button type="button" onClick={() => inputCamaraMaterial.current?.click()}>Abrir cámara del dispositivo</button>
+                          )}
+                          {!errorCamara && (
+                            <button type="button" onClick={capturarImagenMaterial}>Capturar foto</button>
+                          )}
+                          <button type="button" onClick={() => { setCamaraAbierta(false); setErrorCamara(""); }}>Cancelar</button>
+                        </div>
+                      </div>
+                    )}
+                    <input ref={inputCamaraMaterial} className="est-input-archivo-oculto" type="file" accept="image/*" capture="environment" aria-label="Tomar foto del material" onChange={(e) => { cargarImagenMaterial(e.target.files?.[0]); e.currentTarget.value = ""; }} />
+                    <input ref={inputArchivoMaterial} className="est-input-archivo-oculto" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Cargar imagen del material" onChange={(e) => { cargarImagenMaterial(e.target.files?.[0]); e.currentTarget.value = ""; }} />
                     {formMaterial.imagen && (
-                      <span>
-                        <img
-                          src={formMaterial.imagen}
-                          alt="Vista previa del material"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormMaterial({ ...formMaterial, imagen: "" })
-                          }
-                        >
-                          Quitar imagen
-                        </button>
+                      <span className="est-imagen-previsualizacion">
+                        <img src={formMaterial.imagen} alt="Vista previa del material" />
+                        <button type="button" onClick={() => setFormMaterial({ ...formMaterial, imagen: "" })}>Quitar imagen</button>
                       </span>
                     )}
-                  </label>
+                  </div>
                   <label className="est-campo-ancho">
                     Descripción / observaciones
-                    <textarea
-                      value={formMaterial.descripcion}
-                      onChange={(e) =>
-                        setFormMaterial({
-                          ...formMaterial,
-                          descripcion: e.target.value,
-                        })
-                      }
-                    />
+                    <textarea value={formMaterial.descripcion} onChange={(e) => setFormMaterial({ ...formMaterial, descripcion: e.target.value })} placeholder="Anota características u observaciones" />
                   </label>
                 </div>
-                <p className="est-ayuda">
-                  El material se registra como pendiente de esterilización.
-                  Podrás cambiar su estado en Sala de esterilización.
-                </p>
+                <p className="est-ayuda">Ubicación inicial: Central de esterilización.</p>
                 {error && (
                   <p className="est-error" role="alert">
                     {error}
@@ -1873,14 +1832,14 @@ export function EsterilizacionView({
               <form onSubmit={crearKit}>
                 <div className="est-form-grid">
                   <label>
-                    Nombre del kit *
+                    Nombre de la caja quirúrgica *
                     <input
                       required
                       value={formKit.nombre}
                       onChange={(e) =>
                         setFormKit({ ...formKit, nombre: e.target.value })
                       }
-                      placeholder="Ej. Kit de cesárea"
+                      placeholder="Ej. Caja de cesárea"
                     />
                   </label>
                   <label>
@@ -1894,39 +1853,18 @@ export function EsterilizacionView({
                     />
                   </label>
                 </div>
-                <fieldset className="est-especialidades">
-                  <legend>Especialidades asociadas *</legend>
-                  <div>
-                    {ESPECIALIDADES.map((item) => (
-                      <label key={item}>
-                        <input
-                          type="checkbox"
-                          checked={especialidadesKit.includes(item)}
-                          onChange={() =>
-                            setEspecialidadesKit((actual) =>
-                              actual.includes(item)
-                                ? actual.filter((valor) => valor !== item)
-                                : [...actual, item],
-                            )
-                          }
-                        />
-                        {item}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <label className="est-buscar-kit">
+<label className="est-buscar-kit">
                   <Icon name="search" size={16} />
                   <input
                     value={busquedaAsociar}
                     onChange={(e) => setBusquedaAsociar(e.target.value)}
-                    placeholder="Buscar instrumentos para asociar"
+                    placeholder="Buscar material para agregar"
                   />
                 </label>
                 <div className="est-lista-asociar">
                   {datos.materiales
                     .filter((item) =>
-                      `${item.codigo} ${item.nombre}`
+                      `${item.codigo} ${item.nombre} ${item.lote || ""}`
                         .toLowerCase()
                         .includes(busquedaAsociar.toLowerCase()),
                     )
@@ -1945,9 +1883,7 @@ export function EsterilizacionView({
                         />
                         <span>
                           <strong>{item.nombre}</strong>
-                          <small>
-                            {item.codigo} · {item.tipo}
-                          </small>
+                          <small>{item.codigo} · Lote {item.lote || "-"} · Cantidad {item.cantidad ?? 1}</small>
                         </span>
                         <b className={`est-estado ${item.estado}`}>
                           {ETIQUETAS_ESTADO[item.estado]}
@@ -1955,13 +1891,10 @@ export function EsterilizacionView({
                       </label>
                     ))}
                   {!datos.materiales.length && (
-                    <p>Registra materiales antes de crear un kit.</p>
+                    <p>Registra materiales antes de crear una caja.</p>
                   )}
                 </div>
-                <p className="est-ayuda">
-                  Asociar una pieza a este kit no la elimina del inventario ni
-                  de otros kits.
-                </p>
+                <p className="est-ayuda">Los materiales siguen en el inventario y pueden pertenecer a otras cajas.</p>
                 {error && (
                   <p className="est-error" role="alert">
                     {error}
@@ -1972,24 +1905,20 @@ export function EsterilizacionView({
                     Cancelar
                   </button>
                   <button type="submit">
-                    Guardar kit ({materialesKit.length})
+                    Guardar caja ({materialesKit.length})
                   </button>
                 </footer>
               </form>
             )}
             {modal === "agregar" && kitSeleccionado && (
               <form onSubmit={agregarMateriales}>
-                <p className="est-ayuda">
-                  Selecciona instrumentos del inventario. Los que ya pertenecen
-                  al kit se mantienen independientes y pueden usarse en otros
-                  kits.
-                </p>
+                <p className="est-ayuda">Selecciona los materiales que quieres incorporar a esta caja quirúrgica.</p>
                 <label className="est-buscar-kit">
                   <Icon name="search" size={16} />
                   <input
                     value={busquedaAsociar}
                     onChange={(e) => setBusquedaAsociar(e.target.value)}
-                    placeholder="Buscar instrumentos para añadir"
+                    placeholder="Buscar material por código o nombre"
                   />
                 </label>
                 <div className="est-lista-asociar">
@@ -1997,7 +1926,7 @@ export function EsterilizacionView({
                     .filter(
                       (item) =>
                         !kitSeleccionado.materialIds.includes(item.id) &&
-                        `${item.codigo} ${item.nombre}`
+                        `${item.codigo} ${item.nombre} ${item.lote || ""}`
                           .toLowerCase()
                           .includes(busquedaAsociar.toLowerCase()),
                     )
@@ -2016,9 +1945,7 @@ export function EsterilizacionView({
                         />
                         <span>
                           <strong>{item.nombre}</strong>
-                          <small>
-                            {item.codigo} · {item.tipo}
-                          </small>
+                          <small>{item.codigo} · Lote {item.lote || "-"} · Cantidad {item.cantidad ?? 1}</small>
                         </span>
                         <b className={`est-estado ${item.estado}`}>
                           {ETIQUETAS_ESTADO[item.estado]}

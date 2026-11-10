@@ -4,6 +4,8 @@ export type MaterialEsteril = {
   id: string;
   codigo: string;
   nombre: string;
+  lote?: string;
+  cantidad?: number;
   imagen?: string;
   tipo: string;
   marca: string;

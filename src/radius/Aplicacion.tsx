@@ -2680,7 +2680,7 @@ export default function Aplicacion() {
             ) : modulo === "central-esterilizacion" ? (
               <EsterilizacionView
                 titulo="Inventario de material"
-                subvistasVisibles={["inventario", "kits", "roperia"]}
+                subvistasVisibles={["inventario", "kits", "paquetes", "roperia"]}
               />
             ) : modulo === "recepcion-material-sucio" ? (
               <EsterilizacionView

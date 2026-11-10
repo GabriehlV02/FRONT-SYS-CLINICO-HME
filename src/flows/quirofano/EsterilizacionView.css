@@ -609,6 +609,14 @@
   background: var(--est-fondo);
   box-shadow: 0 20px 60px #061f3855;
 }
+.est-modal-material {
+  width: min(1140px, 100%);
+  max-height: 96vh;
+  max-height: 96dvh;
+}
+.est-modal-material form {
+  padding: 24px 28px;
+}
 .est-modal > header {
   display: flex;
   align-items: center;
@@ -634,6 +642,9 @@
 }
 .est-modal form {
   padding: 18px 20px;
+}
+.est-modal.est-modal-material form {
+  padding: 24px 28px;
 }
 .est-form-grid {
   display: grid;

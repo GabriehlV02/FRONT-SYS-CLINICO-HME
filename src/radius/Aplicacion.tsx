@@ -1216,11 +1216,6 @@ export default function Aplicacion() {
       window.removeEventListener("clinico:replegar-sidebar", replegar);
   }, []);
   useEffect(() => {
-    const expirar = () => setSesion(null);
-    window.addEventListener("sesion-expirada", expirar);
-    return () => window.removeEventListener("sesion-expirada", expirar);
-  }, []);
-  useEffect(() => {
     if (!sesion) setModulo("");
   }, [sesion]);
   const { pacientes: fichasPacientes } = usePacientes(Boolean(sesion));
@@ -1250,22 +1245,6 @@ export default function Aplicacion() {
       window.removeEventListener("radiuus:datos-demo", actualizarLocales);
     };
   }, [sesion?.token, modulo, fichasPacientes]);
-  useEffect(() => {
-    if (!sesion) return;
-    const restante = sesion.expiresAt - Date.now();
-    if (restante <= 0) {
-      localStorage.removeItem("pulso_session");
-      sessionStorage.removeItem("pulso_session");
-      setSesion(null);
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      localStorage.removeItem("pulso_session");
-      sessionStorage.removeItem("pulso_session");
-      setSesion(null);
-    }, restante);
-    return () => window.clearTimeout(timer);
-  }, [sesion]);
   useEffect(() => {
     const navegar = (evento: Event) => {
       const id = (evento as CustomEvent<string>).detail;

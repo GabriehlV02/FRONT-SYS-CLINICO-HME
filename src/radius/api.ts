@@ -6,13 +6,7 @@ export async function apiFetch(input: string, init: RequestInit = {}) {
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type"))
     headers.set("Content-Type", "application/json");
-  const response = await fetch(input, { ...init, headers });
-  if (response.status === 401) {
-    localStorage.removeItem("pulso_session");
-    sessionStorage.removeItem("pulso_session");
-    window.dispatchEvent(new Event("sesion-expirada"));
-  }
-  return response;
+  return fetch(input, { ...init, headers });
 }
 
 export async function apiContableFetch(input: string, init: RequestInit = {}) {

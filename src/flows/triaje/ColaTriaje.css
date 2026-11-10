@@ -80,7 +80,7 @@
 }
 .signos-vitales-lista > header,
 .signos-vitales-lista article {
-  grid-template-columns: 65px minmax(0, 1.2fr) minmax(0, 1fr) 112px;
+  grid-template-columns: minmax(84px, .7fr) minmax(220px, 1.8fr) minmax(180px, 1.3fr) minmax(140px, 1fr) minmax(120px, .75fr);
   gap: 12px;
   padding: 13px 16px;
   min-width: 0;
@@ -373,6 +373,9 @@
     gap: 10px;
   }
   .signos-consulta {
+    grid-column: 2;
+  }
+  .signos-especialidad {
     grid-column: 2;
   }
   .signos-vitales-lista article .accion-registrar-signos {

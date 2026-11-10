@@ -32,7 +32,7 @@ export type Permiso =
 
 export type Sesion = {
   token: string;
-  expiresAt: number;
+  expiresAt?: number | null;
   dispositivo?: {
     id: string;
     clienteId: string;
@@ -92,9 +92,8 @@ export const TODOS_LOS_PERMISOS: Permiso[] = [
 ];
 
 export const leerSesion = (): Sesion | null => {
-  const guardada =
-    sessionStorage.getItem("pulso_session") ||
-    localStorage.getItem("pulso_session");
+  const sesionTemporal = sessionStorage.getItem("pulso_session");
+  const guardada = sesionTemporal || localStorage.getItem("pulso_session");
   if (!guardada) return null;
   try {
     const parsed = JSON.parse(guardada) as Partial<Sesion>;
@@ -103,13 +102,15 @@ export const leerSesion = (): Sesion | null => {
     if (
       typeof parsed.token !== "string" ||
       !parsed.token ||
-      typeof parsed.expiresAt !== "number" ||
-      parsed.expiresAt <= Date.now() ||
       !parsed.usuario ||
       typeof parsed.usuario.nombre !== "string" ||
       !Array.isArray(parsed.usuario.permisos)
     )
       throw new Error("Sesión inválida");
+    if (sesionTemporal) {
+      localStorage.setItem("pulso_session", sesionTemporal);
+      sessionStorage.removeItem("pulso_session");
+    }
     return parsed as Sesion;
   } catch {
     localStorage.removeItem("pulso_session");

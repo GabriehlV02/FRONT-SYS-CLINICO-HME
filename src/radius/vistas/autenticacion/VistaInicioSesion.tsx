@@ -101,10 +101,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       };
       localStorage.removeItem("pulso_session");
       sessionStorage.removeItem("pulso_session");
-      (recordar ? localStorage : sessionStorage).setItem(
-        "pulso_session",
-        JSON.stringify(sesion),
-      );
+      localStorage.setItem("pulso_session", JSON.stringify(sesion));
       onLogin(sesion);
       setLoading(false);
       return;
@@ -144,10 +141,7 @@ export default function VistaInicioSesion({ onLogin }: Props) {
       else localStorage.removeItem("pulso_usuario_recordado");
       localStorage.removeItem("pulso_session");
       sessionStorage.removeItem("pulso_session");
-      (recordar ? localStorage : sessionStorage).setItem(
-        "pulso_session",
-        JSON.stringify(sesion),
-      );
+      localStorage.setItem("pulso_session", JSON.stringify(sesion));
       onLogin(sesion);
     } catch {
       setError(

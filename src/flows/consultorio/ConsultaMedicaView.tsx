@@ -425,10 +425,12 @@ export function ConsultaMedicaView({
       normalizarBusquedaOrden(orden).includes(normalizarBusquedaOrden(busquedaOrdenMedica)) &&
       !ordenesPaciente.includes(orden),
   );
-  const partesNombre = paciente.paciente.trim().split(/\s+/);
-  const nombre = paciente.nombre ?? partesNombre[0] ?? "No registrado";
-  const apellidos =
-    paciente.apellidos ?? (partesNombre.slice(1).join(" ") || "No registrado");
+  const nombreCompletoPaciente =
+    [paciente.nombre, paciente.apellidos]
+      .filter((parte): parte is string => Boolean(parte?.trim()))
+      .join(" ") ||
+    paciente.paciente.trim() ||
+    "No registrado";
   const guardarReceta = (receta: DocumentoEpisodio) => {
     const existente = obtenerEpisodios().find(
       (e) => e.origenId === origenConsulta,
@@ -541,6 +543,18 @@ export function ConsultaMedicaView({
     >
       <section className="consulta-activa-derecha">
         <div className="consulta-cabecera-fija">
+          <div className="consulta-volver-listado-fila">
+            <button
+              type="button"
+              className="consulta-volver-listado"
+              onClick={() =>
+                window.dispatchEvent(new Event("consulta:volver-al-listado"))
+              }
+            >
+              <Icon name="chevronLeft" size={16} />
+              <span>Volver al listado</span>
+            </button>
+          </div>
           <header className="consulta-area-cabecera">
             <div className="consulta-resumen-paciente">
               <div>
@@ -548,12 +562,8 @@ export function ConsultaMedicaView({
                 <small>CI {paciente.ci}</small>
                 <dl className="consulta-datos-personales">
                   <div>
-                    <dt>Nombre</dt>
-                    <dd>{nombre}</dd>
-                  </div>
-                  <div>
-                    <dt>Apellidos</dt>
-                    <dd>{apellidos}</dd>
+                    <dt>Paciente</dt>
+                    <dd>{nombreCompletoPaciente}</dd>
                   </div>
                   <div>
                     <dt>Edad</dt>
@@ -606,16 +616,6 @@ export function ConsultaMedicaView({
               className="consulta-secciones"
               aria-label="Secciones de la consulta"
             >
-              <button
-                type="button"
-                className="consulta-volver-listado"
-                onClick={() =>
-                  window.dispatchEvent(new Event("consulta:volver-al-listado"))
-                }
-              >
-                <Icon name="chevronLeft" size={16} />
-                <span>Volver al listado</span>
-              </button>
               {seccionesConsulta.map((item) => (
                 <button
                   key={item.id}

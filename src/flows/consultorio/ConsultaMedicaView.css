@@ -1168,6 +1168,12 @@
     border-color 0.18s ease,
     background 0.18s ease;
 }
+.consulta-volver-listado-fila {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 4px 18px 6px;
+}
 .consulta-volver-listado svg {
   display: grid;
   place-items: center;
@@ -1190,70 +1196,16 @@
   outline: 3px solid rgba(8, 143, 198, 0.28);
   outline-offset: 2px;
 }
-.consulta-secciones .consulta-volver-listado {
-  min-height: 38px;
-  margin: 5px 5px 5px 0;
-  padding: 0 13px 0 8px;
-  border: 1px solid #8dcae8;
-  color: #056caa;
-  background: linear-gradient(135deg, #e8f8ff, #f9fdff);
-}
-.consulta-secciones .consulta-volver-listado::after {
-  display: none;
-}
-.consulta-secciones .consulta-volver-listado {
-  position: absolute;
-  z-index: 2;
-  top: 12px;
-  left: 18px;
+.consulta-volver-listado-fila .consulta-volver-listado {
+  position: static;
+  width: auto;
   margin: 0;
-}
-.consulta-area-cabecera {
-  padding-top: 46px;
-}
-.consulta-secciones .consulta-volver-listado {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 40px;
-  padding: 4px 13px 4px 5px;
-  border-color: #c7dfed;
-  border-radius: 10px;
-  color: #164f77;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(18, 77, 112, 0.1);
-  font-size: 12px;
-  letter-spacing: 0;
-}
-.consulta-secciones .consulta-volver-listado svg {
-  width: 30px;
-  height: 30px;
-  padding: 6px;
-  border-radius: 8px;
-  color: #087fb7;
-  background: #e7f7fd;
-  transition:
-    transform 0.18s ease,
-    background 0.18s ease;
-}
-.consulta-secciones .consulta-volver-listado:hover {
-  border-color: #63b7dc;
-  color: #056b9f;
-  background: #f3fbff;
-  box-shadow: 0 7px 16px rgba(18, 113, 156, 0.16);
-  transform: translateY(-1px);
-}
-.consulta-secciones .consulta-volver-listado:hover svg {
-  color: #fff;
-  background: #087fb7;
-  transform: translateX(-2px);
+  justify-content: flex-start;
 }
 @media (max-width: 600px) {
-  .consulta-secciones .consulta-volver-listado {
-    left: 14px;
-  }
-  .consulta-area-cabecera {
-    padding-top: 46px;
+  .consulta-volver-listado-fila {
+    padding-right: 14px;
+    padding-left: 14px;
   }
 }
 @media (max-width: 900px) {
@@ -1760,7 +1712,7 @@
 }
 
 .consulta-area-cabecera {
-  padding: 42px 18px 9px;
+  padding: 24px 18px 7px;
 }
 .consulta-area-cabecera p {
   margin-bottom: 2px;
@@ -1768,14 +1720,14 @@
 .consulta-resumen-paciente {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.95fr);
-  gap: 22px;
-  align-items: end;
+  gap: 16px;
+  align-items: center;
   width: 100%;
 }
 .consulta-datos-personales {
-  grid-template-columns: repeat(4, minmax(110px, 1fr));
-  gap: 3px 18px;
-  margin-top: 4px;
+  grid-template-columns: minmax(180px, 1.35fr) repeat(2, minmax(100px, 0.75fr)) minmax(135px, 1fr);
+  gap: 2px 14px;
+  margin-top: 2px;
 }
 .consulta-datos-personales dt {
   margin-bottom: 1px;
@@ -1784,7 +1736,7 @@
   margin-top: 1px;
 }
 .consulta-contexto-clinico {
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-left: 1px solid #d6e8f2;
 }
 .consulta-contexto-clinico header {
@@ -1807,8 +1759,8 @@
 .consulta-contexto-clinico dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px 13px;
-  margin: 6px 0 0;
+  gap: 4px 13px;
+  margin: 4px 0 0;
 }
 .consulta-contexto-clinico dt {
   margin: 0 0 1px;
@@ -1840,12 +1792,12 @@
 }
 @media (max-width: 900px) {
   .consulta-datos-personales {
-    grid-template-columns: repeat(2, minmax(110px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @media (max-width: 560px) {
   .consulta-area-cabecera {
-    padding: 42px 14px 9px;
+    padding: 18px 14px 7px;
   }
   .consulta-datos-personales {
     grid-template-columns: 1fr 1fr;
@@ -2289,12 +2241,6 @@ body:has(.consulta-cabecera-fija),
 .consulta-cabecera-fija .consulta-secciones-bar {
   margin-top: 0;
 }
-.consulta-cabecera-fija .consulta-secciones .consulta-volver-listado {
-  top: 12px;
-  left: 18px;
-  width: auto;
-  justify-content: flex-start;
-}
 .consulta-medica .consulta-signos-sin-datos {
   margin: 14px 0 0;
   color: #58758c;
@@ -2308,9 +2254,6 @@ body:has(.consulta-cabecera-fija),
     top: 96px;
     max-height: calc(100dvh - 150px);
     overflow-y: auto;
-  }
-  .consulta-cabecera-fija .consulta-secciones .consulta-volver-listado {
-    left: 14px;
   }
 }
 @media (max-width: 520px) {

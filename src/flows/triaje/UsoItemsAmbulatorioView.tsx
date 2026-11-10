@@ -317,7 +317,7 @@ export function UsoItemsAmbulatorioView() {
                     gap: 8,
                     margin: "12px 0",
                     padding: "0 10px",
-                    border: "1px solid #bfd9eb",
+                    border: "1px solid var(--border-strong)",
                     borderRadius: 8,
                   }}
                 >
@@ -331,7 +331,7 @@ export function UsoItemsAmbulatorioView() {
                 </label>
                 <div
                   style={{
-                    border: "1px solid #d6e6f0",
+                    border: "1px solid var(--border)",
                     borderRadius: 9,
                     maxHeight: 260,
                     overflow: "auto",
@@ -345,7 +345,7 @@ export function UsoItemsAmbulatorioView() {
                         gap: 10,
                         alignItems: "center",
                         padding: "11px 12px",
-                        borderBottom: "1px solid #eef4f7",
+                        borderBottom: "1px solid var(--border)",
                         cursor: "pointer",
                       }}
                     >
@@ -362,7 +362,7 @@ export function UsoItemsAmbulatorioView() {
                       />
                       <span>
                         <strong>{item.nombre}</strong>
-                        <small style={{ display: "block", color: "#6987a0" }}>
+                        <small style={{ display: "block", color: "var(--muted)" }}>
                           {item.codigo} · {item.unidad}
                         </small>
                       </span>
@@ -407,6 +407,7 @@ export function UsoItemsAmbulatorioView() {
                   </label>
                   <button
                     type="button"
+                    className="boton-principal"
                     disabled={
                       !seleccionados.length ||
                       !consultorioDestino ||
@@ -419,8 +420,8 @@ export function UsoItemsAmbulatorioView() {
                       padding: "10px 15px",
                       border: 0,
                       borderRadius: 8,
-                      color: "#fff",
-                      background: "#0788bd",
+                      color: "var(--primary-text)",
+                      background: "var(--primary)",
                       fontWeight: 800,
                       cursor: "pointer",
                     }}
@@ -433,12 +434,12 @@ export function UsoItemsAmbulatorioView() {
             <section
               style={{
                 margin: "0 22px 22px",
-                border: "1px solid #d6e6f0",
+                border: "1px solid var(--border)",
                 borderRadius: 9,
                 overflow: "hidden",
               }}
             >
-              <header style={{ padding: "11px 14px", background: "#eaf5fa" }}>
+              <header style={{ padding: "11px 14px", background: "var(--panel-2)" }}>
                 <strong>3. Ítems seleccionados</strong>
                 <small style={{ marginLeft: 8 }}>
                   {pendientes.length} en la lista
@@ -499,7 +500,7 @@ export function UsoItemsAmbulatorioView() {
                         style={{
                           padding: 24,
                           textAlign: "center",
-                          color: "#6987a0",
+                          color: "var(--muted)",
                         }}
                       >
                         Selecciona ítems, justifica el descargo y añádelos a la

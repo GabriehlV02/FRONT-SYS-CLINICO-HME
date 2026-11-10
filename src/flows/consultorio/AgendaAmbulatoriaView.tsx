@@ -3,6 +3,7 @@ import { leerSesion } from "../../radius/types/sesion";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Icon from "../../radius/componentes/Icono";
 import { apiFetch } from "../../radius/api";
+import { obtenerCitasAgendaDemo } from "../../radius/datos/agendaDemo";
 import {
   obtenerSignosVitales,
   suscribirSignosVitales,
@@ -57,11 +58,15 @@ export function AgendaAmbulatoriaView({
   onAtender?: (cita: CitaConfirmada) => void;
 }) {
   const { profesionales } = useProfesionales();
+  const esDemo =
+    import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
   const profesionalActual = profesionales.find(
     (p) => p.usuario_id === String(leerSesion()?.usuario.id),
   );
   const [agendaReintentando, setAgendaReintentando] = useState(false);
-  const [citas, setCitas] = useState<CitaConfirmada[]>([]);
+  const [citas, setCitas] = useState<CitaConfirmada[]>(() =>
+    esDemo ? obtenerCitasAgendaDemo() : [],
+  );
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAtendidas, setBusquedaAtendidas] = useState("");
@@ -78,6 +83,15 @@ export function AgendaAmbulatoriaView({
     };
   }, []);
   useEffect(() => {
+    if (esDemo) {
+      const actualizar = () => setCitas(obtenerCitasAgendaDemo());
+      window.addEventListener("citas:actualizadas", actualizar);
+      window.addEventListener("pacientes:actualizados", actualizar);
+      return () => {
+        window.removeEventListener("citas:actualizadas", actualizar);
+        window.removeEventListener("pacientes:actualizados", actualizar);
+      };
+    }
     const controller = new AbortController();
     let temporizador: ReturnType<typeof setTimeout> | undefined;
     let demoraReintento = 3000;
@@ -109,7 +123,7 @@ export function AgendaAmbulatoriaView({
       controller.abort();
       if (temporizador) clearTimeout(temporizador);
     };
-  }, []);
+  }, [esDemo]);
 
   // El backend limita la agenda del médico autenticado; este filtro evita una
   // exposición momentánea mientras se carga el perfil profesional.
@@ -118,6 +132,7 @@ export function AgendaAmbulatoriaView({
       citas
         .filter(
           (cita) =>
+            esDemo ||
             /administrador/i.test(medico) ||
             (profesionalActual
               ? cita.profesionalId === profesionalActual.id
@@ -126,7 +141,7 @@ export function AgendaAmbulatoriaView({
         .sort((a, b) =>
           `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`),
         ),
-    [citas, medico, profesionalActual],
+    [citas, medico, profesionalActual, esDemo],
   );
   const coincide = (cita: CitaConfirmada, texto: string) =>
     `${cita.paciente} ${cita.ci} ${cita.doctor} ${cita.especialidad}`

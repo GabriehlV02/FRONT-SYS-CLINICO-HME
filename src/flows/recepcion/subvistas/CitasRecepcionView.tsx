@@ -10,6 +10,11 @@ import {
 } from "./BuscadorPacienteInternacion";
 import Icon from "../../../radius/componentes/Icono";
 import { apiFetch } from "../../../radius/api";
+import {
+  guardarCitasAgendaDemo,
+  obtenerCitasAgendaDemo,
+} from "../../../radius/datos/agendaDemo";
+import { leerSesion } from "../../../radius/types/sesion";
 import { AgendarConsultaView } from "./AgendarConsultaView";
 import "./CitasRecepcionView.css";
 
@@ -76,110 +81,33 @@ const etiquetaSemana = (inicio: Date) => {
 };
 const citas: Cita[] = [];
 const crearCitasEjemplo = (): Cita[] => {
-  const hoy = new Date();
-  const diasHabiles = Array.from({ length: 8 }, (_, i) =>
-    sumarDias(hoy, i),
-  ).filter((fecha) => fecha.getDay() !== 0);
-  const ejemplos = [
-    [
-      "María Fernanda López",
-      "6894521",
-      "Dra. Valeria Rojas",
-      "Neumología",
-      "Consultorio 1",
-      "08:00",
-      "Control respiratorio",
-    ],
-    [
-      "Carlos Mendoza Rojas",
-      "7459823",
-      "Dr. Gabriel Torres",
-      "Medicina Interna",
-      "Consultorio 2",
-      "09:00",
-      "Control general",
-    ],
-    [
-      "Lucía Valdez Herrera",
-      "5128934",
-      "Dra. Valeria Rojas",
-      "Neumología",
-      "Consultorio 1",
-      "09:30",
-      "Dificultad respiratoria leve",
-    ],
-    [
-      "Jorge Ramírez Soria",
-      "8246175",
-      "Dr. Gabriel Torres",
-      "Medicina Interna",
-      "Consultorio 2",
-      "14:00",
-      "Consulta de seguimiento",
-    ],
-    [
-      "Sofía Quispe Flores",
-      "6381942",
-      "Dra. María Salazar",
-      "Pediatría",
-      "Consultorio 3",
-      "10:30",
-      "Control pediátrico",
-    ],
-    [
-      "Elena Paredes Vargas",
-      "4712058",
-      "Dr. Andrés Molina",
-      "Cardiología",
-      "Consultorio 4",
-      "15:00",
-      "Control cardiológico",
-    ],
-    [
-      "Luis Aguirre Medina",
-      "91240568",
-      "Dr. Andrés Molina",
-      "Cardiología",
-      "Consultorio 4",
-      "11:00",
-      "Consulta cardiológica",
-    ],
-    [
-      "Ana Flores Rojas",
-      "7345128",
-      "Dra. María Salazar",
-      "Pediatría",
-      "Consultorio 3",
-      "16:00",
-      "Consulta pediátrica",
-    ],
-  ];
-  return ejemplos.map(
-    (
-      [paciente, ci, doctor, especialidad, consultorio, hora, motivo],
-      indice,
-    ) => ({
-      id: `demo-agenda-${indice}`,
-      dia: 0,
-      fecha: fechaParaInput(
-        diasHabiles[Math.min(Math.floor(indice / 2), diasHabiles.length - 1)],
-      ),
-      paciente,
-      ci,
-      doctor,
-      especialidad,
-      consultorio,
-      hora,
-      motivo,
-      estado: indice === 4 ? "Por confirmar" : "Confirmada",
-    }),
-  );
+  return obtenerCitasAgendaDemo().map((cita) => ({
+    id: cita.id,
+    pacienteId: cita.pacienteId,
+    dia: 0,
+    fecha: cita.fecha,
+    paciente: cita.paciente,
+    ci: cita.ci,
+    doctor: cita.doctor,
+    especialidad: cita.especialidad,
+    consultorio: cita.consultorio,
+    hora: cita.hora,
+    motivo: cita.motivoOperativo,
+    estado:
+      cita.estado === "confirmada"
+        ? "Confirmada"
+        : cita.estado === "cancelada"
+          ? "Cancelada"
+          : "Por confirmar",
+  }));
 };
 
 export function CitasRecepcionView({
   medicoInicial,
   agendarInicial = false,
 }: { medicoInicial?: string; agendarInicial?: boolean } = {}) {
+  const esDemoLocal =
+    import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
   const { medicos, resolver, errorProfesionales } = useProfesionales();
   const doctores = [
     "Todos los doctores",
@@ -222,6 +150,16 @@ export function CitasRecepcionView({
   const selectorDoctorRef = useRef<HTMLDivElement>(null);
   const selectorConsultorioRef = useRef<HTMLDivElement>(null);
   const calendarioRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!esDemoLocal) return;
+    const actualizar = () => setCitasProgramadas(crearCitasEjemplo());
+    window.addEventListener("citas:actualizadas", actualizar);
+    window.addEventListener("pacientes:actualizados", actualizar);
+    return () => {
+      window.removeEventListener("citas:actualizadas", actualizar);
+      window.removeEventListener("pacientes:actualizados", actualizar);
+    };
+  }, [esDemoLocal]);
   const citasVisibles = useMemo(
     () =>
       citasProgramadas.filter(
@@ -276,6 +214,10 @@ export function CitasRecepcionView({
   }, []);
 
   useEffect(() => {
+    if (esDemoLocal) {
+      setCitasProgramadas(crearCitasEjemplo());
+      return;
+    }
     const controller = new AbortController();
     void apiFetch("/api/citas", { signal: controller.signal })
       .then(async (response) => {
@@ -328,14 +270,21 @@ export function CitasRecepcionView({
         }
       });
     return () => controller.abort();
-  }, []);
+  }, [esDemoLocal]);
 
   const persistirEstado = async (
     cita: Cita,
     estado: "confirmada" | "cancelada",
   ) => {
     if (!cita.id) return false;
-    if (cita.id.startsWith("demo-agenda-")) return true;
+    if (esDemoLocal && cita.id.startsWith("demo-agenda-")) {
+      guardarCitasAgendaDemo(
+        obtenerCitasAgendaDemo().map((actual) =>
+          actual.id === cita.id ? { ...actual, estado } : actual,
+        ),
+      );
+      return true;
+    }
     try {
       const respuesta = await apiFetch(`/api/citas/${cita.id}/estado`, {
         method: "PATCH",
@@ -389,6 +338,48 @@ export function CitasRecepcionView({
       const fecha = fechaParaInput(
         sumarDias(inicioSemana(semana), nuevaCita.dia),
       );
+      if (esDemoLocal) {
+        const guardada: Cita = {
+          ...nuevaCita,
+          id: `demo-agenda-${crypto.randomUUID()}`,
+          pacienteId: ficha.id,
+          fecha,
+          doctor: resolver(doctor)?.nombre || doctor,
+          especialidad: "Consulta",
+          motivo: "Consulta ambulatoria",
+        };
+        guardarCitasAgendaDemo([
+          ...obtenerCitasAgendaDemo(),
+          {
+            id: guardada.id!,
+            pacienteId: ficha.id,
+            paciente: guardada.paciente,
+            ci: guardada.ci,
+            doctor: guardada.doctor,
+            profesionalId: resolver(doctor)?.id,
+            especialidad: guardada.especialidad || "Consulta",
+            fecha,
+            hora: guardada.hora,
+            estado:
+              guardada.estado === "Confirmada" ? "confirmada" : "por_confirmar",
+            consultorio: guardada.consultorio || "Consultorio 1",
+            motivoOperativo: guardada.motivo,
+            edad: 0,
+          },
+        ]);
+        setCitasProgramadas((actuales) => [...actuales, guardada]);
+        setNuevaCita({
+          paciente: "",
+          ci: "",
+          dia: 0,
+          hora: "07:00",
+          consultorio: "Consultorio 1",
+          estado: "Por confirmar",
+        });
+        setErrorAgenda("");
+        setAgendarAbierto(false);
+        return;
+      }
       const respuesta = await apiFetch("/api/citas", {
         method: "POST",
         headers: { Accept: "application/json" },

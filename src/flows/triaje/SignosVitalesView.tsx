@@ -8,6 +8,7 @@ import { useServiciosSignosVitales } from "./ServiciosSignosVitales";
 import { camposParaServicio, compararReferencia } from "./camposSignosVitales";
 import { apiFetch } from "../../radius/api";
 import { leerSesion } from "../../radius/types/sesion";
+import { obtenerCitasAgendaDemo } from "../../radius/datos/agendaDemo";
 
 type PacienteEnEspera = {
   id: string;
@@ -28,60 +29,14 @@ type PacienteAtendido = PacienteEnEspera & {
   registrado: string;
 };
 
-const claveColaDemo = "clinico.triaje.cola-demo.v1";
+const claveColaDemo = "clinico.triaje.cola-demo.v2";
 const claveAtendidosDemo = "clinico.triaje.atendidos-demo.v1";
-const colaInicial: PacienteEnEspera[] = [
-  {
-    id: "demo-cita-luis-morales",
-    pacienteId: "demo-pac-luis-morales",
-    hora: "09:15",
-    fecha: "2026-11-09",
-    estado: "confirmada",
-    paciente: "Luis Eduardo Morales Rojas",
-    ci: "6543210",
-    edad: 40,
-    doctor: "Dra. Andrea Vargas",
-    especialidad: "Medicina general",
-  },
-  {
-    id: "demo-cita-ana-quispe",
-    pacienteId: "demo-pac-003",
-    hora: "09:40",
-    fecha: "2026-11-09",
-    estado: "confirmada",
-    paciente: "Ana Sofía Quispe Vargas",
-    ci: "7319845",
-    edad: 31,
-    doctor: "Dr. Martín Rojas",
-    especialidad: "Medicina general",
-  },
-];
-const atendidosIniciales: PacienteAtendido[] = [
-  {
-    id: "demo-cita-carlos-mendoza",
-    pacienteId: "demo-pac-002",
-    hora: "08:50",
-    fecha: "2026-11-09",
-    estado: "confirmada",
-    paciente: "Carlos Alberto Mendoza Rojas",
-    ci: "5987412",
-    edad: 51,
-    doctor: "Dra. Andrea Vargas",
-    especialidad: "Medicina general",
-    signosRegistrados: true,
-    valores: {
-      temperatura: "36.7",
-      frecuenciaCardiaca: "76",
-      frecuenciaRespiratoria: "16",
-      presionSistolica: "120",
-      presionDiastolica: "78",
-      saturacionAmbiente: "98",
-      peso: "72.4",
-      estatura: "168",
-    },
-    registrado: "08:55",
-  },
-];
+const colaInicial: PacienteEnEspera[] = obtenerCitasAgendaDemo().map((cita) => ({
+  ...cita,
+  hora: cita.hora,
+  edad: cita.edad,
+}));
+const atendidosIniciales: PacienteAtendido[] = [];
 
 function leerListaDemo<T>(clave: string, inicial: T[]): T[] {
   try {
@@ -177,6 +132,27 @@ export function SignosVitalesView({
     localStorage.setItem(claveColaDemo, JSON.stringify(cola));
     localStorage.setItem(claveAtendidosDemo, JSON.stringify(atendidos));
   }, [esDemo, cola, atendidos]);
+  useEffect(() => {
+    if (!esDemo) return;
+    const actualizarAgenda = () => {
+      const anteriores = new Map(cola.map((cita) => [cita.id, cita]));
+      setCola(
+        obtenerCitasAgendaDemo()
+          .filter((cita) => cita.estado === "confirmada" || cita.estado === "por_confirmar")
+          .map((cita) => ({
+            ...cita,
+            motivoConsulta: cita.motivoOperativo,
+            signosRegistrados: anteriores.get(cita.id)?.signosRegistrados,
+          })),
+      );
+    };
+    window.addEventListener("citas:actualizadas", actualizarAgenda);
+    window.addEventListener("pacientes:actualizados", actualizarAgenda);
+    return () => {
+      window.removeEventListener("citas:actualizadas", actualizarAgenda);
+      window.removeEventListener("pacientes:actualizados", actualizarAgenda);
+    };
+  }, [esDemo, cola]);
   const atendidosVisibles = atendidos.filter((paciente) =>
     `${paciente.paciente} ${paciente.ci} ${paciente.doctor}`
       .toLocaleLowerCase()

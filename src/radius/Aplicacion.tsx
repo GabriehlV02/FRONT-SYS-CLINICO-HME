@@ -10,6 +10,7 @@ import Icon, { type IconName } from "./componentes/Icono";
 import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
 import { usePacientes } from "./vistas/pacientes/usePacientes";
 import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
+import { obtenerCitasAgendaDemo } from "./datos/agendaDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import { leerSesion, type Sesion } from "./types/sesion";
 import VistaInicioSesion from "./vistas/autenticacion/VistaInicioSesion";
@@ -431,27 +432,6 @@ const subvistasPacientes: {
   { id: "estudios", nombre: "Estudios del paciente", icono: "image" },
 ];
 
-// Muestra visual de la cola. Nunca se guarda ni participa en los flujos clínicos.
-const ejemplosConsultorioCola: CitaConfirmada[] = [
-  {
-    id: "COLA-DEMO-C1",
-    paciente: "Gabriela Rojas Méndez",
-    ci: "6548123",
-    doctor: "Dra. Valeria Quiroga",
-    especialidad: "Medicina familiar",
-    fecha: "2026-11-06",
-    hora: "09:30",
-  },
-  {
-    id: "COLA-DEMO-C2",
-    paciente: "Diego Fernández Lima",
-    ci: "7836142",
-    doctor: "Dr. Daniel Siles",
-    especialidad: "Medicina interna",
-    fecha: "2026-11-06",
-    hora: "10:15",
-  },
-];
 const ejemplosInternacionCola = [
   {
     id: "COLA-DEMO-I1",
@@ -1073,15 +1053,26 @@ export default function Aplicacion() {
       (esAdministrador ||
         normalizarNombre(internacion.medico) === nombreSesion),
   );
-  const citasVisiblesCola =
-    !errorColaAtencion && citasColaAtencion.length
-      ? citasColaAtencion
-      : ejemplosConsultorioCola;
+  const esDemoClinico =
+    import.meta.env.DEV && sesion?.token === "frontend-demo-local";
+  const citasVisiblesCola = esDemoClinico
+    ? citasColaAtencion.length
+      ? citasColaAtencion.filter((cita) => cita.estado === "confirmada")
+      : obtenerCitasAgendaDemo().filter((cita) => cita.estado === "confirmada")
+    : errorColaAtencion
+      ? []
+      : citasColaAtencion;
   const internacionesVisiblesCola = internacionesColaAtencion.length
     ? internacionesColaAtencion
     : ejemplosInternacionCola;
   useEffect(() => {
     if (!colaAtencionAbierta) return;
+    if (esDemoClinico) {
+      setErrorColaAtencion("");
+      setCitasColaAtencion(obtenerCitasAgendaDemo());
+      setCargandoColaAtencion(false);
+      return;
+    }
     const controller = new AbortController();
     setCargandoColaAtencion(true);
     setErrorColaAtencion("");
@@ -1108,7 +1099,7 @@ export default function Aplicacion() {
         if (!controller.signal.aborted) setCargandoColaAtencion(false);
       });
     return () => controller.abort();
-  }, [colaAtencionAbierta]);
+  }, [colaAtencionAbierta, esDemoClinico]);
   const accesoSoloInventario = sesion?.usuario.rol === "Inventario de esterilizacion";
   const modulosVisibles = modulos.filter((item) => {
     if (accesoSoloInventario) return item.id === "central-esterilizacion";

@@ -4274,27 +4274,15 @@
   line-height: 1.55;
 }
 .em-inicio-atencion .em-selector-cubiculo {
-  padding: 11px 12px;
-  border: 1px solid #c5e2f0;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 5px 14px #184a650a;
-}
-.em-inicio-atencion .em-selector-cubiculo > span {
-  color: #2c5878;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  min-width: 0;
 }
 .em-inicio-atencion .em-selector-cubiculo > button {
-  min-height: 38px;
-  padding: 8px 0 0;
-  border: 0;
-  border-top: 1px solid #e3eef4;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
+  min-height: 48px;
+  padding: 10px 13px;
+  border: 1px solid #c5e2f0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 4px 12px #184a650a;
   color: #15577e;
   font-weight: 750;
 }

@@ -119,7 +119,14 @@
     [class*="resumen"],
     [class*="catalogo"],
     [class*="inventario"],
-    [class*="contenido"]
+    [class*="contenido"],
+    [class*="modal"],
+    [class*="contenedor"],
+    [class*="seccion"],
+    [class*="busqueda"],
+    [class*="buscador"],
+    [class*="filtro"],
+    [class*="lista"]
   ) {
   border-color: var(--border) !important;
   color: var(--text) !important;
@@ -138,7 +145,14 @@
     [class*="detalle"],
     [class*="resumen"],
     [class*="catalogo"],
-    [class*="inventario"]
+    [class*="inventario"],
+    [class*="modal"],
+    [class*="contenedor"],
+    [class*="seccion"],
+    [class*="busqueda"],
+    [class*="buscador"],
+    [class*="filtro"],
+    [class*="lista"]
   ) {
   background-color: var(--panel) !important;
 }
@@ -197,6 +211,10 @@
   .area-trabajo
   button:not(.boton-principal):not(.usuarios-crear):not(.primario):not(
     .login-submit
+  ):not(.activo):not([aria-selected="true"]):not([aria-pressed="true"]):not(
+    .danger
+  ):not(.peligro):not(.eliminar):not([class*="eliminar"]):not(
+    [class*="anular"]
   ) {
   color: var(--text) !important;
   border-color: var(--border) !important;
@@ -206,6 +224,16 @@
 .sistema-app[data-theme="dark"]
   .area-trabajo
   :is(.boton-principal, .usuarios-crear, .primario, .login-submit) {
+  color: var(--primary-text) !important;
+  border-color: var(--primary) !important;
+  background: var(--primary-gradient) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo button:is(
+  .activo,
+  [aria-selected="true"],
+  [aria-pressed="true"]
+) {
   color: var(--primary-text) !important;
   border-color: var(--primary) !important;
   background: var(--primary-gradient) !important;
@@ -245,7 +273,14 @@
 }
 .sistema-app[data-theme="dark"]
   .area-trabajo
-  :is(.completado, .terminado, .activo, .success) {
+  :is(
+    .completado,
+    .terminado,
+    .success,
+    .auditoria-estado.activo,
+    .usuarios-admin-estado.activo,
+    .funcion-estado.activo
+  ) {
   color: var(--success) !important;
   background-color: var(--success-bg) !important;
 }
@@ -254,6 +289,36 @@
   :is(.anulado, .inactivo, .error, .danger) {
   color: var(--danger) !important;
   background-color: var(--danger-bg) !important;
+}
+
+/* Las acciones destructivas mantienen su significado y contraste en tema oscuro. */
+.sistema-app[data-theme="dark"] .area-trabajo button:is(
+  .danger,
+  .peligro,
+  .eliminar,
+  .usuario-eliminar,
+  .funcion-eliminar,
+  .anular,
+  [class*="eliminar"],
+  [class*="anular"]
+) {
+  color: #fff !important;
+  border-color: #b83242 !important;
+  background: #a92738 !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo .uso-items-modal :is(
+  label,
+  section,
+  header,
+  td,
+  th
+) {
+  border-color: var(--border) !important;
+}
+
+.sistema-app[data-theme="dark"] .area-trabajo .uso-items-modal header {
+  background: var(--panel-2) !important;
 }
 .sistema-app[data-theme="dark"]
   .area-trabajo

@@ -1238,11 +1238,11 @@ export function TriajeEmergenciasView({
                   if (e.key === "Escape") setSelectorCubiculoAbierto(false);
                 }}
               >
-                <span>Cubículo de atención *</span>
                 <button
                   type="button"
                   disabled={ocupado || !cubiculosDisponibles.length}
                   className={cubiculo ? "seleccionado" : ""}
+                  aria-label="Seleccionar cubículo de atención"
                   aria-haspopup="listbox"
                   aria-expanded={selectorCubiculoAbierto}
                   onClick={() =>
@@ -1252,7 +1252,7 @@ export function TriajeEmergenciasView({
                   {cubiculo
                     ? nombreCubiculo(cubiculo)
                     : cubiculosDisponibles.length
-                      ? "Selecciona un cubículo"
+                      ? "Selecciona el cubículo de atención"
                       : "No hay cubículos libres"}
                   <Icon name="chevronDown" size={16} />
                 </button>
@@ -1716,6 +1716,20 @@ export function TriajeEmergenciasView({
                       <strong>
                         {cuenta.identidad?.referenciaFamiliar || "Sin registro"}
                       </strong>
+                    </div>
+                  </div>
+                  <div className="em-identidad-fila em-cuenta-indicadores">
+                    <div>
+                      <small>Total consumido</small>
+                      <strong>{dinero(total)}</strong>
+                    </div>
+                    <div>
+                      <small>Cubículo</small>
+                      <strong>{nombreCubiculo(cuenta.cubiculo)}</strong>
+                    </div>
+                    <div>
+                      <small>Hora de ingreso</small>
+                      <strong>{horaIngreso(cuenta.inicio)}</strong>
                     </div>
                   </div>
                 </div>

@@ -264,6 +264,18 @@
   font-size: 14px;
   font-weight: 850;
 }
+.em-trabajo > .em-resumen .em-cuenta-indicadores {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.em-trabajo > .em-resumen .em-cuenta-indicadores > div:first-child {
+  border-color: #cbe6f1;
+  background: linear-gradient(110deg, #effaff, #fff 88%);
+}
+.em-trabajo > .em-resumen .em-cuenta-indicadores > div:first-child strong {
+  color: #0878aa;
+  font-size: 15px;
+  font-weight: 850;
+}
 .em-trabajo > .em-resumen > .em-total-acciones {
   display: grid;
   align-content: center;
@@ -309,6 +321,12 @@
   .em-trabajo > .em-resumen .em-identidad-fila > div {
     min-height: 46px;
     padding: 7px 9px;
+  }
+  .em-trabajo > .em-resumen .em-cuenta-indicadores {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .em-trabajo > .em-resumen .em-cuenta-indicadores > div:first-child {
+    grid-column: 1 / -1;
   }
   .em-trabajo > .em-resumen > .em-total-acciones {
     display: grid;

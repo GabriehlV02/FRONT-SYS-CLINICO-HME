@@ -10,12 +10,22 @@
   justify-self: start;
   min-height: 34px;
   padding: 0 10px;
-  border: 1px solid #bdd8e8;
+  border: 1px solid #c62828;
   border-radius: 7px;
-  color: #286182;
-  background: #fff;
+  color: #fff;
+  background: #c62828;
   font-size: 11px;
   font-weight: 800;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.internacion-volver-listado:hover {
+  border-color: #a91f1f;
+  background: #a91f1f;
+}
+.internacion-volver-listado:focus-visible {
+  outline: 3px solid rgb(198 40 40 / 28%);
+  outline-offset: 2px;
 }
 .internacion-atencion-cabecera {
   display: flex;

@@ -606,6 +606,10 @@ export function TriajeEmergenciasView({
   const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const [busquedaCuenta, setBusquedaCuenta] = useState(""),
     [subvista, setSubvista] = useState<"atencion" | "historial">("atencion");
+  const [modalExportarHistorial, setModalExportarHistorial] = useState(false);
+  const [fechaDesdeHistorial, setFechaDesdeHistorial] = useState("");
+  const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
+  const [errorExportarHistorial, setErrorExportarHistorial] = useState("");
   const [pagina, setPagina] = useState(1);
   const [catalogo, setCatalogo] = useState<Item[]>([]),
     [errorCatalogo, setErrorCatalogo] = useState(""),
@@ -930,6 +934,61 @@ export function TriajeEmergenciasView({
         `${c.cubiculo} ${c.identidad?.nombres || ""} ${c.identidad?.apellidos || ""} ${c.identidad?.documento || ""}`,
       ).includes(normalizar(busquedaCuenta)),
   );
+  const rangoHistorialValido = Boolean(
+    fechaDesdeHistorial &&
+      fechaHastaHistorial &&
+      fechaDesdeHistorial <= fechaHastaHistorial,
+  );
+  const atencionesExportables = rangoHistorialValido
+    ? cuentas.filter((item) => {
+        if (!item.fin) return false;
+        const fechaCierre = new Date(item.fin).getTime();
+        const inicioRango = new Date(`${fechaDesdeHistorial}T00:00:00`).getTime();
+        const finRango = new Date(`${fechaHastaHistorial}T23:59:59.999`).getTime();
+        return fechaCierre >= inicioRango && fechaCierre <= finRango;
+      })
+    : [];
+  const exportarHistorialPDF = (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault();
+    if (!rangoHistorialValido) return;
+    const ventana = window.open("", "_blank");
+    if (!ventana) {
+      setErrorExportarHistorial(
+        "El navegador bloqueó la ventana de impresión. Permite las ventanas emergentes e inténtalo de nuevo.",
+      );
+      return;
+    }
+    const escapar = (valor: string) =>
+      valor.replace(/[&<>\"']/g, (caracter) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '\"': "&quot;", "'": "&#39;" })[
+          caracter
+        ] || caracter,
+      );
+    const filas = atencionesExportables
+      .map((item) => {
+        const paciente = nombrePaciente(item);
+        const documento = item.identidad?.documento || "Sin documento";
+        const historia = item.identidad?.historiaClinica || "Sin registro";
+        const edad = edadPaciente(item.identidad?.nacimiento);
+        const sexo = item.identidad?.sexo || "No registrado";
+        const medico = item.identidad?.medicoAdmision || "Médico de turno";
+        const cierre = new Date(item.fin!).toLocaleString("es-BO");
+        return `<tr><td>${escapar(nombreCubiculo(item.cubiculo))}</td><td><strong>${escapar(paciente)}</strong><small>CI ${escapar(documento)}</small></td><td>${escapar(historia)}</td><td>${escapar(edad)}</td><td>${escapar(sexo)}</td><td>${escapar(fecha(item.inicio))}</td><td>${escapar(cierre)}</td><td>${escapar(medico)}</td></tr>`;
+      })
+      .join("");
+    const contenidoVacio = '<tr><td class="sin-datos" colspan="8">No hay atenciones finalizadas en el período seleccionado.</td></tr>';
+    ventana.document.open();
+    ventana.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Historial de atención de emergencias</title><style>
+      @page{size:landscape;margin:14mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#173b59;margin:0}header{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;padding-bottom:16px;border-bottom:2px solid #1686bd}h1{margin:0;font-size:21px;color:#12436a}header p{margin:6px 0 0;color:#647d91;font-size:11px}.periodo{text-align:right;color:#405f78;font-size:11px}table{width:100%;margin-top:18px;border-collapse:collapse;font-size:9px}th{padding:9px 7px;background:#eaf5fb;color:#24618a;text-align:left;text-transform:uppercase;font-size:8px;letter-spacing:.04em}td{padding:8px 7px;border-bottom:1px solid #dce8ef;vertical-align:top}td small{display:block;margin-top:3px;color:#698197}.sin-datos{text-align:center;padding:28px;color:#688096}.resumen{margin-top:12px;color:#647d91;font-size:10px}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+      </style></head><body><header><div><h1>Historial de atención · Emergencias</h1><p>Hospital María Esperanza · Registro de atenciones finalizadas</p></div><div class="periodo"><strong>Período seleccionado</strong><br>${escapar(fechaDesdeHistorial)} al ${escapar(fechaHastaHistorial)}</div></header><table><thead><tr><th>Cubículo</th><th>Paciente / documento</th><th>N.º HCL</th><th>Edad</th><th>Sexo</th><th>Hora de ingreso</th><th>Fecha de cierre</th><th>Médico de admisión</th></tr></thead><tbody>${filas || contenidoVacio}</tbody></table><p class="resumen">Atenciones incluidas: ${atencionesExportables.length}</p></body></html>`);
+    ventana.document.close();
+    window.setTimeout(() => {
+      ventana.focus();
+      ventana.print();
+    }, 250);
+    setModalExportarHistorial(false);
+    setErrorExportarHistorial("");
+  };
   const totalPaginas = Math.max(1, Math.ceil(visibles.length / 25)),
     paginaActual = Math.min(pagina, totalPaginas),
     cuentasPagina = visibles.slice((paginaActual - 1) * 25, paginaActual * 25);
@@ -1009,6 +1068,20 @@ export function TriajeEmergenciasView({
               >
                 <Icon name="refresh" size={18} /> Actualizar
               </button>
+              {subvista === "historial" && (
+                <button
+                  className="em-exportar-triaje"
+                  type="button"
+                  onClick={() => {
+                    setFechaDesdeHistorial("");
+                    setFechaHastaHistorial("");
+                    setErrorExportarHistorial("");
+                    setModalExportarHistorial(true);
+                  }}
+                >
+                  <Icon name="fileText" size={18} /> Exportar en PDF
+                </button>
+              )}
               {subvista === "atencion" && (
                 <button
                   className="em-primario"
@@ -1025,6 +1098,77 @@ export function TriajeEmergenciasView({
             </div>
           )}
         </header>
+      )}
+      {modalExportarHistorial && (
+        <div
+          className="em-modal-inicio"
+          role="presentation"
+          onMouseDown={(evento) => {
+            if (evento.target === evento.currentTarget)
+              setModalExportarHistorial(false);
+          }}
+        >
+          <form
+            className="em-panel em-exportar-triaje-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="em-exportar-triaje-titulo"
+            onSubmit={exportarHistorialPDF}
+          >
+            <header className="em-exportar-triaje-cabecera">
+              <div>
+                <span>REGISTRO DE ATENCIÓN</span>
+                <h3 id="em-exportar-triaje-titulo">Exportar en PDF</h3>
+                <p>Selecciona el período de las atenciones finalizadas que quieres incluir.</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Cerrar ventana"
+                onClick={() => setModalExportarHistorial(false)}
+              >
+                <Icon name="close" size={18} />
+              </button>
+            </header>
+            <div className="em-exportar-triaje-periodo">
+              <label>
+                Desde
+                <input
+                  type="date"
+                  required
+                  value={fechaDesdeHistorial}
+                  max={fechaHastaHistorial || undefined}
+                  onChange={(evento) => setFechaDesdeHistorial(evento.target.value)}
+                />
+              </label>
+              <label>
+                Hasta
+                <input
+                  type="date"
+                  required
+                  value={fechaHastaHistorial}
+                  min={fechaDesdeHistorial || undefined}
+                  onChange={(evento) => setFechaHastaHistorial(evento.target.value)}
+                />
+              </label>
+            </div>
+            {rangoHistorialValido && (
+              <p className="em-exportar-triaje-conteo" aria-live="polite">
+                Se incluirán {atencionesExportables.length} atenciones finalizadas.
+              </p>
+            )}
+            {errorExportarHistorial && (
+              <p className="em-exportar-triaje-error" role="alert">{errorExportarHistorial}</p>
+            )}
+            <footer className="em-exportar-triaje-pie">
+              <button type="button" onClick={() => setModalExportarHistorial(false)}>
+                Cancelar
+              </button>
+              <button className="em-primario" type="submit" disabled={!rangoHistorialValido}>
+                <Icon name="fileText" size={16} /> Exportar en PDF
+              </button>
+            </footer>
+          </form>
+        </div>
       )}
       {recepcion && (
         <header className="em-cabecera">

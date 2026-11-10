@@ -342,3 +342,353 @@
     justify-content: center;
   }
 }
+
+/* Ajustes finales para anchos estrechos, tablet y orientación apaisada. */
+.sistema-app {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.sistema-app .area-trabajo {
+  min-width: 0;
+  max-width: 100%;
+  overscroll-behavior-x: none;
+}
+
+.sistema-app :is(img, video, canvas, svg) {
+  max-width: 100%;
+}
+
+.sistema-app :is(input, select, textarea) {
+  min-width: 0;
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .sistema-app .area-trabajo {
+    padding-inline: clamp(12px, 2vw, 22px);
+  }
+
+  .sistema-app :is(.punto-pos-layout, .agenda-ambulatoria-tablero) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sistema-app :is(.punto-carrito, .agenda-lateral) {
+    position: static;
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .sistema-app {
+    overflow-x: clip;
+  }
+
+  .sistema-app .sistema-topbar {
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-right: max(8px, env(safe-area-inset-right));
+    padding-left: max(8px, env(safe-area-inset-left));
+  }
+
+  .sistema-app .area-trabajo {
+    width: 100%;
+    max-width: 100vw;
+    padding-right: max(12px, env(safe-area-inset-right)) !important;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left)) !important;
+  }
+
+  .sistema-app :is(.emergencias-vista, .triaje-vista, .recepcion-vista,
+    .consultorio-vista, .historias-listado, .signos-vista) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .sistema-app :is(.em-cabecera, .em-triaje-cabecera, .pagina-cabecera,
+    .recepcion-cabecera, .consultorio-cabecera, .laboratorio-cabecera,
+    .quirofano-cabecera, .config-signos-cabecera) {
+    min-width: 0;
+    gap: 12px;
+  }
+
+  .sistema-app :is(.em-triaje-cabecera-acciones, .em-medica-cabecera-acciones,
+    .cabecera-acciones, .acciones-cabecera) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .sistema-app :is(.em-triaje-cabecera-acciones, .em-medica-cabecera-acciones,
+    .cabecera-acciones, .acciones-cabecera) > button {
+    flex: 1 1 145px;
+    min-width: 0;
+    min-height: 44px;
+  }
+
+  .sistema-app :is(.em-panel, .panel, .tarjeta, .card) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  /* Las tablas mantienen sus columnas y se desplazan dentro de su propio marco. */
+  .sistema-app :is(.em-medica-layout > .em-cubiculos,
+    .tabla-scroll, .tabla-contenedor, .tabla-wrapper, .tabla-responsive,
+    .fi-tabla-wrap, .historias-tabla-contenedor, .roperia-tabla-scroll) {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sistema-app .em-medica-layout > .em-cubiculos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sistema-app :is(.em-lista-cabecera,
+    .em-medica-layout > .em-cubiculos > .em-cubiculo) {
+    width: max(100%, 760px);
+  }
+
+  /* Formularios pasan a una sola columna; campos y botones no fuerzan el ancho. */
+  .sistema-app :is(.form-grid, .em-form-grid, .em-inicio-datos,
+    .consulta-datos-personales, .consulta-signos-grid, .paciente-campos,
+    .usuario-campos, .fi-formulario, .config-signos-dos-campos) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sistema-app :is(.form-grid, .em-form-grid, .em-inicio-datos,
+    .consulta-datos-personales, .fi-formulario) > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .sistema-app :is(.modal-fondo, .orthanc-modal-fondo, .citas-modal-fondo,
+    .usuario-modal-fondo, .recepcion-internacion-fondo, .fi-modal-fondo,
+    .em-modal-inicio, .em-modal-orden) {
+    padding: max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+  }
+
+  .sistema-app :is(.modal-fondo > *, .orthanc-modal, .usuario-modal,
+    .citas-modal-fondo > *, .recepcion-internacion-modal, .fi-modal,
+    .em-inicio-atencion, .em-exportar-triaje-modal) {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .sistema-app .area-trabajo {
+    padding-right: max(9px, env(safe-area-inset-right)) !important;
+    padding-left: max(9px, env(safe-area-inset-left)) !important;
+  }
+
+  .sistema-app :is(.em-triaje-cabecera-acciones,
+    .em-medica-cabecera-acciones) {
+    width: 100%;
+  }
+
+  .sistema-app :is(.em-triaje-cabecera-acciones,
+    .em-medica-cabecera-acciones) > button {
+    flex-basis: 100%;
+    width: 100%;
+  }
+
+  .sistema-app :is(.em-exportar-triaje-pie, .em-medica-nueva > footer,
+    .modal-acciones) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sistema-app :is(.em-exportar-triaje-pie, .em-medica-nueva > footer,
+    .modal-acciones) > button {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .sistema-app :is(.em-exportar-triaje-cabecera, .em-inicio-cabecera) {
+    padding-inline: 16px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 540px) and (max-width: 900px) {
+  .sistema-app .area-trabajo {
+    padding-top: 96px !important;
+  }
+
+  .sistema-app :is(.em-inicio-atencion, .em-exportar-triaje-modal,
+    .punto-consulta-modal, .usuario-modal, .fi-modal) {
+    max-height: calc(100dvh - 12px);
+    overflow-y: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sistema-app *,
+  .sistema-app *::before,
+  .sistema-app *::after {
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Detalle de evolución médica: lectura serena y foco sin contorno nativo oscuro. */
+.sistema-app .internacion-nota-dialogo[open] {
+  width: min(760px, calc(100vw - 36px));
+  max-height: min(84dvh, 760px);
+  overflow: auto;
+  border: 1px solid #c9ddec;
+  border-radius: 18px;
+  outline: none;
+  color: #173f60;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(10, 39, 63, 0.26), 0 2px 8px rgba(10, 39, 63, 0.08);
+}
+
+.sistema-app .internacion-nota-dialogo::backdrop {
+  background: rgba(14, 43, 67, 0.56);
+  backdrop-filter: blur(4px);
+}
+
+.sistema-app .internacion-nota-dialogo > header {
+  align-items: center;
+  padding: 24px 30px 21px;
+  border-bottom: 1px solid #dce9f2;
+  background: linear-gradient(120deg, #f0f8fd 0%, #f8fcff 58%, #fff 100%);
+}
+
+.sistema-app .internacion-nota-dialogo > header span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #087caf;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+
+.sistema-app .internacion-nota-dialogo > header span::before {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22acd0;
+  box-shadow: 0 0 0 4px rgba(34, 172, 208, 0.12);
+  content: "";
+}
+
+.sistema-app .internacion-nota-dialogo > header h3 {
+  margin: 5px 0 2px;
+  color: #123f64;
+  font-size: clamp(21px, 2.6vw, 25px);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.sistema-app .internacion-nota-dialogo > header small {
+  display: block;
+  margin-top: 6px;
+  color: #64819a;
+  font-size: 13px;
+}
+
+.sistema-app .internacion-nota-dialogo > header button {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-color: #cbddeb;
+  border-radius: 11px;
+  color: #28577a;
+  background: rgba(255, 255, 255, 0.88);
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.sistema-app .internacion-nota-dialogo > header button:hover {
+  transform: translateY(-1px);
+  border-color: #83c6df;
+  color: #087caf;
+  background: #effaff;
+}
+
+.sistema-app .internacion-nota-contenido {
+  padding: 24px 30px 30px;
+}
+
+.sistema-app .internacion-nota-metadatos {
+  gap: 12px;
+}
+
+.sistema-app .internacion-nota-metadatos span {
+  gap: 7px;
+  padding: 15px 17px;
+  border-color: #d7e7f1;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #f3f9fd, #fbfdff);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.9);
+}
+
+.sistema-app .internacion-nota-metadatos small {
+  color: #6c879d;
+  font-size: 12px;
+}
+
+.sistema-app .internacion-nota-metadatos strong {
+  color: #174b70;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.sistema-app .internacion-nota-contenido h4 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 24px 0 11px;
+  color: #174b70;
+  font-size: 15px;
+}
+
+.sistema-app .internacion-nota-contenido h4::before {
+  width: 4px;
+  height: 18px;
+  border-radius: 99px;
+  background: linear-gradient(180deg, #0787c2, #39bbd8);
+  content: "";
+}
+
+.sistema-app .internacion-nota-contenido p {
+  min-height: 112px;
+  padding: 18px 19px;
+  border: 1px solid #d9e8f1;
+  border-left: 3px solid #18a4ce;
+  border-radius: 11px;
+  color: #294e69;
+  background: #fbfdff;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+@media (max-width: 600px) {
+  .sistema-app .internacion-nota-dialogo[open] {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+    border-radius: 16px;
+  }
+
+  .sistema-app .internacion-nota-dialogo > header {
+    padding: 19px 18px 17px;
+  }
+
+  .sistema-app .internacion-nota-contenido {
+    padding: 18px 18px 22px;
+  }
+
+  .sistema-app .internacion-nota-metadatos {
+    grid-template-columns: 1fr;
+  }
+}

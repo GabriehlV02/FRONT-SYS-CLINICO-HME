@@ -25,57 +25,7 @@ export type RegistroInternacion = {
 const clave = "hme:internaciones";
 const evento = "internacion:actualizada";
 let cache: RegistroInternacion[] | null = null;
-const ejemplosConfirmados: RegistroInternacion[] = [
-  {
-    id: "INT-DEMO-108B", paciente: "Luis Esteban Escobar Rocha", ci: "9392922", medico: "Dra. Valeria Quiroga", motivo: "Neumonía adquirida en comunidad", fecha: "04/11/2026", fechaIngreso: "04/11/2026", horaIngreso: "09:20", estado: "confirmada", sala: "108", cama: "B", tipoSala: "Sala compartida", servicio: "Medicina interna",
-    datosPaciente: { responsableNombre: "María Elena Rocha Vargas · Madre", responsableTelefono: "72014568", responsableCi: "4578921", responsableDireccion: "Zona Miraflores, La Paz" },
-  },
-  {
-    id: "INT-DEMO-204A", paciente: "Mariana Flores Cárdenas", ci: "7845126", medico: "Dr. Daniel Siles", motivo: "Control postoperatorio de colecistectomía", fecha: "05/11/2026", fechaIngreso: "05/11/2026", horaIngreso: "11:40", estado: "confirmada", sala: "204", cama: "A", tipoSala: "Sala quirúrgica", servicio: "Cirugía general",
-    datosPaciente: { responsableNombre: "Jorge Flores Cárdenas · Hermano", responsableTelefono: "76543210", responsableCi: "6123456", responsableDireccion: "Sopocachi, La Paz" },
-  },
-  {
-    id: "INT-DEMO-110A", paciente: "Carlos Andrés Mamani Quispe", ci: "6978314", medico: "Dra. Paula Ríos", motivo: "Descompensación diabética", fecha: "06/11/2026", fechaIngreso: "06/11/2026", horaIngreso: "07:55", estado: "confirmada", sala: "110", cama: "A", tipoSala: "Sala compartida", servicio: "Medicina interna",
-    datosPaciente: { responsableNombre: "Elena Quispe Choque · Esposa", responsableTelefono: "70128394", responsableCi: "5567812", responsableDireccion: "Villa Fátima, La Paz" },
-  },
-  {
-    id: "INT-DEMO-302C", paciente: "Sofía Belén Vargas Arce", ci: "8246153", medico: "Dr. Mauricio Fernández", motivo: "Observación por crisis asmática", fecha: "06/11/2026", fechaIngreso: "06/11/2026", horaIngreso: "14:10", estado: "confirmada", sala: "302", cama: "C", tipoSala: "Sala de observación", servicio: "Neumología",
-    datosPaciente: { responsableNombre: "Rosa Arce Vargas · Madre", responsableTelefono: "68923451", responsableCi: "4987612", responsableDireccion: "Obrajes, La Paz" },
-  },
-];
-
-export function obtenerEjemploPacienteEnfermeria(): RegistroInternacion {
-  const fecha = new Date().toLocaleDateString("es-BO");
-  return {
-    id: "INT-DEMO-PACIENTE-PRUEBA",
-    paciente: "Paciente de Prueba Consultorio Demo",
-    ci: "TEST-HME-2026-01",
-    medico: "Dra. Andrea Vargas",
-    motivo: "Registro de demostración",
-    fecha,
-    fechaIngreso: fecha,
-    horaIngreso: "09:30",
-    estado: "confirmada",
-    sala: "101",
-    cama: "A",
-    tipoSala: "Sala compartida",
-    servicio: "Medicina interna",
-    origen: "Demostración",
-    datosPaciente: {
-      nacimiento: "1990-01-15",
-      sexo: "Femenino",
-      responsableNombre: "Familiar de prueba",
-      responsableTelefono: "",
-    },
-  };
-}
-
-export function obtenerEjemplosInternacion(): RegistroInternacion[] {
-  return ejemplosConfirmados.map((registro) => ({
-    ...registro,
-    datosPaciente: { ...registro.datosPaciente },
-  }));
-}
+export function obtenerEjemplosInternacion(): RegistroInternacion[] { return []; }
 
 function disponible() {
   return typeof window !== "undefined";

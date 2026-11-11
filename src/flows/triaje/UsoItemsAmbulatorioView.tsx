@@ -1,4 +1,4 @@
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Icon from "../../radius/componentes/Icono";
 import {
   obtenerMovimientosItems,
@@ -72,7 +72,8 @@ export function UsoItemsAmbulatorioView() {
   const [tipo, setTipo] = useState("Todos");
   const [registrando, setRegistrando] = useState(false);
   const [buscarCatalogo, setBuscarCatalogo] = useState("");
-  const [seleccionados, setSeleccionados] = useState<string[]>([]);
+  const [itemSeleccionado, setItemSeleccionado] = useState<ItemCatalogo | null>(null);
+  const buscadorCatalogo = useRef<HTMLInputElement>(null);
   const [consultorioDestino, setConsultorioDestino] = useState("");
   const [medicoDestino, setMedicoDestino] = useState("");
   const [justificacion, setJustificacion] = useState("");
@@ -107,24 +108,25 @@ export function UsoItemsAmbulatorioView() {
   );
   const agregarDescargo = () => {
     if (
-      !seleccionados.length ||
+      !itemSeleccionado ||
       !consultorioDestino ||
       !medicoDestino ||
       !justificacion.trim()
     )
       return;
-    const nuevos = catalogoItems
-      .filter((item) => seleccionados.includes(item.id))
-      .map((item) => ({
-        ...item,
-        estado: "Pendiente" as const,
-        consultorio: consultorioDestino,
-        medico: medicoDestino,
-        justificacion: justificacion.trim(),
-      }));
-    setPendientes((actual) => [...actual, ...nuevos]);
-    setSeleccionados([]);
+    setPendientes((actual) => [...actual, {
+      ...itemSeleccionado,
+      estado: "Pendiente",
+      consultorio: consultorioDestino,
+      medico: medicoDestino,
+      justificacion: justificacion.trim(),
+    }]);
+    setItemSeleccionado(null);
+    setBuscarCatalogo("");
+    setConsultorioDestino("");
+    setMedicoDestino("");
     setJustificacion("");
+    buscadorCatalogo.current?.focus();
   };
 
   return (
@@ -303,7 +305,7 @@ export function UsoItemsAmbulatorioView() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(0, .9fr) minmax(320px, 1.1fr)",
+                gridTemplateColumns: "minmax(0, 1fr)",
                 gap: 20,
                 padding: 22,
               }}
@@ -323,13 +325,15 @@ export function UsoItemsAmbulatorioView() {
                 >
                   <Icon name="search" size={16} />
                   <input
+                    ref={buscadorCatalogo}
+                    aria-label="Buscar ítem o código"
                     value={buscarCatalogo}
                     onChange={(e) => setBuscarCatalogo(e.target.value)}
                     placeholder="Buscar ítem o código"
                     style={{ width: "100%", height: 38, border: 0, outline: 0 }}
                   />
                 </label>
-                <div
+                {!itemSeleccionado && buscarCatalogo.trim() && <div
                   style={{
                     border: "1px solid var(--border)",
                     borderRadius: 9,
@@ -338,40 +342,28 @@ export function UsoItemsAmbulatorioView() {
                   }}
                 >
                   {catalogoVisible.map((item) => (
-                    <label
+                    <button
+                      type="button"
+                      className="descargo-resultado"
                       key={item.id}
-                      style={{
-                        display: "flex",
-                        gap: 10,
-                        alignItems: "center",
-                        padding: "11px 12px",
-                        borderBottom: "1px solid var(--border)",
-                        cursor: "pointer",
+                      onClick={() => {
+                        setItemSeleccionado(item);
+                        setBuscarCatalogo(item.nombre);
+                        setConsultorioDestino("");
+                        setMedicoDestino("");
+                        setJustificacion("");
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={seleccionados.includes(item.id)}
-                        onChange={(e) =>
-                          setSeleccionados((actual) =>
-                            e.target.checked
-                              ? [...actual, item.id]
-                              : actual.filter((id) => id !== item.id),
-                          )
-                        }
-                      />
-                      <span>
-                        <strong>{item.nombre}</strong>
-                        <small style={{ display: "block", color: "var(--muted)" }}>
-                          {item.codigo} · {item.unidad}
-                        </small>
-                      </span>
-                    </label>
+                      <span className="descargo-resultado-nombre">{item.nombre}</span>
+                      <span className="descargo-resultado-detalle">{item.codigo} · {item.unidad}</span>
+                    </button>
                   ))}
-                </div>
+                  {!catalogoVisible.length && <p role="status">No se encontraron ítems.</p>}
+                </div>}
               </section>
-              <section>
-                <strong>2. Justificar descargo</strong>
+              {itemSeleccionado && <section>
+                <strong>{itemSeleccionado.nombre}</strong>
+                <button type="button" onClick={() => setItemSeleccionado(null)}>Cambiar ítem</button>
                 <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
                   <label>
                     Consultorio
@@ -398,7 +390,7 @@ export function UsoItemsAmbulatorioView() {
                     </select>
                   </label>
                   <label>
-                    Justificación
+                    Observación
                     <textarea
                       value={justificacion}
                       onChange={(e) => setJustificacion(e.target.value)}
@@ -409,7 +401,7 @@ export function UsoItemsAmbulatorioView() {
                     type="button"
                     className="boton-principal"
                     disabled={
-                      !seleccionados.length ||
+                      !itemSeleccionado ||
                       !consultorioDestino ||
                       !medicoDestino ||
                       !justificacion.trim()
@@ -429,7 +421,7 @@ export function UsoItemsAmbulatorioView() {
                     Añadir a la lista
                   </button>
                 </div>
-              </section>
+              </section>}
             </div>
             <section
               style={{
@@ -457,7 +449,7 @@ export function UsoItemsAmbulatorioView() {
                     <th>Ítem</th>
                     <th>Consultorio</th>
                     <th>Médico</th>
-                    <th>Justificación</th>
+                    <th>Observación</th>
                     <th>Estado</th>
                   </tr>
                 </thead>

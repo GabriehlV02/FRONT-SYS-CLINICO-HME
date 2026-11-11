@@ -5,7 +5,6 @@ import Icon from "../../radius/componentes/Icono";
 import {
   camaDisponible,
   confirmarInternacion,
-  obtenerEjemploPacienteEnfermeria,
   leerInternaciones,
   suscribirInternaciones,
   type RegistroInternacion,
@@ -17,10 +16,7 @@ type Subvista = "internados" | "altas";
 
 export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   const registros = useInternacionesVinculadas();
-  const registrosVista =
-    subvista === "internados" && registros.length === 0
-      ? [obtenerEjemploPacienteEnfermeria()]
-      : registros;
+  const registrosVista = registros;
   const [seleccionada, setSeleccionada] = useState<RegistroInternacion | null>(
     null,
   );

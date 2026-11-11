@@ -167,10 +167,7 @@ export function BuscadorPacienteInternacion({
         </div>
       )}
       <div className="internacion-buscador-pie">
-        <small>
-          {aviso ||
-            "Busca por nombre, apellidos o CI y selecciona un paciente para cargar sus datos."}
-        </small>
+        {aviso && <small>{aviso}</small>}
         <button type="button" onClick={() => setRegistrando(true)}>
           <Icon name="plus" size={16} /> Registrar nuevo paciente
         </button>

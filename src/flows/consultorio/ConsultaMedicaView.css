@@ -2404,3 +2404,22 @@ body:has(.consulta-cabecera-fija),
     border-left: 0;
   }
 }
+.sistema-app .area-trabajo .consulta-volver-listado-fila .consulta-volver-listado {
+  color: #b42318;
+  border-color: #f0aaa5;
+  background: #fff5f4;
+  box-shadow: 0 3px 10px #b4231812;
+}
+.sistema-app .area-trabajo .consulta-volver-listado svg {
+  color: #fff;
+  background: #d92d20;
+}
+.sistema-app .area-trabajo .consulta-volver-listado-fila .consulta-volver-listado:hover {
+  color: #912018;
+  border-color: #e76a60;
+  background: #fee4e2;
+}
+.sistema-app .area-trabajo .consulta-volver-listado:focus-visible {
+  outline: 3px solid #fda29b;
+  outline-offset: 3px;
+}

@@ -4239,8 +4239,8 @@
   .em-exportar-triaje-pie { padding-inline: 20px; }
   .em-exportar-triaje-pie button { flex: 1; }
 }
-.em-inicio-atencion.em-panel {
-  width: min(1100px, 100%);
+.sistema-app .em-inicio-atencion.em-panel {
+  width: min(960px, 100%);
   padding: 0;
   overflow: hidden auto;
   border: 1px solid #b9d8e9;
@@ -4387,4 +4387,66 @@
   .em-inicio-atencion > .em-acompanante-toggle,
   .em-inicio-atencion > .em-acciones,
   .em-inicio-atencion > .em-error-cubiculo { margin-right: 18px; margin-left: 18px; }
+}
+/* Presentación compacta del ingreso de emergencias. */
+.sistema-app .em-inicio-atencion .em-inicio-cabecera {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  padding: 24px 28px;
+}
+.sistema-app .em-inicio-atencion .em-inicio-cabecera > div:first-child { padding-right: 36px; }
+.sistema-app .em-inicio-atencion .em-inicio-cabecera h3 { font-size: 22px; font-weight: 650; }
+.sistema-app .em-inicio-atencion .em-inicio-cabecera small { max-width: 680px; font-size: 13px; }
+.sistema-app .em-inicio-atencion .em-selector-cubiculo > button { width: 100%; min-height: 46px; font-size: 14px; font-weight: 600; }
+.sistema-app .em-inicio-atencion > .em-fecha-hora-ingreso { gap: 16px; padding: 20px 0 8px; }
+.sistema-app .em-inicio-atencion > .em-fecha-hora-ingreso label { display: flex; flex-direction: column; gap: 6px; padding: 0; border: 0; background: transparent; font-size: 12px; font-weight: 500; }
+.sistema-app .em-inicio-atencion > .em-fecha-hora-ingreso input { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #cddfea; border-radius: 9px; background: #fff; font-size: 14px; font-weight: 500; }
+.sistema-app .em-inicio-atencion > .em-datos-iniciales { margin-top: 16px; padding: 18px; background: #f9fcfe; }
+.sistema-app .em-inicio-atencion .internacion-buscador > label { font-size: 13px; font-weight: 500; }
+.sistema-app .em-inicio-atencion .internacion-buscador-control { position: relative; display: flex; align-items: center; }
+.sistema-app .em-inicio-atencion .internacion-buscador-control > svg { position: absolute; left: 13px; pointer-events: none; color: #66879f; }
+.sistema-app .em-inicio-atencion .internacion-buscador-control input { width: 100%; min-height: 46px; padding: 10px 14px 10px 40px; border: 1px solid #cddfea; border-radius: 9px; background: #fff; font-size: 14px; font-weight: 400; }
+.sistema-app .em-inicio-atencion .internacion-buscador-pie { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.sistema-app .em-inicio-atencion .internacion-buscador-pie button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border: 1px solid #cddfea; border-radius: 8px; background: #fff; color: #17638d; font-size: 13px; font-weight: 500; }
+.sistema-app .em-inicio-atencion .em-paciente-sin-identificar { margin: 14px 0 0; padding: 10px 12px; border: 0; border-left: 3px solid #8bcbe6; border-radius: 5px; background: #eef7fc; font-size: 12px; line-height: 1.5; }
+.sistema-app .em-inicio-atencion .em-acompanante-toggle button { display: inline-flex; align-items: center; gap: 7px; background: #f4f9fc; color: #17638d; box-shadow: none; font-size: 13px; font-weight: 500; }
+.sistema-app .em-inicio-atencion > .em-acciones { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 0; }
+.sistema-app .em-inicio-atencion :is(input, button):focus-visible { outline: 3px solid #80c9ec; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .sistema-app .em-inicio-atencion .em-inicio-cabecera { padding: 20px 18px; }
+  .sistema-app .em-inicio-atencion > .em-fecha-hora-ingreso { grid-template-columns: 1fr 1fr; }
+  .sistema-app .em-inicio-atencion .em-inicio-cabecera h3 { font-size: 19px; }
+}
+@media (max-width: 420px) {
+  .sistema-app .em-inicio-atencion > .em-fecha-hora-ingreso { grid-template-columns: 1fr; }
+  .sistema-app .em-inicio-atencion > .em-acciones button { flex: 1; }
+}
+.sistema-app .em-inicio-atencion .internacion-buscador {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 12px;
+}
+.sistema-app .em-inicio-atencion .internacion-buscador > label {
+  grid-column: 1 / -1;
+}
+.sistema-app .em-inicio-atencion .internacion-buscador-control {
+  grid-column: 1;
+  min-width: 0;
+}
+.sistema-app .em-inicio-atencion .internacion-buscador-pie {
+  grid-column: 2;
+  grid-row: 2;
+  margin-top: 0;
+}
+.sistema-app .em-inicio-atencion .internacion-buscador-pie button {
+  min-height: 46px;
+  white-space: nowrap;
+}
+.sistema-app .em-inicio-atencion .internacion-buscador-resultados {
+  grid-column: 1 / -1;
+}
+@media (max-width: 600px) {
+  .sistema-app .em-inicio-atencion .internacion-buscador { grid-template-columns: minmax(0, 1fr); }
+  .sistema-app .em-inicio-atencion .internacion-buscador-pie { grid-column: 1; grid-row: auto; }
 }

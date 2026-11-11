@@ -171,3 +171,26 @@
     overflow-x: auto;
   }
 }
+.sistema-app .uso-items-modal .descargo-resultado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  width: 100%;
+  min-height: 62px;
+  margin: 0;
+  padding: 12px 16px;
+  border: 0;
+  border-bottom: 1px solid #e5edf3;
+  border-radius: 0;
+  background: #fff;
+  color: #244f6b;
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+}
+.sistema-app .uso-items-modal .descargo-resultado:hover { background: #eef8fd; }
+.sistema-app .uso-items-modal .descargo-resultado:focus-visible { outline: 2px solid #0788bd; outline-offset: -2px; background: #eef8fd; }
+.sistema-app .uso-items-modal .descargo-resultado-nombre { font-size: 14px; font-weight: 500; line-height: 1.4; }
+.sistema-app .uso-items-modal .descargo-resultado-detalle { font-size: 12px; font-weight: 400; color: #6d8496; line-height: 1.4; }

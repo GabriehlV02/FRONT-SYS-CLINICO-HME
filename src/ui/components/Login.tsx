@@ -38,7 +38,7 @@ export function Login({
       permissions: [],
     };
 
-    if (config.id === "contable") {
+    {
       try {
         const response = await fetch("/api/login", {
           method: "POST",
@@ -61,7 +61,7 @@ export function Login({
             : [],
         };
       } catch {
-        setError("No se pudo conectar con el servidor contable.");
+        setError("No se pudo conectar con el servidor.");
         return;
       } finally {
         setLoading(false);
@@ -169,22 +169,7 @@ export function Login({
       <div className="login-seguro">
         <Icon name="check" size={16} /> Sesion protegida · Expira tras 6 horas
       </div>
-      {config.id !== "contable" && (
-        <div className="demo-access">
-          <button
-            type="button"
-            onClick={() =>
-              onLogin({ user: "demo", role: config.role, permissions: [] })
-            }
-          >
-            Entrar en modo demostracion <Icon name="arrowRight" size={14} />
-          </button>
-          <p>
-            Puedes usar cualquier usuario y una contrasena de{" "}
-            {minimumPasswordLength} caracteres o mas.
-          </p>
-        </div>
-      )}
+
     </form>
   );
 

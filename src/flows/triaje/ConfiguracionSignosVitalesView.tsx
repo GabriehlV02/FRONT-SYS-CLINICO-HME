@@ -419,17 +419,6 @@ function EditorSignosVitalesView({
       className="config-signos"
       aria-label="Configuración de signos vitales"
     >
-      <header className="config-signos-cabecera">
-        <div>
-          <p>CONFIGURACIÓN DE TRIAJE</p>
-          <h2>Signos vitales</h2>
-          <small>
-            Define los campos disponibles al registrar la valoración del
-            paciente.
-          </small>
-        </div>
-        <span>{signos.length} campos activos</span>
-      </header>
       <div className="config-signos-distribucion">
         <dialog
           ref={modal}
@@ -938,9 +927,6 @@ export function ConfiguracionSignosVitalesView({
         <UnidadesMedidaView catalogo={catalogoUnidades} />
       ) : vistaConfiguracion === "signos" ? (
         <>
-          <header>
-            <h2>Signos vitales</h2>
-          </header>
           <EditorSignosVitalesView
             signos={signos}
             onChange={onChange}

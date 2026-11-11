@@ -418,16 +418,7 @@ export function RegistroEnfermeriaTerapiaView() {
       </section>
     );
   return (
-    <section className="uci-registro" aria-labelledby="uci-registro-titulo">
-      <header>
-        <div>
-          <p>TERAPIA INTENSIVA</p>
-          <h2 id="uci-registro-titulo">Registro de enfermería</h2>
-          <small>
-            Selecciona un paciente para registrar los cuidados de enfermería.
-          </small>
-        </div>
-      </header>
+    <section className="uci-registro" aria-label="Registro de enfermería de terapia intensiva">
       <label className="uci-registro-buscar">
         <Icon name="search" size={16} />
         <input

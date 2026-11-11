@@ -126,6 +126,43 @@ const episodioAna: EpisodioClinico = {
   actualizadoEn: "2026-10-12T09:45:00-04:00",
   finalizadaEn: "2026-10-12T09:45:00-04:00",
 };
+const historialUciDemo: EpisodioClinico[] = [
+  {
+    episodioId: "TEST-UCI-20261111-1",
+    origenId: "demo:historia-uci:ingreso-20261111",
+    correlativo: 1,
+    tipo: "Terapia intensiva",
+    paciente: {
+      id: "demo-pac-uci-prueba",
+      paciente: "Paciente de prueba Unidad UCI Demo",
+      ci: "TEST-UCI-20261111",
+      doctor: "Equipo UCI Demo",
+      especialidad: "Terapia intensiva",
+      fecha: "2026-11-11",
+      hora: "08:00",
+    },
+    medico: "Equipo UCI Demo",
+    fecha: "2026-11-11",
+    motivo: "Ingreso de demostración para seguimiento en UCI",
+    enfermedadActual: "Caso ficticio para practicar el registro de ingreso y la vigilancia de enfermería. No corresponde a una atención real.",
+    examenFisico: "Evaluación simulada: paciente consciente, orientado y sin dificultad respiratoria.",
+    antecedentes: "Datos de prueba. Sin antecedentes ni alergias consignados en este escenario.",
+    notas: "HISTORIAL DE DEMOSTRACIÓN. Registro ficticio de ingreso, valoración inicial y seguimiento del turno.",
+    signosVitales: {
+      presionArterial: "118/76 mmHg",
+      frecuenciaCardiaca: "80 lpm",
+      frecuenciaRespiratoria: "18 rpm",
+      temperatura: "36.7 °C",
+      saturacionAmbiente: "98 %",
+    },
+    recetas: [],
+    ordenes: [{ tipo: "Cuidados de enfermería (demo)", detalle: "Ejemplo ficticio de valoración inicial y registro de evolución del turno.", estado: "Registrada" }],
+    resultados: [{ tipo: "Evolución de enfermería (demo)", detalle: "Control simulado del turno: sin cambios respecto de la valoración inicial.", estado: "Registrado" }],
+    reconsultas: [],
+    actualizadoEn: "2026-11-11T12:00:00-04:00",
+    atendidaEn: "2026-11-11T08:00:00-04:00",
+  },
+];
 const cargar = (): EpisodioClinico[] => {
   try {
     const guardados = JSON.parse(
@@ -134,6 +171,11 @@ const cargar = (): EpisodioClinico[] => {
     const completos = guardados.filter(
       (episodio) => episodio.origenId !== episodioAna.origenId,
     );
+    for (const ejemplo of historialUciDemo) {
+      if (!completos.some((episodio) => episodio.origenId === ejemplo.origenId)) {
+        completos.push(ejemplo);
+      }
+    }
     localStorage.setItem(CLAVE, JSON.stringify(completos));
     return completos;
   } catch {

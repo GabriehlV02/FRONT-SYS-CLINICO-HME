@@ -848,7 +848,7 @@ export function ConsultaMedicaView({
                     <p role="status">Cargando valoración de la consulta…</p>
                   )}
                   {errorValoracion && <p role="alert">{errorValoracion}</p>}
-                  {(conflictoValoracion || cargaValoracionFallida) && (
+                  {conflictoValoracion && (
                     <button
                       className="secundario consulta-signos-recargar"
                       type="button"
@@ -857,9 +857,7 @@ export function ConsultaMedicaView({
                         setRecargaValoracion((actual) => actual + 1);
                       }}
                     >
-                      {conflictoValoracion
-                        ? "Descartar cambios y cargar versión actual"
-                        : "Reintentar carga"}
+                      Descartar cambios y cargar versión actual
                     </button>
                   )}
                   {mensajeValoracion && (
@@ -915,9 +913,7 @@ export function ConsultaMedicaView({
                               consulta.
                             </p>
                           )}
-                        {mostrarFormulario &&
-                          !cargandoValoracion &&
-                          !cargaValoracionFallida && (
+                        {mostrarFormulario && (
                             <>
                               <div className="consulta-signos-form">
                                 {campos.map(
@@ -986,6 +982,8 @@ export function ConsultaMedicaView({
                                 type="button"
                                 disabled={
                                   guardandoValoracion ||
+                                  cargandoValoracion ||
+                                  cargaValoracionFallida ||
                                   conflictoValoracion ||
                                   !campos.length
                                 }

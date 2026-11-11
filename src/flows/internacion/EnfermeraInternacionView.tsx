@@ -139,25 +139,15 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
             </button>
           )}
         </div>
-        <div className="internacion-listado-titulo">
-          <div>
-            <p>
-              {subvista === "internados"
-                ? "PACIENTES INTERNADOS"
-                : "ALTAS HOSPITALARIAS"}
-            </p>
-            <h3>
-              {subvista === "internados"
-                ? "Listado de sala y cama"
-                : "Pacientes dados de alta este mes"}
-            </h3>
+        {subvista === "altas" && (
+          <div className="internacion-listado-titulo">
+            <div>
+              <p>ALTAS HOSPITALARIAS</p>
+              <h3>Pacientes dados de alta este mes</h3>
+            </div>
+            <small>Historial cl?nico de altas confirmadas.</small>
           </div>
-          <small>
-            {subvista === "internados"
-              ? "La cuenta se habilita al confirmar el ingreso."
-              : "Historial clínico de altas confirmadas."}
-          </small>
-        </div>
+        )}
         {subvista === "internados" && pacientesFiltrados.length > 0 && (
           <div className="internacion-tabla-cabecera">
             <span>SALA</span>

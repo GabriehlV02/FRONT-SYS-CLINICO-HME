@@ -259,7 +259,6 @@ export function AgendaAmbulatoriaView({
                 </time>
                 <div>
                   <strong>{cita.paciente}</strong>
-                  <small>CI {cita.ci}</small>
                 </div>
                 <div className="agenda-medico">
                   <strong>{cita.especialidad || "Consulta ambulatoria"}</strong>

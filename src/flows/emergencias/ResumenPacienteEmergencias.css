@@ -1,0 +1,60 @@
+.sistema-app .em-trabajo > .em-resumen:has(.em-resumen-identidad) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  align-items: stretch;
+  gap: 28px;
+  padding: 24px !important;
+  border: 1px solid #d8e5ed !important;
+  border-top: 1px solid #d8e5ed !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 5px 22px rgb(20 62 87 / 5%) !important;
+}
+.sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad { display: grid; gap: 18px; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, .7fr)); gap: 24px; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila > div,
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila small { color: #6b8192; font-size: 11px; font-weight: 500; letter-spacing: .01em; text-transform: none; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila strong { color: #24465f; font-size: 14px; font-weight: 500; line-height: 1.45; overflow-wrap: anywhere; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child strong { color: #143d59; font-size: clamp(18px, 1.5vw, 23px); font-weight: 650; line-height: 1.35; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); padding-top: 16px; border-top: 1px solid #edf2f6; }
+.sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 14px 18px; border: 1px solid #e0edf4; border-radius: 11px; background: #f4f9fc; }
+.sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores > div:first-child { border: 0; background: transparent; }
+.sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores > div + div { padding-left: 22px; border-left: 1px solid #dce8ef; }
+
+.sistema-app .em-trabajo > .em-resumen > .em-total-acciones { display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; gap: 10px; min-width: 0; padding-left: 24px; border-left: 1px solid #e5edf3; }
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100% !important; min-height: 44px; min-width: 0; padding: 10px 12px; border-radius: 9px; font-size: 12px !important; font-weight: 600; line-height: 1.35; box-shadow: none; }
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-liberar-cobrar { border: 1px solid #087eb4; color: #fff; background: #087eb4; }
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-resumen-editar { border: 1px solid #cbdfe9; color: #17678e; background: #fff; }
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones button:hover:not(:disabled) { box-shadow: none; transform: none; filter: brightness(.97); }
+@media (max-width: 1000px) {
+  .sistema-app .em-trabajo > .em-resumen:has(.em-resumen-identidad) { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .sistema-app .em-trabajo > .em-resumen > .em-total-acciones { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 16px 0 0; border-left: 0; border-top: 1px solid #e5edf3; }
+}
+@media (max-width: 550px) {
+  .sistema-app .em-trabajo > .em-resumen:has(.em-resumen-identidad) { padding: 18px !important; }
+  .sistema-app .em-trabajo > .em-resumen .em-identidad-fila { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .sistema-app .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child { grid-column: 1 / -1; }
+  .sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar { grid-template-columns: minmax(0, 1fr); }
+  .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 14px; gap: 14px; }
+
+  .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores > div + div { padding: 0; border: 0; }
+}
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido { display: grid; gap: 6px; margin-bottom: 4px; padding: 14px; border: 1px solid #e0edf4; border-radius: 10px; background: #f4f9fc; }
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido small { color: #6b8192; font-size: 11px; font-weight: 500; text-transform: none; }
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido strong { color: #087bb2; font-size: 23px; font-weight: 650; line-height: 1.3; font-variant-numeric: tabular-nums; }
+@media (max-width: 1000px) {
+  .sistema-app .em-trabajo > .em-resumen .em-total-consumido { grid-column: 1 / -1; }
+}

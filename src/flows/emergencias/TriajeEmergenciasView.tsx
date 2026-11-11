@@ -10,6 +10,8 @@ import Icon from "../../radius/componentes/Icono";
 import { HorizontalSubvistaNav } from "../../ui/components/HorizontalSubvistaNav";
 import "./TriajeEmergenciasView.css";
 import "./TriajeEmergenciasCompacto.css";
+import "./ResumenPacienteEmergencias.css";
+import "./EditarPacienteEmergencias.css";
 import { cubiculosEmergencias, nombreCubiculo } from "./cubiculos";
 import { OrdenesEmergencias } from "./OrdenesEmergencias";
 import {
@@ -579,7 +581,7 @@ export function TriajeEmergenciasView({
 }) {
   const [seccionClinica, setSeccionClinica] = useState<
     "paciente" | "ingreso" | "signos" | "examen" | "descargos"
-  >("paciente");
+  >("ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
     [activa, setActiva] = useState("");
   const [cargando, setCargando] = useState(true),
@@ -719,7 +721,7 @@ export function TriajeEmergenciasView({
   }, [nueva]);
   function seleccionar(id: string) {
     setActiva(id);
-    setSeccionClinica("paciente");
+    setSeccionClinica("ingreso");
     setIdentidad(null);
     setEditarSignos(false);
     setValores({});
@@ -730,7 +732,7 @@ export function TriajeEmergenciasView({
   }
   function salirDeAtencion() {
     setActiva("");
-    setSeccionClinica("paciente");
+    setSeccionClinica("ingreso");
     setIdentidad(null);
     setEditarSignos(false);
     setValores({});
@@ -825,7 +827,7 @@ export function TriajeEmergenciasView({
       setSelectorCubiculoAbierto(false);
       setDatosIniciales({});
       setMostrarAcompanante(false);
-      setSeccionClinica("paciente");
+      setSeccionClinica("ingreso");
       setIdentidad(null);
       setValores({});
       setObservacion("");
@@ -912,7 +914,7 @@ export function TriajeEmergenciasView({
   }
   function abrirDatosPaciente() {
     if (!cuenta) return;
-    setSeccionClinica("paciente");
+    setSeccionClinica("ingreso");
     const guardada = cuenta.identidad || {};
     const apellidos = (guardada.apellidos || "").trim().split(/\s+/).filter(Boolean);
     const sexo = guardada.sexo?.toLocaleLowerCase("es");
@@ -1720,10 +1722,6 @@ export function TriajeEmergenciasView({
                   </div>
                   <div className="em-identidad-fila em-cuenta-indicadores">
                     <div>
-                      <small>Total consumido</small>
-                      <strong>{dinero(total)}</strong>
-                    </div>
-                    <div>
                       <small>Cubículo</small>
                       <strong>{nombreCubiculo(cuenta.cubiculo)}</strong>
                     </div>
@@ -1734,6 +1732,10 @@ export function TriajeEmergenciasView({
                   </div>
                 </div>
                 <div className="em-total-acciones">
+                  <div className="em-total-consumido">
+                    <small>Total consumido</small>
+                    <strong>{dinero(total)}</strong>
+                  </div>
                   {!recepcion && !cuenta.fin && (
                     <button
                       className="em-liberar-cobrar"
@@ -1807,7 +1809,7 @@ export function TriajeEmergenciasView({
                   </div>
                 </>
               )}
-              {(recepcion || seccionClinica === "paciente") && (
+              {(recepcion || identidad || seccionClinica === "ingreso") && (
                 <div
                   className={identidad && !recepcion ? "em-identidad-modal-fondo" : "em-identidad-enlinea"}
                   onMouseDown={(evento) => {
@@ -2059,384 +2061,23 @@ export function TriajeEmergenciasView({
                   >
                     <button
                       type="button"
+                      className={seccionClinica === "ingreso" ? "activo" : ""}
+                      aria-current={seccionClinica === "ingreso" ? "page" : undefined}
+                      onClick={() => setSeccionClinica("ingreso")}
+                    >
+                      Ingreso del paciente
+                    </button>
+                    <button
+                      type="button"
                       className={seccionClinica === "paciente" ? "activo" : ""}
                       aria-current={
                         seccionClinica === "paciente" ? "page" : undefined
                       }
                       onClick={() => setSeccionClinica("paciente")}
                     >
-                      <span>1</span>Atención del paciente
-                    </button>
-                    <button
-                      type="button"
-                      className={seccionClinica === "ingreso" ? "activo" : ""}
-                      aria-current={
-                        seccionClinica === "ingreso" ? "page" : undefined
-                      }
-                      onClick={() => setSeccionClinica("ingreso")}
-                    >
-                      <span>2</span>Registro de ingreso
-                    </button>
-                    <button
-                      type="button"
-                      className={seccionClinica === "signos" ? "activo" : ""}
-                      aria-current={
-                        seccionClinica === "signos" ? "page" : undefined
-                      }
-                      onClick={() => setSeccionClinica("signos")}
-                    >
-                      <span>3</span>Signos vitales
-                    </button>
-                    <button
-                      type="button"
-                      className={seccionClinica === "examen" ? "activo" : ""}
-                      aria-current={
-                        seccionClinica === "examen" ? "page" : undefined
-                      }
-                      onClick={() => setSeccionClinica("examen")}
-                    >
-                      <span>4</span>Examen físico regional
-                    </button>
-                    <button
-                      type="button"
-                      className={seccionClinica === "descargos" ? "activo" : ""}
-                      aria-current={
-                        seccionClinica === "descargos" ? "page" : undefined
-                      }
-                      onClick={() => setSeccionClinica("descargos")}
-                    >
-                      <span>5</span>Descargos y aplicaciones
+                      Atención del paciente
                     </button>
                   </nav>
-                  {seccionClinica === "paciente" && (
-                    <div className="em-paciente-flujo">
-                      <div className="em-paciente-registros">
-                        <section className="em-panel em-registro-clinico">
-                          <header className="em-panel-titulo">
-                            <div>
-                              <h3>Órdenes médicas</h3>
-                              <small>
-                                Indicaciones prescritas por el médico para esta
-                                atención.
-                              </small>
-                            </div>
-                            <span>{(cuenta.ordenes || []).length}</span>
-                          </header>
-                          {cuenta.ordenes?.length ? (
-                            <div className="em-registro-lista">
-                              {[...cuenta.ordenes].reverse().map((orden) => (
-                                <article key={orden.id}>
-                                  <div className="em-registro-lista-cabecera">
-                                    <strong>{orden.titulo}</strong>
-                                    <span>
-                                      {orden.estado === "pendiente"
-                                        ? "Pendiente"
-                                        : orden.estado === "en_curso"
-                                          ? "En curso"
-                                          : orden.estado === "aplicada"
-                                            ? "Aplicada"
-                                            : "Cancelada"}
-                                    </span>
-                                  </div>
-                                  <small>
-                                    {orden.tipo} · {fecha(orden.fecha)} ·{" "}
-                                    {orden.usuario}
-                                  </small>
-                                  {orden.indicaciones && (
-                                    <p>{orden.indicaciones}</p>
-                                  )}
-                                  <div className="em-orden-detalle">
-                                    {[
-                                      orden.dosis,
-                                      orden.via,
-                                      orden.frecuencia,
-                                      orden.duracion,
-                                    ]
-                                      .filter(Boolean)
-                                      .join(" · ")}
-                                  </div>
-                                </article>
-                              ))}
-                            </div>
-                          ) : (
-                            <p className="em-registro-vacio">
-                              No hay órdenes médicas registradas para esta
-                              atención.
-                            </p>
-                          )}
-                        </section>
-                        <section className="em-panel em-registro-clinico">
-                          <header className="em-panel-titulo">
-                            <div>
-                              <h3>Registro de uso de enfermería</h3>
-                              <small>
-                                Documenta cuidados, procedimientos o insumos
-                                realizados sin orden médica.
-                              </small>
-                            </div>
-                            <span>
-                              {cuenta.registrosEnfermeria?.length || 0}
-                            </span>
-                          </header>
-                          {!cuenta.fin && (
-                            <form
-                              className="em-uso-form"
-                              onSubmit={registrarUsoEnfermeria}
-                            >
-                              <label>
-                                Tipo de registro
-                                <select
-                                  required
-                                  value={usoTipo}
-                                  onChange={(evento) =>
-                                    setUsoTipo(
-                                      evento.target
-                                        .value as RegistroEnfermeria["tipo"],
-                                    )
-                                  }
-                                >
-                                  <option value="cuidado">Cuidado</option>
-                                  <option value="procedimiento">
-                                    Procedimiento
-                                  </option>
-                                  <option value="insumo">
-                                    Insumo utilizado
-                                  </option>
-                                </select>
-                              </label>
-                              <label className="em-uso-detalle">
-                                Descripción
-                                <input
-                                  required
-                                  maxLength={500}
-                                  value={usoDetalle}
-                                  onChange={(evento) =>
-                                    setUsoDetalle(evento.target.value)
-                                  }
-                                  placeholder="Ej. Curación de herida en antebrazo"
-                                />
-                              </label>
-                              <label>
-                                Cantidad
-                                <input
-                                  type="number"
-                                  min="0.001"
-                                  step="any"
-                                  value={usoCantidad}
-                                  onChange={(evento) =>
-                                    setUsoCantidad(evento.target.value)
-                                  }
-                                  placeholder="Opcional"
-                                />
-                              </label>
-                              <label>
-                                Unidad
-                                <input
-                                  maxLength={80}
-                                  value={usoUnidad}
-                                  onChange={(evento) =>
-                                    setUsoUnidad(evento.target.value)
-                                  }
-                                  placeholder="Ej. unidades, ml"
-                                />
-                              </label>
-                              <label className="em-uso-observacion">
-                                Observación
-                                <textarea
-                                  maxLength={1000}
-                                  value={usoObservacion}
-                                  onChange={(evento) =>
-                                    setUsoObservacion(evento.target.value)
-                                  }
-                                  placeholder="Detalle adicional (opcional)"
-                                />
-                              </label>
-                              <div className="em-uso-acciones">
-                                <button
-                                  className="em-primario"
-                                  disabled={ocupado || !usoDetalle.trim()}
-                                >
-                                  Guardar registro
-                                </button>
-                              </div>
-                            </form>
-                          )}
-                          {cuenta.registrosEnfermeria?.length ? (
-                            <div className="em-registro-lista em-uso-lista">
-                              {[...cuenta.registrosEnfermeria]
-                                .reverse()
-                                .map((registro) => (
-                                  <article key={registro.id}>
-                                    <div className="em-registro-lista-cabecera">
-                                      <strong>{registro.detalle}</strong>
-                                      <span>
-                                        {registro.tipo === "insumo"
-                                          ? "Insumo"
-                                          : registro.tipo === "procedimiento"
-                                            ? "Procedimiento"
-                                            : "Cuidado"}
-                                      </span>
-                                    </div>
-                                    <small>
-                                      {fecha(registro.fecha)} ·{" "}
-                                      {registro.usuario}
-                                      {registro.cantidad
-                                        ? ` · ${registro.cantidad}${registro.unidad ? ` ${registro.unidad}` : ""}`
-                                        : ""}
-                                    </small>
-                                    {registro.observacion && (
-                                      <p>{registro.observacion}</p>
-                                    )}
-                                  </article>
-                                ))}
-                            </div>
-                          ) : (
-                            <p className="em-registro-vacio">
-                              Aún no hay actividades de enfermería registradas.
-                            </p>
-                          )}
-                        </section>
-                      </div>
-                      <section className="em-panel em-uso-horario">
-                        <header className="em-panel-titulo">
-                          <div>
-                            <h3>Uso de servicios por hora</h3>
-                            <small>
-                              Activa el contador al comenzar. Puedes pausar cada
-                              servicio; el cubículo se detiene al liberar y
-                              cobrar.
-                            </small>
-                          </div>
-                          <span>
-                            {
-                              cuenta.consumos.filter(
-                                (consumo) => consumo.porHora && !consumo.fin,
-                              ).length
-                            }{" "}
-                            activos
-                          </span>
-                        </header>
-                        {!serviciosPorHora.length ? (
-                          <div className="em-servicios-ejemplos">
-                            <p>
-                              {errorCatalogo
-                                ? "No se pudo cargar el catálogo de servicios."
-                                : "No hay servicios por hora registrados en el catálogo."}
-                            </p>
-                            <span>Ejemplos de servicios</span>
-                            <ul>
-                              <li>
-                                <strong>Uso de cubículo</strong>
-                                <small>Atención en el espacio asignado</small>
-                              </li>
-                              <li>
-                                <strong>Oxígeno</strong>
-                                <small>Uso durante la atención</small>
-                              </li>
-                              <li>
-                                <strong>Monitoreo</strong>
-                                <small>Uso de equipo de monitoreo</small>
-                              </li>
-                            </ul>
-                            <small>
-                              Los ejemplos son informativos. Los servicios y sus
-                              tarifas se configuran en Contabilidad.
-                            </small>
-                          </div>
-                        ) : (
-                          <div className="em-uso-horario-lista">
-                            {serviciosPorHora.map((item) => {
-                              const activos = cuenta.consumos.filter(
-                                (consumo) =>
-                                  consumo.itemId === item.id &&
-                                  consumo.porHora &&
-                                  !consumo.fin,
-                              );
-                              const ultimo = [...cuenta.consumos]
-                                .reverse()
-                                .find(
-                                  (consumo) =>
-                                    consumo.itemId === item.id &&
-                                    consumo.porHora,
-                                );
-                              const esCubiculo = /cub[ií]culo/i.test(
-                                `${item.nombre} ${item.categoria || ""}`,
-                              );
-                              return (
-                                <article
-                                  key={item.id}
-                                  className={activos.length ? "en-curso" : ""}
-                                >
-                                  <label className="em-uso-check">
-                                    <input
-                                      type="checkbox"
-                                      checked={activos.length > 0}
-                                      disabled={
-                                        ocupado ||
-                                        Boolean(cuenta.fin) ||
-                                        (esCubiculo && activos.length > 0)
-                                      }
-                                      onChange={(evento) =>
-                                        evento.target.checked
-                                          ? iniciarServicioHora(item)
-                                          : activos.forEach((consumo) =>
-                                              pausarServicioHora(
-                                                consumo.registroId,
-                                                item.nombre,
-                                              ),
-                                            )
-                                      }
-                                    />
-                                    <span className="em-uso-check-marca" />
-                                    <span className="em-uso-check-texto">
-                                      <strong>
-                                        {item.nombre}
-                                        {esCubiculo ? " · hasta liberar" : ""}
-                                      </strong>
-                                      <small>
-                                        {item.id.startsWith("demo-")
-                                          ? "Demostración · sin tarifa real"
-                                          : `${item.codigo} · ${dinero(item.precio)} / ${item.unidad}`}
-                                      </small>
-                                    </span>
-                                  </label>
-                                  <div className="em-uso-check-estado">
-                                    {activos.length ? (
-                                      <>
-                                        <b className="activo">
-                                          En uso ·{" "}
-                                          {reloj(duracion(activos[0], ahora))}
-                                        </b>
-                                        <strong>
-                                          {dinero(
-                                            activos.reduce(
-                                              (suma, consumo) =>
-                                                suma + importe(consumo, ahora),
-                                              0,
-                                            ),
-                                          )}
-                                        </strong>
-                                      </>
-                                    ) : ultimo ? (
-                                      <>
-                                        <b>Pausado</b>
-                                        <strong>
-                                          {dinero(importe(ultimo, ahora))}{" "}
-                                          acumulado
-                                        </strong>
-                                      </>
-                                    ) : (
-                                      <b>Sin iniciar</b>
-                                    )}
-                                  </div>
-                                </article>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </section>
-                    </div>
-                  )}
                   {seccionClinica === "ingreso" && (
                     <section className="em-panel em-registro-ingreso">
                       <header className="em-panel-titulo">
@@ -2470,7 +2111,7 @@ export function TriajeEmergenciasView({
                       </div>
                     </section>
                   )}
-                  {seccionClinica === "signos" && (
+                  {seccionClinica === "ingreso" && (
                     <section className="em-panel em-signos-panel">
                       <header className="em-panel-titulo">
                         <h3>Signos vitales</h3>

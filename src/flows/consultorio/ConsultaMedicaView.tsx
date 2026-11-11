@@ -209,7 +209,7 @@ export function ConsultaMedicaView({
   const [recetarioAbierto, setRecetarioAbierto] = useState(false);
   const [paqueteId, setPaqueteId] = useState("");
   const [paqueteAplicado, setPaqueteAplicado] = useState<Paquete | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarFormulario, setMostrarFormulario] = useState(true);
   const [vitales, setVitales] = useState<Record<string, string>>({});
   const [cargandoValoracion, setCargandoValoracion] = useState(true);
   const [guardandoValoracion, setGuardandoValoracion] = useState(false);
@@ -369,7 +369,7 @@ export function ConsultaMedicaView({
       guardarSignosVitales(paciente, resultado.data.valores);
       setVersionValoracion(resultado.data.id);
       setVitales({});
-      setMostrarFormulario(false);
+      setMostrarFormulario(true);
       setMensajeValoracion("Signos vitales guardados.");
     } catch (error) {
       setErrorValoracion(
@@ -838,26 +838,7 @@ export function ConsultaMedicaView({
                     <div>
                       <p>SIGNOS VITALES</p>
                     </div>
-                    <button
-                      className="secundario"
-                      type="button"
-                      aria-expanded={mostrarFormulario}
-                      disabled={guardandoValoracion || cargandoValoracion}
-                      onClick={() => {
-                        if (mostrarFormulario) {
-                          setVitales({});
-                          setErrorValoracion("");
-                          setConflictoValoracion(false);
-                        }
-                        setMensajeValoracion("");
-                        setMostrarFormulario((actual) => !actual);
-                      }}
-                    >
-                      <Icon name="edit" size={15} />{" "}
-                      {mostrarFormulario
-                        ? "Cancelar edición"
-                        : "Editar signos vitales"}
-                    </button>
+
                   </header>
                   {(estadoSignos === "cargando" ||
                     catalogoServicios.cargando) && (

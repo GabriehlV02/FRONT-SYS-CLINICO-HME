@@ -1781,13 +1781,13 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
-.consulta-contexto-clinico dt {
-  font-size: 8px;
-  font-weight: 650;
+.sistema-app .area-trabajo .consulta-contexto-clinico dt {
+  font-size: 12px;
+  font-weight: 400;
 }
-.consulta-datos-personales dt {
-  font-size: 8px;
-  font-weight: 650;
+.sistema-app .area-trabajo .consulta-datos-personales dt {
+  font-size: 12px;
+  font-weight: 400;
 }
 .consulta-datos-personales dd {
   font-size: 14px;

@@ -2,7 +2,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useSyncExternalStore,
   type FormEvent,
 } from "react";
 import Icon from "../../radius/componentes/Icono";
@@ -13,6 +12,7 @@ import {
 import {
   leerSolicitudesLaboratorio,
   suscribirLaboratorio,
+  type SolicitudLaboratorio,
 } from "../laboratorio/almacenLaboratorio";
 import "./AtencionEnfermeriaInternacion.css";
 
@@ -31,11 +31,23 @@ export function AtencionEnfermeriaInternacion({
   const [subvista, setSubvista] = useState<"evolucion" | "indicaciones">(
     "evolucion",
   );
-  const solicitudesLaboratorio = useSyncExternalStore(
-    suscribirLaboratorio,
-    leerSolicitudesLaboratorio,
-    leerSolicitudesLaboratorio,
-  );
+  const [solicitudesLaboratorio, setSolicitudesLaboratorio] = useState<
+    SolicitudLaboratorio[]
+  >([]);
+  const [errorLaboratorio, setErrorLaboratorio] = useState("");
+  useEffect(() => {
+    const cargar = () => {
+      try {
+        setSolicitudesLaboratorio(leerSolicitudesLaboratorio());
+        setErrorLaboratorio("");
+      } catch {
+        setErrorLaboratorio("No se pudieron cargar las indicaciones de laboratorio.");
+      }
+    };
+    const cancelar = suscribirLaboratorio(cargar);
+    cargar();
+    return cancelar;
+  }, []);
   const datos = paciente.datosPaciente ?? {};
   const responsable =
     datos.responsableNombre || datos.responsable || "Sin registro";
@@ -152,6 +164,7 @@ export function AtencionEnfermeriaInternacion({
         </div>
       </section>
       <section className="enfermeria-paciente-subvistas">
+        {errorLaboratorio && <p role="alert">{errorLaboratorio}</p>}
         <nav aria-label="Información clínica del paciente">
           <button
             type="button"

@@ -1,0 +1,80 @@
+/* Correcciones verificadas en los módulos internos, después de las capas de tema. */
+.sistema-app .area-trabajo :is(.cocina-tabla-desplazable, .instrumentista-cirugias) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.sistema-app .area-trabajo .cocina-tabla-desplazable:focus-visible { outline: 2px solid #0788bd; outline-offset: 2px; }
+.sistema-app .area-trabajo .pacientes-tabla {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+}
+.sistema-app .area-trabajo .em-cubiculos { max-width: 100%; overflow-x: auto !important; }
+.sistema-app .area-trabajo .auditoria-usuarios-tabla { max-width: 100%; overflow-x: auto; }
+.sistema-app .area-trabajo .usuarios-paginacion {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.sistema-app .area-trabajo .usuarios-paginacion > div {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sistema-app .area-trabajo .subvistas-carrusel {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.sistema-app .area-trabajo .subvistas-carrusel .recepcion-subvistas {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.sistema-app .area-trabajo :is(.punto-contexto, .punto-contexto label, .punto-contexto select) {
+  min-width: 0;
+  max-width: 100%;
+}
+.sistema-app .area-trabajo :is(.farmacia-ia-subvistas, .fi-filtros) {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.sistema-app .area-trabajo .farmacia-ia-subvistas > button { flex-shrink: 0; }
+.sistema-app .area-trabajo :is(.est-paginacion-inventario, .est-paginacion-controles) {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media (max-width: 1100px) {
+  .sistema-app .area-trabajo .agenda-herramientas { flex-wrap: wrap; }
+  .sistema-app .area-trabajo .agenda-filtros-fecha { flex-wrap: wrap; min-width: 0; }
+  .sistema-app .area-trabajo .agenda-filtros-fecha > label { min-width: 0; flex: 1 1 130px; }
+}
+@media (max-width: 760px) {
+  .sistema-app .area-trabajo .farmacia-ia-chat {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sistema-app .area-trabajo .farmacia-ia-chat > * { min-width: 0; max-width: 100%; }
+  .sistema-app .area-trabajo .punto-contexto { grid-template-columns: minmax(0, 1fr); }
+  .sistema-app .area-trabajo :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) { font-size: 16px; }
+  .sistema-app .area-trabajo :is(.agenda-herramientas input, .agenda-filtros-fecha input) { width: 100%; min-width: 0; }
+}
+@media (pointer: coarse) {
+  .sistema-app :is(.subvistas-flecha, .usuarios-paginacion button, .est-paginacion-controles button) { min-width: 44px; min-height: 44px; }
+}
+@media (min-width: 1920px) {
+  .sistema-app .area-trabajo { padding-inline: clamp(24px, 2vw, 64px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sistema-app *, .sistema-app *::before, .sistema-app *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

@@ -2,10 +2,12 @@ import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Icon from "../../radius/componentes/Icono";
 import {
   obtenerMovimientosItems,
+  registrarMovimientosItems,
   suscribirMovimientosItems,
 } from "./registroUsoItems";
 import "./UsoItemsAmbulatorioView.css";
 import "./DescargoAmbulatorio.css";
+import { leerSesion } from "../../radius/types/sesion";
 
 const fechaVisible = (fecha: string) =>
   new Date(`${fecha}T12:00:00`).toLocaleDateString("es-BO", {
@@ -78,6 +80,39 @@ export function UsoItemsAmbulatorioView() {
   const [medicoDestino, setMedicoDestino] = useState("");
   const [justificacion, setJustificacion] = useState("");
   const [pendientes, setPendientes] = useState<DescargoPendiente[]>([]);
+  const [errorGuardado, setErrorGuardado] = useState("");
+  const guardarDescargo = () => {
+    if (!pendientes.length || itemSeleccionado) return;
+    try {
+      const ahora = new Date();
+      const dos = (valor: number) => String(valor).padStart(2, "0");
+      const fechaHora = `${ahora.getFullYear()}-${dos(ahora.getMonth() + 1)}-${dos(ahora.getDate())}T${dos(ahora.getHours())}:${dos(ahora.getMinutes())}:${dos(ahora.getSeconds())}`;
+      const usuario = leerSesion()?.usuario;
+      registrarMovimientosItems(pendientes.map((item) => ({
+        fechaHora,
+        tipo: item.estado,
+        item: item.nombre,
+        codigo: item.codigo,
+        cantidad: 1,
+        unidad: item.unidad,
+        paciente: "",
+        ci: "",
+        responsable: usuario ? `${usuario.nombre} ${usuario.apellidos || ""}`.trim() : "Sin responsable registrado",
+        consultorio: item.consultorio,
+        medico: item.medico,
+        observacion: item.justificacion,
+      })));
+      setPendientes([]);
+      setErrorGuardado("");
+      setDesde("");
+      setHasta("");
+      setBusqueda("");
+      setTipo("Todos");
+      setRegistrando(false);
+    } catch {
+      setErrorGuardado("No se pudo guardar el descargo. Los ítems siguen en la lista.");
+    }
+  };
 
   const visibles = useMemo(
     () =>
@@ -170,6 +205,8 @@ export function UsoItemsAmbulatorioView() {
             onChange={(evento) => setTipo(evento.target.value)}
           >
             <option>Todos</option>
+            <option>Pendiente</option>
+            <option>Anulado</option>
             <option>Dispensado</option>
             <option>Utilizado</option>
           </select>
@@ -224,6 +261,8 @@ export function UsoItemsAmbulatorioView() {
                     <th>Movimiento</th>
                     <th>Cantidad</th>
                     <th>Paciente</th>
+                    <th>Consultorio</th>
+                    <th>Médico</th>
                     <th>Enfermera responsable</th>
                     <th>Observación</th>
                   </tr>
@@ -252,6 +291,8 @@ export function UsoItemsAmbulatorioView() {
                           <strong>{item.paciente}</strong>
                           {item.ci && <small>CI {item.ci}</small>}
                         </td>
+                        <td>{item.consultorio || "—"}</td>
+                        <td>{item.medico || "—"}</td>
                         <td>{item.responsable}</td>
                         <td>{item.observacion || "—"}</td>
                       </tr>
@@ -303,9 +344,10 @@ export function UsoItemsAmbulatorioView() {
               </button>
             </header>
             <div
+              className="descargo-seleccion-distribucion"
               style={{
                 display: "grid",
-                gridTemplateColumns: "minmax(0, 1fr)",
+                gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
                 gap: 20,
                 padding: 22,
               }}
@@ -362,8 +404,20 @@ export function UsoItemsAmbulatorioView() {
                 </div>}
               </section>
               {itemSeleccionado && <section>
-                <strong>{itemSeleccionado.nombre}</strong>
-                <button type="button" onClick={() => setItemSeleccionado(null)}>Cambiar ítem</button>
+                <div className="descargo-item-seleccionado">
+                  <strong>{itemSeleccionado.nombre}</strong>
+                  <button
+                    type="button"
+                    className="descargo-cambiar-item"
+                    onClick={() => {
+                      setItemSeleccionado(null);
+                      setBuscarCatalogo("");
+                      buscadorCatalogo.current?.focus();
+                    }}
+                  >
+                    <Icon name="search" size={15} /> Cambiar ítem
+                  </button>
+                </div>
                 <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
                   <label>
                     Consultorio
@@ -424,6 +478,7 @@ export function UsoItemsAmbulatorioView() {
               </section>}
             </div>
             <section
+              className="descargo-lista"
               style={{
                 margin: "0 22px 22px",
                 border: "1px solid var(--border)",
@@ -503,6 +558,13 @@ export function UsoItemsAmbulatorioView() {
                 </tbody>
               </table>
             </section>
+            <footer className="descargo-guardar-pie">
+              {errorGuardado && <p role="alert">{errorGuardado}</p>}
+              {itemSeleccionado && <small>Añade el ítem actual a la lista antes de guardar.</small>}
+              <button type="button" className="boton-principal" disabled={!pendientes.length || Boolean(itemSeleccionado)} onClick={guardarDescargo}>
+                <Icon name="check" size={16} /> Guardar descargo
+              </button>
+            </footer>
           </section>
         </div>
       )}

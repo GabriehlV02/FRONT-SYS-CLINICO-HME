@@ -25,6 +25,42 @@ export type RegistroInternacion = {
 const clave = "hme:internaciones";
 const evento = "internacion:actualizada";
 let cache: RegistroInternacion[] | null = null;
+const idsPrueba = ["INT-PRUEBA-LOCAL-001", "INT-PRUEBA-LOCAL-002"];
+export const esInternacionPruebaLocal = (registro: RegistroInternacion) =>
+  import.meta.env.DEV && idsPrueba.includes(registro.id);
+
+function agregarPacientesPrueba(registros: RegistroInternacion[]) {
+  if (!import.meta.env.DEV) return registros.filter((registro) => !idsPrueba.includes(registro.id));
+  const ahora = new Date();
+  const fecha = ahora.toLocaleDateString("es-BO");
+  const nuevos = idsPrueba.filter((id) => !registros.some((registro) => registro.id === id)).map((id): RegistroInternacion => {
+    const numero = idsPrueba.indexOf(id) + 1;
+    return {
+      id,
+      pacienteId: `paciente-prueba-internacion-${numero}`,
+      paciente: `Paciente de prueba Internación ${numero === 1 ? "Uno" : "Dos"}`,
+      ci: `TEST-INT-00${numero}`,
+      medico: "Administrador local",
+      motivo: "Paciente ficticio para pruebas de internación",
+      fecha,
+      fechaIngreso: fecha,
+      horaIngreso: numero === 1 ? "09:20" : "11:40",
+      estado: "confirmada",
+      sala: `PRUEBA ${100 + numero}`,
+      cama: numero === 1 ? "A" : "B",
+      tipoSala: "Sala de pruebas",
+      servicio: "Medicina interna",
+      origen: "Prueba local",
+      observaciones: "Datos ficticios para comprobar enfermería, médico y cola de atención.",
+      datosPaciente: {
+        nacimiento: numero === 1 ? "1990-01-15" : "1985-06-20",
+        sexo: numero === 1 ? "Masculino" : "Femenino",
+        responsableNombre: "Responsable de prueba",
+      },
+    };
+  });
+  return [...registros, ...nuevos];
+}
 export function obtenerEjemplosInternacion(): RegistroInternacion[] { return []; }
 
 function disponible() {
@@ -36,7 +72,12 @@ export function leerInternaciones(): RegistroInternacion[] {
   if (!disponible()) return (cache = []);
   try {
     const guardadas = JSON.parse(window.localStorage.getItem(clave) ?? "[]");
-    return (cache = Array.isArray(guardadas) ? guardadas : []);
+    const registros = Array.isArray(guardadas) ? guardadas : [];
+    const completos = agregarPacientesPrueba(registros);
+    if (import.meta.env.DEV && completos.length !== registros.length) {
+      window.localStorage.setItem(clave, JSON.stringify(completos));
+    }
+    return (cache = completos);
   } catch {
     return (cache = []);
   }

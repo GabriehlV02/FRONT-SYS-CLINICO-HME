@@ -3,6 +3,7 @@ import { usePacientes } from "../../radius/vistas/pacientes/usePacientes";
 import { nombrePacienteClinico } from "../../radius/vistas/pacientes/pacientesApi";
 import {
   leerInternaciones,
+  esInternacionPruebaLocal,
   suscribirInternaciones,
   type RegistroInternacion,
 } from "./registroInternaciones";
@@ -17,6 +18,7 @@ export function useInternacionesVinculadas(): RegistroInternacion[] {
   return useMemo(
     () =>
       registros.flatMap((registro) => {
+        if (esInternacionPruebaLocal(registro)) return [registro];
         const paciente = pacientes.find((p) =>
           registro.pacienteId
             ? p.id === registro.pacienteId

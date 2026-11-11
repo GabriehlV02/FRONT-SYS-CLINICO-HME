@@ -11,6 +11,7 @@ import "./styles/SubvistasCompactas.css";
 import "./styles/ClinicoResponsive.css";
 import "./styles/TablasSimetricas.css";
 import "./styles/ClinicoResponsivePlus.css";
+import "./styles/AdaptacionPantallas.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

@@ -194,3 +194,65 @@
 .sistema-app .uso-items-modal .descargo-resultado:focus-visible { outline: 2px solid #0788bd; outline-offset: -2px; background: #eef8fd; }
 .sistema-app .uso-items-modal .descargo-resultado-nombre { font-size: 14px; font-weight: 500; line-height: 1.4; }
 .sistema-app .uso-items-modal .descargo-resultado-detalle { font-size: 12px; font-weight: 400; color: #6d8496; line-height: 1.4; }
+.sistema-app .uso-items-modal .descargo-item-seleccionado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.sistema-app .uso-items-modal .descargo-cambiar-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #b9dbea;
+  border-radius: 8px;
+  background: #f2f9fd;
+  color: #17638d;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background .15s, border-color .15s;
+}
+.sistema-app .uso-items-modal .descargo-cambiar-item:hover {
+  background: #e3f2fa;
+  border-color: #70b7d7;
+}
+.sistema-app .uso-items-modal .descargo-cambiar-item:focus-visible {
+  outline: 2px solid #0788bd;
+  outline-offset: 3px;
+}
+.sistema-app .uso-items-modal .descargo-guardar-pie { display: flex; justify-content: flex-end; align-items: center; flex-wrap: wrap; gap: 12px; padding: 18px 28px; border-top: 1px solid #dbe9f1; background: #f8fcfe; }
+.sistema-app .uso-items-modal .descargo-guardar-pie button { display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 10px 18px; border: 0; border-radius: 9px; background: #0788bd; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+.sistema-app .uso-items-modal .descargo-guardar-pie button:disabled { opacity: .5; cursor: not-allowed; }
+.sistema-app .uso-items-modal .descargo-guardar-pie button:hover:not(:disabled) { background: #066e99; }
+.sistema-app .uso-items-modal .descargo-seleccion-distribucion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  align-items: start;
+  gap: 24px;
+}
+.sistema-app .uso-items-modal .descargo-seleccion-distribucion > section { min-width: 0; }
+@media (max-width: 700px) {
+  .sistema-app .uso-items-modal .descargo-seleccion-distribucion { grid-template-columns: minmax(0, 1fr) !important; }
+}
+.sistema-app .uso-items-modal .descargo-lista {
+  min-width: 0;
+  max-width: calc(100% - 44px);
+  overflow-x: auto !important;
+  overscroll-behavior-inline: contain;
+}
+@media (max-width: 700px) {
+  .sistema-app .uso-items-fondo:has(#uso-items-form-titulo) { padding: 10px; }
+  .sistema-app .uso-items-modal:has(#uso-items-form-titulo) { width: 100% !important; max-height: calc(100dvh - 20px); }
+  .sistema-app .uso-items-modal .descargo-lista { margin: 0 16px 16px !important; max-width: calc(100% - 32px); }
+  .sistema-app .uso-items-modal .descargo-lista table { min-width: 600px; }
+  .sistema-app .uso-items-modal .descargo-guardar-pie { padding: 14px 16px; }
+  .sistema-app .uso-items-modal .descargo-guardar-pie button { width: 100%; justify-content: center; min-height: 44px; }
+}

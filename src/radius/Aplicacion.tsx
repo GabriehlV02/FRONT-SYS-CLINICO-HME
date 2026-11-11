@@ -50,6 +50,7 @@ import {
 import {
   leerInternaciones,
   suscribirInternaciones,
+  esInternacionPruebaLocal,
 } from "../flows/internacion/registroInternaciones";
 import "../flows/quirofano/EnfermeriaQuirofano.css";
 import "./vistas/visor-tomografias/SubvistasTomografias.css";
@@ -1066,6 +1067,7 @@ export default function Aplicacion() {
     (internacion) =>
       internacion.estado === "confirmada" &&
       (esAdministrador ||
+        esInternacionPruebaLocal(internacion) ||
         normalizarNombre(internacion.medico) === nombreSesion),
   );
   const esDemoClinico =

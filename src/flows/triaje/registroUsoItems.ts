@@ -1,7 +1,9 @@
 export type MovimientoItemAmbulatorio = {
   id: string;
   fechaHora: string;
-  tipo: "Dispensado" | "Utilizado";
+  tipo: "Pendiente" | "Dispensado" | "Utilizado" | "Anulado";
+  consultorio?: string;
+  medico?: string;
   item: string;
   codigo: string;
   cantidad: number;
@@ -34,6 +36,15 @@ const leer = (): MovimientoItemAmbulatorio[] => {
 let movimientos = leer();
 
 export const obtenerMovimientosItems = () => movimientos;
+export const registrarMovimientosItems = (
+  borradores: Omit<MovimientoItemAmbulatorio, "id">[],
+) => {
+  const nuevos = borradores.map((borrador) => ({ ...borrador, id: crypto.randomUUID() }));
+  const siguientes = [...nuevos, ...movimientos];
+  localStorage.setItem(CLAVE, JSON.stringify(siguientes));
+  movimientos = siguientes;
+  oyentes.forEach((oyente) => oyente());
+};
 export const suscribirMovimientosItems = (oyente: () => void) => {
   oyentes.add(oyente);
   return () => {

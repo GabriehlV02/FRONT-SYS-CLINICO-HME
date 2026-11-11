@@ -91,7 +91,7 @@ function Compras() {
           <Icon name="plus" size={16} /> Nueva compra
         </button>
       </header>
-      <table>
+      <div className="cocina-tabla-desplazable" tabIndex={0} role="region" aria-label="Tabla de cocina, desplazamiento horizontal"><table>
         <thead>
           <tr>
             <th>Número</th>
@@ -112,7 +112,7 @@ function Compras() {
             </td>
           </tr>
         </tbody>
-      </table>
+      </table></div>
     </section>
   );
 }
@@ -162,7 +162,7 @@ function Almacen() {
           <Icon name="plus" size={16} /> Registrar movimiento
         </button>
       </header>
-      <table>
+      <div className="cocina-tabla-desplazable" tabIndex={0} role="region" aria-label="Tabla de cocina, desplazamiento horizontal"><table>
         <thead>
           <tr>
             <th>Insumo</th>
@@ -183,7 +183,7 @@ function Almacen() {
             </td>
           </tr>
         </tbody>
-      </table>
+      </table></div>
     </section>
   );
 }

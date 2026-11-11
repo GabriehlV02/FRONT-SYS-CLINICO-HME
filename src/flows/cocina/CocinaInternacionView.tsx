@@ -193,7 +193,7 @@ export function CocinaInternacionView() {
             </span>
           </div>
           <div className="dietas-tabla-contenedor">
-            <table>
+            <div className="cocina-tabla-desplazable" tabIndex={0} role="region" aria-label="Tabla de cocina, desplazamiento horizontal"><table>
               <thead>
                 <tr>
                   <th>Código / dieta</th>
@@ -242,7 +242,7 @@ export function CocinaInternacionView() {
                   </tr>
                 )}
               </tbody>
-            </table>
+            </table></div>
           </div>
         </div>
       )}
@@ -454,7 +454,7 @@ function PacientesInternados() {
           placeholder="Buscar paciente, CI o cama"
         />
       </div>
-      <table>
+      <div className="cocina-tabla-desplazable" tabIndex={0} role="region" aria-label="Tabla de cocina, desplazamiento horizontal"><table>
         <thead>
           <tr>
             <th>Paciente</th>
@@ -480,7 +480,7 @@ function PacientesInternados() {
             </tr>
           )}
         </tbody>
-      </table>
+      </table></div>
     </div>
   );
 }

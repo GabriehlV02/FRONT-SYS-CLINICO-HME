@@ -72,7 +72,6 @@ export function ReportesFarmaciaView() {
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
-  const [version, setVersion] = useState(0);
   const episodios = useSyncExternalStore(
     suscribirEpisodios,
     obtenerEpisodios,
@@ -139,7 +138,7 @@ export function ReportesFarmaciaView() {
     };
     void cargar();
     return () => controller.abort();
-  }, [fechas.desde, fechas.hasta, fechasValidas, version]);
+  }, [fechas.desde, fechas.hasta, fechasValidas]);
 
   const seleccionarPeriodo = (valor: Exclude<Periodo, "personalizado">) => {
     setPeriodo(valor);
@@ -202,20 +201,6 @@ export function ReportesFarmaciaView() {
 
   return (
     <section className="farmacia-reporte" aria-label="Reportes de farmacia">
-      <header className="farmacia-reporte-cabecera">
-        <div>
-          <p>ADMINISTRACIÓN DE FARMACIA</p>
-          <h2>Reportes de farmacia</h2>
-          <small>Consulta ventas y descargos recibidos por período.</small>
-        </div>
-        <button
-          type="button"
-          onClick={() => setVersion((actual) => actual + 1)}
-          disabled={cargando}
-        >
-          <Icon name="refresh" size={16} /> Actualizar
-        </button>
-      </header>
       <div
         className="farmacia-reporte-periodos"
         role="group"

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../radius/api";
+import { leerSesion } from "../../radius/types/sesion";
 import Icon, { type IconName } from "../../radius/componentes/Icono";
 import { HorizontalSubvistaNav } from "../../ui/components/HorizontalSubvistaNav";
 import { ReportesFarmaciaView } from "./ReportesFarmaciaView";
@@ -16,6 +17,18 @@ type ExistenciaFarmacia = {
   unidad: string;
   disponible: number;
   minimo: number | null;
+};
+type ProductoFarmacia = {
+  id: string;
+  codigo: string;
+  nombre: string;
+  generico?: string | null;
+  marca?: string | null;
+  presentacion?: string | null;
+  tipo: "producto" | "insumo";
+  categoria: string;
+  precio: number;
+  stock: number;
 };
 type Vista =
   | "items-venta"
@@ -127,6 +140,69 @@ function Vacio({
   );
 }
 function ItemsVenta() {
+  const [productos, setProductos] = useState<ProductoFarmacia[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const [tipo, setTipo] = useState("todos");
+  const [categoria, setCategoria] = useState("todas");
+  const [disponibilidad, setDisponibilidad] = useState("todas");
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    if (
+      import.meta.env.DEV &&
+      leerSesion()?.token === "frontend-demo-local"
+    ) {
+      setProductos([]);
+      setError("");
+      setCargando(false);
+      return;
+    }
+    const controlador = new AbortController();
+    setCargando(true);
+    void apiFetch("/api/farmacia/productos", { signal: controlador.signal })
+      .then(async (respuesta) => {
+        const datos = await respuesta.json();
+        if (!respuesta.ok)
+          throw new Error(datos.message || "No se pudieron cargar los productos.");
+        if (!controlador.signal.aborted) {
+          setProductos(datos.data || []);
+          setError("");
+        }
+      })
+      .catch((causa: Error) => {
+        if (!controlador.signal.aborted) {
+          setProductos([]);
+          setError(causa.message || "No se pudieron cargar los productos.");
+        }
+      })
+      .finally(() => {
+        if (!controlador.signal.aborted) setCargando(false);
+      });
+    return () => controlador.abort();
+  }, [version]);
+
+  const categorias = [...new Set(productos.map((producto) => producto.categoria))]
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, "es"));
+  const productosFiltrados = productos.filter((producto) => {
+    const texto = `${producto.nombre} ${producto.codigo} ${producto.generico || ""} ${producto.marca || ""} ${producto.presentacion || ""}`
+      .toLocaleLowerCase("es")
+      .includes(busqueda.trim().toLocaleLowerCase("es"));
+    const coincideTipo = tipo === "todos" || producto.tipo === tipo;
+    const coincideCategoria =
+      categoria === "todas" || producto.categoria === categoria;
+    const tieneStock = Number(producto.stock) > 0;
+    const coincideDisponibilidad =
+      disponibilidad === "todas" ||
+      (disponibilidad === "disponibles" && tieneStock) ||
+      (disponibilidad === "agotados" && !tieneStock);
+    return (
+      texto && coincideTipo && coincideCategoria && coincideDisponibilidad
+    );
+  });
+
   return (
     <section className="cocina-subvista">
       <header>
@@ -137,10 +213,68 @@ function ItemsVenta() {
             Administra los productos disponibles para dispensación y venta.
           </small>
         </div>
-        <button>
+        <button type="button">
           <Icon name="plus" size={16} /> Nuevo producto
         </button>
       </header>
+      <div className="farmacia-catalogo-filtros">
+        <label className="farmacia-catalogo-busqueda">
+          <Icon name="search" size={17} />
+          <input
+            type="search"
+            value={busqueda}
+            onChange={(evento) => setBusqueda(evento.target.value)}
+            placeholder="Buscar por producto, código, marca o presentación"
+            aria-label="Buscar productos de farmacia"
+          />
+        </label>
+        <label>
+          Tipo
+          <select value={tipo} onChange={(evento) => setTipo(evento.target.value)}>
+            <option value="todos">Todos</option>
+            <option value="producto">Productos</option>
+            <option value="insumo">Insumos</option>
+          </select>
+        </label>
+        <label>
+          Categoría
+          <select
+            value={categoria}
+            onChange={(evento) => setCategoria(evento.target.value)}
+          >
+            <option value="todas">Todas</option>
+            {categorias.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Disponibilidad
+          <select
+            value={disponibilidad}
+            onChange={(evento) => setDisponibilidad(evento.target.value)}
+          >
+            <option value="todas">Todas</option>
+            <option value="disponibles">Con existencias</option>
+            <option value="agotados">Agotados</option>
+          </select>
+        </label>
+        <button
+          className="farmacia-catalogo-actualizar"
+          type="button"
+          onClick={() => setVersion((actual) => actual + 1)}
+          disabled={cargando}
+        >
+          <Icon name="refresh" size={16} /> Actualizar
+        </button>
+      </div>
+      {error && (
+        <p className="farmacia-catalogo-error" role="alert">
+          {error}
+        </p>
+      )}
       <table>
         <thead>
           <tr>
@@ -152,15 +286,42 @@ function ItemsVenta() {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td colSpan={5}>
-              <Vacio
-                icono="package"
-                titulo="No hay productos para mostrar"
-                detalle="Los productos habilitados para venta aparecerán en este catálogo."
-              />
-            </td>
-          </tr>
+          {cargando ? (
+            <tr>
+              <td colSpan={5}>
+                <Vacio icono="refresh" titulo="Cargando productos" detalle="Consultando el catálogo de farmacia." />
+              </td>
+            </tr>
+          ) : productosFiltrados.length ? (
+            productosFiltrados.map((producto) => (
+              <tr key={producto.id}>
+                <td>
+                  <strong>{producto.nombre}</strong>
+                  {producto.marca && <small>{producto.marca}</small>}
+                </td>
+                <td>{producto.codigo}</td>
+                <td>{producto.presentacion || producto.categoria || "—"}</td>
+                <td>Bs {Number(producto.precio || 0).toFixed(2)}</td>
+                <td>
+                  <span
+                    className={`farmacia-catalogo-estado ${Number(producto.stock) > 0 ? "disponible" : "agotado"}`}
+                  >
+                    {Number(producto.stock) > 0 ? "Disponible" : "Agotado"}
+                  </span>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={5}>
+                <Vacio
+                  icono="package"
+                  titulo={productos.length ? "No hay coincidencias" : "No hay productos para mostrar"}
+                  detalle={productos.length ? "Prueba cambiando la búsqueda o los filtros." : "Los productos habilitados para venta aparecerán en este catálogo."}
+                />
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </section>

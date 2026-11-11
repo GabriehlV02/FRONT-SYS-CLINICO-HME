@@ -143,3 +143,127 @@
     grid-template-columns: 1fr;
   }
 }
+.farmacia-catalogo-filtros {
+  display: grid;
+  grid-template-columns: minmax(230px, 1.8fr) repeat(3, minmax(145px, 0.7fr)) auto;
+  align-items: end;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+.farmacia-catalogo-filtros > label:not(.farmacia-catalogo-busqueda) {
+  display: grid;
+  gap: 6px;
+  color: #45657e;
+  font-size: 11px;
+  font-weight: 800;
+}
+.farmacia-catalogo-busqueda {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #cbddea;
+  border-radius: 8px;
+  color: #087fc0;
+  background: #fff;
+}
+.farmacia-catalogo-busqueda input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #173d60;
+  background: transparent;
+  font: inherit;
+}
+.farmacia-catalogo-filtros select {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid #cbddea;
+  border-radius: 8px;
+  color: #173d60;
+  background: #fff;
+  font: inherit;
+}
+.farmacia-catalogo-actualizar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #bdd9ed;
+  border-radius: 8px;
+  color: #0877bc;
+  background: #f7fbfe;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.farmacia-catalogo-actualizar:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.farmacia-catalogo-error {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #efc3c3;
+  border-radius: 8px;
+  color: #9a3c3c;
+  background: #fff5f5;
+  font-size: 12px;
+}
+.farmacia-catalogo-estado {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.farmacia-catalogo-estado.disponible {
+  color: #21633e;
+  background: #e8f6ec;
+}
+.farmacia-catalogo-estado.agotado {
+  color: #9a3c3c;
+  background: #fae7e7;
+}
+.sistema-app[data-theme="dark"] .farmacia-catalogo-filtros > label:not(.farmacia-catalogo-busqueda) {
+  color: var(--subtle);
+}
+.sistema-app[data-theme="dark"] .farmacia-catalogo-busqueda,
+.sistema-app[data-theme="dark"] .farmacia-catalogo-filtros select {
+  border-color: var(--border);
+  color: var(--text);
+  background: var(--field);
+}
+.sistema-app[data-theme="dark"] .farmacia-catalogo-busqueda input {
+  color: var(--text);
+}
+.sistema-app[data-theme="dark"] .farmacia-catalogo-estado.disponible {
+  color: var(--success);
+  background: var(--success-bg);
+}
+.sistema-app[data-theme="dark"] .farmacia-catalogo-estado.agotado {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+@media (max-width: 1100px) {
+  .farmacia-catalogo-filtros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .farmacia-catalogo-busqueda {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 620px) {
+  .farmacia-catalogo-filtros {
+    grid-template-columns: 1fr;
+  }
+  .farmacia-catalogo-busqueda {
+    grid-column: auto;
+  }
+}

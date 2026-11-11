@@ -14,6 +14,7 @@ import {
   registrarAtencionAmbulatoria,
   suscribirEpisodios,
 } from "./registroHistoria";
+import { esPendienteDeAtencion, fechaLocalISO } from "./agendaPendientes";
 import "./AgendaAmbulatoriaView.css";
 import "./AgendaAmbulatoriaViewAlineacion.css";
 import "./AgendaMotivo.css";
@@ -40,16 +41,7 @@ export type CitaConfirmada = {
 };
 // La agenda almacena la fecha como YYYY-MM-DD. No se usa toLocaleDateString
 // porque el resultado varía según el navegador y puede devolver M/D/YYYY.
-const fechaHoy = () => {
-  const hoy = new Date();
-  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}-${String(hoy.getDate()).padStart(2, "0")}`;
-};
-const fechaHoyDe = (valor: string) => {
-  const fecha = new Date(valor);
-  return Number.isNaN(fecha.getTime())
-    ? ""
-    : `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}-${String(fecha.getDate()).padStart(2, "0")}`;
-};
+const fechaHoy = fechaLocalISO;
 export function AgendaAmbulatoriaView({
   medico,
   onAtender,
@@ -70,9 +62,24 @@ export function AgendaAmbulatoriaView({
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [busqueda, setBusqueda] = useState("");
   const [busquedaAtendidas, setBusquedaAtendidas] = useState("");
+  const [hoy, setHoy] = useState(fechaHoy);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(fechaHoy);
   const [fechaDesde, setFechaDesde] = useState("");
   const [fechaHasta, setFechaHasta] = useState("");
+
+  useEffect(() => {
+    let fechaAnterior = fechaHoy();
+    const temporizador = window.setInterval(() => {
+      const fechaActual = fechaHoy();
+      if (fechaActual === fechaAnterior) return;
+      fechaAnterior = fechaActual;
+      setHoy(fechaActual);
+      setFechaSeleccionada(fechaActual);
+      setFechaDesde("");
+      setFechaHasta("");
+    }, 30000);
+    return () => window.clearInterval(temporizador);
+  }, []);
 
   useEffect(() => {
     const cancelarSuscripcion = suscribirSignosVitales(() =>
@@ -102,12 +109,7 @@ export function AgendaAmbulatoriaView({
         });
         if (!response.ok) throw new Error("Agenda no disponible");
         const datos: CitaConfirmada[] = await response.json();
-        setCitas(
-          datos.filter(
-            (cita) =>
-              cita.estado === "confirmada" || cita.estado === "por_confirmar",
-          ),
-        );
+        setCitas(datos.filter((cita) => cita.estado === "confirmada"));
         setAgendaReintentando(false);
         demoraReintento = 3000;
         temporizador = setTimeout(consultarAgenda, 30000);
@@ -136,7 +138,7 @@ export function AgendaAmbulatoriaView({
             /administrador/i.test(medico) ||
             (profesionalActual
               ? cita.profesionalId === profesionalActual.id
-              : cita.doctor === medico),
+              : true),
         )
         .sort((a, b) =>
           `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`),
@@ -154,14 +156,14 @@ export function AgendaAmbulatoriaView({
   const pendientes = visibles.filter(
     (cita) =>
       coincideFecha(cita) &&
-      !obtenerAtencionAmbulatoria(cita)?.finalizadaEn &&
+      esPendienteDeAtencion(cita, hoy) &&
       coincide(cita, busqueda),
   );
   const atendidasHoy = visibles.filter((cita) => {
     const finalizada = obtenerAtencionAmbulatoria(cita)?.finalizadaEn;
     return (
       finalizada &&
-      fechaHoy() === fechaHoyDe(finalizada) &&
+      hoy === fechaLocalISO(new Date(finalizada)) &&
       coincide(cita, busquedaAtendidas)
     );
   });

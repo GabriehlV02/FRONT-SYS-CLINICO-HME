@@ -11,6 +11,7 @@ import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
 import { usePacientes } from "./vistas/pacientes/usePacientes";
 import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerCitasAgendaDemo } from "./datos/agendaDemo";
+import { obtenerPacientesTerapiaDemo } from "../flows/internacion/terapiaIntensivaDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import { leerSesion, type Sesion } from "./types/sesion";
 import VistaInicioSesion from "./vistas/autenticacion/VistaInicioSesion";
@@ -27,6 +28,14 @@ import "./vistas/visor/SidebarHover.css";
 import "./vistas/visor/NotificacionesTopbar.css";
 
 import type { CitaConfirmada } from "../flows/consultorio/AgendaAmbulatoriaView";
+import {
+  esPendienteDeAtencion,
+  fechaLocalISO,
+} from "../flows/consultorio/agendaPendientes";
+import {
+  obtenerEpisodios,
+  suscribirEpisodios,
+} from "../flows/consultorio/registroHistoria";
 import type { SignoVitalConfig } from "../flows/triaje/ConfiguracionSignosVitalesView";
 import { cargarSignos, guardarSignos } from "../flows/triaje/almacenSignos";
 import { HorizontalSubvistaNav } from "../ui/components/HorizontalSubvistaNav";
@@ -143,6 +152,11 @@ const EnfermeraInternacionView = lazy(() =>
 const MedicoInternacionView = lazy(() =>
   import("../flows/internacion/MedicoInternacionView").then((m) => ({
     default: m.MedicoInternacionView,
+  })),
+);
+const MedicoTerapiaIntensivaView = lazy(() =>
+  import("../flows/internacion/MedicoTerapiaIntensivaView").then((m) => ({
+    default: m.MedicoTerapiaIntensivaView,
   })),
 );
 const TerapiaIntensivaView = lazy(() =>
@@ -462,20 +476,12 @@ const ejemplosEmergenciasCola = [
     hora: "10:05",
   },
 ];
-const ejemplosTerapiaCola = [
-  {
-    id: "COLA-DEMO-U1",
-    paciente: "Carmen Villca Apaza",
-    detalle: "UCI · Cama 3",
-    hora: "07:30",
-  },
-  {
-    id: "COLA-DEMO-U2",
-    paciente: "Roberto Salazar Flores",
-    detalle: "UCI · Cama 5",
-    hora: "12:10",
-  },
-];
+const ejemplosTerapiaCola = obtenerPacientesTerapiaDemo().map((paciente) => ({
+  id: paciente.id,
+  paciente: paciente.paciente,
+  detalle: `${paciente.sala} · Cama ${paciente.cama}`,
+  hora: paciente.hora,
+}));
 
 const modulos: Modulo[] = [
   {
@@ -731,6 +737,7 @@ function TablaSubvistaPaciente({ vista }: { vista: "historias" | "estudios" }) {
 }
 
 export default function Aplicacion() {
+  useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
   const ubicacionInicial = leerUbicacion();
   useEffect(() => {
@@ -1010,6 +1017,14 @@ export default function Aplicacion() {
   );
   const [cargandoColaAtencion, setCargandoColaAtencion] = useState(false);
   const [errorColaAtencion, setErrorColaAtencion] = useState("");
+  const [fechaActualCola, setFechaActualCola] = useState(fechaLocalISO);
+  useEffect(() => {
+    const temporizador = window.setInterval(
+      () => setFechaActualCola(fechaLocalISO()),
+      30000,
+    );
+    return () => window.clearInterval(temporizador);
+  }, []);
   const [conteosImagenologia, setConteosImagenologia] = useState({
     pacientes: 0,
     informes: 0,
@@ -1055,13 +1070,18 @@ export default function Aplicacion() {
   );
   const esDemoClinico =
     import.meta.env.DEV && sesion?.token === "frontend-demo-local";
-  const citasVisiblesCola = esDemoClinico
+  const citasVisiblesColaBase = esDemoClinico
     ? citasColaAtencion.length
       ? citasColaAtencion.filter((cita) => cita.estado === "confirmada")
       : obtenerCitasAgendaDemo().filter((cita) => cita.estado === "confirmada")
     : errorColaAtencion
       ? []
       : citasColaAtencion;
+  const citasVisiblesCola = citasVisiblesColaBase.filter(
+    (cita) =>
+      cita.fecha === fechaActualCola &&
+      esPendienteDeAtencion(cita, fechaActualCola),
+  );
   const internacionesVisiblesCola = internacionesColaAtencion.length
     ? internacionesColaAtencion
     : ejemplosInternacionCola;
@@ -1084,10 +1104,9 @@ export default function Aplicacion() {
           CitaConfirmada & { estado: string }
         >;
         if (!controller.signal.aborted) {
-          const hoy = new Date().toLocaleDateString("en-CA");
           setCitasColaAtencion(
-            citas.filter(
-              (cita) => cita.estado === "confirmada" && cita.fecha === hoy,
+            citas.filter((cita) =>
+              esPendienteDeAtencion(cita, fechaLocalISO()),
             ),
           );
         }
@@ -1804,7 +1823,7 @@ export default function Aplicacion() {
                         type="button"
                         onClick={() => {
                           setColaAtencionAbierta(false);
-                          setModulo("enfermera-terapia-intensiva");
+                          setModulo("medico-terapia-intensiva");
                         }}
                       >
                         Ver terapia
@@ -2749,6 +2768,8 @@ export default function Aplicacion() {
               />
             ) : modulo === "auditorias" ? (
               <VistaAuditorias sesion={sesion} />
+            ) : modulo === "medico-terapia-intensiva" ? (
+              <MedicoTerapiaIntensivaView />
             ) : actual ? (
               <div className="modulo-vacio">
                 <span>

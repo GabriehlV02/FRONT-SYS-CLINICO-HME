@@ -1,0 +1,125 @@
+.uci-medico-vista {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  color: #173d60;
+}
+
+.uci-medico-encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid #c9dfed;
+  border-top: 4px solid #7655c5;
+  border-radius: 14px;
+  background: linear-gradient(110deg, #fff, #f8f5ff);
+}
+
+.uci-medico-encabezado p {
+  margin: 0 0 6px;
+  color: #7655c5;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.uci-medico-encabezado h2 {
+  margin: 0;
+  color: #173d60;
+  font-size: 23px;
+}
+
+.uci-medico-encabezado span {
+  display: block;
+  margin-top: 6px;
+  color: #69869b;
+  font-size: 13px;
+}
+
+.uci-medico-encabezado > strong {
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #6842b6;
+  background: #f0e9ff;
+  font-size: 12px;
+}
+
+.uci-medico-lista {
+  display: grid;
+  gap: 12px;
+}
+
+.uci-medico-paciente {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(170px, 0.45fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #d4e4ef;
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 5px 18px rgb(26 76 112 / 5%);
+}
+
+.uci-medico-paciente-icono {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #7655c5;
+  background: #f0e9ff;
+}
+
+.uci-medico-paciente-datos > span,
+.uci-medico-paciente-asignacion > span {
+  color: #087fc0;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.uci-medico-paciente h3 {
+  margin: 5px 0;
+  color: #173d60;
+  font-size: 16px;
+}
+
+.uci-medico-paciente p,
+.uci-medico-paciente small {
+  display: block;
+  margin: 3px 0 0;
+  color: #718a9d;
+  font-size: 12px;
+}
+
+.uci-medico-paciente-asignacion {
+  display: grid;
+  gap: 4px;
+}
+
+.uci-medico-paciente-asignacion strong {
+  color: #173d60;
+  font-size: 13px;
+}
+
+.uci-medico-estado {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #6842b6;
+  background: #f0e9ff;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+@media (max-width: 760px) {
+  .uci-medico-paciente {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .uci-medico-paciente-asignacion,
+  .uci-medico-estado {
+    grid-column: 2;
+  }
+}

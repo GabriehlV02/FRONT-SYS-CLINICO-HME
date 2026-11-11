@@ -50,7 +50,7 @@ function citasIniciales(): CitaAgendaDemo[] {
     ["Dr. Martín Rojas", "Medicina familiar", "Consultorio 2", "Consulta de seguimiento", "10:15"],
     ["Dra. Andrea Vargas", "Medicina interna", "Consultorio 3", "Valoración médica", "11:00"],
   ];
-  return lista.map((paciente, indice) => {
+  const citas = lista.map((paciente, indice) => {
     const [doctor, especialidad, consultorio, motivoOperativo, hora] =
       asignaciones[indice % asignaciones.length];
     return {
@@ -70,6 +70,32 @@ function citasIniciales(): CitaAgendaDemo[] {
       edad: edad(paciente.fechaNacimiento),
     };
   });
+  const pacientePrueba = pacientes.find(
+    (paciente) => paciente.id === "demo-pac-consultorio-prueba",
+  );
+  if (pacientePrueba) {
+    citas.push({
+      id: "demo-agenda-consultorio-prueba",
+      pacienteId: pacientePrueba.id,
+      paciente: [
+        pacientePrueba.nombres,
+        pacientePrueba.primerApellido,
+        pacientePrueba.segundoApellido,
+      ]
+        .filter(Boolean)
+        .join(" "),
+      ci: pacientePrueba.numeroDocumento,
+      doctor: "Administrador",
+      especialidad: "Medicina general",
+      fecha: hoy(),
+      hora: "15:30",
+      estado: "confirmada",
+      consultorio: "Consultorio 4",
+      motivoOperativo: "Paciente de prueba para consultorio",
+      edad: edad(pacientePrueba.fechaNacimiento),
+    });
+  }
+  return citas;
 }
 
 export function obtenerCitasAgendaDemo(): CitaAgendaDemo[] {

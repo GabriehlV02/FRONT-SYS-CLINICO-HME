@@ -16,6 +16,7 @@ export type OrdenEmergencia = {
   revision: number;
   fecha: string;
   usuario: string;
+  autorTipo?: "medico" | "otro";
   tipo: string;
   titulo: string;
   indicaciones: string;
@@ -37,6 +38,7 @@ export type OrdenEmergencia = {
 };
 export type CuentaEmergencia = {
   id: string;
+  pacienteId?: string | null;
   cubiculo: string;
   inicio: string;
   fin: string | null;
@@ -268,6 +270,10 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
       } else if (accion === "identidad")
         cuenta.identidad = { ...cuenta.identidad, ...datos };
       else if (accion === "orden") {
+        const sesion = leerSesion();
+        const rolMedico = sesion?.usuario.perfilAtencion === "medico" || /m[eé]dico/i.test(sesion?.usuario.rol || "");
+        if (datos.tipo === "internacion" && !rolMedico)
+          throw new Error("Solo un médico puede emitir una orden de hospitalización o internación.");
         const orden = {
           tipo: "",
           titulo: "",
@@ -283,6 +289,7 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
           revision: 1,
           fecha,
           usuario: "Admin demo",
+          autorTipo: rolMedico ? "medico" : "otro",
           estado: "pendiente",
           aplicaciones: [],
           historial: [],

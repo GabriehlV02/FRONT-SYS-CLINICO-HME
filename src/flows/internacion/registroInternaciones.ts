@@ -369,6 +369,10 @@ export function registrarAltaInternacion(id: string) {
   );
 }
 
+export function cancelarPreinternacion(id: string) {
+  guardar(leerInternaciones().filter((item) => item.id !== id || item.estado !== "preinternacion"));
+}
+
 export function suscribirInternaciones(actualizar: () => void) {
   if (!disponible()) return () => undefined;
   const manejar = () => {

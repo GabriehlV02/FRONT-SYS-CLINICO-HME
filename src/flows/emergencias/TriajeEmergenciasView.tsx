@@ -15,12 +15,19 @@ import "./EditarPacienteEmergencias.css";
 import { cubiculosEmergencias, nombreCubiculo } from "./cubiculos";
 import { OrdenesEmergencias } from "./OrdenesEmergencias";
 import {
+  guardarBalanceEmergencia,
+  leerBalanceEmergencia,
+  suscribirBalanceEmergencia,
+  type RegistroBalanceEmergencia,
+} from "./balanceEmergencias";
+import {
   apiEmergencias,
   nombrePaciente,
   type CuentaEmergencia,
   type RegistroEnfermeria,
 } from "./emergenciasApi";
 import { camposParaServicio } from "../triaje/camposSignosVitales";
+import { cancelarPreinternacion, crearPreinternacion } from "../internacion/registroInternaciones";
 import {
   useCatalogoSignosVitales,
   useServiciosSignosVitales,
@@ -656,6 +663,14 @@ export function TriajeEmergenciasView({
   const [valores, setValores] = useState<Record<string, string>>({}),
     [observacion, setObservacion] = useState("");
   const [fechaHoraSignos, setFechaHoraSignos] = useState(fechaHoraIngresoActual);
+  const [balanceEmergencia, setBalanceEmergencia] = useState<RegistroBalanceEmergencia[]>([]);
+  const [formBalanceEmergencia, setFormBalanceEmergencia] = useState({
+    tipo: "ingreso" as "ingreso" | "egreso",
+    volumen: "",
+    detalle: "",
+    ...fechaHoraIngresoActual(),
+  });
+  const [errorBalanceEmergencia, setErrorBalanceEmergencia] = useState("");
   const [evolucion, setEvolucion] = useState("");
   const [evolucionEditando, setEvolucionEditando] = useState<string | null>(null);
   const [evolucionEnVista, setEvolucionEnVista] = useState<NonNullable<Cuenta["evaluaciones"]>[number] | null>(null);
@@ -673,6 +688,15 @@ export function TriajeEmergenciasView({
     intentoConsumo = useRef<{ clave: string; id: string } | null>(null);
   const cuenta = cuentas.find((c) => c.id === activa),
     item = catalogo.find((i) => i.id === itemId);
+  useEffect(() => {
+    if (!cuenta?.id) {
+      setBalanceEmergencia([]);
+      return;
+    }
+    const actualizar = () => setBalanceEmergencia(leerBalanceEmergencia(cuenta.id));
+    actualizar();
+    return suscribirBalanceEmergencia(cuenta.id, actualizar);
+  }, [cuenta?.id]);
   useEffect(() => {
     if (!identidad || recepcion) return;
     const overflowAnterior = document.body.style.overflow;
@@ -895,6 +919,41 @@ export function TriajeEmergenciasView({
       setFechaHoraSignos(fechaHoraIngresoActual());
     }
   }
+  function registrarBalanceEmergencia(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!cuenta) return;
+    try {
+      guardarBalanceEmergencia(cuenta.id, {
+        tipo: formBalanceEmergencia.tipo,
+        volumen: Number(formBalanceEmergencia.volumen),
+        detalle: formBalanceEmergencia.detalle.trim(),
+        fecha: formBalanceEmergencia.fecha,
+        hora: formBalanceEmergencia.hora,
+      });
+      setBalanceEmergencia(leerBalanceEmergencia(cuenta.id));
+      setFormBalanceEmergencia((actual) => ({
+        ...actual,
+        volumen: "",
+        detalle: "",
+        ...fechaHoraIngresoActual(),
+      }));
+      setErrorBalanceEmergencia("");
+    } catch (e) {
+      setErrorBalanceEmergencia((e as Error).message || "No se pudo guardar el balance hídrico.");
+    }
+  }
+  const ingresosBalanceEmergencia = balanceEmergencia
+    .filter((registro) => registro.tipo === "ingreso")
+    .reduce((total, registro) => total + registro.volumen, 0);
+  const egresosBalanceEmergencia = balanceEmergencia
+    .filter((registro) => registro.tipo === "egreso")
+    .reduce((total, registro) => total + registro.volumen, 0);
+  const totalBalanceEmergencia = ingresosBalanceEmergencia - egresosBalanceEmergencia;
+  let acumuladoBalanceEmergencia = 0;
+  const puntosBalanceEmergencia = balanceEmergencia.map((registro, indice) => {
+    acumuladoBalanceEmergencia += registro.tipo === "ingreso" ? registro.volumen : -registro.volumen;
+    return { ...registro, acumulado: acumuladoBalanceEmergencia, indice };
+  });
   async function registrarUsoEnfermeria(e: FormEvent) {
     e.preventDefault();
     if (!cuenta) return;
@@ -1074,6 +1133,53 @@ export function TriajeEmergenciasView({
       estado: consumo.porHora ? (consumo.fin ? "Finalizado" : "En curso") : "Aplicado",
     })),
   ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+  const ordenInternacionMedica = (cuenta?.ordenes || []).find(
+    (orden) => orden.tipo === "internacion" && orden.autorTipo === "medico" && orden.estado !== "cancelada",
+  );
+  const puedeTrasladarAInternacion = Boolean(
+    ordenInternacionMedica && cuenta?.identidad?.documento?.trim(),
+  );
+  async function trasladarAInternacion() {
+    if (!cuenta || !ordenInternacionMedica || !cuenta.identidad?.documento?.trim()) return;
+    let preinternacionId = "";
+    setOcupado(true);
+    setError("");
+    setAviso("");
+    try {
+      const identidadPaciente = cuenta.identidad;
+      const ingreso = new Date();
+      const preinternacion = crearPreinternacion({
+        pacienteId: cuenta.pacienteId || undefined,
+        paciente: nombrePaciente(cuenta),
+        ci: identidadPaciente.documento.trim(),
+        medico: ordenInternacionMedica.usuario,
+        motivo: [ordenInternacionMedica.titulo, ordenInternacionMedica.indicaciones].filter(Boolean).join(" · "),
+        fechaIngreso: ingreso.toLocaleDateString("es-BO"),
+        horaIngreso: ingreso.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false }),
+        origen: "Emergencias",
+        servicio: "Internación",
+        observaciones: `Traslado solicitado mediante orden médica ${ordenInternacionMedica.id}.`,
+        datosPaciente: {
+          nacimiento: identidadPaciente.nacimiento || "",
+          sexo: identidadPaciente.sexo || "",
+          responsableNombre: identidadPaciente.familiar || "",
+        },
+      });
+      preinternacionId = preinternacion.id;
+      const actualizada = await pedir<Cuenta>(`/${cuenta.id}/cierre`, {
+        condicionEgreso: "vivo",
+        causaEgreso: "internacion",
+        observacionEgreso: `Traslado a internación con orden médica ${ordenInternacionMedica.id}.`,
+      });
+      setCuentas((prev) => [actualizada, ...prev.filter((item) => item.id !== actualizada.id)]);
+      setAviso("Traslado registrado. Enfermería puede confirmar la cama desde Internación.");
+    } catch (causa) {
+      if (preinternacionId) cancelarPreinternacion(preinternacionId);
+      setError((causa as Error).message || "No se pudo completar el traslado a internación.");
+    } finally {
+      setOcupado(false);
+    }
+  }
   return (
     <section className="emergencias-vista">
       {!recepcion && (
@@ -1820,6 +1926,30 @@ export function TriajeEmergenciasView({
                       <Icon name="edit" size={15} /> Editar datos
                     </button>
                   )}
+                  {!recepcion && !cuenta.fin && !identidad && (
+                    <>
+                      <button
+                        className="em-traslado-internacion"
+                        type="button"
+                        disabled={ocupado || !puedeTrasladarAInternacion}
+                        title={!ordenInternacionMedica
+                          ? "Requiere una orden de internación emitida por un médico."
+                          : !cuenta.identidad?.documento?.trim()
+                            ? "Completa primero el documento del paciente."
+                            : "Trasladar al paciente a internación."}
+                        onClick={() => void trasladarAInternacion()}
+                      >
+                        <Icon name="bed" size={15} /> Traslado a internación
+                      </button>
+                      {!puedeTrasladarAInternacion && (
+                        <small className="em-traslado-internacion-ayuda">
+                          {!ordenInternacionMedica
+                            ? "Disponible cuando un médico emita una orden de hospitalización/internación."
+                            : "Completa el documento del paciente para habilitar el traslado."}
+                        </small>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
               {!recepcion && (
@@ -2123,6 +2253,7 @@ export function TriajeEmergenciasView({
                     </button>
                   </nav>
                   {seccionClinica === "ingreso" && (
+                    <>
                     <section className="em-panel em-signos-panel">
                       <header className="em-panel-titulo">
                         <h3>Signos vitales</h3>
@@ -2234,6 +2365,55 @@ export function TriajeEmergenciasView({
                           )}
                       </div>
                     </section>
+                    <section className="em-panel em-balance-emergencias" aria-label="Balance hídrico">
+                      <header className="em-balance-emergencias-cabecera">
+                        <div>
+                          <span>CONTROL DE LÍQUIDOS</span>
+                          <h3>Balance hídrico</h3>
+                          <p>Registra y consulta los ingresos y egresos de líquidos durante esta atención.</p>
+                        </div>
+                        <b>{balanceEmergencia.length} {balanceEmergencia.length === 1 ? "registro" : "registros"}</b>
+                      </header>
+                      <div className="em-balance-emergencias-resumen">
+                        <article><small>Ingresos</small><strong>{ingresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
+                        <article><small>Egresos</small><strong>{egresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
+                        <article className={totalBalanceEmergencia < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{totalBalanceEmergencia > 0 ? "+ " : ""}{totalBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
+                      </div>
+                      {!cuenta.fin && <form className="em-balance-emergencias-form" onSubmit={registrarBalanceEmergencia}>
+                        <label>Tipo de registro
+                          <select value={formBalanceEmergencia.tipo} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: evento.target.value as "ingreso" | "egreso" }))}>
+                            <option value="ingreso">Ingreso de líquidos</option>
+                            <option value="egreso">Egreso de líquidos</option>
+                          </select>
+                        </label>
+                        <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalanceEmergencia.volumen} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>
+                        <label className="em-balance-emergencias-detalle">Detalle<input maxLength={180} placeholder={formBalanceEmergencia.tipo === "ingreso" ? "Ej. Solución intravenosa, agua" : "Ej. Diuresis, drenaje"} value={formBalanceEmergencia.detalle} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, detalle: evento.target.value }))} required /></label>
+                        <label>Fecha<input type="date" value={formBalanceEmergencia.fecha} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, fecha: evento.target.value }))} required /></label>
+                        <label>Hora<input type="time" value={formBalanceEmergencia.hora} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, hora: evento.target.value }))} required /></label>
+                        {errorBalanceEmergencia && <p role="alert">{errorBalanceEmergencia}</p>}
+                        <button type="submit"><Icon name="plus" size={16} /> Registrar balance</button>
+                      </form>}
+                      <section className="em-balance-emergencias-grafica" aria-label="Gráfica de balance acumulado">
+                        <h4>Evolución del balance acumulado</h4>
+                        {puntosBalanceEmergencia.length ? (() => {
+                          const valoresGrafica = [0, ...puntosBalanceEmergencia.map((punto) => punto.acumulado)];
+                          const minimo = Math.min(...valoresGrafica);
+                          const maximo = Math.max(...valoresGrafica);
+                          const rango = maximo - minimo || 1;
+                          const coordenadas = valoresGrafica.map((valor, indice) => `${20 + indice * (760 / Math.max(valoresGrafica.length - 1, 1))},${195 - ((valor - minimo) / rango) * 155}`).join(" ");
+                          return <svg viewBox="0 0 800 225" role="img" aria-label="Gráfica de ingresos y egresos acumulados en mililitros"><path d="M20 40H780M20 118H780M20 195H780" /><polyline points={coordenadas} /><text x="20" y="218">Inicio</text>{puntosBalanceEmergencia.map((punto) => <text key={punto.id} x={20 + (punto.indice + 1) * (760 / Math.max(puntosBalanceEmergencia.length, 1))} y="218">{punto.hora}</text>)}</svg>;
+                        })() : <p>Aún no hay registros de ingresos o egresos para mostrar.</p>}
+                      </section>
+                      {balanceEmergencia.length > 0 && <ol className="em-balance-emergencias-historial">
+                        {balanceEmergencia.slice().reverse().map((registro) => <li key={registro.id} className={registro.tipo}>
+                          <span>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</span>
+                          <strong>{registro.detalle}</strong>
+                          <b>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen.toLocaleString("es-BO")} ml</b>
+                          <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
+                        </li>)}
+                      </ol>}
+                    </section>
+                    </>
                   )}
                   {seccionClinica === "paciente" && (
                     <>

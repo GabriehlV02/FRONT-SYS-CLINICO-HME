@@ -15,6 +15,7 @@ export function MedicoTerapiaIntensivaView() {
           <p>UNIDAD DE CUIDADOS INTENSIVOS</p>
           <h2>Médico terapia intensiva</h2>
           <span>Pacientes asignados para seguimiento médico.</span>
+          <small>Datos ficticios de demostración local; no corresponden a pacientes reales.</small>
         </div>
         <strong>{pacientes.length} pacientes</strong>
       </header>

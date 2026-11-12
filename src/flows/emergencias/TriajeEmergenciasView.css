@@ -478,22 +478,41 @@
 .em-paginacion-clinica {
   display: flex;
   align-items: flex-end;
-  gap: 2px;
+  gap: 0;
+  padding: 8px 10px 0;
+  border: 0;
   border-bottom: 1px solid #cddfea;
-  padding: 0 8px;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .emergencias-vista .em-paginacion-clinica button {
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 54px;
   gap: 7px;
-  border: 0;
-  border-radius: 10px 10px 0 0;
+  border: 1px solid transparent;
+  border-radius: 12px 12px 0 0;
   background: transparent;
   color: #557993;
-  padding: 14px 18px 15px;
-  font-size: 15px;
+  padding: 0 24px 1px;
+  font-size: 16px;
   font-weight: 650;
+  white-space: nowrap;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+.emergencias-vista .em-paginacion-clinica button:not(.activo):hover {
+  color: #0879b2;
+  background: rgba(255, 255, 255, 0.38);
+}
+.emergencias-vista .em-paginacion-clinica button:focus-visible {
+  z-index: 1;
+  outline: 3px solid rgba(8, 127, 192, 0.28);
+  outline-offset: 1px;
 }
 .emergencias-vista .em-paginacion-clinica button span {
   display: grid;
@@ -507,17 +526,19 @@
   font-weight: 700;
 }
 .emergencias-vista .em-paginacion-clinica button.activo {
-  color: #0078bc;
-  background: #f4f9fc;
+  border-color: transparent;
+  color: #0678b6;
+  background: #f7fbfe;
+  box-shadow: none;
 }
 .emergencias-vista .em-paginacion-clinica button.activo::after {
   content: "";
   position: absolute;
-  right: 10px;
+  right: 12px;
   bottom: -1px;
-  left: 10px;
+  left: 12px;
   height: 3px;
-  border-radius: 3px 3px 0 0;
+  border-radius: 999px 999px 0 0;
   background: #078fc8;
 }
 .emergencias-vista .em-paginacion-clinica button.activo span {
@@ -526,23 +547,28 @@
 }
 /* Mantiene el patrón de pestañas de ingreso/atención frente a los overrides globales. */
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button {
-  min-height: 52px;
-  padding: 14px 18px 15px;
-  border: 0;
-  border-radius: 10px 10px 0 0;
+  min-height: 54px;
+  padding: 0 24px 1px;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: 12px 12px 0 0;
   color: #557993;
   background: transparent;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 650;
   box-shadow: none;
 }
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button.activo {
-  color: #0078bc;
-  background: #f4f9fc;
+  border-color: transparent;
+  border-bottom: 0;
+  color: #0678b6;
+  background: #f7fbfe;
+  box-shadow: none;
 }
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button.activo::after {
-  right: 10px;
-  left: 10px;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
   height: 3px;
   background: #078fc8;
 }
@@ -1875,11 +1901,14 @@
 @media (max-width: 600px) {
   .em-paginacion-clinica {
     overflow-x: auto;
-    padding: 0;
+    padding: 6px 4px 0;
+    gap: 0;
   }
   .emergencias-vista .em-paginacion-clinica button {
-    font-size: 12px;
-    padding-inline: 10px;
+    flex: 0 0 auto;
+    min-height: 48px;
+    font-size: 14px;
+    padding: 0 14px 1px;
     white-space: nowrap;
   }
   .em-registro-ingreso > div:last-child {
@@ -3040,8 +3069,8 @@
   }
   .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button {
     min-height: 48px;
-    padding: 12px 12px 13px;
-    font-size: 13px;
+    padding: 0 14px 1px;
+    font-size: 14px;
   }
   .emergencias-vista .em-cabecera .subvistas-flecha {
     display: none;
@@ -3262,6 +3291,69 @@
   font-size: 10px;
   font-weight: 700;
   white-space: nowrap;
+}
+.em-balance-emergencias {
+  display: grid;
+  gap: 15px;
+  margin-top: 16px;
+  padding: 20px;
+  border-color: #cfe1ec;
+  background: linear-gradient(155deg, #fbfdff 0%, #f3f9fc 100%);
+}
+.em-balance-emergencias-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.em-balance-emergencias-cabecera > div { display: grid; gap: 4px; }
+.em-balance-emergencias-cabecera span { color: #1684ae; font-size: 10px; font-weight: 850; letter-spacing: .09em; }
+.em-balance-emergencias-cabecera h3 { margin: 0; color: #173f5d; font-size: 17px; }
+.em-balance-emergencias-cabecera p { margin: 0; color: #6d8799; font-size: 12px; }
+.em-balance-emergencias-cabecera > b { padding: 7px 10px; border: 1px solid #d3e8f2; border-radius: 8px; color: #0877a8; background: #eaf7fc; font-size: 11px; white-space: nowrap; }
+.em-balance-emergencias-resumen { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: hidden; border: 1px solid #dce9f1; border-radius: 9px; background: #fff; }
+.em-balance-emergencias-resumen article { display: grid; gap: 5px; padding: 13px 15px; }
+.em-balance-emergencias-resumen article + article { border-left: 1px solid #dce9f1; }
+.em-balance-emergencias-resumen small { color: #71899c; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.em-balance-emergencias-resumen strong { color: #315875; font-size: 16px; }
+.em-balance-emergencias-resumen .positivo strong { color: #18805a; }
+.em-balance-emergencias-resumen .negativo strong { color: #c24d58; }
+.em-balance-emergencias-form { display: grid; grid-template-columns: minmax(160px, .8fr) minmax(120px, .5fr) minmax(190px, 1.3fr) minmax(130px, .7fr) minmax(110px, .55fr) auto; align-items: end; gap: 11px; padding: 15px; border: 1px solid #deebf2; border-radius: 10px; background: #fff; }
+.em-balance-emergencias-form label { display: grid; gap: 6px; color: #355c78; font-size: 12px; font-weight: 750; }
+.em-balance-emergencias-form input, .em-balance-emergencias-form select { width: 100%; min-width: 0; height: 40px; box-sizing: border-box; padding: 0 10px; border: 1px solid #d0e1eb; border-radius: 7px; color: #294d65; background: #fbfdfe; font: inherit; font-size: 12px; }
+.em-balance-emergencias-form button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; padding: 0 14px; border: 1px solid #087fc0; border-radius: 8px; color: #fff; background: #087fc0; font-size: 12px; font-weight: 750; white-space: nowrap; }
+.em-balance-emergencias-form > p { grid-column: 1 / -1; margin: 0; color: #b42318; font-size: 12px; }
+.em-balance-emergencias-grafica { padding: 14px; border: 1px solid #dce9f1; border-radius: 9px; background: #fff; }
+.em-balance-emergencias-grafica h4 { margin: 0 0 8px; color: #315875; font-size: 13px; }
+.em-balance-emergencias-grafica svg { display: block; width: 100%; height: 180px; overflow: visible; }
+.em-balance-emergencias-grafica svg > path { fill: none; stroke: #e5eef4; stroke-width: 1; }
+.em-balance-emergencias-grafica svg > polyline { fill: none; stroke: #168dbb; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.em-balance-emergencias-grafica svg > text { fill: #71899c; font-size: 10px; text-anchor: middle; }
+.em-balance-emergencias-grafica > p { margin: 16px 0; color: #71899c; font-size: 12px; text-align: center; }
+.em-balance-emergencias-historial { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; }
+.em-balance-emergencias-historial li { display: grid; grid-template-columns: 70px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #dce9f1; border-radius: 8px; background: #fff; }
+.em-balance-emergencias-historial li > span { width: max-content; padding: 4px 7px; border-radius: 6px; font-size: 10px; font-weight: 800; }
+.em-balance-emergencias-historial li.ingreso > span { color: #197450; background: #e8f6ef; }
+.em-balance-emergencias-historial li.egreso > span { color: #a94b53; background: #fff0f0; }
+.em-balance-emergencias-historial li > strong { overflow: hidden; color: #315875; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.em-balance-emergencias-historial li > b { color: #315875; font-size: 12px; white-space: nowrap; }
+.em-balance-emergencias-historial li.ingreso > b { color: #18805a; }
+.em-balance-emergencias-historial li.egreso > b { color: #c24d58; }
+.em-balance-emergencias-historial li > time { color: #71899c; font-size: 10px; white-space: nowrap; }
+@media (max-width: 1250px) {
+  .em-balance-emergencias-form { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .em-balance-emergencias-detalle { grid-column: span 2; }
+  .em-balance-emergencias-form button { justify-self: end; }
+}
+@media (max-width: 620px) {
+  .em-balance-emergencias { padding: 14px; }
+  .em-balance-emergencias-resumen { grid-template-columns: 1fr; }
+  .em-balance-emergencias-resumen article + article { border-top: 1px solid #dce9f1; border-left: 0; }
+  .em-balance-emergencias-form { grid-template-columns: 1fr; }
+  .em-balance-emergencias-detalle { grid-column: auto; }
+  .em-balance-emergencias-form button { justify-self: stretch; }
+  .em-balance-emergencias-historial li { grid-template-columns: 65px minmax(0, 1fr) auto; }
+  .em-balance-emergencias-historial li > time { grid-column: 2 / -1; }
 }
 .em-signos-selector {
   display: flex;

@@ -11,13 +11,6 @@ type MensajeChat = {
   hora: string;
   inventarioDescargaId?: number;
 };
-type ConfiguracionIa = {
-  endpoint: string;
-  modelo: string;
-  instrucciones: string;
-  consultarCatalogo: boolean;
-  consultarInventario: boolean;
-};
 type SucursalFarmacia = {
   id: number;
   nombre: string;
@@ -141,14 +134,6 @@ type SpeechWindow = Window & {
   webkitSpeechRecognition?: new () => SpeechRecognitionLike;
 };
 
-const configuracionInicial: ConfiguracionIa = {
-  endpoint: "",
-  modelo: "gpt-6-luna",
-  instrucciones:
-    "Eres TOMI, un asistente amable y claro para consultas de catálogo e inventario de farmacia. Si no tienes datos suficientes, indícalo y solicita verificación con el personal farmacéutico.",
-  consultarCatalogo: true,
-  consultarInventario: true,
-};
 const saludo: MensajeChat = {
   id: 1,
   rol: "assistant",
@@ -156,22 +141,6 @@ const saludo: MensajeChat = {
     "¡Hola! Soy TOMI, el asistente de farmacia. Puedo ayudarte a consultar el catálogo y el inventario. Puedes escribirme o dictar tu consulta con el micrófono.",
   hora: "Ahora",
 };
-function leerConfiguracion(): ConfiguracionIa {
-  try {
-    const guardada = localStorage.getItem("farmacia-ia-config");
-    if (!guardada) return configuracionInicial;
-    const preferencias = JSON.parse(guardada) as Partial<ConfiguracionIa> &
-      Record<string, unknown>;
-    delete preferencias.vozURI;
-    delete preferencias.vozVelocidad;
-    delete preferencias.vozTono;
-    delete preferencias.voiceURI;
-    return { ...configuracionInicial, ...preferencias };
-  } catch {
-    return configuracionInicial;
-  }
-}
-
 const etiquetaTipoEstructura: Record<TipoEstructuraFarmacia, string> = {
   ESTANTE: "Estante",
   FRIGOBAR: "Frigobar",
@@ -678,10 +647,6 @@ function RostroTomi({ clase = "" }: { clase?: string }) {
 export function AsistenteFarmaciaView() {
   const [subvista, setSubvista] = useState<SubvistaFarmaciaIa>("chat");
   const [panelTomiExpandido, setPanelTomiExpandido] = useState(true);
-  const [configuracion, setConfiguracion] = useState<ConfiguracionIa>(() => {
-    const guardada = leerConfiguracion();
-    return { ...guardada, modelo: guardada.modelo || "gpt-6-luna" };
-  });
   const [mensaje, setMensaje] = useState("");
   const [mensajes, setMensajes] = useState<MensajeChat[]>([saludo]);
   const [errorChat, setErrorChat] = useState("");
@@ -923,15 +888,13 @@ export function AsistenteFarmaciaView() {
           messages: conversacion
             .slice(-16)
             .map((item) => ({ role: item.rol, content: item.texto })),
-          model: configuracion.modelo,
-          style: configuracion.instrucciones,
         }),
       });
       const datos = await respuesta.json().catch(() => ({}));
       if (!respuesta.ok)
         throw new Error(
           respuesta.status >= 500
-            ? "No se pudo guardar o confirmar el conteo por un error del servidor."
+            ? "El servidor tuvo un problema. Si estabas registrando un conteo, revisa el inventario antes de repetirlo."
             : datos.message || "No se pudo completar la consulta.",
         );
       const inventarioDescargaId =

@@ -1177,6 +1177,7 @@ export default function Aplicacion() {
         "triaje-ambulatorio",
         "triaje-emergencias",
         "enfermera-internacion",
+        "enfermera-terapia-intensiva",
         "farmacia-internacion",
         "enfermera-quirofano",
       ].includes(item.id);
@@ -1187,6 +1188,7 @@ export default function Aplicacion() {
         "atencion-urgencias",
         "medico-internacion",
         "medico-visitante-internacion",
+        "medico-terapia-intensiva",
       ].includes(item.id);
     if (perfil === "quirofano")
       return [

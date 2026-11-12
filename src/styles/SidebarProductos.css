@@ -1102,6 +1102,11 @@
 
 /* Regla común de capas para todas las navegaciones secundarias del clínico. */
 @media (min-width: 761px) {
+  .sistema-sidebar {
+    top: var(--clinico-topbar, 70px);
+    bottom: 0;
+  }
+
   .sistema-topbar {
     position: fixed;
     top: 0;

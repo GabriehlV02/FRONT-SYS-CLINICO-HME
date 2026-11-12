@@ -38,12 +38,6 @@ export function PacienteIngresoEmergencia({
           · CI {seleccionado.numeroDocumento}
         </p>
       )}
-      {!seleccionado && (
-        <p className="em-paciente-sin-identificar">
-          Puedes iniciar la atención sin identificar al paciente y completar sus
-          datos después.
-        </p>
-      )}
     </div>
   );
 }

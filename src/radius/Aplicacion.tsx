@@ -13,6 +13,11 @@ import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerCitasAgendaDemo } from "./datos/agendaDemo";
 import { obtenerPacientesTerapiaDemo } from "../flows/internacion/terapiaIntensivaDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
+import {
+  apiEmergencias,
+  nombrePaciente as nombrePacienteEmergencia,
+  type CuentaEmergencia,
+} from "../flows/emergencias/emergenciasApi";
 import { leerSesion, type Sesion } from "./types/sesion";
 import VistaInicioSesion from "./vistas/autenticacion/VistaInicioSesion";
 import "./vistas/visor/BibliotecaImagenes.css";
@@ -1011,6 +1016,10 @@ export default function Aplicacion() {
     if (modulo !== "cuenta-quirofano") setAbrirFormularioQuirofano(false);
   }, [modulo]);
   const [colaAtencionAbierta, setColaAtencionAbierta] = useState(false);
+  const [cuentasEmergenciasCola, setCuentasEmergenciasCola] = useState<CuentaEmergencia[]>([]);
+  const [cargandoEmergenciasCola, setCargandoEmergenciasCola] = useState(false);
+  const [errorEmergenciasCola, setErrorEmergenciasCola] = useState("");
+  const [cuentaEmergenciaSeleccionada, setCuentaEmergenciaSeleccionada] = useState("");
   const [pacienteColaAtencion, setPacienteColaAtencion] =
     useState<CitaConfirmada | null>(null);
   const [citasColaAtencion, setCitasColaAtencion] = useState<CitaConfirmada[]>(
@@ -1121,6 +1130,33 @@ export default function Aplicacion() {
       });
     return () => controller.abort();
   }, [colaAtencionAbierta, esDemoClinico]);
+  useEffect(() => {
+    if (!colaAtencionAbierta) return;
+    let cancelado = false;
+    let temporizador = 0;
+    const cargarEmergencias = async () => {
+      setCargandoEmergenciasCola(true);
+      try {
+        const datos = await apiEmergencias<{ cuentas: CuentaEmergencia[] }>();
+        if (!cancelado) {
+          setCuentasEmergenciasCola(datos.cuentas.filter((cuenta) => !cuenta.fin));
+          setErrorEmergenciasCola("");
+        }
+      } catch (causa) {
+        if (!cancelado) setErrorEmergenciasCola((causa as Error).message);
+      } finally {
+        if (!cancelado) {
+          setCargandoEmergenciasCola(false);
+          temporizador = window.setTimeout(() => void cargarEmergencias(), 5000);
+        }
+      }
+    };
+    void cargarEmergencias();
+    return () => {
+      cancelado = true;
+      window.clearTimeout(temporizador);
+    };
+  }, [colaAtencionAbierta]);
   const accesoSoloInventario = sesion?.usuario.rol === "Inventario de esterilizacion";
   const modulosVisibles = modulos.filter((item) => {
     if (accesoSoloInventario) return item.id === "central-esterilizacion";
@@ -1781,19 +1817,20 @@ export default function Aplicacion() {
                     <p>EMERGENCIAS</p>
                     <small>Atenciones activas en cubículos.</small>
                   </header>
-                  {ejemplosEmergenciasCola.map((paciente, indice) => (
-                    <article key={paciente.id}>
+                  {cuentasEmergenciasCola.map((cuenta, indice) => (
+                    <article key={cuenta.id}>
                       <span className="cola-atencion-numero">{indice + 1}</span>
                       <div className="cola-atencion-datos">
                         <b>En atención</b>
-                        <strong>{paciente.paciente}</strong>
-                        <small>{paciente.detalle}</small>
+                        <strong>{nombrePacienteEmergencia(cuenta)}</strong>
+                        <small>{`Cubículo ${cuenta.cubiculo}`}</small>
                       </div>
-                      <time>{paciente.hora}</time>
+                      <time>{new Date(cuenta.inicio).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false })}</time>
                       <button
                         type="button"
                         onClick={() => {
                           setColaAtencionAbierta(false);
+                          setCuentaEmergenciaSeleccionada(cuenta.id);
                           setModulo("atencion-urgencias");
                         }}
                       >
@@ -1801,6 +1838,15 @@ export default function Aplicacion() {
                       </button>
                     </article>
                   ))}
+                  {cargandoEmergenciasCola && cuentasEmergenciasCola.length === 0 && (
+                    <p className="cola-atencion-estado">Cargando pacientes de emergencias…</p>
+                  )}
+                  {!cargandoEmergenciasCola && errorEmergenciasCola && (
+                    <p className="cola-atencion-estado" role="alert">{errorEmergenciasCola}</p>
+                  )}
+                  {!cargandoEmergenciasCola && !errorEmergenciasCola && cuentasEmergenciasCola.length === 0 && (
+                    <p className="cola-atencion-estado">No hay atenciones activas en emergencias.</p>
+                  )}
                 </section>
                 <section
                   className="cola-atencion-internados cola-atencion-seccion cola-atencion-terapia"
@@ -2206,7 +2252,7 @@ export default function Aplicacion() {
             ) : modulo === "triaje-emergencias" ? (
               <TriajeEmergenciasView />
             ) : modulo === "atencion-urgencias" ? (
-              <AtencionMedicaEmergenciasView />
+              <AtencionMedicaEmergenciasView cuentaInicialId={cuentaEmergenciaSeleccionada} />
             ) : modulo === "enfermera-terapia-intensiva" ? (
               <section className="triaje-ambulatorio-vista">
                 <HorizontalSubvistaNav

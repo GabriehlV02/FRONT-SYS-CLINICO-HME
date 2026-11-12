@@ -19,10 +19,13 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api-contable/, "/api"),
         },
-        "/api/":
-          process.env.VITE_API_TARGET ||
-          env.VITE_API_TARGET ||
-          "http://127.0.0.1:5005",
+        "/api": {
+          target:
+            process.env.VITE_API_TARGET ||
+            env.VITE_API_TARGET ||
+            "http://127.0.0.1:5005",
+          changeOrigin: true,
+        },
       },
     },
     preview: {

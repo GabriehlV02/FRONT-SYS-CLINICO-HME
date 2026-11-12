@@ -609,10 +609,6 @@ export function AtencionMedicaEmergenciasView({
               <div>
                 <span>INGRESO DIRECTO</span>
                 <h3 id="em-medica-inicio-titulo">Iniciar atención médica</h3>
-                <p>
-                  Selecciona un cubículo y registra los datos disponibles para
-                  abrir la atención.
-                </p>
               </div>
               <button
                 type="button"

@@ -622,6 +622,12 @@ export function TriajeEmergenciasView({
   const [valores, setValores] = useState<Record<string, string>>({}),
     [observacion, setObservacion] = useState(""),
     [editarSignos, setEditarSignos] = useState(false);
+  const [evolucion, setEvolucion] = useState("");
+  const [evolucionEditando, setEvolucionEditando] = useState<string | null>(null);
+  const [evolucionEnVista, setEvolucionEnVista] = useState<NonNullable<Cuenta["evaluaciones"]>[number] | null>(null);
+  const [fechaHoraEvolucion, setFechaHoraEvolucion] = useState(
+    fechaHoraIngresoActual,
+  );
   const [identidad, setIdentidad] = useState<Identidad | null>(null),
     [revisionIdentidad, setRevisionIdentidad] = useState(0);
   const [cobroModal, setCobroModal] = useState(false),
@@ -1011,6 +1017,29 @@ export function TriajeEmergenciasView({
   const cobroAbierto = false,
     setCobroAbierto = (_abierto: boolean) => {};
   const confirmarCobro = (event: FormEvent) => event.preventDefault();
+  const evolucionesEnfermeria = (cuenta?.evaluaciones || []).filter(
+    (evaluacionGuardada) => evaluacionGuardada.campos.evolucion?.trim(),
+  );
+  const eventosSuministracion = [
+    ...(cuenta?.registrosEnfermeria || []).map((registro) => ({
+      id: `enfermeria-${registro.id}`,
+      fecha: registro.fecha,
+      tipo: registro.tipo === "insumo" ? "Insumo" : registro.tipo === "procedimiento" ? "Procedimiento" : "Cuidado",
+      detalle: registro.detalle,
+      cantidad: registro.cantidad ? `${registro.cantidad} ${registro.unidad || ""}`.trim() : "",
+      observacion: registro.observacion || "",
+      estado: "Registrado",
+    })),
+    ...(cuenta?.consumos || []).map((consumo) => ({
+      id: `consumo-${consumo.registroId}`,
+      fecha: consumo.inicio,
+      tipo: consumo.tipo === "servicio" ? "Servicio" : "Insumo",
+      detalle: consumo.nombre,
+      cantidad: consumo.porHora ? "Por hora" : `${consumo.cantidad} ${consumo.unidad}`,
+      observacion: "",
+      estado: consumo.porHora ? (consumo.fin ? "Finalizado" : "En curso") : "Aplicado",
+    })),
+  ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
   return (
     <section className="emergencias-vista">
       {!recepcion && (
@@ -2079,39 +2108,6 @@ export function TriajeEmergenciasView({
                     </button>
                   </nav>
                   {seccionClinica === "ingreso" && (
-                    <section className="em-panel em-registro-ingreso">
-                      <header className="em-panel-titulo">
-                        <div>
-                          <h3>Registro de ingreso</h3>
-                          <small>
-                            Información disponible al momento de recibir al
-                            paciente.
-                          </small>
-                        </div>
-                      </header>
-                      <div>
-                        <div>
-                          <span>Motivo de atención</span>
-                          <strong>
-                            {cuenta.evaluaciones?.at(-1)?.campos
-                              .motivoConsulta || "Sin registro"}
-                          </strong>
-                        </div>
-                        <div>
-                          <span>Diagnóstico de ingreso</span>
-                          <strong>
-                            {cuenta.evaluaciones?.at(-1)?.campos.diagnostico ||
-                              "Sin registro"}
-                          </strong>
-                        </div>
-                        <div>
-                          <span>Historia clínica</span>
-                          <strong>Sin registro</strong>
-                        </div>
-                      </div>
-                    </section>
-                  )}
-                  {seccionClinica === "ingreso" && (
                     <section className="em-panel em-signos-panel">
                       <header className="em-panel-titulo">
                         <h3>Signos vitales</h3>
@@ -2182,6 +2178,224 @@ export function TriajeEmergenciasView({
                           )}
                       </div>
                     </section>
+                  )}
+                  {seccionClinica === "paciente" && (
+                    <>
+                    <section className="em-panel em-evolucion-panel">
+                      <div className="em-evolucion-layout">
+                        {!cuenta.fin && (
+                          <form
+                            className="em-evolucion-form"
+                            onSubmit={async (evento) => {
+                              evento.preventDefault();
+                              const texto = evolucion.trim();
+                              if (!texto) return;
+                              const rutaEvolucion = evolucionEditando
+                                ? `/${cuenta.id}/evaluacion/${encodeURIComponent(evolucionEditando)}/editar`
+                                : `/${cuenta.id}/evaluacion`;
+                              if (
+                                await guardar(
+                                  rutaEvolucion,
+                                  {
+                                    revision: cuenta.revision,
+                                    campos: {
+                                      evolucion: texto,
+                                      evolucionFecha: fechaHoraEvolucion.fecha,
+                                      evolucionHora: fechaHoraEvolucion.hora,
+                                    },
+                                  },
+                                  evolucionEditando ? "Evolución actualizada." : "Evolución guardada.",
+                                )
+                              ) {
+                                setEvolucion("");
+                                setEvolucionEditando(null);
+                                setFechaHoraEvolucion(fechaHoraIngresoActual());
+                              }
+                            }}
+                          >
+                            <div className="em-evolucion-campo-texto">
+                              <label htmlFor="em-evolucion-texto">
+                                Evolución de enfermería
+                              </label>
+                              <textarea
+                                id="em-evolucion-texto"
+                                value={evolucion}
+                                maxLength={5000}
+                                rows={5}
+                                placeholder="Escribe aquí la evolución de enfermería del paciente."
+                                onChange={(evento) =>
+                                  setEvolucion(evento.target.value)
+                                }
+                                required
+                              />
+                            </div>
+                            <div className="em-evolucion-lateral">
+                              <label>
+                                Fecha de la evolución
+                                <input
+                                  type="date"
+                                  value={fechaHoraEvolucion.fecha}
+                                  required
+                                  onChange={(evento) =>
+                                    setFechaHoraEvolucion((actual) => ({
+                                      ...actual,
+                                      fecha: evento.target.value,
+                                    }))
+                                  }
+                                />
+                              </label>
+                              <label>
+                                Hora de la evolución
+                                <input
+                                  type="time"
+                                  value={fechaHoraEvolucion.hora}
+                                  required
+                                  onChange={(evento) =>
+                                    setFechaHoraEvolucion((actual) => ({
+                                      ...actual,
+                                      hora: evento.target.value,
+                                    }))
+                                  }
+                                />
+                              </label>
+                            </div>
+                            <div className="em-evolucion-acciones">
+                              <button
+                                className="em-primario"
+                                type="submit"
+                                disabled={ocupado || !evolucion.trim()}
+                              >
+                                {evolucionEditando ? "Actualizar evolución" : "Guardar evolución"}
+                              </button>
+                              {evolucionEditando && <button type="button" className="em-evolucion-cancelar" onClick={() => { setEvolucionEditando(null); setEvolucion(""); setFechaHoraEvolucion(fechaHoraIngresoActual()); }}>Cancelar edición</button>}
+                            </div>
+                          </form>
+                        )}
+                        <aside
+                          className="em-evolucion-historial"
+                          aria-label="Historial de anotaciones de enfermería"
+                        >
+                          <header>
+                            <div>
+                              <h3>Historial de anotaciones</h3>
+                              <small>
+                                Evoluciones registradas durante esta atención
+                              </small>
+                            </div>
+                            <span>{evolucionesEnfermeria.length}</span>
+                          </header>
+                          {evolucionesEnfermeria.length ? (
+                            <div className="em-evolucion-lista">
+                              {evolucionesEnfermeria
+                                .slice()
+                                .reverse()
+                                .map((evaluacionGuardada) => {
+                                  const fechaGuardada =
+                                    evaluacionGuardada.campos.evolucionFecha;
+                                  const horaGuardada =
+                                    evaluacionGuardada.campos.evolucionHora;
+                                  const fechaVisible = fechaGuardada
+                                    ? new Date(
+                                        `${fechaGuardada}T12:00:00`,
+                                      ).toLocaleDateString("es-BO")
+                                    : fecha(evaluacionGuardada.fecha);
+                                  return (
+                                    <article
+                                      key={
+                                        evaluacionGuardada.id ??
+                                        evaluacionGuardada.fecha
+                                      }
+                                    >
+                                      <small>
+                                        {fechaVisible}
+                                        {horaGuardada
+                                          ? ` · ${horaGuardada}`
+                                          : ""}
+                                      </small>
+                                      <p>
+                                        {evaluacionGuardada.campos.evolucion}
+                                      </p>
+                                      <div className="em-evolucion-item-acciones">
+                                        <button type="button" onClick={() => setEvolucionEnVista(evaluacionGuardada)}>Ver</button>
+                                        {!cuenta.fin && <button type="button" onClick={() => {
+                                          if (!evaluacionGuardada.id) return;
+                                          setEvolucionEditando(evaluacionGuardada.id);
+                                          setEvolucion(evaluacionGuardada.campos.evolucion || "");
+                                          setFechaHoraEvolucion({
+                                            fecha: evaluacionGuardada.campos.evolucionFecha || new Date(evaluacionGuardada.fecha).toISOString().slice(0, 10),
+                                            hora: evaluacionGuardada.campos.evolucionHora || new Date(evaluacionGuardada.fecha).toTimeString().slice(0, 5),
+                                          });
+                                          requestAnimationFrame(() => document.getElementById("em-evolucion-texto")?.focus());
+                                        }}>Editar</button>}
+                                      </div>
+                                    </article>
+                                  );
+                                })}
+                            </div>
+                          ) : (
+                            <p className="em-evolucion-vacia">
+                              Todavía no hay anotaciones para esta atención.
+                            </p>
+                          )}
+                          {evolucionEnVista && <div className="em-evolucion-modal-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setEvolucionEnVista(null); }}>
+                            <section className="em-evolucion-modal" role="dialog" aria-modal="true" aria-labelledby="em-evolucion-modal-titulo">
+                              <header><div><small>REGISTRO DE ENFERMERÍA</small><h3 id="em-evolucion-modal-titulo">Detalle de la evolución</h3></div><button type="button" aria-label="Cerrar" onClick={() => setEvolucionEnVista(null)}>×</button></header>
+                              <p>{evolucionEnVista.campos.evolucion}</p>
+                              <small>{evolucionEnVista.campos.evolucionFecha ? new Date(`${evolucionEnVista.campos.evolucionFecha}T12:00:00`).toLocaleDateString("es-BO") : fecha(evolucionEnVista.fecha)}{evolucionEnVista.campos.evolucionHora ? ` · ${evolucionEnVista.campos.evolucionHora}` : ""}{evolucionEnVista.usuario ? ` · ${evolucionEnVista.usuario}` : ""}</small>
+                              {evolucionEnVista.editadoEn && <small className="em-evolucion-editada">Editada el {fecha(evolucionEnVista.editadoEn)}{evolucionEnVista.editadoPor ? ` · ${evolucionEnVista.editadoPor}` : ""}</small>}
+                            </section>
+                          </div>}
+                        </aside>
+                      </div>
+                    </section>
+                    <div className="em-seguimiento-enfermeria">
+                      <OrdenesEmergencias
+                        key={`indicaciones-${cuenta.id}`}
+                        cuenta={cuenta}
+                        catalogo={catalogo}
+                        guardar={guardar}
+                        ocupado={ocupado}
+                        enfermeria
+                      />
+                      <section className="em-panel em-suministracion-panel">
+                        <header className="em-panel-titulo">
+                          <div>
+                            <h3>Suministración al paciente</h3>
+                            <small>Registra los cuidados, procedimientos e insumos utilizados durante esta atención.</small>
+                          </div>
+                          <b>{eventosSuministracion.length} registros</b>
+                        </header>
+                        {!cuenta.fin && <form className="em-suministracion-form" onSubmit={registrarUsoEnfermeria}>
+                          <label>Tipo de registro
+                            <select value={usoTipo} onChange={(evento) => setUsoTipo(evento.target.value as RegistroEnfermeria["tipo"])}>
+                              <option value="insumo">Insumo</option>
+                              <option value="procedimiento">Procedimiento</option>
+                              <option value="cuidado">Cuidado</option>
+                            </select>
+                          </label>
+                          <label className="em-suministracion-detalle">Detalle utilizado
+                            <input required maxLength={500} value={usoDetalle} onChange={(evento) => setUsoDetalle(evento.target.value)} placeholder="Medicamento, insumo o cuidado realizado" />
+                          </label>
+                          <label>Cantidad
+                            <input type="number" min="0.001" step="any" value={usoCantidad} onChange={(evento) => setUsoCantidad(evento.target.value)} placeholder="Opcional" />
+                          </label>
+                          <label>Unidad
+                            <input maxLength={80} value={usoUnidad} onChange={(evento) => setUsoUnidad(evento.target.value)} placeholder="Ej. ml, unidad" />
+                          </label>
+                          <label className="em-suministracion-detalle">Observación
+                            <input maxLength={1000} value={usoObservacion} onChange={(evento) => setUsoObservacion(evento.target.value)} placeholder="Nota opcional" />
+                          </label>
+                          <button className="em-primario" type="submit" disabled={ocupado || !usoDetalle.trim()}>Registrar suministración</button>
+                        </form>}
+                        <div className="em-suministracion-lista" aria-label="Historial de suministración">
+                          {eventosSuministracion.length ? eventosSuministracion.map((evento) => <article key={evento.id}>
+                            <div><small>{evento.tipo} · {fecha(evento.fecha)}</small><strong>{evento.detalle}</strong>{evento.observacion && <p>{evento.observacion}</p>}</div>
+                            <span>{evento.cantidad || evento.estado}</span>
+                          </article>) : <p className="em-vacio">Todavía no hay suministraciones registradas.</p>}
+                        </div>
+                      </section>
+                    </div>
+                    </>
                   )}
                   {seccionClinica === "examen" && (
                     <section className="em-panel em-examen-regional">

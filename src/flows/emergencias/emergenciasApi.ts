@@ -64,6 +64,9 @@ export type CuentaEmergencia = {
     fecha: string;
     usuario: string;
     campos: Record<string, string>;
+    historialEdiciones?: { fecha: string; usuario: string; campos: Record<string, string> }[];
+    editadoEn?: string;
+    editadoPor?: string;
   }[];
   ordenes?: OrdenEmergencia[];
   registrosEnfermeria?: RegistroEnfermeria[];
@@ -220,11 +223,19 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
       };
       cuentas.push(cuenta);
     } else {
-      const [id, accion] = ruta.split("/").filter(Boolean);
+      const [id, accion, evaluacionId, subaccion] = ruta.split("/").filter(Boolean);
       const encontrada = cuentas.find((c) => c.id === id);
       if (!encontrada) throw new Error("Atención demo no encontrada.");
       cuenta = encontrada;
-      if (accion === "evaluacion")
+      if (accion === "evaluacion" && subaccion === "editar") {
+        const evaluacion = cuenta.evaluaciones?.find((item) => item.id === evaluacionId);
+        if (!evaluacion) throw new Error("No se encontró la anotación seleccionada.");
+        evaluacion.historialEdiciones ||= [];
+        evaluacion.historialEdiciones.push({ fecha, usuario: "Admin demo", campos: { ...evaluacion.campos } });
+        evaluacion.campos = { ...evaluacion.campos, ...(datos.campos || datos) };
+        evaluacion.editadoEn = fecha;
+        evaluacion.editadoPor = "Admin demo";
+      } else if (accion === "evaluacion")
         (cuenta.evaluaciones ||= []).push({
           id: crypto.randomUUID(),
           revision: 1,

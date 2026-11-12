@@ -58,3 +58,17 @@
 @media (max-width: 1000px) {
   .sistema-app .em-trabajo > .em-resumen .em-total-consumido { grid-column: 1 / -1; }
 }
+
+/* Reduce cerca de un 15% la altura de la ficha del paciente en emergencias. */
+.sistema-app .em-trabajo > .em-resumen:has(.em-resumen-identidad) {
+  padding-block: 15px !important;
+}
+.sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad {
+  gap: 12px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar {
+  padding-top: 10px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores {
+  padding-block: 8px;
+}

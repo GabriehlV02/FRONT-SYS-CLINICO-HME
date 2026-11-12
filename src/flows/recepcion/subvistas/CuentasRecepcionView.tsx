@@ -70,14 +70,36 @@ function CuentasTodasView({
     leerInternaciones,
   );
   const [emergencias, setEmergencias] = useState<CuentaEmergencia[]>([]);
+  const [errorEmergencias, setErrorEmergencias] = useState("");
+  const [cargandoEmergencias, setCargandoEmergencias] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<
     "Todas" | "Emergencias" | "Internaciones" | "Deudas" | "Cerradas"
   >("Todas");
   useEffect(() => {
-    void apiEmergencias<{ cuentas: CuentaEmergencia[] }>()
-      .then((datos) => setEmergencias(datos.cuentas))
-      .catch(() => setEmergencias([]));
+    let cancelado = false;
+    let temporizador = 0;
+    const cargar = async () => {
+      try {
+        const datos = await apiEmergencias<{ cuentas: CuentaEmergencia[] }>();
+        if (!cancelado) {
+          setEmergencias(datos.cuentas);
+          setErrorEmergencias("");
+        }
+      } catch (causa) {
+        if (!cancelado) setErrorEmergencias((causa as Error).message);
+      } finally {
+        if (!cancelado) {
+          setCargandoEmergencias(false);
+          temporizador = window.setTimeout(() => void cargar(), 5000);
+        }
+      }
+    };
+    void cargar();
+    return () => {
+      cancelado = true;
+      window.clearTimeout(temporizador);
+    };
   }, []);
   const cuentas = useMemo(() => {
     const deEmergencias = emergencias.map((cuenta) => {
@@ -94,6 +116,7 @@ function CuentasTodasView({
         saldo: total,
         total,
         estado: cuenta.fin ? "Cerrada" : total ? "Pendiente" : "Pendiente",
+        emergenciaActiva: !cuenta.fin,
         destino: "emergencias" as const,
       };
     });
@@ -133,7 +156,7 @@ function CuentasTodasView({
       !busqueda.trim() || texto.includes(busqueda.trim().toLocaleLowerCase());
     const filtroActivo =
       filtro === "Todas" ||
-      (filtro === "Emergencias" && cuenta.origen === "Emergencias") ||
+      (filtro === "Emergencias" && cuenta.origen === "Emergencias" && "emergenciaActiva" in cuenta && cuenta.emergenciaActiva) ||
       (filtro === "Internaciones" && cuenta.origen === "Internación") ||
       (filtro === "Deudas" && cuenta.saldo > 0) ||
       (filtro === "Cerradas" && cuenta.estado === "Cerrada");
@@ -230,7 +253,13 @@ function CuentasTodasView({
               </section>
             ))
           : visibles.map(filaCuenta)}
-        {!visibles.length && (
+        {!visibles.length && errorEmergencias && filtro === "Emergencias" && (
+          <p role="alert">{errorEmergencias}</p>
+        )}
+        {!visibles.length && !errorEmergencias && cargandoEmergencias && filtro === "Emergencias" && (
+          <p>Cargando atenciones activas de emergencias…</p>
+        )}
+        {!visibles.length && !errorEmergencias && !cargandoEmergencias && (
           <p>No se encontraron cuentas con esos criterios.</p>
         )}
       </div>

@@ -1,5 +1,5 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { sincronizarPaciente } from "../../radius/pacientesCompartidos";
 import {
   PacienteIngresoEmergencia,
@@ -21,6 +21,15 @@ import {
   type CuentaEmergencia,
   type RegistroEnfermeria,
 } from "./emergenciasApi";
+import { camposParaServicio } from "../triaje/camposSignosVitales";
+import {
+  useCatalogoSignosVitales,
+  useServiciosSignosVitales,
+} from "../triaje/ServiciosSignosVitales";
+import {
+  signosVitalesIniciales,
+  type SignoVitalConfig,
+} from "../triaje/ConfiguracionSignosVitalesView";
 
 type Item = {
   id: string;
@@ -101,16 +110,15 @@ const campos = [
   ["saturacion", "Saturación", "%"],
   ["glicemia", "Glicemia", "mg/dL"],
   ["peso", "Peso", "kg"],
-];
+ ] as const;
 function GraficaEvolucionSignos({
   mediciones,
+  camposGrafica = campos,
 }: {
   mediciones: Cuenta["signos"];
+  camposGrafica?: readonly (readonly [string, string, string])[];
 }) {
-  const [signosSeleccionados, setSignosSeleccionados] = useState<string[]>([
-    "temperatura",
-    "frecuenciaCardiaca",
-  ]);
+  const [signosSeleccionados, setSignosSeleccionados] = useState<string[]>([]);
   const colores = [
     "#087fc0",
     "#f0783b",
@@ -122,12 +130,12 @@ function GraficaEvolucionSignos({
     "#547e9b",
   ];
   const medicionesVisibles = mediciones.slice(-8);
-  const series = campos.map(([id, nombre, unidad], indice) => {
+  const series = camposGrafica.map(([id, nombre, unidad], indice) => {
     const valores = medicionesVisibles
       .map((medicion, posicion) => ({
         medicion,
         posicion,
-        valor: medicion.valores[id],
+        valor: Number(medicion.valores[id]),
       }))
       .filter((punto) => Number.isFinite(punto.valor));
     const minimo = valores.length
@@ -165,6 +173,9 @@ function GraficaEvolucionSignos({
         ? actual.filter((signo) => signo !== id)
         : [...actual, id],
     );
+  useEffect(() => {
+    setSignosSeleccionados(camposGrafica.slice(0, 2).map(([id]) => id));
+  }, [camposGrafica]);
   const seleccionados = series.filter((serie) =>
     signosSeleccionados.includes(serie.id),
   );
@@ -576,9 +587,33 @@ function ModalCobro({
 
 export function TriajeEmergenciasView({
   recepcion = false,
+  camposConfigurados,
 }: {
   recepcion?: boolean;
+  camposConfigurados?: SignoVitalConfig[];
 }) {
+  const catalogoServicios = useServiciosSignosVitales();
+  const catalogoSignos = useCatalogoSignosVitales(
+    camposConfigurados,
+    signosVitalesIniciales,
+  );
+  const idsEmergencias = catalogoServicios.servicios.find(
+    (servicio) => servicio.id === "emergencias",
+  )?.signos;
+  const camposEmergencia = useMemo(
+    () =>
+      idsEmergencias
+        ? camposParaServicio(catalogoSignos.signos, idsEmergencias)
+        : [],
+    [catalogoSignos.signos, idsEmergencias],
+  );
+  const vitalesEmergencia = useMemo(
+    () =>
+      camposEmergencia
+        .filter((campo) => campo.tipo !== "Texto")
+        .map((campo) => [campo.id, campo.etiqueta, campo.unidad] as const),
+    [camposEmergencia],
+  );
   const [seccionClinica, setSeccionClinica] = useState<
     "paciente" | "ingreso" | "signos" | "examen" | "descargos"
   >("ingreso");
@@ -849,9 +884,10 @@ export function TriajeEmergenciasView({
           valores: Object.fromEntries(
             Object.entries(valores)
               .filter(([, v]) => v !== "")
-              .map(([k, v]) => [k, Number(v)]),
+              .map(([k, v]) => [k, v]),
           ),
           observacion,
+          hora: fechaHoraIngresoActual().hora,
         },
         "Signos vitales guardados.",
       )
@@ -2123,7 +2159,10 @@ export function TriajeEmergenciasView({
                         )}
                       </header>
                       <div className="em-signos-columnas">
-                        <GraficaEvolucionSignos mediciones={cuenta.signos} />
+                        <GraficaEvolucionSignos
+                          mediciones={cuenta.signos}
+                          camposGrafica={vitalesEmergencia}
+                        />
                         {(!cuenta.signos.length || editarSignos) &&
                           !cuenta.fin && (
                             <form
@@ -2132,29 +2171,47 @@ export function TriajeEmergenciasView({
                             >
                               <h4>Registrar signos vitales</h4>
                               <div className="em-form-grid em-signos">
-                                {campos.map(([k, titulo, unidad]) => (
-                                  <label key={k}>
-                                    {titulo}
+                                {camposEmergencia.map(
+                                  ({ id, etiqueta, unidad, tipo }) => (
+                                  <label key={id}>
+                                    {etiqueta}
                                     <span>
                                       <input
-                                        type="number"
-                                        min="0"
-                                        max={
-                                          k === "saturacion" ? 100 : undefined
-                                        }
-                                        step="any"
-                                        value={valores[k] || ""}
+                                        type={tipo === "Texto" ? "text" : "number"}
+                                        step={tipo === "Número entero" ? "1" : "any"}
+                                        value={valores[id] || ""}
                                         onChange={(e) =>
                                           setValores({
                                             ...valores,
-                                            [k]: e.target.value,
+                                            [id]: e.target.value,
                                           })
                                         }
                                       />
                                       {unidad}
                                     </span>
                                   </label>
-                                ))}
+                                  ),
+                                )}
+                                {(catalogoSignos.cargando ||
+                                  catalogoServicios.cargando) && (
+                                  <p role="status">
+                                    Cargando los signos configurados para Emergencias…
+                                  </p>
+                                )}
+                                {(catalogoSignos.error ||
+                                  catalogoServicios.error) && (
+                                  <p role="alert">
+                                    {catalogoSignos.error ||
+                                      catalogoServicios.error}
+                                  </p>
+                                )}
+                                {!catalogoSignos.cargando &&
+                                  !catalogoServicios.cargando &&
+                                  !camposEmergencia.length && (
+                                    <p role="status">
+                                      No hay signos vitales asignados al servicio de Emergencias.
+                                    </p>
+                                  )}
                               </div>
                               <label>
                                 Observación o motivo de medición no disponible
@@ -2169,7 +2226,14 @@ export function TriajeEmergenciasView({
                               <div className="em-acciones">
                                 <button
                                   className="em-primario"
-                                  disabled={ocupado}
+                                  disabled={
+                                    ocupado ||
+                                    catalogoSignos.cargando ||
+                                    catalogoServicios.cargando ||
+                                    !!catalogoSignos.error ||
+                                    !!catalogoServicios.error ||
+                                    !camposEmergencia.length
+                                  }
                                 >
                                   Guardar signos vitales
                                 </button>

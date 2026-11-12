@@ -28,6 +28,20 @@ type PacienteAtendido = PacienteEnEspera & {
   valores: Record<string, string>;
   registrado: string;
 };
+type MedicionHistorial = {
+  id: string;
+  nombre: string;
+  unidad: string;
+  valor: string | number;
+};
+type RegistroHistorial = {
+  id: string;
+  fecha: string;
+  servicio: string;
+  contexto: string;
+  observacion: string;
+  mediciones: MedicionHistorial[];
+};
 
 const claveColaDemo = "clinico.triaje.cola-demo.v2";
 const claveAtendidosDemo = "clinico.triaje.atendidos-demo.v1";
@@ -124,9 +138,52 @@ export function SignosVitalesView({
   const [editandoAtendido, setEditandoAtendido] = useState(false);
   const [guardando, setGuardando] = useState(false);
   const [errorRegistro, setErrorRegistro] = useState("");
+  const [historialPaciente, setHistorialPaciente] = useState<
+    RegistroHistorial[]
+  >([]);
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
+  const [errorHistorial, setErrorHistorial] = useState("");
   const [versionValoracion, setVersionValoracion] = useState<number | null>(
     null,
   );
+  useEffect(() => {
+    const pacienteId = pacienteSeleccionado?.pacienteId;
+    setHistorialPaciente([]);
+    setErrorHistorial("");
+    if (!pacienteId || esDemo) {
+      setCargandoHistorial(false);
+      return;
+    }
+    const controller = new AbortController();
+    setCargandoHistorial(true);
+    apiFetch(
+      `/api/v1/pacientes/${encodeURIComponent(pacienteId)}/signos-vitales`,
+      { signal: controller.signal },
+    )
+      .then(async (respuesta) => {
+        if (!respuesta.ok)
+          throw new Error("No se pudo cargar la historia de signos vitales.");
+        const resultado = (await respuesta.json()) as {
+          data?: RegistroHistorial[];
+        };
+        if (!Array.isArray(resultado.data))
+          throw new Error("La historia de signos vitales tiene un formato inválido.");
+        if (!controller.signal.aborted)
+          setHistorialPaciente(resultado.data);
+      })
+      .catch((fallo) => {
+        if (!controller.signal.aborted)
+          setErrorHistorial(
+            fallo instanceof Error
+              ? fallo.message
+              : "No se pudo cargar la historia de signos vitales.",
+          );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCargandoHistorial(false);
+      });
+    return () => controller.abort();
+  }, [pacienteSeleccionado?.pacienteId, esDemo]);
   useEffect(() => {
     if (!esDemo) return;
     localStorage.setItem(claveColaDemo, JSON.stringify(cola));
@@ -332,6 +389,65 @@ export function SignosVitalesView({
             {editandoAtendido ? "Volver a atendidos" : "Volver a la cola"}
           </button>
         </header>
+        <section
+          className="signos-historial-paciente"
+          aria-labelledby="signos-historial-titulo"
+        >
+          <header>
+            <div>
+              <h3 id="signos-historial-titulo">
+                Historia de signos vitales
+              </h3>
+              <p>
+                Mediciones anteriores de consulta y Emergencias, conservando su
+                servicio y atención de origen.
+              </p>
+            </div>
+            <span>{historialPaciente.length} registros</span>
+          </header>
+          {cargandoHistorial && (
+            <p role="status">Cargando historia del paciente…</p>
+          )}
+          {errorHistorial && <p role="alert">{errorHistorial}</p>}
+          {!cargandoHistorial &&
+            !errorHistorial &&
+            !pacienteSeleccionado.pacienteId && (
+              <p>No hay una ficha identificada para consultar el historial.</p>
+            )}
+          {!cargandoHistorial &&
+            !errorHistorial &&
+            pacienteSeleccionado.pacienteId &&
+            !historialPaciente.length && (
+              <p>No hay mediciones previas registradas para este paciente.</p>
+            )}
+          {!!historialPaciente.length && (
+            <ol>
+              {historialPaciente.map((registro) => (
+                <li key={registro.id}>
+                  <header>
+                    <time dateTime={registro.fecha}>
+                      {new Date(registro.fecha).toLocaleString("es-BO")}
+                    </time>
+                    <strong>{registro.servicio}</strong>
+                    <span>{registro.contexto}</span>
+                  </header>
+                  <dl>
+                    {registro.mediciones.map((medicion) => (
+                      <div key={`${registro.id}-${medicion.id}`}>
+                        <dt>{medicion.nombre}</dt>
+                        <dd>
+                          {medicion.valor}
+                          {medicion.unidad ? ` ${medicion.unidad}` : ""}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                  {registro.observacion && <p>{registro.observacion}</p>}
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
         <form className="formulario-signos" onSubmit={guardar}>
           <section className="formulario-signos-datos">
             <div className="formulario-datos-bloqueados">

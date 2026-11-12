@@ -1,5 +1,5 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import AnamnesisEmergencia from "./AnamnesisEmergencia";
 import RevisionSistemas from "./RevisionSistemas";
 import Icon from "../../radius/componentes/Icono";
@@ -31,6 +31,15 @@ import {
   inicioEnIso,
 } from "./PacienteIngresoEmergencia";
 import { DiagnosticosFinalesSelector } from "./DiagnosticosFinalesSelector";
+import { camposParaServicio } from "../triaje/camposSignosVitales";
+import {
+  useCatalogoSignosVitales,
+  useServiciosSignosVitales,
+} from "../triaje/ServiciosSignosVitales";
+import {
+  signosVitalesIniciales,
+  type SignoVitalConfig,
+} from "../triaje/ConfiguracionSignosVitalesView";
 
 type BorradorOrden = Pick<
   OrdenEmergencia,
@@ -59,7 +68,7 @@ const nuevaOrden = (tipo = "medicamento"): BorradorOrden => ({
   itemId: "",
   porHora: false,
 });
-const vitales = [
+const vitalesPredeterminados = [
   ["temperatura", "Temperatura", "°C"],
   ["frecuenciaCardiaca", "Frec. cardíaca", "lpm"],
   ["frecuenciaRespiratoria", "Frec. respiratoria", "rpm"],
@@ -68,7 +77,7 @@ const vitales = [
   ["saturacion", "Saturación", "%"],
   ["glicemia", "Glicemia", "mg/dL"],
   ["peso", "Peso", "kg"],
-];
+ ] as const;
 const tiposImagen = [
   "Rayos X",
   "Tomografía",
@@ -165,12 +174,16 @@ const mismasCuentas = (
 function GraficaEvolucionSignos({
   mediciones,
   signo,
+  camposGrafica = vitalesPredeterminados,
 }: {
   mediciones: CuentaEmergencia["signos"];
   signo: string;
+  camposGrafica?: readonly (readonly [string, string, string])[];
 }) {
   const configuracion =
-    vitales.find(([clave]) => clave === signo) || vitales[0];
+    camposGrafica.find(([clave]) => clave === signo) ||
+    camposGrafica[0] ||
+    vitalesPredeterminados[0];
   const [, titulo, unidad] = configuracion;
   const lecturas = [...mediciones]
     .sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha))
@@ -305,8 +318,10 @@ function GraficaEvolucionSignos({
 
 export function AtencionMedicaEmergenciasView({
   cuentaInicialId = "",
+  camposConfigurados,
 }: {
   cuentaInicialId?: string;
+  camposConfigurados?: SignoVitalConfig[];
 }) {
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]),
     [activa, setActiva] = useState(""),
@@ -895,7 +910,7 @@ export function AtencionMedicaEmergenciasView({
         {cuenta ? (
           <AtencionPaciente
             key={cuenta.id}
-            {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo }}
+            {...{ cuenta, catalogo, errorCatalogo, cargarCatalogo, camposConfigurados }}
             alEditar={(valor) => {
               formularioSucio.current = valor;
             }}
@@ -929,6 +944,7 @@ function AtencionPaciente({
   catalogo,
   errorCatalogo,
   cargarCatalogo,
+  camposConfigurados,
   ejecutar,
   alEditar,
 }: {
@@ -936,9 +952,39 @@ function AtencionPaciente({
   catalogo: ItemEmergencia[];
   errorCatalogo: string;
   cargarCatalogo: () => Promise<void>;
+  camposConfigurados?: SignoVitalConfig[];
   ejecutar: (ruta: string, body: object) => Promise<void>;
   alEditar: (valor: boolean) => void;
 }) {
+  const catalogoServicios = useServiciosSignosVitales();
+  const catalogoSignos = useCatalogoSignosVitales(
+    camposConfigurados,
+    signosVitalesIniciales,
+  );
+  const idsEmergencias = catalogoServicios.servicios.find(
+    (servicio) => servicio.id === "emergencias",
+  )?.signos;
+  const camposEmergencia = useMemo(
+    () =>
+      idsEmergencias
+        ? camposParaServicio(catalogoSignos.signos, idsEmergencias)
+        : [],
+    [catalogoSignos.signos, idsEmergencias],
+  );
+  const vitales = useMemo(
+    () =>
+      camposEmergencia.map(
+        ({ id, etiqueta, unidad }) => [id, etiqueta, unidad] as const,
+      ),
+    [camposEmergencia],
+  );
+  const vitalesGraficables = useMemo(
+    () =>
+      camposEmergencia
+        .filter((campo) => campo.tipo !== "Texto")
+        .map((campo) => [campo.id, campo.etiqueta, campo.unidad] as const),
+    [camposEmergencia],
+  );
   const [cierre, setCierre] = useState<{
     condicionEgreso: "vivo" | "muerto";
     causaEgreso:
@@ -959,9 +1005,7 @@ function AtencionPaciente({
       {},
     ),
     [observacionSignos, setObservacionSignos] = useState("");
-  const [signosEvolucion, setSignosEvolucion] = useState<string[]>([
-    "temperatura",
-  ]);
+  const [signosEvolucion, setSignosEvolucion] = useState<string[]>([]);
   const [registroSignosAbierto, setRegistroSignosAbierto] = useState(false),
     [horaSignos, setHoraSignos] = useState(horaActual());
   const evolucionDialogo = useRef<HTMLDialogElement>(null);
@@ -973,6 +1017,9 @@ function AtencionPaciente({
     [error, setError] = useState(""),
     [mensaje, setMensaje] = useState("");
   const [historiaClinicaAbierta, setHistoriaClinicaAbierta] = useState(false);
+  useEffect(() => {
+    setSignosEvolucion(vitalesGraficables.slice(0, 2).map(([id]) => id));
+  }, [vitalesGraficables]);
   const [cobroAbierto, setCobroAbierto] = useState(false),
     [montoRecibido, setMontoRecibido] = useState(""),
     [montoPagado, setMontoPagado] = useState(0);
@@ -1479,7 +1526,17 @@ function AtencionPaciente({
                   <button type="button" onClick={() => setIdentidad(null)}>
                     Cancelar
                   </button>
-                  <button className="em-primario" disabled={ocupado}>
+                  <button
+                    className="em-primario"
+                    disabled={
+                      ocupado ||
+                      catalogoSignos.cargando ||
+                      catalogoServicios.cargando ||
+                      !!catalogoSignos.error ||
+                      !!catalogoServicios.error ||
+                      !camposEmergencia.length
+                    }
+                  >
                     Guardar datos
                   </button>
                 </div>
@@ -2135,7 +2192,7 @@ function AtencionPaciente({
                       role="group"
                       aria-label="Signos vitales a graficar"
                     >
-                      {vitales.map(([clave, titulo, unidad]) => (
+                      {vitalesGraficables.map(([clave, titulo, unidad]) => (
                         <button
                           key={clave}
                           type="button"
@@ -2163,6 +2220,7 @@ function AtencionPaciente({
                             key={signo}
                             mediciones={cuenta.signos}
                             signo={signo}
+                            camposGrafica={vitalesGraficables}
                           />
                         ))}
                       </div>
@@ -2292,7 +2350,7 @@ function AtencionPaciente({
                       const valores = Object.fromEntries(
                         Object.entries(valoresSignos)
                           .filter(([, valor]) => valor !== "")
-                          .map(([campo, valor]) => [campo, Number(valor)]),
+                          .map(([campo, valor]) => [campo, valor]),
                       );
                       if (!Object.keys(valores).length) {
                         setError("Registra al menos un signo vital.");
@@ -2324,28 +2382,46 @@ function AtencionPaciente({
                       />
                     </label>
                     <div className="em-medica-vitales">
-                      {vitales.map(([k, t, u]) => (
-                        <label key={k}>
-                          <small>{t}</small>
+                      {camposEmergencia.map(
+                        ({ id, etiqueta, unidad, tipo }) => (
+                        <label key={id}>
+                          <small>{etiqueta}</small>
                           <span>
                             <input
-                              type="number"
-                              min="0"
-                              max={k === "saturacion" ? 100 : undefined}
-                              step="any"
-                              value={valoresSignos[k] || ""}
+                              type={tipo === "Texto" ? "text" : "number"}
+                              step={tipo === "Número entero" ? "1" : "any"}
+                              value={valoresSignos[id] || ""}
                               onChange={(evento) =>
                                 setValoresSignos((actual) => ({
                                   ...actual,
-                                  [k]: evento.target.value,
+                                  [id]: evento.target.value,
                                 }))
                               }
                             />
-                            {u}
+                            {unidad}
                           </span>
                         </label>
-                      ))}
+                        ),
+                      )}
                     </div>
+                    {(catalogoSignos.cargando ||
+                      catalogoServicios.cargando) && (
+                      <p role="status">
+                        Cargando los signos configurados para Emergencias…
+                      </p>
+                    )}
+                    {(catalogoSignos.error || catalogoServicios.error) && (
+                      <p role="alert">
+                        {catalogoSignos.error || catalogoServicios.error}
+                      </p>
+                    )}
+                    {!catalogoSignos.cargando &&
+                      !catalogoServicios.cargando &&
+                      !camposEmergencia.length && (
+                        <p role="status">
+                          No hay signos vitales asignados al servicio de Emergencias.
+                        </p>
+                      )}
                     <label>
                       Observación
                       <textarea

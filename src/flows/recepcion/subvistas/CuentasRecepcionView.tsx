@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import Icon from "../../../radius/componentes/Icono";
 import { TriajeEmergenciasView } from "../../emergencias/TriajeEmergenciasView";
+import type { SignoVitalConfig } from "../../triaje/ConfiguracionSignosVitalesView";
 import {
   leerInternaciones,
   suscribirInternaciones,
@@ -39,9 +40,11 @@ type OrigenCuenta = "todas" | "emergencias" | "internacion" | "tratamientos";
 export function CuentasRecepcionView({
   origenInicial = "todas",
   pacienteInicial = "",
+  camposConfigurados,
 }: {
   origenInicial?: OrigenCuenta;
   pacienteInicial?: string;
+  camposConfigurados?: SignoVitalConfig[];
 }) {
   const [origen, setOrigen] = useState<OrigenCuenta>(origenInicial);
   return (
@@ -49,7 +52,10 @@ export function CuentasRecepcionView({
       {origen === "todas" ? (
         <CuentasTodasView onCambiarVista={setOrigen} />
       ) : origen === "emergencias" ? (
-        <TriajeEmergenciasView recepcion />
+        <TriajeEmergenciasView
+          recepcion
+          camposConfigurados={camposConfigurados}
+        />
       ) : origen === "internacion" ? (
         <CuentasInternacionView />
       ) : (

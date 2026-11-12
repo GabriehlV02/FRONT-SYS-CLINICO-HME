@@ -45,7 +45,13 @@ export type CuentaEmergencia = {
   signos: {
     id: string;
     fecha: string;
-    valores: Record<string, number>;
+    valores: Record<string, string | number>;
+    mediciones?: {
+      id: string;
+      nombre: string;
+      unidad: string;
+      valor: string | number;
+    }[];
     observacion: string;
   }[];
   consumos: (ItemEmergencia & {

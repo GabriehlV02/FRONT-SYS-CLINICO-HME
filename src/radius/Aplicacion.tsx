@@ -2042,6 +2042,9 @@ export default function Aplicacion() {
               <RecepcionView
                 key={subvistaRecepcion}
                 initialSubview={subvistaRecepcion}
+                camposConfigurados={
+                  estadoSignos === "listo" ? signosVitalesConfigurados : undefined
+                }
                 onAbrirModulo={setModulo}
                 onAgendarCirugia={() => {
                   setAbrirFormularioQuirofano(true);
@@ -2250,9 +2253,18 @@ export default function Aplicacion() {
                   )}
               </section>
             ) : modulo === "triaje-emergencias" ? (
-              <TriajeEmergenciasView />
+              <TriajeEmergenciasView
+                camposConfigurados={
+                  estadoSignos === "listo" ? signosVitalesConfigurados : undefined
+                }
+              />
             ) : modulo === "atencion-urgencias" ? (
-              <AtencionMedicaEmergenciasView cuentaInicialId={cuentaEmergenciaSeleccionada} />
+              <AtencionMedicaEmergenciasView
+                cuentaInicialId={cuentaEmergenciaSeleccionada}
+                camposConfigurados={
+                  estadoSignos === "listo" ? signosVitalesConfigurados : undefined
+                }
+              />
             ) : modulo === "enfermera-terapia-intensiva" ? (
               <section className="triaje-ambulatorio-vista">
                 <HorizontalSubvistaNav

@@ -61,6 +61,59 @@ export function useServiciosSignosVitales() {
   return { servicios, cargando, error, guardar };
 }
 
+export function useCatalogoSignosVitales(
+  configurados: SignoVitalConfig[] | undefined,
+  iniciales: SignoVitalConfig[],
+) {
+  const [signos, setSignos] = useState(configurados ?? iniciales);
+  const [cargando, setCargando] = useState(configurados === undefined);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (configurados) {
+      setSignos(configurados);
+      setCargando(false);
+      setError("");
+      return;
+    }
+    if (import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local") {
+      setSignos(iniciales);
+      setCargando(false);
+      setError("");
+      return;
+    }
+    const controller = new AbortController();
+    setCargando(true);
+    setError("");
+    apiFetch("/api/v1/configuracion/signos-vitales", {
+      signal: controller.signal,
+    })
+      .then(async (respuesta) => {
+        if (!respuesta.ok)
+          throw new Error("No se pudo cargar el catálogo de signos vitales.");
+        const resultado = await respuesta.json();
+        if (!controller.signal.aborted) {
+          setSignos(resultado.data);
+          setError("");
+        }
+      })
+      .catch((fallo) => {
+        if (!controller.signal.aborted)
+          setError(
+            fallo instanceof Error
+              ? fallo.message
+              : "No se pudo cargar el catálogo de signos vitales.",
+          );
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setCargando(false);
+      });
+    return () => controller.abort();
+  }, [configurados, iniciales]);
+
+  return { signos, cargando, error };
+}
+
 export function ServiciosSignosVitales({ signos, catalogo }: { signos: SignoVitalConfig[]; catalogo: ReturnType<typeof useServiciosSignosVitales> }) {
   const [activo, setActivo] = useState<ServicioSignos | null>(null);
   const [seleccionados, setSeleccionados] = useState<string[]>([]);

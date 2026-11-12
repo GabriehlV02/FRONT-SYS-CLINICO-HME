@@ -92,12 +92,23 @@
   align-items: center;
   gap: 7px;
   justify-self: start;
-  padding: 9px 0;
-  border: 0;
-  color: #087fc0;
-  background: transparent;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #c62828;
+  border-radius: 8px;
+  color: #fff;
+  background: #c62828;
   font-size: 13px;
   font-weight: 700;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+}
+.enfermeria-paciente-volver:hover {
+  border-color: #a91f1f;
+  background: #a91f1f;
+}
+.enfermeria-paciente-volver:focus-visible {
+  outline: 3px solid rgb(198 40 40 / 28%);
+  outline-offset: 2px;
 }
 .enfermeria-paciente-ficha,
 .enfermeria-paciente-detalles > section,

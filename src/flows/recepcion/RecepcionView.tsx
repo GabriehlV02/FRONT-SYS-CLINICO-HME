@@ -9,6 +9,7 @@ import { CuentasRecepcionView } from "./subvistas/CuentasRecepcionView";
 import { ComprobantesRecepcionView } from "./subvistas/ComprobantesRecepcionView";
 import { ReportesRecepcionView } from "./subvistas/ReportesRecepcionView";
 import { ConfiguracionRecepcionView } from "./subvistas/ConfiguracionRecepcionView";
+import type { SignoVitalConfig } from "../triaje/ConfiguracionSignosVitalesView";
 
 type SubvistaRecepcion =
   "caja" | "citas" | "cuentas" | "comprobantes" | "reportes" | "configuracion";
@@ -60,11 +61,13 @@ const subvistas: {
 export function RecepcionView({
   initialAgenda = false,
   initialSubview,
+  camposConfigurados,
   onAbrirModulo,
   onAgendarCirugia,
 }: {
   initialAgenda?: boolean;
   initialSubview?: SubvistaRecepcion;
+  camposConfigurados?: SignoVitalConfig[];
   onAbrirModulo?: (modulo: string) => void;
   onAgendarCirugia?: () => void;
 }) {
@@ -129,6 +132,7 @@ export function RecepcionView({
           key={`${cuentaDestino?.origen || "emergencias"}-${cuentaDestino?.paciente || ""}`}
           origenInicial={cuentaDestino?.origen}
           pacienteInicial={cuentaDestino?.paciente}
+          camposConfigurados={camposConfigurados}
         />
       )}
       {subvista === "comprobantes" && <ComprobantesRecepcionView />}

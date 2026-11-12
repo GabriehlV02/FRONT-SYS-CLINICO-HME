@@ -1,24 +1,24 @@
-.emergencias-vista .em-ficha-total .em-ver-historia {
+.emergencias-vista .em-total-acciones .em-ver-historia {
   border-color: #7655c5;
   color: #fff;
   background: #7655c5;
 }
 
-.emergencias-vista .em-ficha-total .em-ver-historia:hover,
-.emergencias-vista .em-ficha-total .em-ver-historia:focus-visible {
+.emergencias-vista .em-total-acciones .em-ver-historia:hover,
+.emergencias-vista .em-total-acciones .em-ver-historia:focus-visible {
   border-color: #5e40ab;
   color: #fff;
   background: #5e40ab;
 }
 
-.emergencias-vista .em-ficha-total .em-liberar-cubiculo {
+.emergencias-vista .em-total-acciones .em-liberar-cubiculo {
   border-color: #c53b3b;
   color: #fff;
   background: #c53b3b;
 }
 
-.emergencias-vista .em-ficha-total .em-liberar-cubiculo:hover:not(:disabled),
-.emergencias-vista .em-ficha-total .em-liberar-cubiculo:focus-visible {
+.emergencias-vista .em-total-acciones .em-liberar-cubiculo:hover:not(:disabled),
+.emergencias-vista .em-total-acciones .em-liberar-cubiculo:focus-visible {
   border-color: #a52d2d !important;
   color: #fff !important;
   background: #a52d2d !important;

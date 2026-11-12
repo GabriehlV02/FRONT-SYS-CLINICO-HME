@@ -72,6 +72,7 @@
   width: min(350px, 100%) !important;
   max-height: 124px !important;
   padding: 15px 20px !important;
+  object-position: center center !important;
   border-radius: 18px !important;
   background: rgba(255, 255, 255, 0.96) !important;
   box-shadow: 0 14px 30px rgba(0, 24, 56, 0.22) !important;

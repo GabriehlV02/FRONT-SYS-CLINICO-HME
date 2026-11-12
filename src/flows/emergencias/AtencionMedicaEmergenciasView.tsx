@@ -5,6 +5,7 @@ import RevisionSistemas from "./RevisionSistemas";
 import Icon from "../../radius/componentes/Icono";
 import {
   apiEmergencias,
+  camposEvaluacion,
   camposIdentidad,
   fechaEmergencia,
   nombrePaciente,
@@ -20,6 +21,8 @@ import {
 } from "../consultorio/ConsultorioView";
 import { HorizontalSubvistaNav } from "../../ui/components/HorizontalSubvistaNav";
 import "./TriajeEmergenciasView.css";
+import "./TriajeEmergenciasCompacto.css";
+import "./ResumenPacienteEmergencias.css";
 import "./AtencionMedicaEmergenciasView.css";
 import "./AtencionMedicaEmergenciasActions.css";
 import "./EmergenciasTablaClinica.css";
@@ -1107,6 +1110,16 @@ function AtencionPaciente({
       .includes(consultaPrescripcion),
   );
   const datosPaciente = cuenta.identidad || {};
+  const evaluacionesRecientes = [...(cuenta.evaluaciones || [])].reverse();
+  const antecedentesPaciente = camposEvaluacion
+    .filter(([campo]) => campo.startsWith("antecedentes"))
+    .map(([campo, etiqueta]) => ({
+      etiqueta,
+      valor: evaluacionesRecientes
+        .map((evaluacion) => evaluacion.campos[campo]?.trim())
+        .find(Boolean),
+    }))
+    .filter(({ valor }) => valor);
   const estadoActual = estadoPaciente(cuenta);
   const actualizarEstadoPaciente = async (estado: string) => {
     const camposActuales = cuenta.evaluaciones?.at(-1)?.campos || {};
@@ -1144,127 +1157,75 @@ function AtencionPaciente({
   return (
     <div className="em-medica-atencion">
       <main key={`paneles-atencion-v2-${cuenta.id}`} className="em-trabajo">
-        <header className="em-panel em-medica-cabecera em-ficha-atencion">
-          <div className="em-ficha-principal">
-            <p>ATENCIÓN MÉDICA · {nombreCubiculo(cuenta.cubiculo)}</p>
-            <div className="em-ficha-nombre">
-              {!cuenta.fin && (
-                <label className={`em-selector-estado ${estadoActual.clase}`}>
-                  <span>Estado</span>
-                  <select
-                    value={
-                      estadoActual.clase === "sin-clasificar"
-                        ? ""
-                        : estadoActual.etiqueta
-                    }
-                    disabled={ocupado}
-                    onChange={(evento) =>
-                      void actualizarEstadoPaciente(evento.target.value)
-                    }
-                    aria-label="Estado del paciente"
-                  >
-                    <option value="">Sin clasificar</option>
-                    <option value="Leve">Leve</option>
-                    <option value="Estable">Estable</option>
-                    <option value="Grave">Grave</option>
-                    <option value="Crítico">Crítico</option>
-                  </select>
-                </label>
-              )}
+        <div className="em-panel em-resumen em-medica-resumen">
+          <div className="em-resumen-identidad">
+            <div className="em-identidad-fila">
+              <div className="em-medica-identidad-paciente">
+                <div className="em-medica-identidad-etiqueta">
+                  <small>Paciente</small>
+                  {!cuenta.fin && (
+                    <label className={`em-selector-estado ${estadoActual.clase}`}>
+                      <span>Estado</span>
+                      <select
+                        value={
+                          estadoActual.clase === "sin-clasificar"
+                            ? ""
+                            : estadoActual.etiqueta
+                        }
+                        disabled={ocupado}
+                        onChange={(evento) =>
+                          void actualizarEstadoPaciente(evento.target.value)
+                        }
+                        aria-label="Estado del paciente"
+                      >
+                        <option value="">Sin clasificar</option>
+                        <option value="Leve">Leve</option>
+                        <option value="Estable">Estable</option>
+                        <option value="Grave">Grave</option>
+                        <option value="Crítico">Crítico</option>
+                      </select>
+                    </label>
+                  )}
+                </div>
+                <strong>{nombrePaciente(cuenta)}</strong>
+              </div>
+              <div>
+                <small>Edad</small>
+                <strong>{edadPaciente(datosPaciente.nacimiento)}</strong>
+              </div>
+              <div>
+                <small>Sexo</small>
+                <strong>{datosPaciente.sexo || "No registrado"}</strong>
+              </div>
             </div>
-            <div className="em-ficha-resumen">
-              <section className="em-ficha-persona">
-                <header>
-                  <b>Datos del paciente</b>
-                  <span>
-                    {datosPaciente.historiaClinica || "Sin historia clínica"}
-                  </span>
-                </header>
-                <dl>
-                  <div className="em-ficha-nombre-completo">
-                    <dt>Paciente</dt>
-                    <dd>{nombrePaciente(cuenta)}</dd>
-                  </div>
-                  <div>
-                    <dt>Documento</dt>
-                    <dd>{datosPaciente.documento || "Sin registro"}</dd>
-                  </div>
-                  <div>
-                    <dt>Edad / sexo</dt>
-                    <dd>
-                      {edadPaciente(datosPaciente.nacimiento)} ·{" "}
-                      {datosPaciente.sexo || "Sin registro"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Teléfono</dt>
-                    <dd>{datosPaciente.telefono || "Sin registro"}</dd>
-                  </div>
-                  <div>
-                    <dt>Dirección</dt>
-                    <dd>{datosPaciente.direccion || "Sin registro"}</dd>
-                  </div>
-                </dl>
-              </section>
-              <section className="em-ficha-persona em-ficha-familiar">
-                <header>
-                  <b>Familiar responsable</b>
-                  <span>
-                    {datosPaciente.parentesco || "Parentesco sin registrar"}
-                  </span>
-                </header>
-                <dl>
-                  <div>
-                    <dt>Nombre completo</dt>
-                    <dd>{datosPaciente.familiar || "Sin registro"}</dd>
-                  </div>
-                  <div>
-                    <dt>N.º de referencia</dt>
-                    <dd>
-                      {datosPaciente.referenciaFamiliar || "Sin registro"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Teléfono</dt>
-                    <dd>{datosPaciente.telefonoFamiliar || "Sin registro"}</dd>
-                  </div>
-                  <div>
-                    <dt>Documento</dt>
-                    <dd>{datosPaciente.documentoFamiliar || "Sin registro"}</dd>
-                  </div>
-                </dl>
-              </section>
+            <div className="em-identidad-fila em-identidad-fila-familiar">
+              <div>
+                <small>Familiar o responsable</small>
+                <strong>{datosPaciente.familiar || "Sin registro"}</strong>
+              </div>
+              <div>
+                <small>Número de referencia</small>
+                <strong>
+                  {datosPaciente.referenciaFamiliar || "Sin registro"}
+                </strong>
+              </div>
             </div>
-            <div className="em-ficha-datos">
-              <span>
-                <b>Cuenta</b>
-                {cuenta.id.slice(0, 8).toUpperCase()}
-              </span>
-              <span>
-                <b>Ingreso</b>
-                {fechaEmergencia(cuenta.inicio)}
-              </span>
-              <span>
-                <b>Profesional</b>
-                {datosPaciente.medicoAdmision || "Sin registro"}
-              </span>
-              <span>
-                <b>Diagnóstico</b>
-                {cuenta.evaluaciones?.at(-1)?.campos.diagnostico ||
-                  "Sin registro"}
-              </span>
+            <div className="em-identidad-fila em-cuenta-indicadores">
+              <div>
+                <small>Cubículo</small>
+                <strong>{nombreCubiculo(cuenta.cubiculo)}</strong>
+              </div>
+              <div>
+                <small>Hora de ingreso</small>
+                <strong>{horaIngreso(cuenta.inicio)}</strong>
+              </div>
             </div>
           </div>
-          <div className="em-ficha-total">
-            <small>Total consumido</small>
-            <strong>Bs {totalConsumido.toFixed(2)}</strong>
-            <small>
-              {cuenta.consumos.some(
-                (consumo) => consumo.porHora && !consumo.fin,
-              )
-                ? "Incluye servicios en curso"
-                : "Registrado en la cuenta"}
-            </small>
+          <div className="em-total-acciones">
+            <div className="em-total-consumido">
+              <small>Total consumido</small>
+              <strong>Bs {totalConsumido.toFixed(2)}</strong>
+            </div>
             <button
               className="em-ver-historia"
               type="button"
@@ -1296,7 +1257,7 @@ function AtencionPaciente({
               </button>
             )}
           </div>
-        </header>
+        </div>
         {error && (
           <div className="em-error" role="alert">
             {error}
@@ -2474,6 +2435,29 @@ function AtencionPaciente({
             )}
           </div>
         </details>
+        <section className="em-panel em-antecedentes-panel">
+          <header className="em-panel-titulo">
+            <div>
+              <h3>Antecedentes</h3>
+              <small>Información médica registrada</small>
+            </div>
+            <Icon name="fileText" size={18} />
+          </header>
+          {antecedentesPaciente.length ? (
+            <dl className="em-antecedentes-lista">
+              {antecedentesPaciente.map(({ etiqueta, valor }) => (
+                <div key={etiqueta}>
+                  <dt>{etiqueta}</dt>
+                  <dd>{valor}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="em-antecedentes-vacio">
+              Sin antecedentes registrados.
+            </p>
+          )}
+        </section>
         <section className="em-panel em-resultados-estudios">
           <header className="em-panel-titulo">
             <div>

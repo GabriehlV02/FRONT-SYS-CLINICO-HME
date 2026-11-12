@@ -488,11 +488,12 @@
   align-items: center;
   gap: 7px;
   border: 0;
-  border-radius: 8px 8px 0 0;
+  border-radius: 10px 10px 0 0;
   background: transparent;
-  color: #5c7890;
-  padding: 10px 14px 11px;
-  font-weight: 600;
+  color: #557993;
+  padding: 14px 18px 15px;
+  font-size: 15px;
+  font-weight: 650;
 }
 .emergencias-vista .em-paginacion-clinica button span {
   display: grid;
@@ -506,22 +507,44 @@
   font-weight: 700;
 }
 .emergencias-vista .em-paginacion-clinica button.activo {
-  color: #087fb7;
-  background: #f4faff;
+  color: #0078bc;
+  background: #f4f9fc;
 }
 .emergencias-vista .em-paginacion-clinica button.activo::after {
   content: "";
   position: absolute;
-  right: 8px;
+  right: 10px;
   bottom: -1px;
-  left: 8px;
-  height: 2px;
+  left: 10px;
+  height: 3px;
   border-radius: 3px 3px 0 0;
   background: #078fc8;
 }
 .emergencias-vista .em-paginacion-clinica button.activo span {
   background: #087fb7;
   color: #fff;
+}
+/* Mantiene el patrón de pestañas de ingreso/atención frente a los overrides globales. */
+.sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button {
+  min-height: 52px;
+  padding: 14px 18px 15px;
+  border: 0;
+  border-radius: 10px 10px 0 0;
+  color: #557993;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 650;
+  box-shadow: none;
+}
+.sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button.activo {
+  color: #0078bc;
+  background: #f4f9fc;
+}
+.sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button.activo::after {
+  right: 10px;
+  left: 10px;
+  height: 3px;
+  background: #078fc8;
 }
 .em-registro-ingreso > div:last-child {
   display: grid;
@@ -3014,6 +3037,11 @@
   }
   .emergencias-vista .em-cabecera .em-subvistas > button {
     min-width: 164px;
+  }
+  .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button {
+    min-height: 48px;
+    padding: 12px 12px 13px;
+    font-size: 13px;
   }
   .emergencias-vista .em-cabecera .subvistas-flecha {
     display: none;

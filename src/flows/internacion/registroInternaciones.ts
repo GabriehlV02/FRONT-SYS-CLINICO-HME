@@ -22,7 +22,44 @@ export type RegistroInternacion = {
   fechaAlta?: string;
 };
 
+export type EvolucionEnfermeriaInternacion = {
+  id: string;
+  pacienteId: string;
+  texto: string;
+  fecha: string;
+  hora: string;
+  creadaEn: string;
+  editadaEn?: string;
+};
+
+export type TomaSignosInternacion = {
+  id: string;
+  pacienteId: string;
+  fecha: string;
+  hora: string;
+  temperatura: number;
+  frecuenciaCardiaca: number;
+  frecuenciaRespiratoria: number;
+  saturacion: number;
+  presionSistolica: number;
+  presionDiastolica: number;
+  registradaEn: string;
+};
+
+export type RegistroBalanceInternacion = {
+  id: string;
+  pacienteId: string;
+  tipo: "ingreso" | "egreso";
+  volumen: number;
+  detalle: string;
+  fecha: string;
+  hora: string;
+};
+
 const clave = "hme:internaciones";
+const claveEvolucionesEnfermeria = "hme:internacion:evoluciones-enfermeria:v1";
+const claveSignosInternacion = "hme:internacion:signos-vitales:v1";
+const claveBalanceInternacion = "hme:internacion:balance-hidrico:v1";
 const evento = "internacion:actualizada";
 let cache: RegistroInternacion[] | null = null;
 const idsPrueba = ["INT-PRUEBA-LOCAL-001", "INT-PRUEBA-LOCAL-002"];
@@ -87,6 +124,143 @@ function guardar(registros: RegistroInternacion[]) {
   cache = registros;
   window.localStorage.setItem(clave, JSON.stringify(cache));
   window.dispatchEvent(new Event(evento));
+}
+
+export function leerEvolucionesEnfermeriaInternacion(
+  pacienteId: string,
+): EvolucionEnfermeriaInternacion[] {
+  if (!disponible()) return [];
+  try {
+    const registros = JSON.parse(
+      window.localStorage.getItem(claveEvolucionesEnfermeria) ?? "[]",
+    );
+    return Array.isArray(registros)
+      ? registros.filter(
+          (item): item is EvolucionEnfermeriaInternacion =>
+            item?.pacienteId === pacienteId &&
+            typeof item.texto === "string" &&
+            typeof item.fecha === "string" &&
+            typeof item.hora === "string",
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function guardarEvolucionEnfermeriaInternacion(
+  pacienteId: string,
+  datos: Pick<EvolucionEnfermeriaInternacion, "texto" | "fecha" | "hora">,
+  id?: string,
+) {
+  if (!disponible()) throw new Error("No se pudo guardar la evolución.");
+  let registros: EvolucionEnfermeriaInternacion[] = [];
+  try {
+    const guardados = JSON.parse(
+      window.localStorage.getItem(claveEvolucionesEnfermeria) ?? "[]",
+    );
+    if (Array.isArray(guardados)) registros = guardados;
+  } catch {
+    registros = [];
+  }
+  const existente = id
+    ? registros.find((item) => item.id === id && item.pacienteId === pacienteId)
+    : undefined;
+  const registro: EvolucionEnfermeriaInternacion = {
+    id: existente?.id ?? crypto.randomUUID(),
+    pacienteId,
+    ...datos,
+    creadaEn: existente?.creadaEn ?? new Date().toISOString(),
+    ...(existente ? { editadaEn: new Date().toISOString() } : {}),
+  };
+  const siguientes = existente
+    ? registros.map((item) => (item.id === existente.id ? registro : item))
+    : [...registros, registro];
+  window.localStorage.setItem(
+    claveEvolucionesEnfermeria,
+    JSON.stringify(siguientes),
+  );
+  return registro;
+}
+
+export function leerSignosInternacion(pacienteId: string): TomaSignosInternacion[] {
+  if (!disponible()) return [];
+  try {
+    const registros = JSON.parse(window.localStorage.getItem(claveSignosInternacion) ?? "[]");
+    return Array.isArray(registros)
+      ? registros.filter((item): item is TomaSignosInternacion =>
+          item?.pacienteId === pacienteId &&
+          typeof item.fecha === "string" &&
+          typeof item.hora === "string" &&
+          Number.isFinite(item.temperatura) &&
+          Number.isFinite(item.frecuenciaCardiaca) &&
+          Number.isFinite(item.frecuenciaRespiratoria) &&
+          Number.isFinite(item.saturacion) &&
+          Number.isFinite(item.presionSistolica) &&
+          Number.isFinite(item.presionDiastolica),
+        ).sort((a, b) => `${a.fecha}T${a.hora}`.localeCompare(`${b.fecha}T${b.hora}`))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function guardarSignosInternacion(
+  pacienteId: string,
+  toma: Omit<TomaSignosInternacion, "id" | "pacienteId" | "registradaEn">,
+) {
+  if (!disponible()) throw new Error("No se pudieron guardar los signos vitales.");
+  let registros: TomaSignosInternacion[] = [];
+  try {
+    const guardados = JSON.parse(window.localStorage.getItem(claveSignosInternacion) ?? "[]");
+    if (Array.isArray(guardados)) registros = guardados;
+  } catch {
+    registros = [];
+  }
+  const registro: TomaSignosInternacion = {
+    ...toma,
+    id: crypto.randomUUID(),
+    pacienteId,
+    registradaEn: new Date().toISOString(),
+  };
+  window.localStorage.setItem(claveSignosInternacion, JSON.stringify([...registros, registro]));
+  return registro;
+}
+
+export function leerBalanceInternacion(pacienteId: string): RegistroBalanceInternacion[] {
+  if (!disponible()) return [];
+  try {
+    const registros = JSON.parse(window.localStorage.getItem(claveBalanceInternacion) ?? "[]");
+    return Array.isArray(registros)
+      ? registros.filter((item): item is RegistroBalanceInternacion =>
+          item?.pacienteId === pacienteId &&
+          (item.tipo === "ingreso" || item.tipo === "egreso") &&
+          Number.isFinite(item.volumen) &&
+          typeof item.detalle === "string" &&
+          typeof item.fecha === "string" &&
+          typeof item.hora === "string",
+        ).sort((a, b) => `${a.fecha}T${a.hora}`.localeCompare(`${b.fecha}T${b.hora}`))
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function guardarRegistroBalanceInternacion(
+  pacienteId: string,
+  datos: Omit<RegistroBalanceInternacion, "id" | "pacienteId">,
+) {
+  if (!disponible()) throw new Error("No se pudo guardar el registro del balance.");
+  let registros: RegistroBalanceInternacion[] = [];
+  try {
+    const guardados = JSON.parse(window.localStorage.getItem(claveBalanceInternacion) ?? "[]");
+    if (Array.isArray(guardados)) registros = guardados;
+  } catch {
+    registros = [];
+  }
+  const registro: RegistroBalanceInternacion = { ...datos, id: crypto.randomUUID(), pacienteId };
+  window.localStorage.setItem(claveBalanceInternacion, JSON.stringify([...registros, registro]));
+  return registro;
 }
 
 const normalizarCi = (ci: string) =>

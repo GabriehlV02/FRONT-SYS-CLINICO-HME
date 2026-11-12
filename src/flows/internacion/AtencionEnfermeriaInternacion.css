@@ -1,3 +1,83 @@
+.enfermeria-evolucion-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(300px, .9fr);
+  align-items: stretch;
+  gap: 18px;
+}
+.enfermeria-evolucion-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 288px);
+  grid-template-rows: auto auto;
+  align-items: start;
+  gap: 16px;
+}
+.enfermeria-evolucion-texto {
+  display: grid;
+  grid-row: 1 / 3;
+  gap: 12px;
+  min-width: 0;
+  color: #355c78;
+  font-size: 15px;
+  font-weight: 700;
+}
+.enfermeria-evolucion-texto textarea {
+  width: 100%; min-height: 154px; padding: 12px 13px;
+  border: 1px solid #cbdfea; border-radius: 9px; color: #24465f;
+  background: #fff; font: inherit; font-weight: 400; line-height: 1.55; resize: vertical;
+}
+.enfermeria-evolucion-fecha-hora { display: grid; gap: 16px; }
+.enfermeria-evolucion-fecha-hora label {
+  display: grid; gap: 9px; color: #355c78; font-size: 15px; font-weight: 700;
+}
+.enfermeria-evolucion-fecha-hora input {
+  width: 100%; height: 54px; padding: 0 13px; border: 1px solid #cbdfea;
+  border-radius: 9px; color: #24465f; background: #fff; font: inherit; font-size: 15px;
+}
+.enfermeria-evolucion-texto textarea:focus,
+.enfermeria-evolucion-fecha-hora input:focus { border-color: #168bc2; outline: 3px solid rgba(22,139,194,.13); }
+.enfermeria-evolucion-acciones { display: flex; align-items: center; justify-content: flex-end; grid-column: 2; gap: 10px; }
+.enfermeria-evolucion-acciones p { margin: 0 auto 0 0; color: #b42318; }
+.enfermeria-evolucion-acciones button,
+.enfermeria-evolucion-item-acciones button {
+  min-height: 38px; padding: 0 13px; border: 1px solid #d5e5ee; border-radius: 8px;
+  color: #167da9; background: #fff; font-size: 12px; font-weight: 700;
+}
+.enfermeria-evolucion-acciones .enfermeria-evolucion-guardar { border-color: #087fc0; color: #fff; background: #087fc0; }
+.enfermeria-evolucion-acciones button:disabled { opacity: .55; cursor: not-allowed; }
+.enfermeria-evolucion-historial {
+  display: grid; grid-template-rows: auto minmax(0,1fr); gap: 14px; min-width: 0; max-height: 490px;
+  padding: 17px; overflow: hidden; border: 1px solid #cfe1ec; border-radius: 13px;
+  background: linear-gradient(155deg,#fbfdff 0%,#f3f9fc 100%); box-shadow: 0 5px 16px rgba(28,77,107,.045);
+}
+.enfermeria-evolucion-historial > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 13px; border-bottom: 1px solid #dce9f1; }
+.enfermeria-evolucion-historial > header > div { display: grid; gap: 4px; }
+.enfermeria-evolucion-historial > header h3 { margin: 0; color: #173f5d; font-size: 16px; font-weight: 800; }
+.enfermeria-evolucion-historial > header small { color: #6d8799; font-size: 11px; }
+.enfermeria-evolucion-historial > header > span { display: grid; flex: 0 0 auto; place-items: center; min-width: 31px; height: 31px; border: 1px solid #d3e8f2; border-radius: 9px; color: #0877a8; background: linear-gradient(145deg,#eaf7fc,#dff0f8); font-size: 12px; font-weight: 800; }
+.enfermeria-evolucion-lista { position: relative; display: grid; align-content: start; gap: 11px; min-height: 0; overflow-y: auto; padding: 3px 7px 3px 18px; overscroll-behavior: contain; scrollbar-color: #9abbd0 #eaf2f7; scrollbar-width: thin; }
+.enfermeria-evolucion-lista::before { position: absolute; top: 8px; bottom: 8px; left: 7px; width: 2px; border-radius: 2px; background: linear-gradient(#7fc4df,#d4e8f1); content: ""; }
+.enfermeria-evolucion-lista article { position: relative; padding: 13px 15px; border: 1px solid #dce9f1; border-radius: 10px; background: #fff; box-shadow: 0 2px 7px rgba(28,77,107,.035); }
+.enfermeria-evolucion-lista article::before { position: absolute; top: 17px; left: -16px; width: 8px; height: 8px; border: 2px solid #f5fafc; border-radius: 50%; background: #168dbb; box-shadow: 0 0 0 1px #8ec9df; content: ""; }
+.enfermeria-evolucion-lista article > small { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border: 1px solid #e0edf3; border-radius: 6px; color: #54768d; background: #f4f9fc; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.enfermeria-evolucion-lista article p { margin: 9px 0 0; color: #294c64; font-size: 13px; line-height: 1.65; white-space: pre-wrap; overflow-wrap: anywhere; }
+.enfermeria-evolucion-item-acciones { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #edf2f6; }
+.enfermeria-evolucion-vacia { align-self: center; margin: 0; padding: 20px; color: #71899c; text-align: center; }
+.enfermeria-evolucion-modal-fondo { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; padding: 20px; background: rgba(15,40,58,.46); backdrop-filter: blur(3px); }
+.enfermeria-evolucion-modal { width: min(560px,100%); padding: 22px; border: 1px solid #d5e5ed; border-radius: 16px; background: #fff; box-shadow: 0 24px 70px rgba(15,40,58,.24); }
+.enfermeria-evolucion-modal > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 15px; border-bottom: 1px solid #e4edf2; }
+.enfermeria-evolucion-modal > header small { color: #1684ae; font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.enfermeria-evolucion-modal > header h3 { margin: 5px 0 0; color: #183f5b; font-size: 19px; }
+.enfermeria-evolucion-modal > header button { width: 34px; height: 34px; border: 1px solid #d7e6ee; border-radius: 9px; color: #56768a; background: #f8fbfd; font-size: 23px; }
+.enfermeria-evolucion-modal > p { margin: 18px 0; color: #294d65; font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.enfermeria-evolucion-modal > small { color: #71899c; font-size: 11px; }
+@media (max-width: 900px) { .enfermeria-evolucion-layout { grid-template-columns: minmax(0,1fr); } .enfermeria-evolucion-historial { max-height: 360px; } }
+@media (max-width: 700px) {
+  .enfermeria-evolucion-form { grid-template-columns: minmax(0,1fr); }
+  .enfermeria-evolucion-texto, .enfermeria-evolucion-fecha-hora, .enfermeria-evolucion-acciones { grid-column: 1; grid-row: auto; }
+  .enfermeria-evolucion-fecha-hora { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 420px) { .enfermeria-evolucion-fecha-hora { grid-template-columns: minmax(0,1fr); } }
+
 .enfermeria-paciente {
   display: grid;
   gap: 18px;
@@ -549,3 +629,76 @@
     display: none;
   }
 }
+
+.enfermeria-signos-panel {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px solid #cfe1ec;
+  border-radius: 13px;
+  background: linear-gradient(155deg,#fbfdff 0%,#f3f9fc 100%);
+}
+.enfermeria-signos-panel > header { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.enfermeria-signos-panel > header > div { display:grid; gap:4px; }
+.enfermeria-signos-panel > header span { color:#1684ae; font-size:10px; font-weight:850; letter-spacing:.09em; }
+.enfermeria-signos-panel > header h3 { margin:0; color:#173f5d; font-size:17px; }
+.enfermeria-signos-panel > header p { margin:0; color:#6d8799; font-size:12px; }
+.enfermeria-signos-panel > header > b { padding:7px 10px; border:1px solid #d3e8f2; border-radius:8px; color:#0877a8; background:#eaf7fc; font-size:11px; }
+.enfermeria-signos-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; padding:16px; border:1px solid #deebf2; border-radius:10px; background:#fff; }
+.enfermeria-signos-form label { display:grid; gap:6px; min-width:0; color:#355c78; font-size:12px; font-weight:750; }
+.enfermeria-signos-form input { width:100%; min-width:0; height:40px; padding:0 10px; border:1px solid #d0e1eb; border-radius:7px; color:#294d65; background:#fbfdfe; font:inherit; font-size:13px; }
+.enfermeria-signos-form input:focus { border-color:#168bc2; outline:3px solid rgba(22,139,194,.12); }
+.enfermeria-signos-form > button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:40px; justify-self:end; align-self:end; padding:0 15px; border:1px solid #087fc0; border-radius:8px; color:#fff; background:#087fc0; font-size:12px; font-weight:750; }
+.enfermeria-signos-error { grid-column:1/-1; margin:0; color:#b42318; font-size:12px; }
+.enfermeria-signos-graficas { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.enfermeria-signos-graficas > article { min-width:0; padding:12px; border:1px solid #dce9f1; border-radius:9px; background:#fff; }
+.enfermeria-signos-graficas > article > header { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.enfermeria-signos-graficas > article > header span { color:#355c78; font-size:11px; font-weight:750; }
+.enfermeria-signos-graficas > article > header strong { color:#294c64; font-size:12px; white-space:nowrap; }
+.enfermeria-signos-graficas svg { display:block; width:100%; height:78px; margin-top:5px; overflow:visible; }
+.enfermeria-signos-guia { fill:none; stroke:#e5eef4; stroke-width:1; }
+.enfermeria-signos-graficas polyline { fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.enfermeria-signos-graficas circle { stroke:#fff; stroke-width:2; }
+.enfermeria-signos-graficas > article > p { margin:12px 0 10px; color:#7891a2; font-size:11px; }
+.enfermeria-signos-graficas > article > small { display:block; overflow:hidden; color:#71899c; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:900px) { .enfermeria-signos-graficas { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:620px) { .enfermeria-signos-form,.enfermeria-signos-graficas { grid-template-columns:minmax(0,1fr); } .enfermeria-signos-form > button { grid-column:1; justify-self:stretch; } .enfermeria-signos-panel { padding:14px; } }
+.enfermeria-balance-panel { display:grid; gap:15px; margin-top:18px; padding:20px; border:1px solid #cfe1ec; border-radius:13px; background:linear-gradient(155deg,#fbfdff 0%,#f3f9fc 100%); }
+.enfermeria-balance-panel > header { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.enfermeria-balance-panel > header > div { display:grid; gap:4px; }
+.enfermeria-balance-panel > header span { color:#1684ae; font-size:10px; font-weight:850; letter-spacing:.09em; }
+.enfermeria-balance-panel > header h3 { margin:0; color:#173f5d; font-size:17px; }
+.enfermeria-balance-panel > header p { margin:0; color:#6d8799; font-size:12px; }
+.enfermeria-balance-panel > header > b { padding:7px 10px; border:1px solid #d3e8f2; border-radius:8px; color:#0877a8; background:#eaf7fc; font-size:11px; }
+.enfermeria-balance-resumen { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); overflow:hidden; border:1px solid #dce9f1; border-radius:9px; background:#fff; }
+.enfermeria-balance-resumen article { display:grid; gap:5px; padding:13px 15px; }
+.enfermeria-balance-resumen article + article { border-left:1px solid #dce9f1; }
+.enfermeria-balance-resumen small { color:#71899c; font-size:10px; font-weight:800; text-transform:uppercase; }
+.enfermeria-balance-resumen strong { color:#315875; font-size:16px; }
+.enfermeria-balance-resumen .positivo strong { color:#18805a; }
+.enfermeria-balance-resumen .negativo strong { color:#c24d58; }
+.enfermeria-balance-form { display:grid; grid-template-columns:minmax(180px,.8fr) minmax(130px,.55fr) minmax(220px,1.4fr) auto; align-items:end; gap:11px; padding:15px; border:1px solid #deebf2; border-radius:10px; background:#fff; }
+.enfermeria-balance-form label { display:grid; gap:6px; color:#355c78; font-size:12px; font-weight:750; }
+.enfermeria-balance-form input,.enfermeria-balance-form select { width:100%; min-width:0; height:40px; padding:0 10px; border:1px solid #d0e1eb; border-radius:7px; color:#294d65; background:#fbfdfe; font:inherit; font-size:12px; }
+.enfermeria-balance-form button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:40px; padding:0 14px; border:1px solid #087fc0; border-radius:8px; color:#fff; background:#087fc0; font-size:12px; font-weight:750; }
+.enfermeria-balance-form > p { grid-column:1/-1; margin:0; color:#b42318; font-size:12px; }
+.enfermeria-balance-grafica { padding:14px; border:1px solid #dce9f1; border-radius:9px; background:#fff; }
+.enfermeria-balance-grafica h4 { margin:0 0 8px; color:#315875; font-size:13px; }
+.enfermeria-balance-grafica svg { display:block; width:100%; height:180px; overflow:visible; }
+.enfermeria-balance-grafica svg > path { fill:none; stroke:#e5eef4; stroke-width:1; }
+.enfermeria-balance-grafica svg > polyline { fill:none; stroke:#168dbb; stroke-width:3; stroke-linecap:round; stroke-linejoin:round; }
+.enfermeria-balance-grafica svg > text { fill:#71899c; font-size:10px; text-anchor:middle; }
+.enfermeria-balance-grafica > p { margin:16px 0; color:#71899c; font-size:12px; text-align:center; }
+.enfermeria-balance-historial { display:grid; gap:7px; margin:0; padding:0; list-style:none; }
+.enfermeria-balance-historial li { display:grid; grid-template-columns:70px minmax(0,1fr) auto auto; align-items:center; gap:10px; padding:10px 12px; border:1px solid #dce9f1; border-radius:8px; background:#fff; }
+.enfermeria-balance-historial li > span { width:max-content; padding:4px 7px; border-radius:6px; font-size:10px; font-weight:800; }
+.enfermeria-balance-historial li.ingreso > span { color:#197450; background:#e8f6ef; }
+.enfermeria-balance-historial li.egreso > span { color:#a94b53; background:#fff0f0; }
+.enfermeria-balance-historial li > strong { overflow:hidden; color:#315875; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.enfermeria-balance-historial li > b { color:#315875; font-size:12px; white-space:nowrap; }
+.enfermeria-balance-historial li.ingreso > b { color:#18805a; }
+.enfermeria-balance-historial li.egreso > b { color:#c24d58; }
+.enfermeria-balance-historial li > time { color:#71899c; font-size:10px; white-space:nowrap; }
+@media(max-width:900px) { .enfermeria-balance-form { grid-template-columns:repeat(2,minmax(0,1fr)); } .enfermeria-balance-form button { justify-self:end; } }
+@media(max-width:620px) { .enfermeria-balance-panel { padding:14px; } .enfermeria-balance-resumen { grid-template-columns:1fr; } .enfermeria-balance-resumen article + article { border-top:1px solid #dce9f1; border-left:0; } .enfermeria-balance-form { grid-template-columns:1fr; } .enfermeria-balance-form button { justify-self:stretch; } .enfermeria-balance-historial li { grid-template-columns:65px minmax(0,1fr) auto; } .enfermeria-balance-historial li > time { grid-column:2/-1; } }

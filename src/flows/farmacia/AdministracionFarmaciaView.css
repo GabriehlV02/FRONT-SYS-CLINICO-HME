@@ -1,3 +1,11 @@
+.farmacia-admin-almacen.cocina-subvista {
+  margin-inline: 0;
+}
+.farmacia-admin-almacen-tabla th:first-child,
+.farmacia-admin-almacen-tabla td:first-child {
+  padding-left: 0;
+}
+
 .farmacia-admin-almacen-filtros {
   display: grid;
   grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1.5fr);
@@ -88,6 +96,82 @@
   width: 100%;
   overflow-x: auto;
 }
+.farmacia-admin-existencias-filtros {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(190px, .55fr);
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.farmacia-admin-existencias-filtros > label:not(.farmacia-admin-existencias-busqueda) {
+  display: grid;
+  gap: 6px;
+  color: #45657e;
+  font-size: 12px;
+  font-weight: 800;
+}
+.farmacia-admin-existencias-busqueda {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 1px solid #cbddea;
+  border-radius: 8px;
+  color: #087fc0;
+  background: #fff;
+}
+.farmacia-admin-existencias-busqueda input,
+.farmacia-admin-existencias-filtros select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid #cbddea;
+  border-radius: 8px;
+  color: #173d60;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+}
+.farmacia-admin-existencias-busqueda input {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+}
+.farmacia-admin-existencias-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  color: #66819a;
+  font-size: 11px;
+}
+.farmacia-admin-existencias-paginacion > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.farmacia-admin-existencias-paginacion button {
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid #cbddea;
+  border-radius: 7px;
+  color: #0877bc;
+  background: #fff;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+.farmacia-admin-existencias-paginacion button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+.farmacia-admin-existencias-paginacion strong {
+  color: #315875;
+  white-space: nowrap;
+}
 .farmacia-admin-almacen-tabla td strong {
   color: #173d60;
 }
@@ -142,6 +226,9 @@
   .farmacia-admin-almacen-filtros {
     grid-template-columns: 1fr;
   }
+  .farmacia-admin-existencias-filtros { grid-template-columns: 1fr; }
+  .farmacia-admin-existencias-paginacion { align-items: flex-start; flex-direction: column; }
+  .farmacia-admin-existencias-paginacion > div { justify-content: space-between; width: 100%; }
 }
 .farmacia-catalogo-filtros {
   display: grid;

@@ -13,6 +13,7 @@ type AlmacenFarmacia = { id: number; nombre: string };
 type ExistenciaFarmacia = {
   id: number;
   nombre: string;
+  fabricante?: string | null;
   codigo: string;
   unidad: string;
   disponible: number;
@@ -335,6 +336,9 @@ function Almacen() {
     string[]
   >([]);
   const [existencias, setExistencias] = useState<ExistenciaFarmacia[]>([]);
+  const [busquedaExistencias, setBusquedaExistencias] = useState("");
+  const [fabricanteExistencias, setFabricanteExistencias] = useState("");
+  const [paginaExistencias, setPaginaExistencias] = useState(1);
   const [cargandoSucursales, setCargandoSucursales] = useState(true);
   const [cargandoAlmacenes, setCargandoAlmacenes] = useState(false);
   const [cargandoExistencias, setCargandoExistencias] = useState(false);
@@ -461,6 +465,21 @@ function Almacen() {
         : almacenes.map((item) => String(item.id)),
     );
 
+  const fabricantes = [...new Set(existencias.map((item) => item.fabricante?.trim()).filter((item): item is string => Boolean(item)))].sort((a, b) => a.localeCompare(b, "es"));
+  const coincidenciasExistencias = existencias.filter((item) => {
+    const consulta = busquedaExistencias.trim().toLocaleLowerCase("es");
+    const coincideTexto = !consulta || `${item.nombre} ${item.codigo} ${item.fabricante || ""}`.toLocaleLowerCase("es").includes(consulta);
+    const coincideFabricante = !fabricanteExistencias || item.fabricante?.trim() === fabricanteExistencias;
+    return coincideTexto && coincideFabricante;
+  });
+  const paginasExistencias = Math.max(1, Math.ceil(coincidenciasExistencias.length / 10));
+  const paginaActual = Math.min(paginaExistencias, paginasExistencias);
+  const existenciasPagina = coincidenciasExistencias.slice((paginaActual - 1) * 10, paginaActual * 10);
+
+  useEffect(() => {
+    setPaginaExistencias(1);
+  }, [sucursalId, idsSeleccionados, busquedaExistencias, fabricanteExistencias]);
+
   return (
     <section className="cocina-subvista farmacia-admin-almacen">
       <header>
@@ -539,11 +558,31 @@ function Almacen() {
           {error}
         </p>
       )}
+      <div className="farmacia-admin-existencias-filtros">
+        <label className="farmacia-admin-existencias-busqueda">
+          <Icon name="search" size={17} />
+          <input
+            type="search"
+            value={busquedaExistencias}
+            onChange={(evento) => setBusquedaExistencias(evento.target.value)}
+            placeholder="Buscar producto, código o fabricante"
+            aria-label="Buscar existencias"
+          />
+        </label>
+        <label>
+          Fabricante
+          <select value={fabricanteExistencias} onChange={(evento) => setFabricanteExistencias(evento.target.value)}>
+            <option value="">Todos los fabricantes</option>
+            {fabricantes.map((fabricante) => <option key={fabricante} value={fabricante}>{fabricante}</option>)}
+          </select>
+        </label>
+      </div>
       <div className="farmacia-admin-almacen-tabla">
         <table>
           <thead>
             <tr>
               <th>Producto</th>
+              <th>Fabricante</th>
               <th>Código</th>
               <th>Disponible</th>
               <th>Mínimo</th>
@@ -553,28 +592,29 @@ function Almacen() {
           <tbody>
             {cargandoExistencias ? (
               <tr>
-                <td colSpan={5} className="farmacia-admin-almacen-mensaje">
+                <td colSpan={6} className="farmacia-admin-almacen-mensaje">
                   Consultando existencias…
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={5} className="farmacia-admin-almacen-mensaje">
+                <td colSpan={6} className="farmacia-admin-almacen-mensaje">
                   No se pudieron cargar las existencias.
                 </td>
               </tr>
             ) : !almacenesSeleccionados.length ? (
               <tr>
-                <td colSpan={5} className="farmacia-admin-almacen-mensaje">
+                <td colSpan={6} className="farmacia-admin-almacen-mensaje">
                   Selecciona al menos un almacén para consultar el stock.
                 </td>
               </tr>
-            ) : existencias.length ? (
-              existencias.map((item) => (
+            ) : coincidenciasExistencias.length ? (
+              existenciasPagina.map((item) => (
                 <tr key={item.id}>
                   <td>
                     <strong>{item.nombre}</strong>
                   </td>
+                  <td>{item.fabricante || "Sin fabricante"}</td>
                   <td>{item.codigo}</td>
                   <td>
                     {item.disponible.toLocaleString("es-BO")} {item.unidad}
@@ -598,14 +638,24 @@ function Almacen() {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="farmacia-admin-almacen-mensaje">
-                  No hay existencias en los almacenes seleccionados.
+                <td colSpan={6} className="farmacia-admin-almacen-mensaje">
+                  {existencias.length ? "No hay existencias que coincidan con los filtros." : "No hay existencias en los almacenes seleccionados."}
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+      {!cargandoExistencias && !error && coincidenciasExistencias.length > 0 && (
+        <nav className="farmacia-admin-existencias-paginacion" aria-label="Paginación de existencias">
+          <span>Mostrando {(paginaActual - 1) * 10 + 1}–{Math.min(paginaActual * 10, coincidenciasExistencias.length)} de {coincidenciasExistencias.length} productos</span>
+          <div>
+            <button type="button" disabled={paginaActual <= 1} onClick={() => setPaginaExistencias((pagina) => Math.max(1, pagina - 1))}>Anterior</button>
+            <strong>Página {paginaActual} de {paginasExistencias}</strong>
+            <button type="button" disabled={paginaActual >= paginasExistencias} onClick={() => setPaginaExistencias((pagina) => Math.min(paginasExistencias, pagina + 1))}>Siguiente</button>
+          </div>
+        </nav>
+      )}
     </section>
   );
 }

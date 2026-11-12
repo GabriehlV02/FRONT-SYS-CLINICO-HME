@@ -1,0 +1,61 @@
+.medico-visitante-internacion { display:grid; gap:16px; color:#173d60; }
+.mvi-cabecera { display:flex; align-items:center; gap:14px; padding:18px 20px; border:1px solid #c9dfed; border-radius:13px; background:linear-gradient(110deg,#fff,#f5fbff); }
+.mvi-icono,.mvi-avatar { display:grid; flex:0 0 auto; place-items:center; width:42px; height:42px; border-radius:10px; color:#087fc0; background:#eaf7fd; }
+.mvi-cabecera > div:nth-child(2) { display:grid; gap:3px; }
+.mvi-cabecera > div > span,.mvi-detalle header small { color:#1684ae; font-size:10px; font-weight:850; letter-spacing:.08em; }
+.mvi-cabecera h2 { margin:0; color:#064773; font-size:19px; }
+.mvi-cabecera p { margin:0; color:#69869b; font-size:12px; }
+.mvi-cabecera > b { margin-left:auto; padding:7px 10px; border:1px solid #d3e8f2; border-radius:8px; color:#0877a8; background:#eaf7fc; font-size:11px; }
+.mvi-contenido { display:grid; grid-template-columns:minmax(300px,.8fr) minmax(0,1.6fr); gap:16px; align-items:start; }
+.mvi-listado,.mvi-detalle { min-width:0; overflow:hidden; border:1px solid #cfe1ec; border-radius:12px; background:#fff; }
+.mvi-listado { display:grid; padding:12px; }
+.mvi-busqueda { display:flex; align-items:center; gap:8px; height:40px; margin-bottom:8px; padding:0 10px; border:1px solid #d4e5ef; border-radius:8px; color:#6d8799; background:#f9fcfe; }
+.mvi-busqueda input { width:100%; min-width:0; border:0; outline:0; color:#294d65; background:transparent; font:inherit; font-size:12px; }
+.mvi-listado > button { display:flex; align-items:center; gap:10px; width:100%; padding:10px 7px; border:0; border-bottom:1px solid #edf2f6; color:#315875; background:#fff; text-align:left; cursor:pointer; }
+.mvi-listado > button:hover,.mvi-listado > button.seleccionado { background:#f1f9fd; }
+.mvi-listado > button .mvi-avatar { width:34px; height:34px; border-radius:8px; }
+.mvi-listado > button > span:nth-child(2) { display:grid; flex:1; gap:3px; min-width:0; }
+.mvi-listado > button strong { overflow:hidden; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.mvi-listado > button small { overflow:hidden; color:#71899c; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+.mvi-listado > button > svg { color:#84a3b7; }
+.mvi-vacio { padding:15px 8px; color:#71899c; font-size:12px; text-align:center; }
+.mvi-detalle { padding:20px; }
+.mvi-detalle > header { display:flex; align-items:center; gap:12px; padding-bottom:16px; border-bottom:1px solid #e3edf3; }
+.mvi-detalle > header .mvi-avatar { width:46px; height:46px; }
+.mvi-detalle > header h3 { margin:3px 0; color:#173f5d; font-size:17px; }
+.mvi-detalle > header p { margin:0; color:#69869b; font-size:11px; }
+.mvi-estado { margin-left:auto; padding:6px 9px; border-radius:7px; color:#17633d; background:#e7f6ec; font-size:10px; font-weight:750; }
+.mvi-detalle dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0; }
+.mvi-detalle dl > div { display:grid; gap:5px; padding:13px 10px; border-bottom:1px solid #edf2f6; }
+.mvi-detalle dt { color:#718a9d; font-size:10px; font-weight:800; text-transform:uppercase; }
+.mvi-detalle dd { margin:0; color:#274b66; font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.mvi-solo-lectura { display:flex; align-items:center; gap:7px; margin:14px 0 0; color:#6d8799; font-size:11px; }
+.mvi-seleccionar { display:grid; justify-items:center; gap:8px; min-height:270px; align-content:center; color:#7a96a9; text-align:center; }
+.mvi-seleccionar svg { color:#168dbb; }
+.mvi-seleccionar strong { color:#315875; font-size:14px; }
+.mvi-seleccionar span { font-size:12px; }
+@media(max-width:760px) { .mvi-contenido { grid-template-columns:minmax(0,1fr); } .mvi-detalle dl { grid-template-columns:1fr; } }
+@media(max-width:480px) { .mvi-cabecera { align-items:flex-start; padding:14px; } .mvi-cabecera > b { white-space:nowrap; } .mvi-detalle { padding:14px; } }
+.mvi-paciente-cabecera { justify-content:space-between; }
+.mvi-secciones { display:flex; gap:5px; margin:14px 0; padding:6px; border-bottom:1px solid #d7e7f0; background:#f5fafe; }
+.mvi-secciones button { display:inline-flex; align-items:center; gap:8px; min-height:42px; padding:0 15px; border:1px solid transparent; border-radius:8px; color:#55758b; background:transparent; font:inherit; font-size:13px; font-weight:750; cursor:pointer; }
+.mvi-secciones button.activa { border-color:#1395ce; color:#fff; background:#087fc0; box-shadow:0 4px 10px #087fc02b; }
+.mvi-seccion { display:grid; grid-template-columns:minmax(0,1fr) minmax(280px,.9fr); gap:16px; align-items:start; }
+.mvi-formulario,.mvi-historial { display:grid; gap:12px; min-width:0; padding:16px; border:1px solid #dce9f1; border-radius:10px; background:#fff; }
+.mvi-formulario h4,.mvi-historial h4 { margin:0; color:#173f5d; font-size:14px; }
+.mvi-formulario label { display:grid; gap:6px; color:#45657e; font-size:12px; font-weight:750; }
+.mvi-formulario textarea,.mvi-formulario input,.mvi-formulario select { width:100%; min-width:0; min-height:40px; padding:9px 11px; border:1px solid #cbddea; border-radius:8px; color:#173d60; background:#fff; font:inherit; font-size:12px; }
+.mvi-formulario textarea { min-height:125px; resize:vertical; }
+.mvi-formulario .mvi-texto textarea { min-height:170px; }
+.mvi-fecha-hora { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.mvi-formulario > button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:40px; justify-self:end; padding:0 14px; border:1px solid #087fc0; border-radius:8px; color:#fff; background:#087fc0; font:inherit; font-size:12px; font-weight:750; cursor:pointer; }
+.mvi-formulario > button:disabled { opacity:.5; cursor:not-allowed; }
+.mvi-historial { max-height:520px; overflow:auto; background:#f9fcfe; }
+.mvi-historial > header { display:flex; align-items:center; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid #e1ebf2; }
+.mvi-historial > header span { display:grid; place-items:center; min-width:27px; height:27px; padding:0 7px; border-radius:7px; color:#1478a7; background:#e8f4fa; font-size:12px; font-weight:800; }
+.mvi-historial > article { padding:12px; border:1px solid #e0ebf2; border-radius:8px; background:#fff; }
+.mvi-historial > article small { color:#71899c; font-size:10px; }
+.mvi-historial > article p { margin:7px 0 0; color:#34566f; font-size:12px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
+.mvi-error { margin:0 0 12px; padding:9px 11px; border:1px solid #f0c2c2; border-radius:8px; color:#9b3434; background:#fff5f5; font-size:12px; }
+@media(max-width:900px) { .mvi-seccion { grid-template-columns:minmax(0,1fr); } .mvi-historial { max-height:380px; } }
+@media(max-width:480px) { .mvi-secciones { overflow-x:auto; } .mvi-secciones button { flex:0 0 auto; padding-inline:10px; } .mvi-fecha-hora { grid-template-columns:minmax(0,1fr); } .mvi-formulario > button { justify-self:stretch; } }

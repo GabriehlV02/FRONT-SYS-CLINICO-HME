@@ -91,7 +91,7 @@ const ETIQUETAS_KIT: Record<string, string> = {
   incompleto: "Incompleto",
 };
 const etiquetaCirugia = (cirugia: CirugiaProgramada) =>
-  `${cirugia.fecha} ${cirugia.hora} Â· ${cirugia.quirofano} Â· ${cirugia.paciente}`;
+  `${cirugia.fecha} ${cirugia.hora} · ${cirugia.quirofano} · ${cirugia.paciente}`;
 const fechaDemo = (diasDesdeHoy: number) => {
   const fecha = new Date();
   fecha.setHours(0, 0, 0, 0);
@@ -106,33 +106,33 @@ const CIRUGIAS_DEMO: CirugiaProgramada[] = [
   {
     id: "demo-cirugia-cesarea",
     cuenta: "DEMO-QX-001",
-    paciente: "Paciente de demostraciÃ³n A",
+    paciente: "Paciente de demostración A",
     ci: "DEMO-001",
-    medico: "Dra. MarÃ­a Salazar",
-    tipo: "CesÃ¡rea",
-    quirofano: "QuirÃ³fano 1",
+    medico: "Dra. María Salazar",
+    tipo: "Cesárea",
+    quirofano: "Quirófano 1",
     fecha: fechaDemo(1),
     hora: "08:00",
   },
   {
     id: "demo-cirugia-general",
     cuenta: "DEMO-QX-002",
-    paciente: "Paciente de demostraciÃ³n B",
+    paciente: "Paciente de demostración B",
     ci: "DEMO-002",
     medico: "Dr. Pablo Rojas",
-    tipo: "ColecistectomÃ­a",
-    quirofano: "QuirÃ³fano 2",
+    tipo: "Colecistectomía",
+    quirofano: "Quirófano 2",
     fecha: fechaDemo(2),
     hora: "10:30",
   },
   {
     id: "demo-cirugia-actual",
     cuenta: "DEMO-QX-003",
-    paciente: "Paciente de demostraciÃ³n C",
+    paciente: "Paciente de demostración C",
     ci: "DEMO-003",
     medico: "Dr. Ever Luizaga",
     tipo: "Hernioplastia",
-    quirofano: "QuirÃ³fano 1",
+    quirofano: "Quirófano 1",
     fecha: fechaDemo(0),
     hora: "11:00",
   },
@@ -166,26 +166,26 @@ const SUBVISTAS: SubvistaEsterilizacionConfig[] = [
   {
     id: "sala",
     icono: "lab",
-    titulo: "RecepciÃ³n sucio",
+    titulo: "Recepción sucio",
     descripcion: "Ingreso de material para reprocesar.",
   },
   {
     id: "entrega",
     icono: "check",
-    titulo: "Entrega de material estÃ©ril",
+    titulo: "Entrega de material estéril",
     descripcion: "Piezas limpias disponibles para entregar.",
   },
   {
     id: "seguimiento",
     icono: "search",
-    titulo: "Seguimiento de esterilizaciÃ³n",
-    descripcion: "UbicaciÃ³n y estado de cada pieza.",
+    titulo: "Seguimiento de esterilización",
+    descripcion: "Ubicación y estado de cada pieza.",
   },
   {
     id: "inventario",
     icono: "package",
     titulo: "Inventario",
-    descripcion: "Registro individual de material estÃ©ril.",
+    descripcion: "Registro individual de material estéril.",
   },
   {
     id: "kits",
@@ -209,36 +209,36 @@ const SUBVISTAS: SubvistaEsterilizacionConfig[] = [
     id: "solicitudes",
     icono: "fileText",
     titulo: "Solicitudes",
-    descripcion: "Requerimientos de material para cirugÃ­a.",
+    descripcion: "Requerimientos de material para cirugía.",
   },
   {
     id: "cronograma",
     icono: "calendar",
-    titulo: "Cronograma de cirugÃ­as",
-    descripcion: "Agenda y preparaciÃ³n de procedimientos.",
+    titulo: "Cronograma de cirugías",
+    descripcion: "Agenda y preparación de procedimientos.",
   },
   {
     id: "area-roja",
     icono: "lab",
-    titulo: "Ãrea roja",
-    descripcion: "RecepciÃ³n, lavado y descontaminaciÃ³n.",
+    titulo: "Área roja",
+    descripcion: "Recepción, lavado y descontaminación.",
   },
   {
     id: "area-azul",
     icono: "asset",
-    titulo: "Ãrea azul",
-    descripcion: "PreparaciÃ³n y esterilizaciÃ³n.",
+    titulo: "Área azul",
+    descripcion: "Preparación y esterilización.",
   },
   {
     id: "area-verde",
     icono: "package",
-    titulo: "Ãrea verde",
-    descripcion: "AlmacÃ©n estÃ©ril disponible para uso.",
+    titulo: "Área verde",
+    descripcion: "Almacén estéril disponible para uso.",
   },
 ];
 
 export function EsterilizacionView({
-  titulo = "Control de material estÃ©ril",
+  titulo = "Control de material estéril",
   subvistaInicial = "inventario",
   subvistasVisibles = SUBVISTAS.map((item) => item.id),
 }: {
@@ -431,7 +431,7 @@ export function EsterilizacionView({
       return true;
     } catch {
       setError(
-        "No se pudo guardar. Revisa que el almacenamiento de este navegador estÃ© disponible.",
+        "No se pudo guardar. Revisa que el almacenamiento de este navegador esté disponible.",
       );
       return false;
     }
@@ -623,7 +623,7 @@ export function EsterilizacionView({
   const crearKit = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     if (!materialesKit.length) {
-      setError("Selecciona al menos un material para la caja quirÃºrgica.");
+      setError("Selecciona al menos un material para la caja quirúrgica.");
       return;
     }
     if (
@@ -645,7 +645,7 @@ export function EsterilizacionView({
     if (
       guardar(
         { ...datos, kits: [...datos.kits, kit] },
-        `Caja quirÃºrgica ${kit.nombre} creada con ${kit.materialIds.length} materiales.`,
+        `Caja quirúrgica ${kit.nombre} creada con ${kit.materialIds.length} materiales.`,
       )
     ) {
       setFormKit(KIT_VACIO);
@@ -657,7 +657,7 @@ export function EsterilizacionView({
   const agregarMateriales = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     if (!kitSeleccionado || !materialesKit.length) {
-      setError("Selecciona al menos un material nuevo para aÃ±adir.");
+      setError("Selecciona al menos un material nuevo para añadir.");
       return;
     }
     const nuevosIds = [
@@ -672,7 +672,7 @@ export function EsterilizacionView({
             : item,
         ),
       },
-      `${materialesKit.length} materiales aÃ±adidos al kit ${kitSeleccionado.nombre}.`,
+      `${materialesKit.length} materiales añadidos al kit ${kitSeleccionado.nombre}.`,
     );
     setMaterialesKit([]);
   };
@@ -696,7 +696,7 @@ export function EsterilizacionView({
       (destino === "reservado" || destino === "cirugia") &&
       !cirugiaAsignada
     ) {
-      setError("Selecciona una cirugÃ­a programada para asignar el material.");
+      setError("Selecciona una cirugía programada para asignar el material.");
       return;
     }
     const fecha = new Date().toISOString();
@@ -740,7 +740,7 @@ export function EsterilizacionView({
   };
   const leerCodigoBarras = () => {
     const codigo = window.prompt(
-      "Ingresa o pega el cÃ³digo de barras del material.",
+      "Ingresa o pega el código de barras del material.",
     );
     if (!codigo?.trim()) return;
     const valor = codigo.trim();
@@ -749,7 +749,7 @@ export function EsterilizacionView({
       (item) => item.codigo.toLowerCase() === valor.toLowerCase(),
     );
     if (!material) {
-      setError(`No se encontrÃ³ una pieza disponible con el cÃ³digo ${valor}.`);
+      setError(`No se encontró una pieza disponible con el código ${valor}.`);
       return;
     }
     setMaterialesRecibidos((actual) =>
@@ -760,11 +760,11 @@ export function EsterilizacionView({
   const registrarRecepcion = (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
     if (!entregadoPor.trim()) {
-      setError("Indica quiÃ©n entrega el material.");
+      setError("Indica quién entrega el material.");
       return;
     }
     if (!usoMaterial.trim()) {
-      setError("Indica dÃ³nde fue utilizado el material.");
+      setError("Indica dónde fue utilizado el material.");
       return;
     }
     if (!materialesRecibidos.length) {
@@ -791,7 +791,7 @@ export function EsterilizacionView({
             ...item,
             estado: "sucio" as const,
             cirugiaId: "",
-            sector: "RecepciÃ³n sucio",
+            sector: "Recepción sucio",
             actualizadoEn: fecha,
           }
         : item,
@@ -821,7 +821,7 @@ export function EsterilizacionView({
 
   const reservarKit = () => {
     if (!kitSeleccionado || !cirugiaId) {
-      setError("Selecciona una cirugÃ­a para reservar el kit.");
+      setError("Selecciona una cirugía para reservar el kit.");
       return;
     }
     const integrantes = kitSeleccionado.materialIds.map((id) =>
@@ -903,13 +903,13 @@ export function EsterilizacionView({
   return (
     <section
       className="recepcion-vista est-vista esterilizacion-vista"
-      aria-label="EsterilizaciÃ³n de quirÃ³fano"
+      aria-label="Esterilización de quirófano"
     >
       <div className="cocina-subvista-cabecera">
         {navegacionVisible.length > 1 && (
           <HorizontalSubvistaNav
             className={`recepcion-subvistas ${navegacionVisible.length === 2 ? "dos-subvistas" : ""} ${navegacionVisible.length === 3 ? "tres-subvistas" : ""} ${navegacionVisible.length === 4 ? "cuatro-subvistas" : ""}`}
-            ariaLabel="Subvistas de EsterilizaciÃ³n"
+            ariaLabel="Subvistas de Esterilización"
           >
             {navegacionVisible.map((item) => (
               <button
@@ -931,10 +931,10 @@ export function EsterilizacionView({
       </div>
       <header className="est-cabecera">
         <div>
-          <p>QUIRÃ“FANO Â· ESTERILIZACIÃ“N</p>
+          <p>QUIRÓFANO · ESTERILIZACIÓN</p>
           <h2>{titulo}</h2>
           <small>
-            Inventario, cajas quirÃºrgicas y trazabilidad del material utilizado en cirugÃ­a.
+            Inventario, cajas quirúrgicas y trazabilidad del material utilizado en cirugía.
           </small>
         </div>
         <span>
@@ -945,7 +945,7 @@ export function EsterilizacionView({
       {navegacionVisible.length > 1 && (
         <nav
           className="est-subvistas"
-          aria-label="Sub-vistas de esterilizaciÃ³n"
+          aria-label="Sub-vistas de esterilización"
         >
           {navegacionVisible.map((item) => (
             <button
@@ -1012,9 +1012,9 @@ export function EsterilizacionView({
         <section className="est-panel">
           <header>
             <div>
-              <h3>Material estÃ©ril disponible</h3>
+              <h3>Material estéril disponible</h3>
               <small>
-                Piezas limpias listas para entregar a un procedimiento o Ã¡rea
+                Piezas limpias listas para entregar a un procedimiento o área
                 solicitante.
               </small>
             </div>
@@ -1078,7 +1078,7 @@ export function EsterilizacionView({
                   aria-label="Buscar material"
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
-                  placeholder="Buscar por nombre, cÃ³digo o serie"
+                  placeholder="Buscar por nombre, código o serie"
                 />
               </label>
               <select
@@ -1115,9 +1115,9 @@ export function EsterilizacionView({
             <section className="est-panel est-historial">
               <header>
                 <div>
-                  <h3>Historial Â· {materialSeleccionado.nombre}</h3>
+                  <h3>Historial · {materialSeleccionado.nombre}</h3>
                   <small>
-                    {materialSeleccionado.codigo} Â· {movimientos.length}{" "}
+                    {materialSeleccionado.codigo} · {movimientos.length}{" "}
                     movimientos registrados
                   </small>
                 </div>
@@ -1137,11 +1137,11 @@ export function EsterilizacionView({
                       {item.desde === "registro"
                         ? "Registro inicial"
                         : ETIQUETAS_ESTADO[item.desde]}{" "}
-                      â†’ {ETIQUETAS_ESTADO[item.hacia]}
+                      → {ETIQUETAS_ESTADO[item.hacia]}
                     </strong>
                     <small>
                       {cirugias.find((c) => c.id === item.cirugiaId)?.cuenta ||
-                        "Sin cirugÃ­a asignada"}
+                        "Sin cirugía asignada"}
                     </small>
                   </div>
                 ))}
@@ -1232,7 +1232,7 @@ export function EsterilizacionView({
         <section className="est-panel est-kits-panel">
           <header>
             <div>
-              <h3>Cajas quirÃºrgicas</h3>
+              <h3>Cajas quirúrgicas</h3>
             </div>
           </header>
           <div className="est-filtros">
@@ -1268,7 +1268,7 @@ export function EsterilizacionView({
                 setModal("kit");
               }}
             >
-              <Icon name="plus" size={16} /> Crear caja quirÃºrgica
+              <Icon name="plus" size={16} /> Crear caja quirúrgica
             </button>
           </div>
           {kitsVisibles.length ? (
@@ -1286,7 +1286,7 @@ export function EsterilizacionView({
                     <Icon name="package" size={20} />
                     <span>
                       <strong>{kit.nombre}</strong>
-                      <small>{kit.materialIds.length} materiales Â· {kit.descripcion || "Materiales de la caja"}</small>
+                      <small>{kit.materialIds.length} materiales · {kit.descripcion || "Materiales de la caja"}</small>
                     </span>
                     <b
                       className={`est-kit-estado ${estadoKit(kit, datos.materiales)}`}
@@ -1309,7 +1309,7 @@ export function EsterilizacionView({
                       Inspeccionar
                     </button>
                     <button type="button" onClick={() => abrirAgregar(kit.id)}>
-                      AÃ±adir materiales
+                      Añadir materiales
                     </button>
                   </div>
                 </article>
@@ -1318,8 +1318,8 @@ export function EsterilizacionView({
           ) : (
             <div className="est-vacio">
               <Icon name="package" size={26} />
-              <strong>No hay cajas quirÃºrgicas con estos filtros</strong>
-              <small>Crea una caja o ajusta la bÃºsqueda.</small>
+              <strong>No hay cajas quirúrgicas con estos filtros</strong>
+              <small>Crea una caja o ajusta la búsqueda.</small>
             </div>
           )}
         </section>
@@ -1346,14 +1346,14 @@ export function EsterilizacionView({
       >
         <header>
           <div>
-             <p>CAJA QUIRÃšRGICA</p>
+             <p>CAJA QUIRÚRGICA</p>
             <h3 id="inspeccion-kit-titulo">
               {kitSeleccionado?.nombre || "Contenido de la caja"}
             </h3>
           </div>
           <button
             type="button"
-            aria-label="Cerrar inspecciÃ³n de la caja"
+            aria-label="Cerrar inspección de la caja"
             onClick={() => inspeccionKitDialog.current?.close()}
           >
             <Icon name="close" size={17} />
@@ -1370,7 +1370,7 @@ export function EsterilizacionView({
                 type="button"
                 onClick={() => abrirAgregar(kitSeleccionado.id)}
               >
-                + AÃ±adir materiales
+                + Añadir materiales
               </button>
             </div>
             <ul>
@@ -1393,7 +1393,7 @@ export function EsterilizacionView({
                     <span className="est-kit-instrumento-datos">
                       {item?.nombre || "Material no disponible"}{" "}
                       <small>
-                        {item?.codigo || "Sin cÃ³digo"} Â·{" "}
+                        {item?.codigo || "Sin código"} ·{" "}
                         {item?.lote || item?.serie || item?.marca ||
                           item?.tipo ||
                           "Sin serie"}
@@ -1403,7 +1403,7 @@ export function EsterilizacionView({
                       {item
                         ? item.estado === "cirugia" ||
                           item.estado === "reservado"
-                          ? "Ocupado Â· " + ETIQUETAS_ESTADO[item.estado]
+                          ? "Ocupado · " + ETIQUETAS_ESTADO[item.estado]
                           : ETIQUETAS_ESTADO[item.estado]
                         : "Sin registro"}
                     </b>
@@ -1413,11 +1413,11 @@ export function EsterilizacionView({
             </ul>
             <div className="est-kit-reserva">
               <select
-                aria-label="CirugÃ­a para reservar el kit"
+                aria-label="Cirugía para reservar el kit"
                 value={cirugiaId}
                 onChange={(e) => setCirugiaId(e.target.value)}
               >
-                <option value="">Seleccionar cirugÃ­a programada</option>
+                <option value="">Seleccionar cirugía programada</option>
                 {cirugiasOrdenadas.map((item) => (
                   <option key={item.id} value={item.id}>
                     {etiquetaCirugia(item)}
@@ -1623,7 +1623,7 @@ export function EsterilizacionView({
                       {item.desde === "registro"
                         ? "Registro inicial"
                         : ETIQUETAS_ESTADO[item.desde]}{" "}
-                      â†’ {ETIQUETAS_ESTADO[item.hacia]}
+                      → {ETIQUETAS_ESTADO[item.hacia]}
                     </strong>
                     <small>
                       {cirugias.find((c) => c.id === item.cirugiaId)?.cuenta ||
@@ -1669,13 +1669,13 @@ export function EsterilizacionView({
             aria-modal="true"
             aria-label={
               modal === "recepcion"
-                ? "RecepciÃ³n de material sucio"
+                ? "Recepción de material sucio"
                 : modal === "material"
                   ? "Registrar material estéril"
                   : modal === "kit"
-                    ? "Crear caja quirÃºrgica de instrumental"
+                    ? "Crear caja quirúrgica de instrumental"
                     : modal === "agregar"
-                      ? "AÃ±adir materiales al kit"
+                      ? "Añadir materiales al kit"
                       : "Registrar movimiento de material"
             }
             onMouseDown={(e) => e.stopPropagation()}
@@ -1685,13 +1685,13 @@ export function EsterilizacionView({
                 <p>ESTERILIZACIÓN</p>
                 <h3>
                   {modal === "recepcion"
-                    ? "RecepciÃ³n de material sucio"
+                    ? "Recepción de material sucio"
                     : modal === "material"
                       ? "Registrar nuevo material"
                       : modal === "kit"
-                        ? "Crear caja quirÃºrgica"
+                        ? "Crear caja quirúrgica"
                         : modal === "agregar"
-                          ? `AÃ±adir materiales Â· ${kitSeleccionado?.nombre || ""}`
+                          ? `Añadir materiales · ${kitSeleccionado?.nombre || ""}`
                           : "Registrar movimiento"}
                 </h3>
               </div>
@@ -1735,7 +1735,7 @@ export function EsterilizacionView({
                       list="cirugias-con-material"
                       value={usoMaterial}
                       onChange={(e) => setUsoMaterial(e.target.value)}
-                      placeholder="Selecciona una cirugÃ­a o escribe la procedencia"
+                      placeholder="Selecciona una cirugía o escribe la procedencia"
                     />
                     <datalist id="cirugias-con-material">
                       {cirugiasConMaterial.map((cirugia) => (
@@ -1755,7 +1755,7 @@ export function EsterilizacionView({
                       <input
                         value={busquedaRecepcion}
                         onChange={(e) => setBusquedaRecepcion(e.target.value)}
-                        placeholder="Buscar por nombre, cÃ³digo o serie"
+                        placeholder="Buscar por nombre, código o serie"
                       />
                     </label>
                     <button
@@ -1763,7 +1763,7 @@ export function EsterilizacionView({
                       type="button"
                       onClick={leerCodigoBarras}
                     >
-                      <Icon name="camera" size={16} /> Lector de cÃ³digo de
+                      <Icon name="camera" size={16} /> Lector de código de
                       barras
                     </button>
                     {materialesFiltradosRecepcion.length ? (
@@ -1787,7 +1787,7 @@ export function EsterilizacionView({
                             <span>
                               <strong>{item.nombre}</strong>
                               <small>
-                                {item.codigo} Â· {item.lote || item.serie || item.tipo}
+                                {item.codigo} · {item.lote || item.serie || item.tipo}
                               </small>
                             </span>
                             <em>{kit?.nombre || "Pieza individual"}</em>
@@ -1831,7 +1831,7 @@ export function EsterilizacionView({
                       </ul>
                     ) : (
                       <p>
-                        Selecciona las piezas recibidas para revisarlas aquÃ­.
+                        Selecciona las piezas recibidas para revisarlas aquí.
                       </p>
                     )}
                   </aside>
@@ -1846,7 +1846,7 @@ export function EsterilizacionView({
                     Cancelar
                   </button>
                   <button type="submit">
-                    Registrar recepciÃ³n ({materialesRecibidos.length})
+                    Registrar recepción ({materialesRecibidos.length})
                   </button>
                 </footer>
               </form>
@@ -1950,18 +1950,18 @@ export function EsterilizacionView({
               <form onSubmit={crearKit}>
                 <div className="est-form-grid">
                   <label>
-                    Nombre de la caja quirÃºrgica *
+                    Nombre de la caja quirúrgica *
                     <input
                       required
                       value={formKit.nombre}
                       onChange={(e) =>
                         setFormKit({ ...formKit, nombre: e.target.value })
                       }
-                      placeholder="Ej. Caja de cesÃ¡rea"
+                      placeholder="Ej. Caja de cesárea"
                     />
                   </label>
                   <label>
-                    DescripciÃ³n
+                    Descripción
                     <input
                       value={formKit.descripcion}
                       onChange={(e) =>
@@ -2001,7 +2001,7 @@ export function EsterilizacionView({
                         />
                         <span>
                           <strong>{item.nombre}</strong>
-                          <small>{item.codigo} Â· Lote {item.lote || "-"} Â· Cantidad {item.cantidad ?? 1}</small>
+                          <small>{item.codigo} · Lote {item.lote || "-"} · Cantidad {item.cantidad ?? 1}</small>
                         </span>
                         <b className={`est-estado ${item.estado}`}>
                           {ETIQUETAS_ESTADO[item.estado]}
@@ -2030,13 +2030,13 @@ export function EsterilizacionView({
             )}
             {modal === "agregar" && kitSeleccionado && (
               <form onSubmit={agregarMateriales}>
-                <p className="est-ayuda">Selecciona los materiales que quieres incorporar a esta caja quirÃºrgica.</p>
+                <p className="est-ayuda">Selecciona los materiales que quieres incorporar a esta caja quirúrgica.</p>
                 <label className="est-buscar-kit">
                   <Icon name="search" size={16} />
                   <input
                     value={busquedaAsociar}
                     onChange={(e) => setBusquedaAsociar(e.target.value)}
-                    placeholder="Buscar material por cÃ³digo o nombre"
+                    placeholder="Buscar material por código o nombre"
                   />
                 </label>
                 <div className="est-lista-asociar">
@@ -2063,7 +2063,7 @@ export function EsterilizacionView({
                         />
                         <span>
                           <strong>{item.nombre}</strong>
-                          <small>{item.codigo} Â· Lote {item.lote || "-"} Â· Cantidad {item.cantidad ?? 1}</small>
+                          <small>{item.codigo} · Lote {item.lote || "-"} · Cantidad {item.cantidad ?? 1}</small>
                         </span>
                         <b className={`est-estado ${item.estado}`}>
                           {ETIQUETAS_ESTADO[item.estado]}
@@ -2072,7 +2072,7 @@ export function EsterilizacionView({
                     ))}
                   {!datos.materiales.some(
                     (item) => !kitSeleccionado.materialIds.includes(item.id),
-                  ) && <p>No hay mÃ¡s instrumentos disponibles para aÃ±adir.</p>}
+                  ) && <p>No hay más instrumentos disponibles para añadir.</p>}
                 </div>
                 {error && (
                   <p className="est-error" role="alert">
@@ -2084,7 +2084,7 @@ export function EsterilizacionView({
                     Cancelar
                   </button>
                   <button type="submit">
-                    AÃ±adir materiales ({materialesKit.length})
+                    Añadir materiales ({materialesKit.length})
                   </button>
                 </footer>
               </form>
@@ -2094,7 +2094,7 @@ export function EsterilizacionView({
                 <p className="est-modal-identidad">
                   <strong>{materialSeleccionado.nombre}</strong>
                   <small>
-                    {materialSeleccionado.codigo} Â· Estado actual:{" "}
+                    {materialSeleccionado.codigo} · Estado actual:{" "}
                     {ETIQUETAS_ESTADO[materialSeleccionado.estado]}
                   </small>
                 </p>
@@ -2120,13 +2120,13 @@ export function EsterilizacionView({
                   </label>
                   {destino === "reservado" && (
                     <label>
-                      CirugÃ­a programada *
+                      Cirugía programada *
                       <select
                         required
                         value={cirugiaId}
                         onChange={(e) => setCirugiaId(e.target.value)}
                       >
-                        <option value="">Seleccionar cirugÃ­a</option>
+                        <option value="">Seleccionar cirugía</option>
                         {cirugiasOrdenadas.map((item) => (
                           <option key={item.id} value={item.id}>
                             {etiquetaCirugia(item)}
@@ -2141,14 +2141,14 @@ export function EsterilizacionView({
                     Asignado a{" "}
                     {cirugias.find(
                       (item) => item.id === materialSeleccionado.cirugiaId,
-                    )?.cuenta || "la cirugÃ­a registrada"}
+                    )?.cuenta || "la cirugía registrada"}
                     .
                   </p>
                 )}
                 {destino === "limpio" && (
                   <p className="est-ayuda">
                     Confirma este estado solo cuando el material haya completado
-                    el proceso de esterilizaciÃ³n.
+                    el proceso de esterilización.
                   </p>
                 )}
                 {error && (
@@ -2183,7 +2183,7 @@ function EtiquetaCodigo({ material }: { material: MaterialEsteril }) {
     <div className="est-etiqueta">
       <div
         className="est-etiqueta-barras"
-        aria-label={`CÃ³digo de barras ${material.codigo}`}
+        aria-label={`Código de barras ${material.codigo}`}
       >
         {barras.map((ancho, indice) => (
           <i key={indice} style={{ width: `${ancho}px` }} />
@@ -2216,18 +2216,18 @@ function RecepcionSucio({
           </small>
         </div>
         <button className="est-recepcion-boton" type="button" onClick={onAbrir}>
-          <Icon name="plus" size={17} /> RecepciÃ³n de material sucio
+          <Icon name="plus" size={17} /> Recepción de material sucio
         </button>
       </header>
       <div className="est-tabla-scroll">
         <table className="est-recepcion-tabla">
           <thead>
             <tr>
-              <th>Material / cÃ³digo</th>
+              <th>Material / código</th>
               <th>Kit</th>
               <th>Entregado por</th>
               <th>Utilizado en</th>
-              <th>Fecha de recepciÃ³n</th>
+              <th>Fecha de recepción</th>
             </tr>
           </thead>
           <tbody>
@@ -2243,7 +2243,7 @@ function RecepcionSucio({
                       {material?.nombre || "Material no disponible"}
                     </strong>
                     <small>
-                      {material?.codigo || "Sin cÃ³digo"} Â·{" "}
+                      {material?.codigo || "Sin código"} ·{" "}
                       {material?.serie || material?.tipo || "Sin serie"}
                     </small>
                   </td>
@@ -2260,7 +2260,7 @@ function RecepcionSucio({
       {!recepciones.length && (
         <div className="est-vacio">
           <Icon name="package" size={26} />
-          <strong>AÃºn no hay material recibido</strong>
+          <strong>Aún no hay material recibido</strong>
           <small>Registra la primera entrega para verla en este listado.</small>
         </div>
       )}
@@ -2284,26 +2284,26 @@ function AreaEsterilizacion({
   const contenido =
     area === "roja"
       ? {
-          titulo: "Ãrea roja Â· material contaminado",
+          titulo: "Área roja · material contaminado",
           detalle:
-            "RecepciÃ³n, clasificaciÃ³n, lavado y descontaminaciÃ³n antes de esterilizar.",
+            "Recepción, clasificación, lavado y descontaminación antes de esterilizar.",
           accion: "Procesar",
           vacio: "No hay material pendiente de limpieza.",
         }
       : area === "azul"
         ? {
-            titulo: "Ãrea azul Â· esterilizaciÃ³n",
+            titulo: "Área azul · esterilización",
             detalle:
-              "Material en preparaciÃ³n, empaque o ciclo de esterilizaciÃ³n.",
+              "Material en preparación, empaque o ciclo de esterilización.",
             accion: "Finalizar proceso",
-            vacio: "No hay material en ciclo de esterilizaciÃ³n.",
+            vacio: "No hay material en ciclo de esterilización.",
           }
         : {
-            titulo: "Ãrea verde Â· almacÃ©n estÃ©ril",
+            titulo: "Área verde · almacén estéril",
             detalle:
               "Material limpio, liberado y disponible para reservar o entregar.",
             accion: "Ver",
-            vacio: "No hay material estÃ©ril almacenado.",
+            vacio: "No hay material estéril almacenado.",
           };
   return (
     <section className={`est-panel est-area-esterilizacion ${area}`}>
@@ -2314,7 +2314,7 @@ function AreaEsterilizacion({
               ? "ZONA CONTAMINADA"
               : area === "azul"
                 ? "ZONA LIMPIA"
-                : "ZONA ESTÃ‰RIL"}
+                : "ZONA ESTÉRIL"}
           </p>
           <h3>{contenido.titulo}</h3>
           <small>{contenido.detalle}</small>
@@ -2335,11 +2335,11 @@ function AreaEsterilizacion({
         </div>
       </header>
       <div className="est-area-flujo">
-        <span className={area === "roja" ? "activo" : ""}>Ãrea roja</span>
+        <span className={area === "roja" ? "activo" : ""}>Área roja</span>
         <i />
-        <span className={area === "azul" ? "activo" : ""}>Ãrea azul</span>
+        <span className={area === "azul" ? "activo" : ""}>Área azul</span>
         <i />
-        <span className={area === "verde" ? "activo" : ""}>Ãrea verde</span>
+        <span className={area === "verde" ? "activo" : ""}>Área verde</span>
       </div>
       {materiales.length ? (
         <TablaMateriales
@@ -2354,10 +2354,10 @@ function AreaEsterilizacion({
           <strong>{contenido.vacio}</strong>
           <small>
             {area === "roja"
-              ? "Registra una recepciÃ³n para iniciar el reprocesamiento."
+              ? "Registra una recepción para iniciar el reprocesamiento."
               : area === "azul"
-                ? "Las piezas llegarÃ¡n aquÃ­ al finalizar limpieza y preparaciÃ³n."
-                : "Las piezas liberadas de esterilizaciÃ³n aparecerÃ¡n aquÃ­."}
+                ? "Las piezas llegarán aquí al finalizar limpieza y preparación."
+                : "Las piezas liberadas de esterilización aparecerán aquí."}
           </small>
         </div>
       )}
@@ -2390,7 +2390,7 @@ function SolicitudesMateriales({
         <div>
           <h3>Solicitudes de material</h3>
           <small>
-            Material solicitado o reservado para cada cirugÃ­a programada.
+            Material solicitado o reservado para cada cirugía programada.
           </small>
         </div>
         <span>
@@ -2409,7 +2409,7 @@ function SolicitudesMateriales({
               <div>
                 <strong>{cirugia.tipo}</strong>
                 <small>
-                  {cirugia.paciente} Â· {cirugia.quirofano}
+                  {cirugia.paciente} · {cirugia.quirofano}
                 </small>
               </div>
               <div>
@@ -2441,7 +2441,7 @@ function SolicitudesMateriales({
           <Icon name="fileText" size={27} />
           <strong>No hay solicitudes activas</strong>
           <small>
-            Las reservas de kits y materiales para cirugÃ­a aparecerÃ¡n aquÃ­.
+            Las reservas de kits y materiales para cirugía aparecerán aquí.
           </small>
         </div>
       )}
@@ -2462,20 +2462,20 @@ function CronogramaCirugias({
     <section className="est-panel est-cronograma">
       <header>
         <div>
-          <h3>Cronograma de cirugÃ­as</h3>
+          <h3>Cronograma de cirugías</h3>
           <small>
-            Verifica la preparaciÃ³n de instrumental antes de cada procedimiento.
+            Verifica la preparación de instrumental antes de cada procedimiento.
           </small>
         </div>
-        <span>{cirugias.length} cirugÃ­as programadas</span>
+        <span>{cirugias.length} cirugías programadas</span>
       </header>
       <div className="est-tabla-scroll">
         <table>
           <thead>
             <tr>
               <th>Fecha y hora</th>
-              <th>CirugÃ­a / paciente</th>
-              <th>QuirÃ³fano</th>
+              <th>Cirugía / paciente</th>
+              <th>Quirófano</th>
               <th>Material preparado</th>
               <th>Estado</th>
             </tr>
@@ -2500,7 +2500,7 @@ function CronogramaCirugias({
                   <td>
                     <strong>{cirugia.tipo}</strong>
                     <small>
-                      {cirugia.paciente} Â· {cirugia.cuenta}
+                      {cirugia.paciente} · {cirugia.cuenta}
                     </small>
                   </td>
                   <td>{cirugia.quirofano}</td>
@@ -2522,7 +2522,7 @@ function CronogramaCirugias({
                         ))}
                       </div>
                     ) : (
-                      <span className="est-sin-cirugia">AÃºn sin material</span>
+                      <span className="est-sin-cirugia">Aún sin material</span>
                     )}
                   </td>
                   <td>
@@ -2530,7 +2530,7 @@ function CronogramaCirugias({
                       className={`est-cronograma-estado ${listas.length ? "preparado" : "pendiente"}`}
                     >
                       {listas.length
-                        ? "En preparaciÃ³n"
+                        ? "En preparación"
                         : "Pendiente de solicitud"}
                     </span>
                   </td>
@@ -2560,12 +2560,12 @@ function TablaMateriales({
       <table>
         <thead>
           <tr>
-            <th>Material / cÃ³digo</th>
+            <th>Material / código</th>
             <th>Tipo y serie</th>
-            <th>Sector / ubicaciÃ³n</th>
+            <th>Sector / ubicación</th>
             <th>Estado</th>
-            <th>CirugÃ­a asignada</th>
-            <th>AcciÃ³n</th>
+            <th>Cirugía asignada</th>
+            <th>Acción</th>
           </tr>
         </thead>
         <tbody>
@@ -2575,7 +2575,7 @@ function TablaMateriales({
               item.estado === "cirugia"
                 ? cirugia?.quirofano
                 : item.estado === "esterilizacion"
-                  ? "Sala de esterilizaciÃ³n"
+                  ? "Sala de esterilización"
                   : item.sector;
             return (
               <tr key={item.id}>
@@ -2601,7 +2601,7 @@ function TablaMateriales({
                     <>
                       <strong>{cirugia.cuenta}</strong>
                       <small>
-                        {cirugia.fecha} Â· {cirugia.hora}
+                        {cirugia.fecha} · {cirugia.hora}
                       </small>
                     </>
                   ) : (
@@ -2623,7 +2623,7 @@ function TablaMateriales({
     <div className="est-vacio">
       <Icon name="package" size={26} />
       <strong>No hay materiales con estos filtros</strong>
-      <small>Registra una pieza en Inventario o ajusta la bÃºsqueda.</small>
+      <small>Registra una pieza en Inventario o ajusta la búsqueda.</small>
     </div>
   );
 }
@@ -2632,7 +2632,7 @@ function ubicacionMaterial(
   item: MaterialEsteril,
   cirugias: CirugiaProgramada[],
 ): string {
-  if (item.estado === "esterilizacion") return "Sala de esterilizaciÃ³n";
+  if (item.estado === "esterilizacion") return "Sala de esterilización";
   if (item.estado === "cirugia")
     return (
       cirugias.find((cirugia) => cirugia.id === item.cirugiaId)?.quirofano ||

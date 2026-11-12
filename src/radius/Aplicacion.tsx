@@ -160,6 +160,11 @@ const MedicoInternacionView = lazy(() =>
     default: m.MedicoInternacionView,
   })),
 );
+const MedicoVisitanteInternacionView = lazy(() =>
+  import("../flows/internacion/MedicoVisitanteInternacionView").then((m) => ({
+    default: m.MedicoVisitanteInternacionView,
+  })),
+);
 const MedicoTerapiaIntensivaView = lazy(() =>
   import("../flows/internacion/MedicoTerapiaIntensivaView").then((m) => ({
     default: m.MedicoTerapiaIntensivaView,
@@ -536,6 +541,12 @@ const modulos: Modulo[] = [
     id: "medico-internacion",
     nombre: "Médico internación",
     icono: "bed",
+    grupo: "INTERNACIÓN",
+  },
+  {
+    id: "medico-visitante-internacion",
+    nombre: "Médico visitante",
+    icono: "userMedical",
     grupo: "INTERNACIÓN",
   },
   {
@@ -1175,6 +1186,7 @@ export default function Aplicacion() {
         "atencion-medica",
         "atencion-urgencias",
         "medico-internacion",
+        "medico-visitante-internacion",
       ].includes(item.id);
     if (perfil === "quirofano")
       return [
@@ -2440,6 +2452,8 @@ export default function Aplicacion() {
                 </HorizontalSubvistaNav>
                 <MedicoInternacionView subvista={subvistaMedicoInternacion} />
               </section>
+            ) : modulo === "medico-visitante-internacion" ? (
+              <MedicoVisitanteInternacionView />
             ) : modulo === "enfermera-quirofano" ? (
               <section className="enfermeria-quirofano-vista">
                 <nav

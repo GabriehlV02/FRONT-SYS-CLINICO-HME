@@ -3091,7 +3091,7 @@
   padding: 7px;
   font-size: 11px;
 }
-.em-signos-grafica svg {
+.em-signos-grafica > svg {
   display: block;
   width: 100%;
   height: auto;
@@ -3161,13 +3161,37 @@
 .em-signos-historial h4 {
   margin-bottom: 13px;
 }
-.em-signos-formulario .em-signos {
+.em-signos-fecha-hora {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 12px;
 }
+.em-signos-fecha-hora label {
+  display: grid;
+  gap: 5px;
+  color: #315979;
+  font-size: 11px;
+  font-weight: 700;
+}
+.em-signos-fecha-hora input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 9px;
+  border: 1px solid #c7ddea;
+  border-radius: 7px;
+  color: #244b68;
+  background: #fff;
+  font: inherit;
+}
+.em-signos-formulario .em-signos {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
 .em-signos-formulario .em-signos label {
-  padding: 9px;
+  padding: 8px;
   border: 1px solid #e2edf4;
   border-radius: 8px;
   background: #fff;
@@ -3201,7 +3225,7 @@
   .em-signos-columnas {
     grid-template-columns: minmax(0, 1fr);
   }
-  .em-signos-grafica svg {
+  .em-signos-grafica > svg {
     min-height: 160px;
   }
 }
@@ -3220,9 +3244,12 @@
   .em-signos-formulario .em-signos {
     grid-template-columns: minmax(0, 1fr);
   }
+  .em-signos-fecha-hora {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 .em-signos-formulario {
-  width: min(100%, 560px);
+  width: min(100%, 760px);
   box-sizing: border-box;
   justify-self: start;
 }

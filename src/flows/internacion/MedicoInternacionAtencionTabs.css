@@ -213,6 +213,10 @@
 .internacion-ordenes-acciones .orden-imagenologia {
   background: #7655c5;
 }
+.internacion-ordenes-acciones .orden-dietas {
+  background: #d57b26;
+  cursor: pointer;
+}
 .internacion-ordenes-listado {
   overflow: hidden;
   border: 1px solid #d6e7f0;

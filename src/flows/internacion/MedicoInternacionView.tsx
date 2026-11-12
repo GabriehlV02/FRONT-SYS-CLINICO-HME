@@ -15,6 +15,7 @@ import {
   type PacienteHistoria,
 } from "../consultorio/ConsultorioView";
 import { HojaLaboratorios } from "../consultorio/HojaLaboratorios";
+import { leerCatalogoDietas } from "../cocina/CocinaInternacionView";
 import { crearSolicitudLaboratorio } from "../laboratorio/almacenLaboratorio";
 import "./MedicoInternacionView.css";
 import "./MedicoInternacionAtencionTabs.css";
@@ -25,7 +26,7 @@ import "./ResumenBalanceAcciones.css";
 import "./OrdenMedicaDialogo.css";
 
 type Subvista = "internados" | "altas";
-type TipoOrdenMedica = "medicamentos" | "laboratorio" | "imagenologia";
+type TipoOrdenMedica = "medicamentos" | "laboratorio" | "imagenologia" | "dieta";
 type OrdenMedica = {
   id: number;
   tipo: TipoOrdenMedica;
@@ -71,6 +72,7 @@ const nombreTipoOrden: Record<TipoOrdenMedica, string> = {
   medicamentos: "Medicamentos",
   laboratorio: "Laboratorio",
   imagenologia: "Imagenología",
+  dieta: "Dieta",
 };
 
 const fecha = (valor?: string) => valor || "Sin registro";
@@ -190,6 +192,12 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
             .includes(termino)),
     );
   }, [busquedaOrden, filtroOrden, ordenesMedicas]);
+  const dietasCoincidentes = useMemo(() => {
+    const termino = busquedaOrden.trim().toLocaleLowerCase("es");
+    return leerCatalogoDietas().filter((dieta) =>
+      !termino || `${dieta.nombre} ${dieta.tipo} ${dieta.consistencia} ${dieta.descripcion} ${dieta.restricciones}`.toLocaleLowerCase("es").includes(termino),
+    );
+  }, [busquedaOrden]);
   const abrirNuevaOrden = (tipo: TipoOrdenMedica) => {
     setTipoNuevaOrden(tipo);
     setDetalleNuevaOrden("");
@@ -208,6 +216,7 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
     setDetalleNuevaOrden("");
     setTipoNuevaOrden(null);
   };
+  const ordenarDieta = (nombre: string) => setOrdenesMedicas((ordenes) => [{ id: Date.now(), tipo: "dieta", detalle: nombre, fecha: new Date().toLocaleDateString("es-BO") }, ...ordenes]);
   const alternarSignoEnVista = (signo: string) =>
     setSignosEnVista((actual) =>
       actual.includes(signo)
@@ -730,7 +739,18 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
                 >
                   <Icon name="image" size={17} /> Orden de imagenología
                 </button>
+              <button type="button" className="orden-dietas" onClick={() => { setBusquedaOrden(""); setFiltroOrden("dieta"); }}>Dietas</button>
               </div>
+              {(filtroOrden === "dieta" || busquedaOrden.trim()) && dietasCoincidentes.length > 0 && (
+                <div className="internacion-dietas-resultados" aria-label="Dietas disponibles para ordenar">
+                  {dietasCoincidentes.map((dieta) => (
+                    <button type="button" key={dieta.id} onClick={() => ordenarDieta(dieta.nombre)}>
+                      <span><strong>{dieta.nombre}</strong><small>{dieta.tipo} · {dieta.consistencia}</small></span>
+                      <b>Ordenar dieta</b>
+                    </button>
+                  ))}
+                </div>
+              )}
               <div className="internacion-ordenes-contenido">
                 <div className="internacion-ordenes-listado">
                   <div className="internacion-ordenes-listado-cabecera">

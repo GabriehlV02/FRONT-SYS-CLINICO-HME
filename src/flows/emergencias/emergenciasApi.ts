@@ -253,7 +253,7 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
         const valores = datos.valores || {};
         if (!Object.keys(valores).length)
           throw new Error("Registra al menos un signo vital.");
-        const registro = new Date();
+        const registro = datos.fecha ? new Date(`${datos.fecha}T00:00:00`) : new Date();
         if (/^\d{2}:\d{2}$/.test(datos.hora || "")) {
           const [hora, minuto] = datos.hora.split(":").map(Number);
           registro.setHours(hora, minuto, 0, 0);

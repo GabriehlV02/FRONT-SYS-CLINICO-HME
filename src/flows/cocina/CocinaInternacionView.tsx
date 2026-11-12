@@ -5,96 +5,84 @@ import { HorizontalSubvistaNav } from "../../ui/components/HorizontalSubvistaNav
 import "./CocinaInternacionView.css";
 
 type Vista = "pacientes" | "dietas" | "reportes";
-type Dieta = {
+export type Dieta = {
   id: number;
-  codigo: string;
   nombre: string;
   tipo: string;
   descripcion: string;
   consistencia: string;
-  indicaciones: string;
   restricciones: string;
-  calorias: string;
   estado: "Activa" | "Inactiva";
 };
 
-const DIETAS_INICIALES: Dieta[] = [
+export const DIETAS_INICIALES: Dieta[] = [
   {
     id: 1,
-    codigo: "D-001",
     nombre: "Dieta normal",
     tipo: "General",
     descripcion: "Alimentación completa sin restricciones específicas.",
     consistencia: "Sólida",
-    indicaciones: "Pacientes sin restricciones dietéticas",
     restricciones: "Ninguna",
-    calorias: "2000",
     estado: "Activa",
   },
   {
     id: 2,
-    codigo: "D-002",
     nombre: "Dieta blanda",
     tipo: "Terapéutica",
     descripcion: "Preparaciones suaves y de fácil digestión.",
     consistencia: "Blanda",
-    indicaciones: "Posoperatorio y molestias digestivas",
     restricciones: "Evitar frituras y condimentos",
-    calorias: "1800",
     estado: "Activa",
   },
   {
     id: 3,
-    codigo: "D-003",
     nombre: "Dieta líquida",
     tipo: "Transición",
     descripcion: "Líquidos claros y preparaciones coladas.",
     consistencia: "Líquida",
-    indicaciones: "Preparación de estudios y recuperación",
     restricciones: "Sin sólidos",
-    calorias: "1200",
     estado: "Activa",
   },
   {
     id: 4,
-    codigo: "D-004",
     nombre: "Dieta hiposódica",
     tipo: "Terapéutica",
     descripcion: "Alimentación con contenido reducido de sodio.",
     consistencia: "Sólida",
-    indicaciones: "Hipertensión y retención de líquidos",
     restricciones: "Sodio controlado",
-    calorias: "1800",
     estado: "Activa",
   },
   {
     id: 5,
-    codigo: "D-005",
     nombre: "Dieta para diabético",
     tipo: "Terapéutica",
     descripcion: "Control de carbohidratos simples y porciones.",
     consistencia: "Sólida",
-    indicaciones: "Diabetes y control glucémico",
     restricciones: "Sin azúcar añadida",
-    calorias: "1800",
     estado: "Activa",
   },
 ];
+const CLAVE_DIETAS = "hme:cocina:dietas:v1";
+export const leerCatalogoDietas = (): Dieta[] => {
+  try {
+    const guardadas = window.localStorage.getItem(CLAVE_DIETAS);
+    if (guardadas) return JSON.parse(guardadas) as Dieta[];
+    window.localStorage.setItem(CLAVE_DIETAS, JSON.stringify(DIETAS_INICIALES));
+  } catch { /* Usa el catálogo base si el almacenamiento no está disponible. */ }
+  return DIETAS_INICIALES;
+};
 
 export function CocinaInternacionView() {
   const [vista, setVista] = useState<Vista>("pacientes");
-  const [dietas, setDietas] = useState<Dieta[]>(DIETAS_INICIALES);
+  const [dietas, setDietas] = useState<Dieta[]>(leerCatalogoDietas);
   const [busqueda, setBusqueda] = useState("");
   const [creando, setCreando] = useState(false);
   const formularioInicial: Omit<Dieta, "id"> = {
-    codigo: "",
     nombre: "",
     tipo: "General",
     descripcion: "",
     consistencia: "Sólida",
-    indicaciones: "",
     restricciones: "",
-    calorias: "",
     estado: "Activa",
   };
   const [nuevaDieta, setNuevaDieta] =
@@ -104,22 +92,28 @@ export function CocinaInternacionView() {
     if (!termino) return dietas;
     return dietas.filter((dieta) =>
       [
-        dieta.codigo,
         dieta.nombre,
         dieta.tipo,
         dieta.descripcion,
         dieta.consistencia,
-        dieta.indicaciones,
       ].some((valor) => valor.toLocaleLowerCase("es").includes(termino)),
     );
   }, [busqueda, dietas]);
 
   const crearDieta = (event: FormEvent) => {
     event.preventDefault();
-    setDietas((actuales) => [
-      ...actuales,
-      { id: Date.now(), ...nuevaDieta, estado: "Activa" },
-    ]);
+    setDietas((actuales) => {
+      const actualizadas: Dieta[] = [
+        ...actuales,
+        { id: Date.now(), ...nuevaDieta, estado: "Activa" },
+      ];
+      try {
+        window.localStorage.setItem(CLAVE_DIETAS, JSON.stringify(actualizadas));
+      } catch {
+        // La vista sigue funcionando en memoria si el almacenamiento no está disponible.
+      }
+      return actualizadas;
+    });
     setNuevaDieta(formularioInicial);
     setCreando(false);
   };
@@ -196,11 +190,10 @@ export function CocinaInternacionView() {
             <div className="cocina-tabla-desplazable" tabIndex={0} role="region" aria-label="Tabla de cocina, desplazamiento horizontal"><table>
               <thead>
                 <tr>
-                  <th>Código / dieta</th>
+                  <th>Dieta</th>
                   <th>Tipo</th>
                   <th>Descripción</th>
                   <th>Consistencia</th>
-                  <th>Indicaciones</th>
                   <th>Estado</th>
                 </tr>
               </thead>
@@ -208,7 +201,6 @@ export function CocinaInternacionView() {
                 {dietasFiltradas.map((dieta) => (
                   <tr key={dieta.id}>
                     <td>
-                      <small>{dieta.codigo}</small>
                       <strong>{dieta.nombre}</strong>
                     </td>
                     <td>{dieta.tipo}</td>
@@ -218,7 +210,6 @@ export function CocinaInternacionView() {
                         {dieta.consistencia}
                       </span>
                     </td>
-                    <td>{dieta.indicaciones}</td>
                     <td>
                       <span
                         className={`dieta-estado ${dieta.estado.toLowerCase()}`}
@@ -230,7 +221,7 @@ export function CocinaInternacionView() {
                 ))}
                 {dietasFiltradas.length === 0 && (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={5}>
                       <div className="cocina-internacion-vacio">
                         <Icon name="search" size={27} />
                         <strong>No encontramos dietas</strong>
@@ -265,9 +256,6 @@ export function CocinaInternacionView() {
               <div>
                 <p>NUEVA DIETA</p>
                 <h3>Crear dieta</h3>
-                <small>
-                  Completa la información necesaria para recetarla a pacientes.
-                </small>
               </div>
               <button
                 type="button"
@@ -277,26 +265,12 @@ export function CocinaInternacionView() {
                 <Icon name="close" size={18} />
               </button>
             </header>
-            <div className="dieta-modal-fila">
-              <label>
-                Código
-                <input
-                  required
-                  autoFocus
-                  value={nuevaDieta.codigo}
-                  onChange={(event) =>
-                    setNuevaDieta({
-                      ...nuevaDieta,
-                      codigo: event.target.value.toUpperCase(),
-                    })
-                  }
-                  placeholder="Ej. D-006"
-                />
-              </label>
+            <div className="dieta-modal-fila dieta-modal-datos-principales">
               <label>
                 Nombre de la dieta
                 <input
                   required
+                  autoFocus
                   value={nuevaDieta.nombre}
                   onChange={(event) =>
                     setNuevaDieta({ ...nuevaDieta, nombre: event.target.value })
@@ -354,20 +328,6 @@ export function CocinaInternacionView() {
             </label>
             <div className="dieta-modal-fila">
               <label>
-                Indicaciones clínicas
-                <input
-                  required
-                  value={nuevaDieta.indicaciones}
-                  onChange={(event) =>
-                    setNuevaDieta({
-                      ...nuevaDieta,
-                      indicaciones: event.target.value,
-                    })
-                  }
-                  placeholder="¿Para qué pacientes?"
-                />
-              </label>
-              <label>
                 Restricciones
                 <input
                   required
@@ -380,37 +340,6 @@ export function CocinaInternacionView() {
                   }
                   placeholder="Ej. Sin sodio añadido"
                 />
-              </label>
-              <label>
-                Calorías aproximadas
-                <input
-                  required
-                  min="0"
-                  type="number"
-                  value={nuevaDieta.calorias}
-                  onChange={(event) =>
-                    setNuevaDieta({
-                      ...nuevaDieta,
-                      calorias: event.target.value,
-                    })
-                  }
-                  placeholder="Ej. 1800"
-                />
-              </label>
-              <label>
-                Estado
-                <select
-                  value={nuevaDieta.estado}
-                  onChange={(event) =>
-                    setNuevaDieta({
-                      ...nuevaDieta,
-                      estado: event.target.value as "Activa" | "Inactiva",
-                    })
-                  }
-                >
-                  <option>Activa</option>
-                  <option>Inactiva</option>
-                </select>
               </label>
             </div>
             <footer>

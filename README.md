@@ -5,6 +5,7 @@ Aplicación web del Sistema Clínico HME. Este repositorio contiene la interfaz 
 [![React](https://img.shields.io/badge/React-UI-149ECA?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-tipado-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-desarrollo-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![CI](https://github.com/GabriehlV02/FRONT-SYS-CLINICO-HME/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/GabriehlV02/FRONT-SYS-CLINICO-HME/actions/workflows/ci.yml)
 
 ## Módulos
 

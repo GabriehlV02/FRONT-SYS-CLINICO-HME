@@ -57,6 +57,7 @@ export function MedicoVisitanteInternacionView() {
   const [pacientes, setPacientes] = useState<RegistroInternacion[]>(leerInternaciones);
   const [busqueda, setBusqueda] = useState("");
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
+  const [atendiendo, setAtendiendo] = useState(false);
   const [seccion, setSeccion] = useState<SeccionVisitante>("evolucion");
   const [evoluciones, setEvoluciones] = useState<EvolucionVisitante[]>(() => leerRegistros(claveEvoluciones));
   const [ordenes, setOrdenes] = useState<OrdenVisitante[]>(() => leerRegistros(claveOrdenes));
@@ -153,8 +154,34 @@ export function MedicoVisitanteInternacionView() {
         </div>
         <b>{internados.length} pacientes</b>
       </header>
-      <div className="mvi-contenido">
-        <aside className="mvi-listado" aria-label="Pacientes internados">
+      {!atendiendo && (
+        <section className="mvi-pacientes-vista" aria-label="Pacientes internados">
+          <header>
+            <div><span>PACIENTES INTERNADOS</span><h3>Pacientes en sala de internación</h3><p>{internados.length} pacientes internados</p></div>
+            <label className="mvi-busqueda"><Icon name="search" size={17} /><input value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Buscar por paciente, CI, sala o cama" aria-label="Buscar pacientes internados" /></label>
+          </header>
+          <div className="mvi-tabla-scroll">
+            <div className="mvi-tabla-cabecera">
+              <span>SALA</span><span>CAMA</span><span>PACIENTE</span><span>HISTORIA CLÍNICA</span><span>MÉDICO</span><span>FECHA DE INGRESO</span><span>ESTADO</span><span>ACCIONES</span>
+            </div>
+            {internados.map((paciente) => (
+              <article className="mvi-tabla-fila" key={paciente.id}>
+                <b className="mvi-tabla-chip">{paciente.sala || "—"}</b>
+                <b className="mvi-tabla-chip mvi-cama">{paciente.cama || "—"}</b>
+                <div className="mvi-tabla-paciente"><span className="mvi-avatar"><Icon name="patient" size={18} /></span><strong>{paciente.paciente}</strong></div>
+                <strong>HC-{paciente.ci || "S/R"}</strong>
+                <strong>{paciente.medico || "Sin asignar"}</strong>
+                <strong>{paciente.fechaIngreso || paciente.fecha || "Sin registro"}</strong>
+                <em>Internado</em>
+                <button type="button" onClick={() => { setSeleccionado(paciente.id); setAtendiendo(true); setSeccion("evolucion"); setError(""); }}><Icon name="userMedical" size={16} /> Atender</button>
+              </article>
+            ))}
+            {!internados.length && <p className="mvi-vacio">No hay pacientes internados que coincidan con la búsqueda.</p>}
+          </div>
+        </section>
+      )}
+      {atendiendo && <div className="mvi-contenido mvi-atendiendo">
+        <aside className="mvi-listado" aria-label="Pacientes internados" hidden>
           <label className="mvi-busqueda">
             <Icon name="search" size={17} />
             <input value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Buscar paciente, CI o sala" aria-label="Buscar pacientes internados" />
@@ -168,9 +195,10 @@ export function MedicoVisitanteInternacionView() {
           ))}
           {!internados.length && <p className="mvi-vacio">No hay pacientes internados que coincidan con la búsqueda.</p>}
         </aside>
-        <article className="mvi-detalle">
+          <article className="mvi-detalle">
           {pacienteActual ? (
             <>
+              <button type="button" className="mvi-volver" onClick={() => setAtendiendo(false)}><Icon name="chevronLeft" size={16} /> Volver a pacientes internados</button>
               <header className="mvi-paciente-cabecera">
                 <div><small>PACIENTE INTERNADO</small><h3>{pacienteActual.paciente}</h3><p>HC-{pacienteActual.ci || "S/R"} · Sala {pacienteActual.sala || "—"} · Cama {pacienteActual.cama || "—"}</p></div>
                 <span className="mvi-estado">Internado</span>
@@ -230,7 +258,7 @@ export function MedicoVisitanteInternacionView() {
             <div className="mvi-seleccionar"><Icon name="patient" size={30} /><strong>Selecciona un paciente</strong><span>Elige un paciente internado para registrar su evolución u órdenes médicas.</span></div>
           )}
         </article>
-      </div>
+      </div>}
     </section>
   );
 }

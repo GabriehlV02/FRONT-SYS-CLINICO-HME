@@ -16,7 +16,6 @@ import { cubiculosEmergencias, nombreCubiculo } from "./cubiculos";
 import { OrdenesEmergencias } from "./OrdenesEmergencias";
 import {
   apiEmergencias,
-  camposEvaluacion,
   nombrePaciente,
   type CuentaEmergencia,
   type RegistroEnfermeria,
@@ -615,7 +614,7 @@ export function TriajeEmergenciasView({
     [camposEmergencia],
   );
   const [seccionClinica, setSeccionClinica] = useState<
-    "paciente" | "ingreso" | "signos" | "examen" | "descargos"
+    "paciente" | "ingreso" | "insumos" | "signos" | "examen" | "descargos"
   >("ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
     [activa, setActiva] = useState("");
@@ -623,8 +622,8 @@ export function TriajeEmergenciasView({
     [ocupado, setOcupado] = useState(false),
     [error, setError] = useState(""),
     [aviso, setAviso] = useState("");
-  const [usoTipo, setUsoTipo] = useState<RegistroEnfermeria["tipo"]>("cuidado"),
-    [usoDetalle, setUsoDetalle] = useState(""),
+  const usoTipo: RegistroEnfermeria["tipo"] = "cuidado";
+  const [usoDetalle, setUsoDetalle] = useState(""),
     [usoCantidad, setUsoCantidad] = useState(""),
     [usoUnidad, setUsoUnidad] = useState(""),
     [usoObservacion, setUsoObservacion] = useState("");
@@ -655,8 +654,8 @@ export function TriajeEmergenciasView({
     [cantidad, setCantidad] = useState("1"),
     [porHora, setPorHora] = useState(false);
   const [valores, setValores] = useState<Record<string, string>>({}),
-    [observacion, setObservacion] = useState(""),
-    [editarSignos, setEditarSignos] = useState(false);
+    [observacion, setObservacion] = useState("");
+  const [fechaHoraSignos, setFechaHoraSignos] = useState(fechaHoraIngresoActual);
   const [evolucion, setEvolucion] = useState("");
   const [evolucionEditando, setEvolucionEditando] = useState<string | null>(null);
   const [evolucionEnVista, setEvolucionEnVista] = useState<NonNullable<Cuenta["evaluaciones"]>[number] | null>(null);
@@ -764,7 +763,6 @@ export function TriajeEmergenciasView({
     setActiva(id);
     setSeccionClinica("ingreso");
     setIdentidad(null);
-    setEditarSignos(false);
     setValores({});
     setObservacion("");
     setItemId("");
@@ -775,7 +773,6 @@ export function TriajeEmergenciasView({
     setActiva("");
     setSeccionClinica("ingreso");
     setIdentidad(null);
-    setEditarSignos(false);
     setValores({});
     setObservacion("");
     setItemId("");
@@ -887,14 +884,15 @@ export function TriajeEmergenciasView({
               .map(([k, v]) => [k, v]),
           ),
           observacion,
-          hora: fechaHoraIngresoActual().hora,
+          fecha: fechaHoraSignos.fecha,
+          hora: fechaHoraSignos.hora,
         },
         "Signos vitales guardados.",
       )
     ) {
-      setEditarSignos(false);
       setValores({});
       setObservacion("");
+      setFechaHoraSignos(fechaHoraIngresoActual());
     }
   }
   async function registrarUsoEnfermeria(e: FormEvent) {
@@ -1826,33 +1824,6 @@ export function TriajeEmergenciasView({
               </div>
               {!recepcion && (
                 <>
-                  {!!cuenta.evaluaciones?.length && (
-                    <section
-                      className="em-panel"
-                      hidden={seccionClinica === "descargos"}
-                    >
-                      <header className="em-panel-titulo">
-                        <h3>Información y evaluación médica</h3>
-                        <small>
-                          Última actualización:{" "}
-                          {fecha(cuenta.evaluaciones.at(-1)!.fecha)}
-                        </small>
-                      </header>
-                      <details>
-                        <summary>Ver notas del médico</summary>
-                        {camposEvaluacion
-                          .filter(
-                            ([k]) => cuenta.evaluaciones!.at(-1)!.campos[k],
-                          )
-                          .map(([k, t]) => (
-                            <p className="em-texto-clinico" key={k}>
-                              <strong>{t}: </strong>
-                              {cuenta.evaluaciones!.at(-1)!.campos[k]}
-                            </p>
-                          ))}
-                      </details>
-                    </section>
-                  )}
                   <div
                     className="em-descargos-indicaciones"
                     hidden={seccionClinica !== "descargos"}
@@ -2142,34 +2113,55 @@ export function TriajeEmergenciasView({
                     >
                       Atención del paciente
                     </button>
+                    <button
+                      type="button"
+                      className={seccionClinica === "insumos" ? "activo" : ""}
+                      aria-current={seccionClinica === "insumos" ? "page" : undefined}
+                      onClick={() => setSeccionClinica("insumos")}
+                    >
+                      Insumos del paciente
+                    </button>
                   </nav>
                   {seccionClinica === "ingreso" && (
                     <section className="em-panel em-signos-panel">
                       <header className="em-panel-titulo">
                         <h3>Signos vitales</h3>
-                        {!!cuenta.signos.length && !cuenta.fin && (
-                          <button
-                            type="button"
-                            onClick={() => setEditarSignos(!editarSignos)}
-                          >
-                            {editarSignos
-                              ? "Cancelar nueva medición"
-                              : "Nueva medición"}
-                          </button>
-                        )}
                       </header>
                       <div className="em-signos-columnas">
                         <GraficaEvolucionSignos
                           mediciones={cuenta.signos}
                           camposGrafica={vitalesEmergencia}
                         />
-                        {(!cuenta.signos.length || editarSignos) &&
-                          !cuenta.fin && (
+                        {!cuenta.fin && (
                             <form
                               className="em-signos-formulario"
                               onSubmit={registrarSignos}
                             >
                               <h4>Registrar signos vitales</h4>
+                              <div className="em-signos-fecha-hora">
+                                <label>
+                                  Fecha de la medición
+                                  <input
+                                    type="date"
+                                    required
+                                    value={fechaHoraSignos.fecha}
+                                    onChange={(evento) =>
+                                      setFechaHoraSignos({ ...fechaHoraSignos, fecha: evento.target.value })
+                                    }
+                                  />
+                                </label>
+                                <label>
+                                  Hora de la medición
+                                  <input
+                                    type="time"
+                                    required
+                                    value={fechaHoraSignos.hora}
+                                    onChange={(evento) =>
+                                      setFechaHoraSignos({ ...fechaHoraSignos, hora: evento.target.value })
+                                    }
+                                  />
+                                </label>
+                              </div>
                               <div className="em-form-grid em-signos">
                                 {camposEmergencia.map(
                                   ({ id, etiqueta, unidad, tipo }) => (
@@ -2421,7 +2413,11 @@ export function TriajeEmergenciasView({
                         ocupado={ocupado}
                         enfermeria
                       />
-                      <section className="em-panel em-suministracion-panel">
+                    </div>
+                    </>
+                  )}
+                  {seccionClinica === "insumos" && (
+<section className="em-panel em-suministracion-panel">
                         <header className="em-panel-titulo">
                           <div>
                             <h3>Suministración al paciente</h3>
@@ -2430,13 +2426,6 @@ export function TriajeEmergenciasView({
                           <b>{eventosSuministracion.length} registros</b>
                         </header>
                         {!cuenta.fin && <form className="em-suministracion-form" onSubmit={registrarUsoEnfermeria}>
-                          <label>Tipo de registro
-                            <select value={usoTipo} onChange={(evento) => setUsoTipo(evento.target.value as RegistroEnfermeria["tipo"])}>
-                              <option value="insumo">Insumo</option>
-                              <option value="procedimiento">Procedimiento</option>
-                              <option value="cuidado">Cuidado</option>
-                            </select>
-                          </label>
                           <label className="em-suministracion-detalle">Detalle utilizado
                             <input required maxLength={500} value={usoDetalle} onChange={(evento) => setUsoDetalle(evento.target.value)} placeholder="Medicamento, insumo o cuidado realizado" />
                           </label>
@@ -2458,8 +2447,6 @@ export function TriajeEmergenciasView({
                           </article>) : <p className="em-vacio">Todavía no hay suministraciones registradas.</p>}
                         </div>
                       </section>
-                    </div>
-                    </>
                   )}
                   {seccionClinica === "examen" && (
                     <section className="em-panel em-examen-regional">

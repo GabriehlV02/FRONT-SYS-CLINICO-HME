@@ -182,3 +182,33 @@
   font: 800 12px inherit;
   cursor: pointer;
 }
+.internacion-dietas-resultados {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.internacion-dietas-resultados > button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #c9dfeb;
+  border-radius: 9px;
+  color: #28516c;
+  background: #f8fcfe;
+  text-align: left;
+  cursor: pointer;
+}
+.internacion-dietas-resultados > button span {
+  display: grid;
+  gap: 3px;
+}
+.internacion-dietas-resultados small {
+  color: #6c879a;
+}
+.internacion-dietas-resultados b {
+  color: #087fc0;
+  white-space: nowrap;
+}

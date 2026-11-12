@@ -7,6 +7,28 @@
 .mvi-cabecera p { margin:0; color:#69869b; font-size:12px; }
 .mvi-cabecera > b { margin-left:auto; padding:7px 10px; border:1px solid #d3e8f2; border-radius:8px; color:#0877a8; background:#eaf7fc; font-size:11px; }
 .mvi-contenido { display:grid; grid-template-columns:minmax(300px,.8fr) minmax(0,1.6fr); gap:16px; align-items:start; }
+.mvi-pacientes-vista { min-width:0; padding:22px 22px 0; border:1px solid #c9dfed; border-radius:14px; background:linear-gradient(145deg,#fff 0%,#fbfdff 100%); box-shadow:0 8px 24px rgba(25,76,108,.045); }
+.mvi-pacientes-vista > header { display:flex; align-items:center; justify-content:space-between; gap:22px; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid #e5eef4; }
+.mvi-pacientes-vista > header > div { display:grid; gap:4px; }
+.mvi-pacientes-vista > header span { color:#1684ae; font-size:10px; font-weight:850; letter-spacing:.07em; }
+.mvi-pacientes-vista h3 { margin:0; color:#173f5d; font-size:19px; letter-spacing:-.01em; }
+.mvi-pacientes-vista > header p { margin:2px 0 0; color:#71899c; font-size:12px; }
+.mvi-pacientes-vista .mvi-busqueda { width:min(420px,45%); margin:0; }
+.mvi-tabla-scroll { overflow-x:auto; margin:0 -22px; border-radius:0 0 13px 13px; }
+.mvi-tabla-cabecera,.mvi-tabla-fila { display:grid; grid-template-columns:76px 62px minmax(240px,1.45fr) minmax(130px,.8fr) minmax(145px,.9fr) minmax(140px,.9fr) 94px 124px; align-items:center; gap:14px; min-width:1120px; padding:0 32px; }
+.mvi-tabla-cabecera { height:72px; color:#5481a8; background:#f4faff; font-size:10px; font-weight:900; }
+.mvi-tabla-fila { min-height:82px; border-top:1px solid #e5eef4; color:#064773; font-size:12px; }
+.mvi-tabla-fila > strong { font-size:11px; }
+.mvi-tabla-chip { display:grid; place-items:center; min-height:38px; padding:0 5px; border-radius:9px; color:#087fc0; background:#eaf7fd; font-size:14px; text-align:center; }
+.mvi-tabla-chip.mvi-cama { min-width:30px; justify-self:start; padding:0 10px; }
+.mvi-tabla-paciente { display:flex; align-items:center; gap:11px; min-width:0; }
+.mvi-tabla-paciente .mvi-avatar { width:40px; height:40px; }
+.mvi-tabla-paciente strong { overflow:hidden; color:#173f5d; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
+.mvi-tabla-fila em { justify-self:start; padding:7px 10px; border-radius:7px; color:#17633d; background:#e7f6ec; font-size:10px; font-style:normal; font-weight:800; }
+.mvi-tabla-fila > button { display:inline-flex; align-items:center; justify-content:center; gap:7px; height:40px; padding:0 12px; border:0; border-radius:8px; color:#fff; background:#087fc0; font:inherit; font-size:12px; font-weight:800; box-shadow:0 5px 11px rgba(8,127,192,.16); cursor:pointer; }
+.mvi-tabla-fila > button:hover { background:#066ba3; }
+.mvi-contenido.mvi-atendiendo { grid-template-columns:minmax(0,1fr); }
+.mvi-volver { margin-bottom:14px; color:#0877a8; background:#fff; }
 .mvi-listado,.mvi-detalle { min-width:0; overflow:hidden; border:1px solid #cfe1ec; border-radius:12px; background:#fff; }
 .mvi-listado { display:grid; padding:12px; }
 .mvi-busqueda { display:flex; align-items:center; gap:8px; height:40px; margin-bottom:8px; padding:0 10px; border:1px solid #d4e5ef; border-radius:8px; color:#6d8799; background:#f9fcfe; }
@@ -35,6 +57,7 @@
 .mvi-seleccionar strong { color:#315875; font-size:14px; }
 .mvi-seleccionar span { font-size:12px; }
 @media(max-width:760px) { .mvi-contenido { grid-template-columns:minmax(0,1fr); } .mvi-detalle dl { grid-template-columns:1fr; } }
+@media(max-width:600px) { .mvi-pacientes-vista { padding:15px; } .mvi-pacientes-vista > header { align-items:stretch; flex-direction:column; } .mvi-pacientes-vista .mvi-busqueda { width:auto; max-width:none; } }
 @media(max-width:480px) { .mvi-cabecera { align-items:flex-start; padding:14px; } .mvi-cabecera > b { white-space:nowrap; } .mvi-detalle { padding:14px; } }
 .mvi-paciente-cabecera { justify-content:space-between; }
 .mvi-secciones { display:flex; gap:5px; margin:14px 0; padding:6px; border-bottom:1px solid #d7e7f0; background:#f5fafe; }

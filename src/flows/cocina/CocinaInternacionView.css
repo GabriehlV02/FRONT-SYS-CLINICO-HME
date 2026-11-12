@@ -340,6 +340,9 @@
   grid-template-columns: 0.7fr 1.3fr;
   gap: 12px;
 }
+.dieta-modal-datos-principales {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .dieta-modal footer {
   display: flex;
   justify-content: flex-end;

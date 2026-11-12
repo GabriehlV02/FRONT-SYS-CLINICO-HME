@@ -5,7 +5,6 @@ import RevisionSistemas from "./RevisionSistemas";
 import Icon from "../../radius/componentes/Icono";
 import {
   apiEmergencias,
-  camposEvaluacion,
   camposIdentidad,
   fechaEmergencia,
   nombrePaciente,
@@ -114,6 +113,13 @@ const regionesImagen = [
   "Miembro superior",
   "Miembro inferior",
 ];
+const gruposAntecedentes = [
+  "Antecedentes sociales",
+  "Antecedentes patológicos",
+  "Antecedentes quirúrgicos",
+  "Antecedentes alérgicos",
+  "Antecedentes familiares",
+];
 type EstudioImagen = {
   id: string;
   tipo: string;
@@ -146,20 +152,6 @@ const edadPaciente = (nacimiento?: string) => {
   )
     edad--;
   return edad >= 0 ? `${edad} años` : "No registrada";
-};
-
-const estadoPaciente = (cuenta: CuentaEmergencia) => {
-  const campos = cuenta.evaluaciones?.at(-1)?.campos || {};
-  const valor =
-    `${campos.estadoPaciente || campos.gravedad || campos.clasificacion || ""}`
-      .trim()
-      .toLowerCase();
-  if (valor.includes("crit")) return { etiqueta: "Crítico", clase: "critico" };
-  if (valor.includes("grave")) return { etiqueta: "Grave", clase: "grave" };
-  if (valor.includes("estable"))
-    return { etiqueta: "Estable", clase: "estable" };
-  if (valor.includes("leve")) return { etiqueta: "Leve", clase: "leve" };
-  return { etiqueta: "Sin clasificar", clase: "sin-clasificar" };
 };
 
 const mismasCuentas = (
@@ -1110,28 +1102,6 @@ function AtencionPaciente({
       .includes(consultaPrescripcion),
   );
   const datosPaciente = cuenta.identidad || {};
-  const evaluacionesRecientes = [...(cuenta.evaluaciones || [])].reverse();
-  const antecedentesPaciente = camposEvaluacion
-    .filter(([campo]) => campo.startsWith("antecedentes"))
-    .map(([campo, etiqueta]) => ({
-      etiqueta,
-      valor: evaluacionesRecientes
-        .map((evaluacion) => evaluacion.campos[campo]?.trim())
-        .find(Boolean),
-    }))
-    .filter(({ valor }) => valor);
-  const estadoActual = estadoPaciente(cuenta);
-  const actualizarEstadoPaciente = async (estado: string) => {
-    const camposActuales = cuenta.evaluaciones?.at(-1)?.campos || {};
-    await guardar(
-      `/${cuenta.id}/evaluacion`,
-      {
-        revision: cuenta.revision,
-        campos: { ...camposActuales, estadoPaciente: estado },
-      },
-      "Estado del paciente actualizado.",
-    );
-  };
   const liberarCubiculo = () => {
     if (saldoPendiente > 0) {
       setCobroAbierto(true);
@@ -1163,29 +1133,6 @@ function AtencionPaciente({
               <div className="em-medica-identidad-paciente">
                 <div className="em-medica-identidad-etiqueta">
                   <small>Paciente</small>
-                  {!cuenta.fin && (
-                    <label className={`em-selector-estado ${estadoActual.clase}`}>
-                      <span>Estado</span>
-                      <select
-                        value={
-                          estadoActual.clase === "sin-clasificar"
-                            ? ""
-                            : estadoActual.etiqueta
-                        }
-                        disabled={ocupado}
-                        onChange={(evento) =>
-                          void actualizarEstadoPaciente(evento.target.value)
-                        }
-                        aria-label="Estado del paciente"
-                      >
-                        <option value="">Sin clasificar</option>
-                        <option value="Leve">Leve</option>
-                        <option value="Estable">Estable</option>
-                        <option value="Grave">Grave</option>
-                        <option value="Crítico">Crítico</option>
-                      </select>
-                    </label>
-                  )}
                 </div>
                 <strong>{nombrePaciente(cuenta)}</strong>
               </div>
@@ -2439,24 +2386,15 @@ function AtencionPaciente({
           <header className="em-panel-titulo">
             <div>
               <h3>Antecedentes</h3>
-              <small>Información médica registrada</small>
+              <small>Grupos de antecedentes</small>
             </div>
             <Icon name="fileText" size={18} />
           </header>
-          {antecedentesPaciente.length ? (
-            <dl className="em-antecedentes-lista">
-              {antecedentesPaciente.map(({ etiqueta, valor }) => (
-                <div key={etiqueta}>
-                  <dt>{etiqueta}</dt>
-                  <dd>{valor}</dd>
-                </div>
-              ))}
-            </dl>
-          ) : (
-            <p className="em-antecedentes-vacio">
-              Sin antecedentes registrados.
-            </p>
-          )}
+          <ul className="em-antecedentes-grupos">
+            {gruposAntecedentes.map((grupo) => (
+              <li key={grupo}>{grupo}</li>
+            ))}
+          </ul>
         </section>
         <section className="em-panel em-resultados-estudios">
           <header className="em-panel-titulo">

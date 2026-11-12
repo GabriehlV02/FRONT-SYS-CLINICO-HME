@@ -1,7 +1,7 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import AnamnesisEmergencia from "./AnamnesisEmergencia";
-import RevisionSistemas from "./RevisionSistemas";
+import { RevisionConsulta } from "../consultorio/RevisionConsulta";
 import Icon from "../../radius/componentes/Icono";
 import {
   apiEmergencias,
@@ -113,13 +113,68 @@ const regionesImagen = [
   "Miembro superior",
   "Miembro inferior",
 ];
-const gruposAntecedentes = [
-  "Antecedentes sociales",
-  "Antecedentes patológicos",
+type DatosAntecedentes = {
+  antecedentesVivienda: string;
+  antecedentesServiciosBasicos: string;
+  antecedentesAlimentacion: string;
+  antecedentesHabitos: string;
+  antecedentesHipertensionRenal: string;
+  antecedentesDiabetesMellitus: string;
+  antecedentesTuberculosis: string;
+  antecedentesChagas: string;
+  antecedentesCardiopatia: string;
+  antecedentesAsma: string;
+  antecedentesEpoc: string;
+  antecedentesEnfermedadRenal: string;
+  antecedentesOtro: string;
+};
+const camposAntecedentesSociales: {
+  id: keyof DatosAntecedentes;
+  etiqueta: string;
+}[] = [
+  { id: "antecedentesVivienda", etiqueta: "Vivienda" },
+  {
+    id: "antecedentesServiciosBasicos",
+    etiqueta: "Acceso a los servicios básicos",
+  },
+  { id: "antecedentesAlimentacion", etiqueta: "Alimentación" },
+  { id: "antecedentesHabitos", etiqueta: "Hábitos" },
+];
+const camposAntecedentesPatologicos: {
+  id: keyof DatosAntecedentes;
+  etiqueta: string;
+}[] = [
+  { id: "antecedentesHipertensionRenal", etiqueta: "Hipertensión renal" },
+  { id: "antecedentesDiabetesMellitus", etiqueta: "Diabetes mellitus" },
+  { id: "antecedentesTuberculosis", etiqueta: "Tuberculosis" },
+  { id: "antecedentesChagas", etiqueta: "Chagas" },
+  { id: "antecedentesCardiopatia", etiqueta: "Cardiopatía" },
+  { id: "antecedentesAsma", etiqueta: "Asma" },
+  { id: "antecedentesEpoc", etiqueta: "EPOC" },
+  { id: "antecedentesEnfermedadRenal", etiqueta: "Enfermedad renal" },
+];
+const gruposAntecedentesPendientes = [
   "Antecedentes quirúrgicos",
   "Antecedentes alérgicos",
   "Antecedentes familiares",
 ];
+const leerDatosAntecedentes = (
+  campos?: Record<string, string>,
+): DatosAntecedentes => ({
+  antecedentesVivienda: campos?.antecedentesVivienda || "",
+  antecedentesServiciosBasicos: campos?.antecedentesServiciosBasicos || "",
+  antecedentesAlimentacion: campos?.antecedentesAlimentacion || "",
+  antecedentesHabitos: campos?.antecedentesHabitos || "",
+  antecedentesHipertensionRenal: campos?.antecedentesHipertensionRenal || "",
+  antecedentesDiabetesMellitus: campos?.antecedentesDiabetesMellitus || "",
+  antecedentesTuberculosis: campos?.antecedentesTuberculosis || "",
+  antecedentesChagas: campos?.antecedentesChagas || "",
+  antecedentesCardiopatia: campos?.antecedentesCardiopatia || "",
+  antecedentesAsma: campos?.antecedentesAsma || "",
+  antecedentesEpoc: campos?.antecedentesEpoc || "",
+  antecedentesEnfermedadRenal: campos?.antecedentesEnfermedadRenal || "",
+  antecedentesOtro: campos?.antecedentesOtro || "",
+});
 type EstudioImagen = {
   id: string;
   tipo: string;
@@ -1004,10 +1059,22 @@ function AtencionPaciente({
   const [registroSignosAbierto, setRegistroSignosAbierto] = useState(false),
     [horaSignos, setHoraSignos] = useState(horaActual());
   const evolucionDialogo = useRef<HTMLDialogElement>(null);
+  const evaluacionActual = cuenta.evaluaciones?.at(-1);
   const [identidad, setIdentidad] = useState<{
     revision: number;
     datos: Record<string, string>;
   } | null>(null);
+  const [antecedentes, setAntecedentes] = useState<DatosAntecedentes>(() =>
+    leerDatosAntecedentes(evaluacionActual?.campos),
+  );
+  const antecedentesPersistidos = leerDatosAntecedentes(
+    evaluacionActual?.campos,
+  );
+  const antecedentesPersistidosKey = JSON.stringify([
+    cuenta.id,
+    evaluacionActual?.id,
+    ...Object.values(antecedentesPersistidos),
+  ]);
   const [ocupado, setOcupado] = useState(false),
     [error, setError] = useState(""),
     [mensaje, setMensaje] = useState("");
@@ -1015,6 +1082,9 @@ function AtencionPaciente({
   useEffect(() => {
     setSignosEvolucion(vitalesGraficables.slice(0, 2).map(([id]) => id));
   }, [vitalesGraficables]);
+  useEffect(() => {
+    setAntecedentes(antecedentesPersistidos);
+  }, [antecedentesPersistidosKey]);
   const [cobroAbierto, setCobroAbierto] = useState(false),
     [montoRecibido, setMontoRecibido] = useState(""),
     [montoPagado, setMontoPagado] = useState(0);
@@ -1102,6 +1172,17 @@ function AtencionPaciente({
       .includes(consultaPrescripcion),
   );
   const datosPaciente = cuenta.identidad || {};
+  const guardarAntecedentes = async (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault();
+    const ruta = evaluacionActual?.id
+      ? `/${cuenta.id}/evaluacion/${encodeURIComponent(evaluacionActual.id)}/editar`
+      : `/${cuenta.id}/evaluacion`;
+    await guardar(
+      ruta,
+      { revision: cuenta.revision, campos: antecedentes },
+      "Antecedentes guardados.",
+    );
+  };
   const liberarCubiculo = () => {
     if (saldoPendiente > 0) {
       setCobroAbierto(true);
@@ -1458,10 +1539,11 @@ function AtencionPaciente({
           cerrada={Boolean(cuenta.fin)}
           inicial={cuenta.evaluaciones?.at(-1)?.campos.enfermedadActual}
         />
-        <RevisionSistemas
+        <RevisionConsulta
           key={`revision-${cuenta.id}`}
-          cuentaId={cuenta.id}
+          pacienteId={cuenta.id}
           cerrada={Boolean(cuenta.fin)}
+          storageKey={`revision-sistemas-demo-${cuenta.id}`}
         />
         <section
           className="em-panel em-diagnostico-final"
@@ -2390,11 +2472,84 @@ function AtencionPaciente({
             </div>
             <Icon name="fileText" size={18} />
           </header>
-          <ul className="em-antecedentes-grupos">
-            {gruposAntecedentes.map((grupo) => (
-              <li key={grupo}>{grupo}</li>
+          <form
+            className="em-antecedentes-form"
+            onSubmit={(evento) => void guardarAntecedentes(evento)}
+          >
+            <details className="em-antecedentes-seccion">
+              <summary>Antecedentes sociales</summary>
+              <div className="em-antecedentes-campos">
+                {camposAntecedentesSociales.map((campo) => (
+                  <label className="em-antecedentes-campo" key={campo.id}>
+                    {campo.etiqueta}
+                    <textarea
+                      rows={2}
+                      maxLength={5000}
+                      value={antecedentes[campo.id]}
+                      disabled={ocupado || Boolean(cuenta.fin)}
+                      onChange={(evento) =>
+                        setAntecedentes((actuales) => ({
+                          ...actuales,
+                          [campo.id]: evento.target.value,
+                        }))
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+            </details>
+            <details className="em-antecedentes-seccion">
+              <summary>Antecedentes patológicos</summary>
+              <div className="em-antecedentes-campos">
+                {camposAntecedentesPatologicos.map((campo) => (
+                  <label className="em-antecedentes-campo" key={campo.id}>
+                    {campo.etiqueta}
+                    <select
+                      value={antecedentes[campo.id]}
+                      disabled={ocupado || Boolean(cuenta.fin)}
+                      onChange={(evento) =>
+                        setAntecedentes((actuales) => ({
+                          ...actuales,
+                          [campo.id]: evento.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Seleccionar</option>
+                      <option value="Sí">Sí</option>
+                      <option value="No">No</option>
+                    </select>
+                  </label>
+                ))}
+                <label className="em-antecedentes-campo">
+                  Otro antecedente
+                  <textarea
+                    rows={2}
+                    maxLength={5000}
+                    value={antecedentes.antecedentesOtro}
+                    disabled={ocupado || Boolean(cuenta.fin)}
+                    onChange={(evento) =>
+                      setAntecedentes((actuales) => ({
+                        ...actuales,
+                        antecedentesOtro: evento.target.value,
+                      }))
+                    }
+                  />
+                </label>
+              </div>
+            </details>
+            {gruposAntecedentesPendientes.map((grupo) => (
+              <div className="em-antecedentes-grupo-pendiente" key={grupo}>
+                {grupo}
+              </div>
             ))}
-          </ul>
+            {!cuenta.fin && (
+              <div className="em-antecedentes-acciones">
+                <button className="em-primario" type="submit" disabled={ocupado}>
+                  {ocupado ? "Guardando..." : "Guardar antecedentes"}
+                </button>
+              </div>
+            )}
+          </form>
         </section>
         <section className="em-panel em-resultados-estudios">
           <header className="em-panel-titulo">

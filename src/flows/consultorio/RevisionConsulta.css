@@ -1,0 +1,211 @@
+.consulta-revision-sistemas {
+  overflow: hidden;
+  border: 1px solid #c8e1ef;
+  border-top: 3px solid #1596d1;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 5px 16px rgb(12 95 142 / 5%);
+}
+.consulta-revision-sistemas > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 17px 18px;
+  color: #075f9e;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+.consulta-revision-sistemas > summary::-webkit-details-marker {
+  display: none;
+}
+.consulta-revision-sistemas > summary svg {
+  transition: transform 0.18s;
+}
+.consulta-revision-sistemas[open] > summary svg {
+  transform: rotate(90deg);
+}
+.consulta-revision-contenido {
+  display: grid;
+  gap: 9px;
+  padding: 0 18px 18px;
+  border-top: 1px solid #e1eef5;
+}
+.consulta-revision-contenido > small {
+  padding-top: 12px;
+  color: #66839d;
+  font-size: 11px;
+}
+.revision-compacta {
+  display: grid;
+  gap: 0;
+  margin-top: 2px;
+  border: 1px solid #d7e9f2;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.revision-sistema-item + .revision-sistema-item {
+  border-top: 1px solid #e4eef4;
+}
+.revision-sistema-fila {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.8fr) minmax(0, 2fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 0;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.revision-sistema-fila:hover {
+  background: #f3faff;
+}
+.revision-sistema-fila strong {
+  color: #174e70;
+  font-size: 12px;
+}
+.revision-sistema-fila > span {
+  display: grid;
+  gap: 2px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.revision-sistema-negativo {
+  color: #416d61;
+}
+.revision-sistema-observacion {
+  color: #244f6a;
+}
+.revision-sistema-fila > svg {
+  color: #087fb7;
+  transition: transform 0.18s;
+}
+.revision-sistema-fila[aria-expanded="true"] > svg {
+  transform: rotate(90deg);
+}
+.revision-sistema-detalle {
+  overflow: hidden;
+  color: #718a9a;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.revision-sistema-edicion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  padding: 12px;
+  border-top: 1px solid #e4eef4;
+  background: #f8fcff;
+}
+.revision-sistema-estados {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.revision-sistema-estados legend,
+.revision-sistema-descripcion {
+  margin-bottom: 7px;
+  color: #315d7d;
+  font-size: 12px;
+  font-weight: 700;
+}
+.revision-sistema-opciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.revision-sistema-opciones label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border: 1px solid #cbdfea;
+  border-radius: 8px;
+  background: #fff;
+  color: #315c7e;
+  font-size: 11px;
+  cursor: pointer;
+}
+.revision-sistema-opciones label.seleccionada {
+  border-color: #078dc2;
+  background: #e3f4fc;
+  color: #076c9c;
+}
+.sistema-app .revision-sistema-opciones input[type="checkbox"] {
+  flex: 0 0 14px;
+  width: 14px;
+  min-width: 14px;
+  max-width: 14px;
+  height: 14px;
+  min-height: 14px;
+  margin: 0;
+  padding: 0;
+  accent-color: #087fb7;
+}
+.revision-sistema-opciones input:focus-visible {
+  outline: 2px solid #078dc2;
+  outline-offset: 2px;
+}
+.revision-sistema-opciones :disabled {
+  cursor: default;
+}
+.revision-sistema-descripcion {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  margin: 0;
+}
+.revision-sistema-descripcion textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 105px;
+  padding: 10px;
+  border: 1px solid #bfd8e9;
+  border-radius: 7px;
+  background: #fff;
+  color: #173d60;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+.revision-sistema-descripcion textarea:focus {
+  outline: 2px solid #8bd4f2;
+  outline-offset: 1px;
+}
+.revision-sistema-descripcion textarea:disabled {
+  background: #f1f5f8;
+  cursor: default;
+}
+.revision-sistema-error {
+  margin: 0;
+  color: #a52424;
+  font-size: 12px;
+}
+@media (max-width: 650px) {
+  .consulta-revision-sistemas > summary {
+    padding: 14px;
+    font-size: 13px;
+  }
+  .consulta-revision-contenido {
+    padding: 0 14px 14px;
+  }
+}
+@media (max-width: 760px) {
+  .revision-sistema-edicion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .revision-sistema-fila {
+    grid-template-columns: minmax(95px, 1fr) minmax(0, 1.3fr) auto;
+    gap: 8px;
+    padding: 10px;
+  }
+}

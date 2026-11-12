@@ -45,7 +45,7 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [ordenCargaId, setOrdenCargaId] = useState<string | null>(null);
   const [modificado, setModificado] = useState(false);
-  const [modoEjemplo, setModoEjemplo] = useState(true);
+  const [modoEjemplo, setModoEjemplo] = useState(false);
   const [ejemplos, setEjemplos] = useState(() => ejemplosLaboratorio(origen));
 
   useEffect(() => {
@@ -113,23 +113,7 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
             {origen === "ambulatorio" ? "Ambulatorios" : "Internados"}
           </h2>
         </div>
-        <button
-          type="button"
-          className="lab-boton"
-          onClick={() => {
-            if (
-              modificado &&
-              !window.confirm("¿Descartar los cambios sin guardar?")
-            )
-              return;
-            setModoEjemplo(!modoEjemplo);
-            setSeleccionado(null);
-            setModificado(false);
-            setMensaje("");
-          }}
-        >
-          {modoEjemplo ? "Ver solicitudes locales" : "Ver ejemplo visual"}
-        </button>
+
       </header>
       <nav className="lab-resumen" aria-label="Estado de las solicitudes">
         {(

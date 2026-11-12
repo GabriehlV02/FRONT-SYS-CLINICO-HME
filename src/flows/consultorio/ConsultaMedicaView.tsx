@@ -209,7 +209,7 @@ export function ConsultaMedicaView({
   const [recetarioAbierto, setRecetarioAbierto] = useState(false);
   const [paqueteId, setPaqueteId] = useState("");
   const [paqueteAplicado, setPaqueteAplicado] = useState<Paquete | null>(null);
-  const [mostrarFormulario, setMostrarFormulario] = useState(true);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [vitales, setVitales] = useState<Record<string, string>>({});
   const [cargandoValoracion, setCargandoValoracion] = useState(true);
   const [guardandoValoracion, setGuardandoValoracion] = useState(false);
@@ -271,6 +271,8 @@ export function ConsultaMedicaView({
       return;
     }
     const controller = new AbortController();
+    setMostrarFormulario(false);
+    setVitales({});
     setCargandoValoracion(true);
     setErrorValoracion("");
     setCargaValoracionFallida(false);
@@ -335,7 +337,7 @@ export function ConsultaMedicaView({
   const campos = camposParaServicio(signos, idsAmbulatorio ?? []);
   const datos = { ...(vitalesTriaje ?? {}), ...vitales };
   const camposConResultado = campos.filter(
-    (campo) => datos[campo.id] !== undefined && datos[campo.id] !== "",
+    (campo) => datos[campo.id] != null && String(datos[campo.id]).trim() !== "",
   );
   const guardarValoracion = async () => {
     const valores = Object.fromEntries(
@@ -369,7 +371,7 @@ export function ConsultaMedicaView({
       guardarSignosVitales(paciente, resultado.data.valores);
       setVersionValoracion(resultado.data.id);
       setVitales({});
-      setMostrarFormulario(true);
+      setMostrarFormulario(false);
       setMensajeValoracion("Signos vitales guardados.");
     } catch (error) {
       setErrorValoracion(
@@ -838,7 +840,11 @@ export function ConsultaMedicaView({
                     <div>
                       <p>SIGNOS VITALES</p>
                     </div>
-
+                    {!mostrarFormulario && !cargandoValoracion && !cargaValoracionFallida && campos.length > 0 && (
+                      <button className="secundario" type="button" onClick={() => { setMensajeValoracion(""); setMostrarFormulario(true); }}>
+                        <Icon name="edit" size={15} /> {camposConResultado.length ? "Editar signos vitales" : "Registrar signos vitales"}
+                      </button>
+                    )}
                   </header>
                   {(estadoSignos === "cargando" ||
                     catalogoServicios.cargando) && (
@@ -915,7 +921,7 @@ export function ConsultaMedicaView({
                           )}
                         {mostrarFormulario && (
                             <>
-                              <div className="consulta-signos-form">
+                              <div className="consulta-signos-form" role="region" aria-label="Signos vitales, desplazamiento horizontal" tabIndex={0}>
                                 {campos.map(
                                   ({ id, etiqueta, unidad, tipo, rango }) => (
                                     <div
@@ -977,6 +983,7 @@ export function ConsultaMedicaView({
                                   ),
                                 )}
                               </div>
+                              <button className="secundario consulta-signos-guardar" type="button" disabled={guardandoValoracion} onClick={() => { setVitales({}); setErrorValoracion(""); setMostrarFormulario(false); }}>Cancelar</button>
                               <button
                                 className="primario consulta-signos-guardar"
                                 type="button"

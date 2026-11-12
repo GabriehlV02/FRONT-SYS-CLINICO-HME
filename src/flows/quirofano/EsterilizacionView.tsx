@@ -1,3 +1,4 @@
+import { exportarInstrumentalPdf } from "./exportarInstrumentalPdf";
 import { apiFetch } from "../../radius/api";
 ﻿import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -32,6 +33,8 @@ const MATERIAL_VACIO = {
   codigo: "",
   nombre: "",
   lote: "",
+  medida: "",
+  cuentaConLogo: false,
   cantidad: "1",
   descripcion: "",
   imagen: "",
@@ -139,7 +142,7 @@ const CIRUGIAS_DEMO: CirugiaProgramada[] = [
 ];
 const leerCirugiasEsterilizacion = () => {
   const programadas = leerCronograma();
-  return programadas.length ? programadas : CIRUGIAS_DEMO;
+  return programadas;
 };
 
 type SubvistaEsterilizacion =
@@ -259,6 +262,7 @@ export function EsterilizacionView({
   >(null);
   const [formMaterial, setFormMaterial] = useState(MATERIAL_VACIO);
   const [guardandoMaterial, setGuardandoMaterial] = useState(false);
+  const [exportandoInventario, setExportandoInventario] = useState(false);
   const cantidadDialog = useRef<HTMLDialogElement>(null);
   const [materialCantidad, setMaterialCantidad] = useState<MaterialEsteril | null>(null);
   const [cantidadNueva, setCantidadNueva] = useState('');
@@ -343,9 +347,9 @@ export function EsterilizacionView({
       if (respuesta.status === 401) throw new Error('La sesi?n de demostraci?n no permite acceder al inventario. Cierra sesi?n e ingresa con una cuenta registrada.');
       if (respuesta.status === 403) throw new Error('Tu cuenta no tiene acceso al inventario de instrumental.');
       if (!respuesta.ok) throw new Error('No se pudo cargar el instrumental del servidor.');
-      const resultado = await respuesta.json() as { data: Array<{ id: string; codigo: string; nombre: string; lote: string | null; cantidad: number; descripcion: string | null; ubicacion: string; estado: EstadoMaterial; updated_at: string }> };
+      const resultado = await respuesta.json() as { data: Array<{ id: string; codigo: string; nombre: string; lote: string | null; medida: string | null; cuenta_con_logo: boolean; imagen_ruta: string | null; cantidad: number; descripcion: string | null; ubicacion: string; estado: EstadoMaterial; updated_at: string }> };
       setDatos(actual => {
-        const materiales = resultado.data.map(item => ({ id: item.id, codigo: item.codigo, nombre: item.nombre, lote: item.lote || '', cantidad: item.cantidad, descripcion: item.descripcion || '', sector: item.ubicacion, estado: item.estado, actualizadoEn: item.updated_at, imagen: '', tipo: 'Instrumento', marca: '', serie: '', cirugiaId: '' }));
+        const materiales = resultado.data.map(item => ({ id: item.id, codigo: item.codigo, nombre: item.nombre, lote: item.lote || '', medida: item.medida || '', cuentaConLogo: Boolean(item.cuenta_con_logo), tieneImagen: Boolean(item.imagen_ruta), cantidad: item.cantidad, descripcion: item.descripcion || '', sector: item.ubicacion, estado: item.estado, actualizadoEn: item.updated_at, imagen: '', tipo: 'Instrumento', marca: '', serie: '', cirugiaId: '' }));
         const ids = new Set(materiales.map(item => item.id));
         return { ...actual, materiales: [...actual.materiales.filter(item => !ids.has(item.id)), ...materiales] };
       });
@@ -390,6 +394,10 @@ export function EsterilizacionView({
 
   useEffect(() => {
     if (!camaraAbierta) return;
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setErrorCamara('La c?mara en vivo requiere una conexi?n segura (HTTPS). Puedes tomar una foto con el dispositivo o cargar una imagen.');
+      return;
+    }
     let activo = true;
     let stream: MediaStream | null = null;
     navigator.mediaDevices
@@ -549,6 +557,8 @@ export function EsterilizacionView({
       cuerpo.set('codigo', codigo);
       cuerpo.set('nombre', formMaterial.nombre.trim());
       cuerpo.set('lote', formMaterial.lote.trim());
+      cuerpo.set('medida', formMaterial.medida.trim());
+      cuerpo.set('cuenta_con_logo', formMaterial.cuentaConLogo ? '1' : '0');
       cuerpo.set('cantidad', formMaterial.cantidad);
       cuerpo.set('descripcion', formMaterial.descripcion.trim());
       if (formMaterial.imagen) cuerpo.set('imagen', await (await fetch(formMaterial.imagen)).blob(), 'instrumental.jpg');
@@ -556,7 +566,7 @@ export function EsterilizacionView({
       const resultado = await respuesta.json();
       if (!respuesta.ok) throw new Error(Object.values(resultado.errors || {}).flat()[0] as string || resultado.message || 'No se pudo registrar el material.');
       const registro = resultado.data;
-      const material: MaterialEsteril = { id: registro.id, codigo: registro.codigo, nombre: registro.nombre, lote: registro.lote || '', cantidad: registro.cantidad, imagen: formMaterial.imagen, descripcion: registro.descripcion || '', tipo: 'Instrumento', marca: '', serie: '', sector: registro.ubicacion, estado: 'pendiente', cirugiaId: '', actualizadoEn: registro.updated_at };
+      const material: MaterialEsteril = { id: registro.id, codigo: registro.codigo, nombre: registro.nombre, lote: registro.lote || '', medida: registro.medida || '', cuentaConLogo: Boolean(registro.cuenta_con_logo), tieneImagen: Boolean(registro.imagen_ruta), cantidad: registro.cantidad, imagen: formMaterial.imagen, descripcion: registro.descripcion || '', tipo: 'Instrumento', marca: '', serie: '', sector: registro.ubicacion, estado: 'pendiente', cirugiaId: '', actualizadoEn: registro.updated_at };
       setDatos(actual => ({ ...actual, materiales: [...actual.materiales, material] }));
       setFormMaterial(MATERIAL_VACIO);
       cerrarModal();
@@ -1194,6 +1204,23 @@ export function EsterilizacionView({
               ))}
             </select>
             <button
+              className="est-exportar-inventario"
+              type="button"
+              disabled={exportandoInventario}
+              onClick={async () => {
+                setExportandoInventario(true);
+                setError("");
+                try {
+                  await exportarInstrumentalPdf(datos.materiales, (item) => ubicacionMaterial(item, cirugias));
+                  setAviso("Reporte PDF generado correctamente.");
+                } catch (causa) {
+                  setError(causa instanceof Error ? causa.message : "No se pudo generar el reporte PDF.");
+                } finally { setExportandoInventario(false); }
+              }}
+            >
+              <Icon name="download" size={16} /> {exportandoInventario ? "Generando..." : "Reporte PDF"}
+            </button>
+            <button
               className="est-principal"
               type="button"
               onClick={() => {
@@ -1514,6 +1541,8 @@ export function EsterilizacionView({
                   </div>
                   <dl>
                     <div><dt>Nombre</dt><dd>{materialSeleccionado.nombre}</dd></div>
+                    <div><dt>Medida</dt><dd>{materialSeleccionado.medida || "No registrada"}</dd></div>
+                    <div><dt>Cuenta con logo</dt><dd>{materialSeleccionado.cuentaConLogo ? "Sí" : "No"}</dd></div>
                     <div><dt>Lote</dt><dd>{materialSeleccionado.lote || "No registrado"}</dd></div>
                     <div><dt>Cantidad</dt><dd>{materialSeleccionado.cantidad ?? 1} {materialSeleccionado.cantidad === 1 || materialSeleccionado.cantidad == null ? "unidad" : "unidades"}</dd></div>
                   </dl>
@@ -1918,8 +1947,16 @@ export function EsterilizacionView({
                         <input required value={formMaterial.nombre} onChange={(e) => setFormMaterial({ ...formMaterial, nombre: e.target.value })} placeholder="Ej. Pinza Kelly" />
                       </label>
                       <label>
+                        Medida
+                        <input value={formMaterial.medida} maxLength={100} onChange={(e) => setFormMaterial({ ...formMaterial, medida: e.target.value })} placeholder="Ej. 14 cm" />
+                      </label>
+                      <label>
                         Lote
                         <input value={formMaterial.lote} onChange={(e) => setFormMaterial({ ...formMaterial, lote: e.target.value })} placeholder="Número o referencia del lote" />
+                      </label>
+                      <label className="est-cuenta-logo">
+                        <input type="checkbox" checked={formMaterial.cuentaConLogo} onChange={(e) => setFormMaterial({ ...formMaterial, cuentaConLogo: e.target.checked })} />
+                        <span>Cuenta con logo</span>
                       </label>
                       <label>
                         Cantidad *

@@ -643,3 +643,39 @@
 }
 .est-tabla-inventario .est-acciones-instrumental button:hover { background: #e1f2fa; border-color: #70b9dc; }
 .est-tabla-inventario .est-acciones-instrumental button:focus-visible { outline: 2px solid #087bb5; outline-offset: 2px; }
+.est-modal-material .est-material-datos .est-cuenta-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  cursor: pointer;
+}
+.est-modal-material .est-material-datos .est-cuenta-logo input[type="checkbox"] {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+  accent-color: #087fbd;
+}
+.est-filtros-inventario .est-exportar-inventario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #a9d2e5;
+  border-radius: 7px;
+  color: #0875aa;
+  background: #f5fbfe;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.est-filtros-inventario .est-exportar-inventario:hover { background: #e6f5fb; }
+.est-filtros-inventario .est-exportar-inventario:disabled { opacity: .6; cursor: wait; }
+@media (max-width: 600px) {
+  .est-filtros-inventario .est-exportar-inventario { width: 100%; min-height: 44px; }
+}

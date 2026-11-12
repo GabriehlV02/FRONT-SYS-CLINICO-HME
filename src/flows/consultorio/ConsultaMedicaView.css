@@ -2423,3 +2423,22 @@ body:has(.consulta-cabecera-fija),
   outline: 3px solid #fda29b;
   outline-offset: 3px;
 }
+
+/* Mantiene las mediciones en una sola tira desplazable. */
+.sistema-app .consulta-signos .consulta-signos-form {
+  display: grid;
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: 155px;
+  justify-content: start;
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  padding: 2px 2px 10px;
+}
+.sistema-app .consulta-signos .consulta-signos-form .consulta-signo-campo {
+  min-width: 0;
+}

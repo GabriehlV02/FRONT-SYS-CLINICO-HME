@@ -207,3 +207,95 @@
     width: 100%;
   }
 }
+
+.punto-consulta-distribucion {
+  display: block;
+  width: min(620px, 100%);
+}
+.punto-consulta-distribucion .punto-consulta-modal {
+  box-sizing: border-box;
+  padding: 24px;
+}
+.punto-consulta-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.punto-consulta-campos > h4 {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e1edf4;
+  color: #0b679f;
+  font-size: 13px;
+}
+.punto-consulta-campos > label,
+.punto-consulta-campos .punto-consulta-fecha label {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+  color: #41627b;
+  font-size: 12px;
+  font-weight: 700;
+}
+.punto-consulta-campos :is(select, input) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 0 11px;
+  border: 1px solid #cbdde9;
+  border-radius: 8px;
+  color: #173d5b;
+  background: #fbfdff;
+  font: inherit;
+  font-size: 13px;
+}
+.punto-consulta-campos :is(select, input):focus-visible {
+  outline: 2px solid #1599d0;
+  outline-offset: 1px;
+}
+.punto-consulta-campos > :is(.punto-consulta-ancho, .punto-consulta-fecha, .punto-consulta-ayuda, [role="alert"]) {
+  grid-column: 1 / -1;
+}
+.punto-consulta-campos > .punto-consulta-ayuda {
+  margin-top: -8px;
+  color: #668199;
+  font-size: 11px;
+}
+.punto-consulta-total {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid #cce6f3;
+  border-radius: 8px;
+  background: #f0f9fd;
+  color: #41627b;
+  font-size: 12px;
+}
+.punto-consulta-total strong { color: #075d94; font-size: 17px; }
+.punto-consulta-pagos { grid-column: 1 / -1; display: grid; gap: 10px; }
+.punto-consulta-pago { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.punto-consulta-pago label { display: grid; gap: 6px; min-width: 0; color: #41627b; font-size: 12px; font-weight: 700; }
+.punto-consulta-pago > button { height: 44px; width: 44px; border: 1px solid #cbdde9; border-radius: 8px; background: #fff; color: #385b75; cursor: pointer; font-size: 20px; }
+.punto-consulta-agregar-pago { justify-self: start; border: 0; padding: 4px 0; background: transparent; color: #0078bb; font-size: 12px; font-weight: 700; cursor: pointer; }
+.punto-consulta-buscador { position: relative; min-width: 0; }
+.punto-consulta-resultados { position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; right: 0; max-height: 200px; overflow-y: auto; border: 1px solid #cbdde9; border-radius: 8px; background: #fff; box-shadow: 0 8px 20px rgba(9, 44, 70, .16); }
+.punto-consulta-resultados button { display: block; width: 100%; padding: 10px 12px; border: 0; border-bottom: 1px solid #edf4f8; background: #fff; color: #173d5b; text-align: left; font: inherit; cursor: pointer; }
+.punto-consulta-resultados button:hover, .punto-consulta-resultados button[aria-selected="true"] { background: #edf8fd; }
+.punto-consulta-resultados span { display: block; padding: 12px; color: #668199; font-weight: 400; }
+@media (max-width: 520px) {
+  .punto-consulta-distribucion .punto-consulta-modal { padding: 18px; }
+  .punto-consulta-campos { grid-template-columns: minmax(0, 1fr); }
+  .punto-consulta-campos > :is(.punto-consulta-ancho, .punto-consulta-fecha, .punto-consulta-ayuda, [role="alert"], h4) { grid-column: auto; }
+  .punto-consulta-pagos { grid-column: auto; }
+}

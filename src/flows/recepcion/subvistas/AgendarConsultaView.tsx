@@ -177,9 +177,7 @@ export function AgendarConsultaView({
           .slice(0, 6)
       : [];
   }, [busqueda, pacientes]);
-  const especialidadesDisponibles = Object.entries(especialidades)
-    .filter(([, item]) => !doctor || item.doctores.includes(doctor))
-    .map(([nombre]) => nombre);
+  const especialidadesDisponibles = Object.keys(especialidades);
   const doctoresDisponibles = especialidad
     ? especialidades[especialidad]?.doctores || []
     : doctores;

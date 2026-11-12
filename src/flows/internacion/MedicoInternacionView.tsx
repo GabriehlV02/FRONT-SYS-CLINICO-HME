@@ -90,14 +90,7 @@ const correspondeAlMesActual = (valor?: string) => {
 
 export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
   const registrosVinculados = useInternacionesVinculadas();
-  const registros = useMemo(
-    () =>
-      subvista === "internados" &&
-      !registrosVinculados.some((registro) => registro.estado === "confirmada")
-        ? obtenerEjemplosInternacion()
-        : registrosVinculados,
-    [registrosVinculados, subvista],
-  );
+  const registros = registrosVinculados;
   const [busqueda, setBusqueda] = useState("");
   const [pacienteSeleccionado, setPacienteSeleccionado] =
     useState<RegistroInternacion | null>(null);

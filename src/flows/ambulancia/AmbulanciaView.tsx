@@ -1,3 +1,4 @@
+import { fechaISOEnBolivia } from "../../utils/fechaBolivia";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import Icon from "../../radius/componentes/Icono";
@@ -46,7 +47,7 @@ type DatosAmbulancia = {
 };
 
 const STORAGE_KEY = "clinico-ambulancia-v1";
-const hoy = () => new Date().toISOString().slice(0, 10);
+const hoy = () => fechaISOEnBolivia();
 const inicial: DatosAmbulancia = {
   traslados: [],
   insumos: [

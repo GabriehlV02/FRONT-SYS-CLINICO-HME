@@ -411,9 +411,7 @@ function UsoPacientesView() {
     cargar();
     return suscribirLaboratorio(cargar);
   }, []);
-  const registros = solicitudes.length
-    ? solicitudes
-    : ejemplosLaboratorio("ambulatorio");
+  const registros = solicitudes;
   const orden =
     registros.find((solicitud) => solicitud.id === seleccionada) ??
     registros[0];

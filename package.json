@@ -16,6 +16,8 @@
     "@vitejs/plugin-react": "latest",
     "dicom-parser": "^1.8.21",
     "events": "^3.3.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "jszip": "^3.10.1",
     "libarchive.js": "^2.0.2",
     "node-unrar-js": "^2.0.2",

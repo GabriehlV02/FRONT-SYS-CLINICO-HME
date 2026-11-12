@@ -1,3 +1,4 @@
+import { fechaISOEnBolivia } from "../../../utils/fechaBolivia";
 import { useState, useEffect, useRef, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { apiFetch } from "../../api";
@@ -282,7 +283,7 @@ export default function ModalRegistroPaciente({
                 <input
                   type="date"
                   required
-                  max={new Date().toISOString().slice(0, 10)}
+                  max={fechaISOEnBolivia()}
                   value={form.fecha_nacimiento}
                   onChange={(e) => cambiar("fecha_nacimiento", e.target.value)}
                 />

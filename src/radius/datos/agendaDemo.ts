@@ -52,8 +52,7 @@ export function obtenerCitasAgendaDemo(): CitaAgendaDemo[] {
         edad: edad(paciente.fechaNacimiento),
       };
     });
-  const ids = new Set(actualizadas.map((cita) => cita.pacienteId));
-  const citas = [...actualizadas, ...citasIniciales().filter((cita) => !ids.has(cita.pacienteId))];
+  const citas = actualizadas.filter((cita) => !cita.id.startsWith("demo-agenda-"));
   try {
     localStorage.setItem(CLAVE, JSON.stringify(citas));
   } catch {}

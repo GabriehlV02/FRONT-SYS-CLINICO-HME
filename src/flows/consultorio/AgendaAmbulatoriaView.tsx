@@ -14,7 +14,7 @@ import {
   registrarAtencionAmbulatoria,
   suscribirEpisodios,
 } from "./registroHistoria";
-import { esPendienteDeAtencion, fechaLocalISO } from "./agendaPendientes";
+import { estaSinAtender, fechaLocalISO } from "./agendaPendientes";
 import "./AgendaAmbulatoriaView.css";
 import "./AgendaAmbulatoriaViewAlineacion.css";
 import "./AgendaMotivo.css";
@@ -56,6 +56,7 @@ export function AgendaAmbulatoriaView({
     (p) => p.usuario_id === String(leerSesion()?.usuario.id),
   );
   const [agendaReintentando, setAgendaReintentando] = useState(false);
+  const [cargandoAgenda, setCargandoAgenda] = useState(!esDemo);
   const [citas, setCitas] = useState<CitaConfirmada[]>(() =>
     esDemo ? obtenerCitasAgendaDemo() : [],
   );
@@ -109,12 +110,14 @@ export function AgendaAmbulatoriaView({
         });
         if (!response.ok) throw new Error("Agenda no disponible");
         const datos: CitaConfirmada[] = await response.json();
-        setCitas(datos.filter((cita) => cita.estado === "confirmada"));
+        setCitas(datos);
+        setCargandoAgenda(false);
         setAgendaReintentando(false);
         demoraReintento = 3000;
         temporizador = setTimeout(consultarAgenda, 30000);
       } catch {
         if (controller.signal.aborted) return;
+        setCargandoAgenda(false);
         setAgendaReintentando(true);
         temporizador = setTimeout(consultarAgenda, demoraReintento);
         demoraReintento = Math.min(demoraReintento * 2, 30000);
@@ -150,20 +153,20 @@ export function AgendaAmbulatoriaView({
       .toLocaleLowerCase()
       .includes(texto.trim().toLocaleLowerCase());
   const coincideFecha = (cita: CitaConfirmada) =>
-    fechaDesde && fechaHasta
-      ? cita.fecha >= fechaDesde && cita.fecha <= fechaHasta
+    fechaDesde || fechaHasta
+      ? (!fechaDesde || cita.fecha >= fechaDesde) && (!fechaHasta || cita.fecha <= fechaHasta)
       : cita.fecha === fechaSeleccionada;
   const pendientes = visibles.filter(
     (cita) =>
       coincideFecha(cita) &&
-      esPendienteDeAtencion(cita, hoy) &&
+      estaSinAtender(cita) &&
       coincide(cita, busqueda),
   );
-  const atendidasHoy = visibles.filter((cita) => {
+  const atendidas = visibles.filter((cita) => {
     const finalizada = obtenerAtencionAmbulatoria(cita)?.finalizadaEn;
     return (
       finalizada &&
-      hoy === fechaLocalISO(new Date(finalizada)) &&
+      coincideFecha(cita) &&
       coincide(cita, busquedaAtendidas)
     );
   });
@@ -224,12 +227,13 @@ export function AgendaAmbulatoriaView({
               onChange={(event) => setFechaHasta(event.target.value)}
             />
           </label>
-          {(fechaDesde || fechaHasta) && (
+          {(fechaDesde || fechaHasta || fechaSeleccionada !== hoy) && (
             <button
               type="button"
               onClick={() => {
                 setFechaDesde("");
                 setFechaHasta("");
+                setFechaSeleccionada(fechaHoy());
               }}
             >
               Hoy
@@ -250,12 +254,15 @@ export function AgendaAmbulatoriaView({
             <span>SIGNOS VITALES</span>
             <span>ACCIÓN</span>
           </header>
-          {pendientes.length ? (
+          {cargandoAgenda ? (
+            <div className="agenda-cola-vacia" role="status">Cargando consultas...</div>
+          ) : pendientes.length ? (
             pendientes.map((cita) => (
               <article key={cita.id}>
                 <time dateTime={`${cita.fecha}T${cita.hora}`}>
                   <strong>{cita.hora}</strong>
                   <small>{cita.fecha.split("-").reverse().join("/")}</small>
+                  {cita.estado === "por_confirmar" && <small>Por confirmar</small>}
                 </time>
                 <div>
                   <strong>{cita.paciente}</strong>
@@ -294,10 +301,10 @@ export function AgendaAmbulatoriaView({
         <aside className="agenda-lateral agenda-atendidas">
           <header>
             <div>
-              <p>ATENDIDOS HOY</p>
+              <p>{fechaDesde || fechaHasta || fechaSeleccionada !== hoy ? "ATENDIDOS EN EL PERÍODO" : "ATENDIDOS HOY"}</p>
               <strong>Consultas realizadas</strong>
             </div>
-            <span>{atendidasHoy.length}</span>
+            <span>{atendidas.length}</span>
           </header>
           <label className="agenda-buscar-atendidas">
             <Icon name="search" size={15} />
@@ -307,9 +314,9 @@ export function AgendaAmbulatoriaView({
               placeholder="Buscar atendido..."
             />
           </label>
-          {atendidasHoy.length ? (
+          {atendidas.length ? (
             <div>
-              {atendidasHoy.map((cita) => (
+              {atendidas.map((cita) => (
                 <article key={`${cita.id}-${cita.fecha}-${cita.hora}`}>
                   <span className="agenda-iniciales">
                     {cita.paciente
@@ -321,6 +328,7 @@ export function AgendaAmbulatoriaView({
                   <div>
                     <strong>{cita.paciente}</strong>
                     <small>Consulta {cita.hora}</small>
+                    <small>{cita.fecha.split("-").reverse().join("/")}</small>
                     <small>{cita.especialidad || "Consulta ambulatoria"}</small>
                   </div>
                   {obtenerAtencionAmbulatoria(cita)?.finalizadaEn ? (

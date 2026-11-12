@@ -5,8 +5,11 @@ export type MaterialEsteril = {
   codigo: string;
   nombre: string;
   lote?: string;
+  medida?: string;
+  cuentaConLogo?: boolean;
   cantidad?: number;
   imagen?: string;
+  tieneImagen?: boolean;
   tipo: string;
   marca: string;
   serie: string;

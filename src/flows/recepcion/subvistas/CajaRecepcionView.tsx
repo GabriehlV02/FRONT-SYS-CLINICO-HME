@@ -1,8 +1,9 @@
+import { fechaISOEnBolivia } from "../../../utils/fechaBolivia";
 import {
   useProfesionales,
   etiquetaProfesional,
 } from "../../../radius/profesionales";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import ModalRegistroPaciente from "../../../radius/vistas/pacientes/ModalRegistroPaciente";
 import { usePacientes } from "../../../radius/vistas/pacientes/usePacientes";
 import { nombrePacienteClinico } from "../../../radius/vistas/pacientes/pacientesApi";
@@ -24,6 +25,7 @@ type Item = {
   stockMinimo?: number;
   fechaVencimiento?: string;
   categoria?: string;
+  tipoServicio?: string;
   subcategoria?: string;
 };
 const catalogoEjemplo: Item[] = [
@@ -116,6 +118,8 @@ const catalogoEjemplo: Item[] = [
 ];
 type Linea = Item & {
   cantidad: number;
+  citaId?: number;
+  pacienteIdConsulta?: string;
   estudioImagen?: string;
   piezaImagen?: string;
 };
@@ -197,6 +201,46 @@ const normalizarTexto = (texto: string) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLocaleLowerCase("es");
+
+function BuscadorConsulta({ etiqueta, valor, opciones, seleccionar, limpiar, deshabilitado = false }: {
+  etiqueta: string;
+  valor: string;
+  opciones: { id: string; nombre: string }[];
+  seleccionar: (id: string) => void;
+  limpiar: () => void;
+  deshabilitado?: boolean;
+}) {
+  const id = useId();
+  const [texto, setTexto] = useState(valor);
+  const [abierto, setAbierto] = useState(false);
+  const [indice, setIndice] = useState(0);
+  useEffect(() => { if (valor) setTexto(valor); }, [valor]);
+  const coincidencias = opciones.filter((opcion) => normalizarTexto(opcion.nombre).includes(normalizarTexto(texto.trim()))).slice(0, 30);
+  const elegir = (opcion: { id: string; nombre: string }) => {
+    setTexto(opcion.nombre);
+    setAbierto(false);
+    seleccionar(opcion.id);
+  };
+  return (
+    <div className="punto-consulta-buscador">
+      <input role="combobox" aria-label={etiqueta} aria-expanded={abierto} aria-controls={id} aria-autocomplete="list"
+        aria-activedescendant={abierto && coincidencias[indice] ? `${id}-${indice}` : undefined}
+        disabled={deshabilitado} value={texto} placeholder={`Buscar ${etiqueta.toLocaleLowerCase("es")}`}
+        onFocus={() => { setAbierto(true); setIndice(0); }}
+        onBlur={() => window.setTimeout(() => setAbierto(false), 150)}
+        onChange={(evento) => { setTexto(evento.target.value); setIndice(0); setAbierto(true); if (valor) limpiar(); }}
+        onKeyDown={(evento) => {
+          if (evento.key === "ArrowDown") { evento.preventDefault(); setAbierto(true); setIndice((actual) => Math.min(actual + 1, coincidencias.length - 1)); }
+          if (evento.key === "ArrowUp") { evento.preventDefault(); setIndice((actual) => Math.max(actual - 1, 0)); }
+          if (evento.key === "Enter" && abierto) { evento.preventDefault(); if (coincidencias[indice]) elegir(coincidencias[indice]); }
+          if (evento.key === "Escape") setAbierto(false);
+        }} />
+      {abierto && <div className="punto-consulta-resultados" id={id} role="listbox">
+        {coincidencias.length ? coincidencias.map((opcion, posicion) => <button type="button" role="option" id={`${id}-${posicion}`} aria-selected={posicion === indice} key={opcion.id} onMouseDown={(evento) => evento.preventDefault()} onClick={() => elegir(opcion)}>{opcion.nombre}</button>) : <span>Sin coincidencias</span>}
+      </div>}
+    </div>
+  );
+}
 const resaltarCoincidencia = (texto: string, consulta: string): ReactNode => {
   const termino = consulta.trim();
   if (!termino) return texto;
@@ -320,13 +364,13 @@ export function CajaRecepcionView({
   cocina?: boolean;
   navegacion?: ReactNode;
 }) {
-  const { medicos, resolver } = useProfesionales();
+  const { medicos, resolver, errorProfesionales } = useProfesionales();
   const medicosPorEspecialidad: Record<string, string[]> = Object.fromEntries(
     [...new Set(medicos.flatMap((p) => p.especialidades))].map((e) => [
       e,
       medicos
         .filter((p) => p.especialidades.includes(e))
-        .map(etiquetaProfesional),
+        .map((profesional) => profesional.id),
     ]),
   );
   const { pacientes: fichasPacientes, errorPacientes } = usePacientes();
@@ -367,7 +411,9 @@ export function CajaRecepcionView({
         texto,
       );
   };
-  const [catalogo, setCatalogo] = useState<Item[]>(catalogoEjemplo);
+  const [catalogo, setCatalogo] = useState<Item[]>([]);
+  const serviciosConsulta = catalogo.filter((item) => item.tipo === "Servicio" && /^servicio-\d+$/.test(item.id) && normalizarTexto(item.tipoServicio || "").includes("consulta"));
+  const [servicioConsultaId, setServicioConsultaId] = useState("");
   useEffect(() => {
     const controller = new AbortController();
     let ejecutando = false;
@@ -415,13 +461,12 @@ export function CajaRecepcionView({
                 ? "Insumo"
                 : "Producto") as Tipo,
           })),
-          ...catalogoEjemplo,
         ]),
       )
       .catch(() => {
         if (!controller.signal.aborted) {
-          setCatalogo(catalogoEjemplo);
-          setErrorCatalogo("");
+          setCatalogo([]);
+          setErrorCatalogo("No se pudo cargar el cat?logo. Revisa la conexi?n e intenta nuevamente.");
         }
       })
       .finally(() => {
@@ -436,11 +481,15 @@ export function CajaRecepcionView({
   const [especialidadConsulta, setEspecialidadConsulta] =
     useState("Medicina Interna");
   const [medicoConsulta, setMedicoConsulta] = useState("");
+  const [guardandoConsulta, setGuardandoConsulta] = useState(false);
+  const guardandoConsultaRef = useRef(false);
+  const [pagosConsulta, setPagosConsulta] = useState<Pago[]>([pagoNuevo(1)]);
+  const [asignacionUsuario, setAsignacionUsuario] = useState<{ caja_id: number; almacen_id: number } | null>(null);
+  const [asignacionCargada, setAsignacionCargada] = useState(false);
+  const [cobroConsultaPendiente, setCobroConsultaPendiente] = useState<Record<string, unknown> | null>(null);
+  const [errorCobroConsulta, setErrorCobroConsulta] = useState("");
   const [fechaConsulta, setFechaConsulta] = useState("");
   const [horaConsulta, setHoraConsulta] = useState("");
-  const [motivoOperativoConsulta, setMotivoOperativoConsulta] = useState("");
-  const [citasCronograma, setCitasCronograma] = useState<Array<{ id: string; profesionalId?: string; doctor?: string; fecha: string; hora: string; estado?: string }>>([]);
-  const [estadoCronograma, setEstadoCronograma] = useState<"cargando" | "listo" | "error">("cargando");
   const [precioConsulta, setPrecioConsulta] = useState(80);
   const [cajasVenta, setCajasVenta] = useState<CajaVenta[]>([]);
   const [cajaVentaId, setCajaVentaId] = useState("");
@@ -456,6 +505,8 @@ export function CajaRecepcionView({
         const datos = await respuesta.json();
         if (!respuesta.ok)
           throw new Error(datos.message || "No se pudieron cargar las cajas.");
+        setAsignacionUsuario(datos.asignacion_usuario || null);
+        setAsignacionCargada(true);
         return datos.data as CajaVenta[];
       })
       .then((cajas) => {
@@ -467,6 +518,7 @@ export function CajaRecepcionView({
         }
       })
       .catch(() => {
+        setAsignacionCargada(true);
         /* Las opciones pueden no estar disponibles durante las pruebas de frontend. */
       });
     return () => controller.abort();
@@ -678,58 +730,6 @@ export function CajaRecepcionView({
     pagado = pagos.reduce((t, p) => t + Math.max(Number(p.monto) || 0, 0), 0),
     pendiente = Math.max(total - pagado, 0),
     cambio = Math.max(pagado - total, 0);
-  const profesionalConsulta = resolver(medicoConsulta);
-  useEffect(() => {
-    if (!consultaParaAgendar) return;
-    const controller = new AbortController();
-    setEstadoCronograma("cargando");
-    void apiFetch("/api/citas", { signal: controller.signal })
-      .then(async (respuesta) => {
-        if (!respuesta.ok) throw new Error("No se pudo consultar la agenda.");
-        const citas: unknown = await respuesta.json();
-        if (!Array.isArray(citas)) throw new Error("Agenda no disponible.");
-        if (!controller.signal.aborted) {
-          setCitasCronograma(citas);
-          setEstadoCronograma("listo");
-        }
-      })
-      .catch(() => { if (!controller.signal.aborted) setEstadoCronograma("error"); });
-    return () => controller.abort();
-  }, [consultaParaAgendar]);
-  const fechasCronograma = useMemo(() => {
-    if (!consultaParaAgendar) return [];
-    const hoy = new Date();
-    hoy.setHours(12, 0, 0, 0);
-    return Array.from({ length: 8 }, (_, indice) => {
-      const dia = new Date(hoy);
-      dia.setDate(hoy.getDate() + indice);
-      const clave = `${dia.getFullYear()}-${String(dia.getMonth() + 1).padStart(2, "0")}-${String(dia.getDate()).padStart(2, "0")}`;
-      return { dia, clave };
-    });
-  }, [consultaParaAgendar]);
-  const diasAtencionConsulta = profesionalConsulta?.horario?.startsWith("Lun")
-    ? [1, 3, 5]
-    : [2, 4, 6];
-  const horasAtencionConsulta = profesionalConsulta?.horario?.includes("08:00")
-    ? ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30"]
-    : ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30"];
-  const fechaEnTurno =
-    !fechaConsulta ||
-    diasAtencionConsulta.includes(
-      new Date(`${fechaConsulta}T12:00:00`).getDay(),
-    );
-  useEffect(() => {
-    if (!consultaParaAgendar) return;
-    const campoHora = document.querySelector(
-      '.punto-consulta-modal input[type="time"]',
-    ) as HTMLInputElement | null;
-    if (!campoHora) return;
-    campoHora.min = horasAtencionConsulta[0];
-    campoHora.max = horasAtencionConsulta.at(-1) || "";
-    campoHora.step = "1800";
-    if (horaConsulta && !horasAtencionConsulta.includes(horaConsulta))
-      setHoraConsulta("");
-  }, [consultaParaAgendar, horasAtencionConsulta, horaConsulta]);
   const agregar = (i: Item) => {
     setLineas((a) =>
       a.some((x) => x.id === i.id)
@@ -743,14 +743,14 @@ export function CajaRecepcionView({
     // El id procede del catálogo contable y no siempre se llama "consulta".
     const esConsultaMedica =
       item.tipo === "Servicio" &&
-      /consulta.*medic|medic.*consulta/.test(normalizarTexto(item.nombre));
+      normalizarTexto(item.tipoServicio || "").includes("consulta");
     if (esConsultaMedica) {
       setConsultaParaAgendar(item);
-      setEspecialidadConsulta("Medicina Interna");
-      setMedicoConsulta(medicosPorEspecialidad["Medicina Interna"]?.[0] || "");
+      setServicioConsultaId(item.id);
+      setEspecialidadConsulta("");
+      setMedicoConsulta("");
       setFechaConsulta("");
       setHoraConsulta("");
-      setMotivoOperativoConsulta("");
       return;
     }
     agregar(item);
@@ -768,38 +768,45 @@ export function CajaRecepcionView({
       precio: precioConsulta,
     };
     setConsultaParaAgendar(consulta);
-    setEspecialidadConsulta("Medicina Interna");
-    setMedicoConsulta(medicosPorEspecialidad["Medicina Interna"]?.[0] || "");
+    setServicioConsultaId("");
+    setEspecialidadConsulta("");
+    setMedicoConsulta("");
     setFechaConsulta("");
     setHoraConsulta("");
-    setMotivoOperativoConsulta("");
   };
   const agendarConsulta = async () => {
-    if (!consultaParaAgendar || !fechaConsulta || !horaConsulta)
+    if (!consultaParaAgendar || !servicioConsultaId || !fechaConsulta || !horaConsulta)
       return setMensaje(
         "Selecciona especialidad, médico, fecha y hora para continuar.",
         "advertencia",
       );
-    if (!fechaEnTurno || !horasAtencionConsulta.includes(horaConsulta))
-      return setMensaje(
-        "Selecciona un día y una hora dentro del turno de consulta externa del médico.",
-        "advertencia",
-      );
+    const servicioConsulta = serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId);
+    if (!servicioConsulta) return setMensaje("Selecciona un servicio de consulta disponible.", "advertencia");
+    if (!asignacionUsuario) return setErrorCobroConsulta(asignacionCargada ? "El usuario debe tener una sola caja y almacén asignados. Solicita revisar sus asignaciones." : "Espera mientras se consultan las asignaciones del usuario.");
+    const pagosParaConsulta = pagosConsulta.map((pago) => ({ metodo: pago.metodo, monto: pagosConsulta.length === 1 && pago.monto === "" ? servicioConsulta.precio : Number(pago.monto) }));
+    const centavos = (valor: number) => Math.round(valor * 100);
+    if (!cobroConsultaPendiente && (pagosParaConsulta.some((pago) => !Number.isFinite(pago.monto) || pago.monto <= 0 || Math.abs(pago.monto * 100 - centavos(pago.monto)) > 0.000001) || pagosParaConsulta.reduce((suma, pago) => suma + centavos(pago.monto), 0) !== centavos(servicioConsulta.precio))) return setErrorCobroConsulta("Los importes deben ser mayores a cero y sumar exactamente el total de la consulta.");
     const ficha = fichasPacientes.find((p) => p.ci === ciPaciente),
       profesional = resolver(medicoConsulta);
-    const motivoCapturado = motivoOperativoConsulta.trim();
     if (!ficha || !profesional)
       return setMensaje(
         "Selecciona un paciente registrado y un médico activo.",
         "advertencia",
       );
+    if (!clienteSeleccionado || String(clienteSeleccionado.paciente_id) !== String(ficha.id)) return setMensaje("Selecciona al paciente en la venta antes de agendar la consulta.", "advertencia");
+    if (guardandoConsultaRef.current) return;
+    guardandoConsultaRef.current = true;
+    setGuardandoConsulta(true);
     try {
+      let cobro = cobroConsultaPendiente;
+      if (!cobro) {
       const r = await apiFetch("/api/citas", {
         method: "POST",
         headers: { Accept: "application/json" },
         body: JSON.stringify({
           paciente_id: ficha.id,
           profesional_id: profesional.id,
+          servicio_id: Number(servicioConsulta.id.slice(9)),
           doctor: profesional.nombre,
           especialidad: especialidadConsulta,
           consultorio: "Consultorio 1",
@@ -817,49 +824,39 @@ export function CajaRecepcionView({
             d.message ||
             "No se pudo agendar la consulta.",
         );
+      const citaId = Number(d.data?.id ?? d.id);
+      if (!Number.isSafeInteger(citaId) || citaId < 1) throw new Error("La consulta se registro, pero no se recibio su identificador. Revisa las consultas antes de volver a agendar.");
+      cobro = {
+        solicitud_id: solicitudVenta.current, cliente_id: clienteSeleccionado.id,
+        usar_asignacion_usuario: true, descuento: 0,
+        pagos: pagosParaConsulta,
+        detalles: [{ servicio_id: Number(servicioConsulta.id.slice(9)), cita_id: citaId, cantidad: 1, precio_unitario: servicioConsulta.precio }],
+      };
+      setCobroConsultaPendiente(cobro);
+      }
+      sessionStorage.setItem(claveSolicitudVenta, String(cobro.solicitud_id));
+      const respuestaVenta = await apiFetch("/api/v1/recepcion/ventas", { method: "POST", body: JSON.stringify(cobro) });
+      const venta = await respuestaVenta.json();
+      if (!respuestaVenta.ok || !venta.data) {
+        const detalle = Object.values(venta.errors || {}).flat()[0];
+        throw new Error(String(detalle || venta.message || "No se pudo registrar el cobro."));
+      }
+      sessionStorage.removeItem(claveSolicitudVenta);
+      solicitudVenta.current = crypto.randomUUID();
+      setCobroConsultaPendiente(null);
+      setPagosConsulta([pagoNuevo(1)]);
+      setErrorCobroConsulta("");
+      setRecargaCatalogo((valor) => valor + 1);
+      setRevisionHistorial((valor) => valor + 1);
+      setMensaje(venta.ordenes_pendientes ? "Cobro registrado. La confirmación está pendiente de sincronización; no repitas el cobro." : `${venta.data.codigo || "Venta"} registrada y consulta confirmada.`, venta.ordenes_pendientes ? "advertencia" : "exito");
+      setConsultaParaAgendar(null);
     } catch (e) {
-      setMensaje((e as Error).message, "error");
+      setErrorCobroConsulta((e as Error).message);
       return;
+    } finally {
+      guardandoConsultaRef.current = false;
+      setGuardandoConsulta(false);
     }
-    const linea: Linea = {
-      ...consultaParaAgendar,
-      id: `${consultaParaAgendar.id}-${fechaConsulta}-${horaConsulta}-${medicoConsulta}`,
-      nombre: `${consultaParaAgendar.nombre} · ${especialidadConsulta}`,
-      cantidad: 1,
-    };
-    setLineas((actuales) => [...actuales, linea]);
-    const citaOperativa = {
-      id: `cita-operativa-${Date.now()}`,
-      pacienteId: ficha.id,
-      paciente: nombrePacienteClinico(ficha),
-      ci: ficha.ci,
-      doctor: medicoConsulta,
-      especialidad: especialidadConsulta,
-      motivoOperativo: motivoCapturado,
-      fecha: fechaConsulta,
-      hora: horaConsulta,
-      estado: "confirmada",
-      consultorio: "Consulta ambulatoria",
-      edad: ficha.fecha_nacimiento
-        ? new Date().getFullYear() -
-          new Date(ficha.fecha_nacimiento).getFullYear()
-        : undefined,
-      fechaNacimiento: ficha.fecha_nacimiento,
-    };
-    const citasOperativas = JSON.parse(
-      localStorage.getItem("clinico_citas_operativas_v1") || "[]",
-    );
-    localStorage.setItem(
-      "clinico_citas_operativas_v1",
-      JSON.stringify([...citasOperativas, citaOperativa]),
-    );
-    window.dispatchEvent(new Event("agenda:operativa-actualizada"));
-    setMotivoOperativoConsulta("");
-    setMensaje(
-      `Consulta agendada con ${medicoConsulta} para el ${fechaConsulta} a las ${horaConsulta}.`,
-    );
-    setConsultaParaAgendar(null);
-    setCarritoAbierto(true);
   };
   const agregarEstudioImagen = () => {
     if (!imagenParaAgregar) return;
@@ -894,7 +891,7 @@ export function CajaRecepcionView({
     setLineas((a) =>
       a
         .map((x) =>
-          x.id === id ? { ...x, cantidad: Math.max(0, x.cantidad + d) } : x,
+          x.id === id && !x.citaId ? { ...x, cantidad: Math.max(0, x.cantidad + d) } : x,
         )
         .filter((x) => x.cantidad),
     );
@@ -911,7 +908,7 @@ export function CajaRecepcionView({
       return;
     setLineas((actual) =>
       actual.map((linea) =>
-        linea.id === id ? { ...linea, cantidad: nuevaCantidad } : linea,
+        linea.id === id && !linea.citaId ? { ...linea, cantidad: nuevaCantidad } : linea,
       ),
     );
   };
@@ -1079,9 +1076,14 @@ export function CajaRecepcionView({
       );
       return;
     }
+    if (lineas.some((linea) => linea.pacienteIdConsulta && linea.pacienteIdConsulta !== String(clienteSeleccionado.paciente_id))) {
+      setMensaje("La consulta pertenece a otro paciente. Selecciona el paciente correspondiente antes de cobrar.", "advertencia");
+      return;
+    }
     setCobrando(true);
     setMensaje("");
     try {
+      sessionStorage.setItem(claveSolicitudVenta, solicitudVenta.current);
       const respuesta = await apiFetch("/api/v1/recepcion/ventas", {
         method: "POST",
         body: JSON.stringify({
@@ -1096,6 +1098,7 @@ export function CajaRecepcionView({
           detalles: lineas.map((linea) => ({
             ...(linea.tipo === 'Servicio' ? { servicio_id: Number(linea.id.slice(9)) } : { item_id: Number(linea.id.slice(5)) }),
             cantidad: linea.cantidad,
+            ...(linea.citaId ? { cita_id: linea.citaId } : {}),
             precio_unitario: linea.precio,
           })),
         }),
@@ -1114,9 +1117,10 @@ export function CajaRecepcionView({
       }
 
       setMensaje(
-        resultado.ordenes_pendientes ? `${resultado.data.codigo || 'Venta'} cobrada. La orden está pendiente de sincronización; no repitas el cobro.` : `${resultado.data.codigo || "Venta"} registrada correctamente.`,
+        resultado.ordenes_pendientes ? `${resultado.data.codigo || 'Venta'} cobrada. La sincronizacion clinica esta pendiente; no repitas el cobro.` : `${resultado.data.codigo || "Venta"} registrada correctamente.`,
         resultado.ordenes_pendientes ? 'advertencia' : 'exito',
       );
+      sessionStorage.removeItem(claveSolicitudVenta);
       solicitudVenta.current = crypto.randomUUID();
       setRecargaCatalogo((valor) => valor + 1);
       setRevisionHistorial((valor) => valor + 1);
@@ -1272,7 +1276,7 @@ export function CajaRecepcionView({
           className="punto-imagen-fondo"
           role="presentation"
           onMouseDown={(evento) => {
-            if (evento.target === evento.currentTarget)
+            if (evento.target === evento.currentTarget && !guardandoConsulta && !cobroConsultaPendiente)
               setConsultaParaAgendar(null);
           }}
         >
@@ -1292,26 +1296,29 @@ export function CajaRecepcionView({
                 <span>CONSULTA AMBULATORIA</span>
                 <h3>Agendar consulta</h3>
                 <small>
-                  Primero registra los datos de la cita; después se añadirá el
-                  servicio al carrito para su cobro.
+                  Completa los datos de la consulta y registra su cobro.
                 </small>
               </div>
               <button
                 type="button"
                 aria-label="Cerrar"
+                disabled={guardandoConsulta || Boolean(cobroConsultaPendiente)}
                 onClick={() => setConsultaParaAgendar(null)}
               >
                 ×
               </button>
             </header>
-            <label>
+            <fieldset className="punto-consulta-campos" disabled={guardandoConsulta || Boolean(cobroConsultaPendiente)}>
+            <h4>Datos de la consulta</h4>
+            <label className="punto-consulta-ancho">
               Paciente registrado
-              <select
-                required
-                value={ciPaciente}
-                onChange={(evento) => {
+              <BuscadorConsulta etiqueta="Paciente registrado"
+                valor={pacientesRegistrados.find((ficha) => ficha.ci === ciPaciente) ? `${pacientesRegistrados.find((ficha) => ficha.ci === ciPaciente)?.nombre} · CI ${ciPaciente}` : ""}
+                opciones={pacientesRegistrados.map((ficha) => ({ id: String(ficha.id), nombre: `${ficha.nombre} · CI ${ficha.ci}` }))}
+                limpiar={() => { seleccionClienteVersion.current++; setClienteSeleccionado(null); setCiPaciente(""); }}
+                seleccionar={(id) => {
                   const ficha = fichasPacientes.find(
-                    (actual) => actual.ci === evento.target.value,
+                    (actual) => String(actual.id) === id,
                   );
                   if (!ficha) return;
                   setPaciente(nombrePacienteClinico(ficha));
@@ -1324,50 +1331,29 @@ export function CajaRecepcionView({
                     telefono: ficha.telefono || null,
                     correo: null,
                   });
-                }}
-              >
-                <option value="">Seleccionar paciente</option>
-                {pacientesRegistrados.map((ficha) => (
-                  <option key={ficha.id} value={ficha.ci}>
-                    {ficha.nombre} · CI {ficha.ci}
-                  </option>
-                ))}
-              </select>
+                }} />
             </label>
             <small className="punto-consulta-ayuda">
               Solo se muestran pacientes registrados en el sistema.
             </small>
+            {errorProfesionales && <p role="alert">{errorProfesionales}</p>}
+            <label className="punto-consulta-ancho">
+              Servicio de consulta
+              <BuscadorConsulta etiqueta="Servicio de consulta" valor={serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId) ? `${serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId)?.nombre} - ${dinero(serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId)?.precio || 0)}` : ""} opciones={serviciosConsulta.map((servicio) => ({ id: servicio.id, nombre: `${servicio.nombre} - ${dinero(servicio.precio)}` }))} seleccionar={setServicioConsultaId} limpiar={() => setServicioConsultaId("")} />
+            </label>
+            {!cargandoCatalogo && serviciosConsulta.length === 0 && <small className="punto-consulta-ayuda">No hay servicios activos de tipo consulta registrados en el contable.</small>}
             <label>
               Especialidad
-              <select
-                value={especialidadConsulta}
-                onChange={(evento) => {
-                  const especialidad = evento.target.value;
+              <BuscadorConsulta etiqueta="Especialidad" valor={especialidadConsulta} opciones={Object.keys(medicosPorEspecialidad).map((especialidad) => ({ id: especialidad, nombre: especialidad }))}
+                limpiar={() => { setEspecialidadConsulta(""); setMedicoConsulta(""); }}
+                seleccionar={(especialidad) => {
                   setEspecialidadConsulta(especialidad);
-                  setMedicoConsulta(
-                    medicosPorEspecialidad[especialidad]?.[0] || "",
-                  );
-                }}
-              >
-                {Object.keys(medicosPorEspecialidad).map((especialidad) => (
-                  <option key={especialidad}>{especialidad}</option>
-                ))}
-              </select>
+                  setMedicoConsulta("");
+                }} />
             </label>
             <label>
               Médico
-              <select
-                required
-                value={medicoConsulta}
-                onChange={(evento) => setMedicoConsulta(evento.target.value)}
-              >
-                <option value="">Seleccionar médico</option>
-                {(medicosPorEspecialidad[especialidadConsulta] || []).map(
-                  (medico) => (
-                    <option key={medico}>{medico}</option>
-                  ),
-                )}
-              </select>
+              <BuscadorConsulta key={especialidadConsulta} etiqueta="Médico" valor={medicos.find((profesional) => profesional.id === medicoConsulta)?.nombre || ""} opciones={(medicosPorEspecialidad[especialidadConsulta] || []).map((id) => ({ id, nombre: medicos.find((profesional) => profesional.id === id)?.nombre || "" }))} seleccionar={setMedicoConsulta} limpiar={() => setMedicoConsulta("")} deshabilitado={!especialidadConsulta} />
             </label>
             <div className="punto-consulta-fecha">
               <label>
@@ -1375,7 +1361,7 @@ export function CajaRecepcionView({
                 <input
                   required
                   type="date"
-                  min={new Date().toISOString().slice(0, 10)}
+                  min={fechaISOEnBolivia()}
                   value={fechaConsulta}
                   onChange={(evento) => setFechaConsulta(evento.target.value)}
                 />
@@ -1385,56 +1371,44 @@ export function CajaRecepcionView({
                 <input
                   required
                   type="time"
-                  step="1800"
                   value={horaConsulta}
                   onChange={(evento) => setHoraConsulta(evento.target.value)}
                 />
               </label>
             </div>
-            <label>
-              Motivo de consulta (opcional)
-              <input
-                type="text"
-                value={motivoOperativoConsulta}
-                onChange={(evento) => setMotivoOperativoConsulta(evento.target.value)}
-                placeholder="Describe brevemente el motivo de la consulta"
-              />
-            </label>
+            <h4>Datos del cobro</h4>
+            <div className="punto-consulta-pagos">
+              {pagosConsulta.map((pago, indice) => (
+                <div className="punto-consulta-pago" key={pago.id}>
+                  <label>Método de pago
+                    <select value={pago.metodo} onChange={(evento) => setPagosConsulta((actuales) => actuales.map((actual) => actual.id === pago.id ? { ...actual, metodo: evento.target.value } : actual))}>
+                      <option>Efectivo</option><option>QR</option><option>Tarjeta</option><option>Transferencia</option>
+                    </select>
+                  </label>
+                  <label>Monto (Bs)
+                    <input type="number" min="0.01" step="0.01" value={pago.monto} placeholder={pagosConsulta.length === 1 ? String(serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId)?.precio || "0.00") : "0.00"} onChange={(evento) => setPagosConsulta((actuales) => actuales.map((actual) => actual.id === pago.id ? { ...actual, monto: evento.target.value } : actual))} />
+                  </label>
+                  {pagosConsulta.length > 1 && <button type="button" aria-label={`Quitar pago ${indice + 1}`} onClick={() => setPagosConsulta((actuales) => actuales.filter((actual) => actual.id !== pago.id))}>×</button>}
+                </div>
+              ))}
+              {pagosConsulta.length < 10 && <button type="button" className="punto-consulta-agregar-pago" onClick={() => setPagosConsulta((actuales) => [...actuales, { ...pagoNuevo(Date.now()), metodo: "QR" }])}>+ Añadir otro método de pago</button>}
+            </div>
+            <p className="punto-consulta-total"><span>Total a cobrar</span><strong>{dinero(serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId)?.precio || 0)}</strong></p>
+            </fieldset>
+            {errorCobroConsulta && <p role="alert">{errorCobroConsulta}{cobroConsultaPendiente && " La cita ya fue registrada. Reintenta el mismo cobro sin volver a agendar."}</p>}
             <footer>
               <button
                 type="button"
+                disabled={guardandoConsulta || Boolean(cobroConsultaPendiente)}
                 onClick={() => setConsultaParaAgendar(null)}
               >
                 Cancelar
               </button>
-              <button className="punto-imagen-primario" type="submit">
-                <Icon name="check" size={16} /> Confirmar cita y añadir al
-                carrito
+              <button className="punto-imagen-primario" type="submit" disabled={guardandoConsulta}>
+                <Icon name="check" size={16} /> {guardandoConsulta ? "Procesando..." : cobroConsultaPendiente ? "Reintentar cobro" : "Agendar y cobrar"}
               </button>
             </footer>
           </form>
-          <aside className="punto-consulta-cronograma" aria-label="Cronograma semanal del médico">
-            <header>
-              <span>AGENDA MÉDICA</span>
-              <h3>Cronograma de atención</h3>
-              <p>{profesionalConsulta?.nombre || "Selecciona un médico"}</p>
-              <small>Desde hoy hasta el mismo día de la próxima semana</small>
-            </header>
-            {estadoCronograma === "error" && <p className="punto-cronograma-aviso" role="status">No se pudieron consultar las citas. Verifica la agenda antes de confirmar.</p>}
-            {estadoCronograma === "cargando" && <p className="punto-cronograma-aviso" role="status">Consultando citas…</p>}
-            <div className="punto-cronograma-dias">
-              {fechasCronograma.map(({ dia, clave }) => {
-                const atiende = Boolean(profesionalConsulta?.horario) && diasAtencionConsulta.includes(dia.getDay());
-                const citasDia = citasCronograma.filter((cita) => cita.fecha === clave && cita.estado !== "cancelada" && (cita.profesionalId ? cita.profesionalId === profesionalConsulta?.id : cita.doctor === profesionalConsulta?.nombre));
-                return (
-                  <button key={clave} type="button" className={fechaConsulta === clave ? "seleccionado" : ""} disabled={!atiende} onClick={() => setFechaConsulta(clave)}>
-                    <span><strong>{new Intl.DateTimeFormat("es-BO", { weekday: "short", day: "numeric", month: "short" }).format(dia)}</strong><small>{atiende ? `${horasAtencionConsulta[0]} – ${profesionalConsulta?.horario?.match(/\d{2}:\d{2}[–-](\d{2}:\d{2})/)?.[1] || horasAtencionConsulta.at(-1)}` : "Sin turno"}</small></span>
-                    {atiende && estadoCronograma === "listo" && <b>{citasDia.length} {citasDia.length === 1 ? "cita" : "citas"}</b>}
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
           </div>
         </div>
       )}
@@ -2008,7 +1982,7 @@ export function CajaRecepcionView({
                     <strong>{i.nombre}</strong>
                     <small>{dinero(i.precio)} c/u</small>
                     <div>
-                      <button type="button" onClick={() => cantidad(i.id, -1)}>
+                      <button type="button" disabled={Boolean(i.citaId)} onClick={() => cantidad(i.id, -1)}>
                         −
                       </button>
                       <input
@@ -2017,11 +1991,12 @@ export function CajaRecepcionView({
                         inputMode="numeric"
                         pattern="[0-9]*"
                         aria-label={`Cantidad de ${i.nombre}`}
+                        disabled={Boolean(i.citaId)}
                         value={String(i.cantidad)}
                         onFocus={(e) => e.currentTarget.select()}
                         onChange={(e) => escribirCantidad(i.id, e.target.value)}
                       />
-                      <button type="button" onClick={() => cantidad(i.id, 1)}>
+                      <button type="button" disabled={Boolean(i.citaId)} onClick={() => cantidad(i.id, 1)}>
                         +
                       </button>
                       <span>{dinero(i.precio * i.cantidad)}</span>
@@ -2363,7 +2338,7 @@ export function CajaRecepcionView({
                     <strong>{i.nombre}</strong>
                     <small>{dinero(i.precio)} c/u</small>
                     <div>
-                      <button type="button" onClick={() => cantidad(i.id, -1)}>
+                      <button type="button" disabled={Boolean(i.citaId)} onClick={() => cantidad(i.id, -1)}>
                         −
                       </button>
                       <input
@@ -2372,11 +2347,12 @@ export function CajaRecepcionView({
                         inputMode="numeric"
                         pattern="[0-9]*"
                         aria-label={`Cantidad de ${i.nombre}`}
+                        disabled={Boolean(i.citaId)}
                         value={String(i.cantidad)}
                         onFocus={(e) => e.currentTarget.select()}
                         onChange={(e) => escribirCantidad(i.id, e.target.value)}
                       />
-                      <button type="button" onClick={() => cantidad(i.id, 1)}>
+                      <button type="button" disabled={Boolean(i.citaId)} onClick={() => cantidad(i.id, 1)}>
                         +
                       </button>
                       <span>{dinero(i.precio * i.cantidad)}</span>

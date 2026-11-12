@@ -1,3 +1,4 @@
+import { fechaISOEnBolivia } from "../../utils/fechaBolivia";
 import {
   useProfesionales,
   etiquetaProfesional,
@@ -871,7 +872,7 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
                     <input
                       required
                       type="date"
-                      max={new Date().toISOString().slice(0, 10)}
+                      max={fechaISOEnBolivia()}
                       value={acompanante.nacimiento}
                       onChange={(e) =>
                         setAcompanante({

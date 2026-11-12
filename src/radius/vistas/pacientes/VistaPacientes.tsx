@@ -1,3 +1,4 @@
+import { fechaISOEnBolivia } from "../../../utils/fechaBolivia";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../componentes/Icono";
 import { apiFetch } from "../../api";
@@ -1468,7 +1469,7 @@ export default function VistaPacientes({
                 <input
                   required
                   type="date"
-                  max={new Date().toISOString().slice(0, 10)}
+                  max={fechaISOEnBolivia()}
                   value={form.fechaNacimiento}
                   onChange={(e) =>
                     setForm({ ...form, fechaNacimiento: e.target.value })

@@ -14,6 +14,8 @@ import "./ResumenPacienteEmergencias.css";
 import "./EditarPacienteEmergencias.css";
 import { cubiculosEmergencias, nombreCubiculo } from "./cubiculos";
 import { OrdenesEmergencias } from "./OrdenesEmergencias";
+import { InsumosEnfermeriaPanel } from "./InsumosEnfermeriaPanel";
+import { TratamientoPacienteTabla } from "./TratamientoPacienteTabla";
 import {
   guardarBalanceEmergencia,
   leerBalanceEmergencia,
@@ -24,7 +26,6 @@ import {
   apiEmergencias,
   nombrePaciente,
   type CuentaEmergencia,
-  type RegistroEnfermeria,
 } from "./emergenciasApi";
 import { camposParaServicio } from "../triaje/camposSignosVitales";
 import { cancelarPreinternacion, crearPreinternacion } from "../internacion/registroInternaciones";
@@ -620,7 +621,7 @@ export function TriajeEmergenciasView({
     [camposEmergencia],
   );
   const [seccionClinica, setSeccionClinica] = useState<
-    "paciente" | "ingreso" | "insumos" | "reportes" | "signos" | "examen" | "descargos"
+    "paciente" | "ingreso" | "reportes" | "signos" | "examen" | "descargos"
   >("ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
     [activa, setActiva] = useState("");
@@ -628,12 +629,6 @@ export function TriajeEmergenciasView({
     [ocupado, setOcupado] = useState(false),
     [error, setError] = useState(""),
     [aviso, setAviso] = useState("");
-  const [usoTipo, setUsoTipo] = useState<RegistroEnfermeria["tipo"]>("insumo");
-  const [usoOrdenId, setUsoOrdenId] = useState("");
-  const [usoDetalle, setUsoDetalle] = useState(""),
-    [usoCantidad, setUsoCantidad] = useState(""),
-    [usoUnidad, setUsoUnidad] = useState(""),
-    [usoObservacion, setUsoObservacion] = useState("");
   const [ahora, setAhora] = useState(Date.now()),
     desfase = useRef(0),
     ultimaLectura = useRef(0);
@@ -648,7 +643,7 @@ export function TriajeEmergenciasView({
   const [datosIniciales, setDatosIniciales] = useState<Identidad>({});
   const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const [busquedaCuenta, setBusquedaCuenta] = useState(""),
-    [subvista, setSubvista] = useState<"atencion" | "historial">("atencion");
+    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario">("atencion");
   const [modalExportarHistorial, setModalExportarHistorial] = useState(false);
   const [fechaDesdeHistorial, setFechaDesdeHistorial] = useState("");
   const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
@@ -957,32 +952,6 @@ export function TriajeEmergenciasView({
     acumuladoBalanceEmergencia += registro.tipo === "ingreso" ? registro.volumen : -registro.volumen;
     return { ...registro, acumulado: acumuladoBalanceEmergencia, indice };
   });
-  async function registrarUsoEnfermeria(e: FormEvent) {
-    e.preventDefault();
-    if (!cuenta) return;
-    const cantidad = usoCantidad.trim() ? Number(usoCantidad) : null;
-    if (
-      await guardar(
-        `/${cuenta.id}/uso-enfermeria`,
-        {
-          tipo: usoTipo,
-          ...(usoOrdenId ? { ordenId: usoOrdenId } : {}),
-          detalle: usoDetalle.trim(),
-          cantidad,
-          unidad: usoUnidad.trim(),
-          observacion: usoObservacion.trim(),
-          ...fechaHoraIngresoActual(),
-        },
-        "Registro de enfermería guardado.",
-      )
-    ) {
-      setUsoDetalle("");
-      setUsoOrdenId("");
-      setUsoCantidad("");
-      setUsoUnidad("");
-      setUsoObservacion("");
-    }
-  }
   const serviciosPorHora = catalogo.filter(
     (item) =>
       /^(hora|horas|hr|hrs)$/i.test(item.unidad.trim()) ||
@@ -1235,10 +1204,19 @@ export function TriajeEmergenciasView({
                   </span>
                   <strong>Historial de atención</strong>
                 </button>
+                <button
+                  type="button"
+                  className={subvista === "inventario" ? "activo" : ""}
+                  aria-current={subvista === "inventario" ? "page" : undefined}
+                  onClick={() => setSubvista("inventario")}
+                >
+                  <span><Icon name="package" size={16} /></span>
+                  <strong>Inventario</strong>
+                </button>
               </HorizontalSubvistaNav>
             )}
           </div>
-          {!cuenta && (
+          {!cuenta && subvista !== "inventario" && (
             <div className="em-triaje-cabecera-acciones">
               <button
                 className="em-actualizar"
@@ -1732,7 +1710,13 @@ export function TriajeEmergenciasView({
           </form>
         </div>
       )}
+      {!recepcion && subvista === "inventario" && (
+        <section className="em-inventario-general" aria-label="Inventario de Triaje emergencias">
+          <InsumosEnfermeriaPanel />
+        </section>
+      )}
       <div
+        hidden={!recepcion && subvista === "inventario"}
         className={`em-distribucion ${nueva && !recepcion ? "formulario-abierto" : ""} ${cuenta && !recepcion ? "atencion-activa" : ""}`}
       >
         {!cuenta && (
@@ -2246,14 +2230,6 @@ export function TriajeEmergenciasView({
                     </button>
                     <button
                       type="button"
-                      className={seccionClinica === "insumos" ? "activo" : ""}
-                      aria-current={seccionClinica === "insumos" ? "page" : undefined}
-                      onClick={() => setSeccionClinica("insumos")}
-                    >
-                      Insumos del paciente
-                    </button>
-                    <button
-                      type="button"
                       className={seccionClinica === "reportes" ? "activo" : ""}
                       aria-current={seccionClinica === "reportes" ? "page" : undefined}
                       onClick={() => setSeccionClinica("reportes")}
@@ -2298,7 +2274,6 @@ export function TriajeEmergenciasView({
                       <header className="em-panel-titulo">
                         <div>
                           <h3>Signos vitales</h3>
-                          <small>Seguimiento de las mediciones de esta atención</small>
                         </div>
                       </header>
                       <div className="em-signos-columnas">
@@ -2422,7 +2397,6 @@ export function TriajeEmergenciasView({
                         <div>
                           <span>CONTROL DE LÍQUIDOS</span>
                           <h3>Balance hídrico</h3>
-                          <p>Registra y consulta los ingresos y egresos de líquidos durante esta atención.</p>
                         </div>
                         <b>{balanceEmergencia.length} {balanceEmergencia.length === 1 ? "registro" : "registros"}</b>
                       </header>
@@ -2656,6 +2630,7 @@ export function TriajeEmergenciasView({
                       </div>
                     </section>
                     <div className="em-seguimiento-enfermeria">
+                      <InsumosEnfermeriaPanel />
                       <OrdenesEmergencias
                         key={`indicaciones-${cuenta.id}`}
                         cuenta={cuenta}
@@ -2665,52 +2640,8 @@ export function TriajeEmergenciasView({
                         enfermeria
                       />
                     </div>
+                    <TratamientoPacienteTabla key={`tratamiento-${cuenta.id}`} cuenta={cuenta} />
                     </>
-                  )}
-                  {seccionClinica === "insumos" && (
-<section className="em-panel em-suministracion-panel">
-                        <header className="em-panel-titulo">
-                          <div>
-                          <h3>Administración y uso de insumos</h3>
-                            <small>Registra lo que enfermería prepara y utiliza durante la atención, además de la indicación médica.</small>
-                          </div>
-                          <b>{eventosSuministracion.length} registros</b>
-                        </header>
-                        {!cuenta.fin && <form className="em-suministracion-form" onSubmit={registrarUsoEnfermeria}>
-                          <label>Tipo de registro
-                            <select value={usoTipo} onChange={(evento) => setUsoTipo(evento.target.value as RegistroEnfermeria["tipo"])}>
-                              <option value="insumo">Medicamento, solución o material</option>
-                              <option value="procedimiento">Colocación o procedimiento</option>
-                              <option value="cuidado">Cuidado de enfermería</option>
-                            </select>
-                          </label>
-                          <label>Indicación médica relacionada
-                            <select value={usoOrdenId} onChange={(evento) => setUsoOrdenId(evento.target.value)}>
-                              <option value="">Sin indicación asociada</option>
-                              {[...(cuenta.ordenes || [])].reverse().map((orden) => <option key={orden.id} value={orden.id}>{orden.titulo} · {orden.estado === "pendiente" ? "Pendiente" : orden.estado === "en_curso" ? "En curso" : orden.estado === "aplicada" ? "Aplicada" : "Suspendida"}</option>)}
-                            </select>
-                          </label>
-                          <label className="em-suministracion-detalle">Detalle utilizado
-                            <input required maxLength={500} value={usoDetalle} onChange={(evento) => setUsoDetalle(evento.target.value)} placeholder="Ej. ampolla, jeringa, agua destilada, vía" />
-                          </label>
-                          <label>Cantidad
-                            <input type="number" min="0.001" step="any" value={usoCantidad} onChange={(evento) => setUsoCantidad(evento.target.value)} placeholder="Opcional" />
-                          </label>
-                          <label>Unidad
-                            <input maxLength={80} value={usoUnidad} onChange={(evento) => setUsoUnidad(evento.target.value)} placeholder="Ej. ml, unidad" />
-                          </label>
-                          <label className="em-suministracion-detalle">Observación
-                            <input maxLength={1000} value={usoObservacion} onChange={(evento) => setUsoObservacion(evento.target.value)} placeholder="Nota opcional" />
-                          </label>
-                          <button className="em-primario" type="submit" disabled={ocupado || !usoDetalle.trim()}>Registrar uso de enfermería</button>
-                        </form>}
-                        <div className="em-suministracion-lista" aria-label="Historial de suministración">
-                          {eventosSuministracion.length ? eventosSuministracion.map((evento) => <article key={evento.id}>
-                            <div><small>{evento.tipo} · {fecha(evento.fecha)}{evento.ordenId ? ` · Indicación: ${(cuenta.ordenes || []).find((orden) => orden.id === evento.ordenId)?.titulo || "asociada"}` : ""}</small><strong>{evento.detalle}</strong>{evento.cantidad && <span>Cantidad utilizada: {evento.cantidad}</span>}{evento.observacion && <p>{evento.observacion}</p>}</div>
-                            <span>{evento.cantidad || evento.estado}</span>
-                          </article>) : <p className="em-vacio">Todavía no hay suministraciones registradas.</p>}
-                        </div>
-                      </section>
                   )}
                   {seccionClinica === "examen" && (
                     <section className="em-panel em-examen-regional">

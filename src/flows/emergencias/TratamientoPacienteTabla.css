@@ -1,0 +1,25 @@
+.em-tratamiento-paciente { margin-top: 24px; }
+.em-tratamiento-herramientas { display: flex; gap: 14px; align-items: end; flex-wrap: wrap; margin-bottom: 16px; }
+.em-tratamiento-herramientas label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; color: #355c78; min-width: 0; }
+.em-tratamiento-herramientas label:first-child { flex: 1 1 260px; }
+.em-tratamiento-herramientas label:last-child { flex: 0 1 235px; }
+.em-tratamiento-herramientas :is(input, select) { width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid #a9c9dd; border-radius: 8px; font: inherit; background: #fff; color: #244d6a; }
+.em-tratamiento-scroll { overflow-x: auto; max-height: 530px; border: 1px solid #c8dfea; border-radius: 9px; }
+.em-tratamiento-scroll:focus-visible { outline: 3px solid #087fc040; outline-offset: 2px; }
+.em-tratamiento-scroll table { width: 100%; min-width: 1050px; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 12px; color: #315875; }
+.em-tratamiento-scroll th { position: sticky; top: 0; z-index: 1; padding: 13px 14px; border-bottom: 1px solid #bdd8e7; background: #eef6fc; color: #255475; font-size: 11px; }
+.em-tratamiento-scroll td { padding: 14px; border-bottom: 1px solid #d9e7f0; vertical-align: top; line-height: 1.5; }
+.em-tratamiento-scroll tbody tr:last-child td { border-bottom: 0; }
+.em-tratamiento-scroll tbody tr:nth-child(even) { background: #f8fbfe; }
+.em-tratamiento-scroll td:first-child { width: 145px; }
+.em-tratamiento-scroll time { font-weight: 700; }
+.em-tratamiento-scroll td:nth-child(3) { min-width: 240px; max-width: 340px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.em-tratamiento-scroll td:nth-child(5) { min-width: 170px; }
+.em-tratamiento-scroll p { margin: 5px 0 0; color: #6b8498; }
+.em-tratamiento-estado { display: inline-block; padding: 4px 8px; border: 1px solid #c7dfea; border-radius: 6px; background: #f0f7fb; white-space: nowrap; font-size: 11px; }
+.em-tratamiento-estado.en-uso { color: #08764e; border-color: #b5dfcd; background: #edf9f2; }
+.em-tratamiento-scroll .em-tratamiento-vacio { padding: 30px 18px; text-align: center; color: #71899c; }
+.sistema-app[data-theme="dark"] .em-tratamiento-paciente :is(td, label) { color: #c5dceb; }
+.sistema-app[data-theme="dark"] .em-tratamiento-paciente :is(th, input, select, .em-tratamiento-estado) { background: #12334e; color: #d3e4f0; border-color: #42647d; }
+.sistema-app[data-theme="dark"] .em-tratamiento-scroll tbody tr:nth-child(even) { background: #102c46; }
+@media (max-width: 600px) { .em-tratamiento-herramientas label:last-child { flex: 1 1 100%; } }

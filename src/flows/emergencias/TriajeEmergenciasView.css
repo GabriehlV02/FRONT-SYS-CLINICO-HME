@@ -771,7 +771,7 @@
 .em-evolucion-modal>p{margin:18px 0;color:#294d65;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
 .em-evolucion-modal>small{display:block;color:#71899c;font-size:11px}
 .em-evolucion-modal>.em-evolucion-editada{margin-top:6px;color:#1684ae}
-.em-seguimiento-enfermeria{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:18px;margin-top:18px}
+.em-seguimiento-enfermeria{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,0.9fr);align-items:start;gap:18px;margin-top:18px;padding-inline:19px}
 .em-seguimiento-enfermeria>.em-panel{min-width:0;height:100%;margin:0}
 .em-suministracion-panel{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:14px;padding:18px;border:1px solid #cfe1ec;border-radius:13px;background:linear-gradient(155deg,#fbfdff 0%,#f3f9fc 100%);box-shadow:0 5px 16px rgba(28,77,107,.045)}
 .em-suministracion-panel>.em-panel-titulo{align-items:flex-start;gap:10px}
@@ -792,7 +792,7 @@
 .em-suministracion-lista>article p{margin:0;color:#6d8799;font-size:11px;line-height:1.45}
 .em-suministracion-lista>article>span{flex:0 0 auto;padding:5px 7px;border-radius:6px;color:#247493;background:#edf7fb;font-size:10px;font-weight:700}
 .em-suministracion-lista>.em-vacio{align-self:center;margin:0;padding:18px;color:#71899c;font-size:12px;text-align:center}
-@media(max-width:900px){.em-seguimiento-enfermeria{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:1100px){.em-seguimiento-enfermeria{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:520px){.em-suministracion-panel{padding:13px}.em-suministracion-form{grid-template-columns:minmax(0,1fr);padding:11px}.em-suministracion-detalle,.em-suministracion-form>button{grid-column:1}.em-suministracion-form>button{justify-self:stretch}}
 .em-evolucion-historial {
   gap: 14px;
@@ -3423,7 +3423,8 @@
 .em-balance-emergencias-historial li > b { color: #315875; font-size: 12px; white-space: nowrap; }
 .em-balance-emergencias-historial li.ingreso > b { color: #18805a; }
 .em-balance-emergencias-historial li.egreso > b { color: #c24d58; }
-.em-balance-emergencias-historial li > time { color: #71899c; font-size: 10px; white-space: nowrap; }
+.em-balance-emergencias-historial li > time { color: #315875; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.sistema-app[data-theme="dark"] .em-balance-emergencias-historial li > time { color: #c5dceb; }
 @media (max-width: 1250px) {
   .em-balance-emergencias-cuerpo > .em-balance-emergencias-form { grid-template-columns:minmax(0,1fr) minmax(105px,.7fr); }
   .em-balance-emergencias-cuerpo > .em-balance-emergencias-form button { justify-self:stretch; }
@@ -5076,3 +5077,122 @@
     width: 100%;
   }
 }
+.em-insumos-enfermeria {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.em-insumos-enfermeria-herramientas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px auto;
+  align-items: end;
+  gap: 12px;
+}
+.em-insumos-filtro { width: 110px; }
+.em-insumos-buscar > span { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 11px; border: 1px solid #a9c9dd; border-radius: 8px; background: #fff; color: #63849b; }
+.em-insumos-buscar input { width: 100%; min-width: 0; min-height: 38px; padding: 0; border: 0; background: transparent; font: inherit; font-weight: 400; color: #244d6a; outline: none; }
+.em-insumos-buscar > span:focus-within { border-color: #087fc0; outline: 2px solid #087fc022; }
+.sistema-app[data-theme="dark"] .em-insumos-buscar > span { background: #12334e; border-color: #42647d; }
+.sistema-app[data-theme="dark"] .em-insumos-buscar input { color: #e2eef6; }
+@media (max-width: 1200px) {
+  .em-insumos-enfermeria-herramientas { grid-template-columns: minmax(0, 1fr) auto; }
+  .em-insumos-buscar { grid-column: 1/-1; }
+}
+.em-insumos-enfermeria-herramientas label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: #355c78;
+  font-size: 12px;
+  font-weight: 700;
+}
+.em-insumos-enfermeria-herramientas select {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid #a9c9dd;
+  border-radius: 8px;
+  background: #fff;
+  color: #244d6a;
+  font: inherit;
+}
+.em-insumos-enfermeria-herramientas button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 15px;
+  white-space: nowrap;
+}
+.em-insumos-enfermeria-tabla {
+  overflow-x: auto;
+  border: 1px solid #c8dfea;
+  border-radius: 9px;
+  flex: 1;
+}
+.em-insumos-enfermeria-tabla table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+.em-insumos-enfermeria-tabla th {
+  padding: 11px 14px;
+  border-bottom: 1px solid #c8dfea;
+  background: #f0f7fc;
+  color: #355c78;
+  font-weight: 700;
+}
+.em-insumos-enfermeria-tabla th:first-child { width: 60%; }
+.em-insumos-enfermeria-tabla .em-insumos-enfermeria-vacio {
+  padding: 30px 16px;
+  text-align: center;
+  color: #71899c;
+  line-height: 1.5;
+}
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria-herramientas label,
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria-tabla th { color: #c5dceb; }
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria-herramientas select,
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria-tabla th {
+  background: #12334e;
+  border-color: #42647d;
+  color: #e2eef6;
+}
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria-tabla { border-color: #42647d; }
+@media (max-width: 480px) {
+  .em-insumos-enfermeria-herramientas > * { width: 100%; }
+}
+.em-insumos-enfermeria-tabla td { padding: 12px 14px; border-bottom: 1px solid #d8e7f0; }
+.em-insumos-enfermeria-tabla td small { display: block; margin-top: 4px; color: #71899c; }
+.em-insumos-solicitudes { font-size: 12px; }
+.em-insumos-solicitudes summary { cursor: pointer; font-weight: 700; color: #286084; }
+.em-insumos-solicitudes article { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid #d5e5ef; }
+.em-insumos-solicitudes article small { display: block; margin-top: 5px; color: #71899c; }
+.em-insumos-solicitudes article span { flex-shrink: 0; color: #0879ac; }
+.em-insumos-solicitud-modal { width: min(740px, calc(100vw - 32px)); max-height: 85dvh; margin: auto; padding: 24px; border: 1px solid #9ebfd5; border-radius: 14px; color: #234c68; background: #fff; box-shadow: 0 20px 80px #12334e40; overflow-y: auto; }
+.em-insumos-solicitud-modal::backdrop { background: #102c4680; }
+.em-insumos-solicitud-modal form { display: grid; gap: 18px; }
+.em-insumos-solicitud-modal header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.em-insumos-solicitud-modal h3 { margin: 0; font-size: 18px; }
+.em-insumos-solicitud-modal p { margin: 6px 0 0; color: #668095; font-size: 12px; line-height: 1.6; }
+.em-insumos-solicitud-modal label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; }
+.em-insumos-solicitud-modal :is(input, select, textarea) { width: 100%; min-width: 0; min-height: 40px; padding: 9px 11px; border: 1px solid #a9c9dd; border-radius: 8px; font: inherit; background: #fff; color: #234c68; }
+.em-insumos-solicitud-modal textarea { min-height: 70px; resize: vertical; }
+.em-insumos-solicitud-modal button { min-height: 38px; padding: 8px 12px; border: 1px solid #a9c9dd; border-radius: 8px; cursor: pointer; }
+.em-insumos-solicitud-modal :is(button, input, select, textarea):focus-visible { outline: 3px solid #087fc033; outline-offset: 2px; }
+.em-insumos-solicitud-modal button:disabled { opacity: .5; cursor: not-allowed; }
+.em-insumos-solicitud-lineas { display: grid; gap: 12px; }
+.em-insumos-solicitud-lineas > div { display: grid; grid-template-columns: minmax(0, 1fr) 105px auto; gap: 10px; align-items: end; }
+.em-insumos-solicitud-modal footer { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #d5e5ef; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-modal { background: #102c46; color: #d3e4f0; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-modal :is(input, select, textarea) { background: #163b58; color: #d3e4f0; }
+@media (max-width: 520px) {
+  .em-insumos-solicitud-modal { padding: 16px; }
+  .em-insumos-solicitud-lineas > div { grid-template-columns: minmax(0, 1fr) 90px; }
+  .em-insumos-solicitud-lineas > div > button { grid-column: 1/-1; }
+  .em-insumos-solicitudes article { align-items: flex-start; flex-direction: column; }
+}
+.em-distribucion[hidden] { display: none; }
+.em-inventario-general { width: 100%; min-width: 0; }
+.em-inventario-general > .em-insumos-enfermeria { min-height: 350px; margin: 0; }

@@ -2094,7 +2094,7 @@ export default function Aplicacion() {
             ) : modulo === "farmacia-movimientos" || modulo === "almacen" ? (
               <AdministracionFarmaciaView />
             ) : modulo === "dispensar" ? (
-              <FarmaciaView />
+              <FarmaciaView key="dispensar" solicitudesIniciales />
             ) : modulo === "cocina" ? (
               <CocinaVentasView />
             ) : modulo === "cocina-internacion" ? (

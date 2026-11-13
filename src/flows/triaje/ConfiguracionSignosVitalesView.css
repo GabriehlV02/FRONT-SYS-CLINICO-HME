@@ -756,3 +756,11 @@
     grid-template-columns: 1fr;
   }
 }
+.config-signos-alerta-toggle { display: flex !important; align-items: center; gap: 14px; padding: 16px; border: 1px solid #fecaca; border-radius: 12px; background: #fff7f7; color: #7f1d1d; }
+.config-signos-alerta-toggle span { display: grid; gap: 6px; }
+.config-signos-alerta-toggle small { font-weight: 400; line-height: 1.5; }
+.config-signos-alerta-toggle input[role="switch"] { appearance: none; flex: 0 0 42px; width: 42px; height: 24px; border-radius: 20px; background: #94a3b8; border: 0; padding: 3px; cursor: pointer; }
+.config-signos-alerta-toggle input[role="switch"]::before { content: ""; display: block; width: 18px; height: 18px; background: white; border-radius: 50%; transition: transform .15s; }
+.config-signos-alerta-toggle input[role="switch"]:checked { background: #b91c1c; }
+.config-signos-alerta-toggle input[role="switch"]:checked::before { transform: translateX(18px); }
+.config-signos-alerta-toggle input[role="switch"]:focus-visible { outline: 3px solid #1d396e; outline-offset: 3px; }

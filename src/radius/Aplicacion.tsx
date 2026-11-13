@@ -1,14 +1,19 @@
+import { compararCola, prioridadPendiente } from "../flows/consultorio/prioridadCola";
+import { mensajePrioridad } from "../flows/triaje/prioridadAtencion";
+import { obtenerVersionSignos, suscribirSignosVitales } from "../flows/triaje/registroSignosVitales";
+import { registrarAtencionAmbulatoria } from "../flows/consultorio/registroHistoria";
 import { esModoPruebaLocal } from "./datos/modoPrueba";
 import React, {
   Suspense,
   lazy,
   useEffect,
   useState,
+  useRef,
   useSyncExternalStore,
 } from "react";
 import { apiFetch } from "./api";
 import Icon, { type IconName } from "./componentes/Icono";
-import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
+import CentroNotificaciones, { confirmar, notificar } from "./componentes/Notificaciones";
 import { usePacientes } from "./vistas/pacientes/usePacientes";
 import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerCitasAgendaDemo } from "./datos/agendaDemo";
@@ -1113,51 +1118,59 @@ export default function Aplicacion() {
     ? citasColaAtencion.length
       ? citasColaAtencion.filter((cita) => cita.estado === "confirmada")
       : obtenerCitasAgendaDemo().filter((cita) => cita.estado === "confirmada")
-    : errorColaAtencion
-      ? []
-      : citasColaAtencion;
+    : citasColaAtencion;
+  const versionAlertasSignos = useSyncExternalStore(suscribirSignosVitales, obtenerVersionSignos, obtenerVersionSignos);
   const citasVisiblesCola = citasVisiblesColaBase.filter(
     (cita) =>
       cita.fecha === fechaActualCola &&
-      esPendienteDeAtencion(cita, fechaActualCola),
-  );
+      esPendienteDeAtencion(cita, fechaActualCola) &&
+      (esAdministrador || normalizarNombre(cita.doctor) === nombreSesion),
+  ).sort(compararCola);
+  const prioridadesCola = citasVisiblesCola.filter((cita) => prioridadPendiente(cita));
+  const avisadas = useRef(new Set<string>());
+  useEffect(() => {
+    if (!esMedico) return;
+    for (const cita of prioridadesCola) {
+      const prioridad = prioridadPendiente(cita);
+      if (!prioridad) continue;
+      const clave = `${sesion?.usuario.id}:${cita.id}:${prioridad.id}`;
+      if (avisadas.current.has(clave)) continue;
+      avisadas.current.add(clave);
+      const mensaje = mensajePrioridad(cita.paciente, prioridad);
+      notificar("error", "Atención prioritaria", mensaje, true);
+      setAvisos((actual) => [{ titulo: "Atención prioritaria", mensaje }, ...actual]);
+    }
+  }, [citasColaAtencion, versionAlertasSignos, esMedico, sesion?.usuario.id, fechaActualCola]);
   const internacionesVisiblesCola = internacionesColaAtencion.length
     ? internacionesColaAtencion
     : ejemplosInternacionCola;
   useEffect(() => {
-    if (!colaAtencionAbierta) return;
-    if (esDemoClinico) {
-      setErrorColaAtencion("");
-      setCitasColaAtencion(obtenerCitasAgendaDemo());
-      setCargandoColaAtencion(false);
-      return;
-    }
+    if (!esMedico || !sesion?.token) return;
     const controller = new AbortController();
-    setCargandoColaAtencion(true);
-    setErrorColaAtencion("");
-    void apiFetch("/api/citas", { signal: controller.signal })
-      .then(async (respuesta) => {
-        if (!respuesta.ok)
-          throw new Error("No se pudo consultar la agenda de pacientes.");
-        const citas = (await respuesta.json()) as Array<
-          CitaConfirmada & { estado: string }
-        >;
-        if (!controller.signal.aborted) {
-          setCitasColaAtencion(
-            citas.filter((cita) =>
-              esPendienteDeAtencion(cita, fechaLocalISO()),
-            ),
-          );
+    let temporizador = 0;
+    const cargar = async () => {
+      try {
+        if (esDemoClinico) setCitasColaAtencion(obtenerCitasAgendaDemo());
+        else {
+          const respuesta = await apiFetch("/api/citas", { signal: controller.signal });
+          if (!respuesta.ok) throw new Error("No se pudo consultar la agenda de pacientes.");
+          const citas = await respuesta.json() as CitaConfirmada[];
+          if (!controller.signal.aborted) setCitasColaAtencion(citas);
         }
-      })
-      .catch((causa: Error) => {
-        if (!controller.signal.aborted) setErrorColaAtencion(causa.message);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setCargandoColaAtencion(false);
-      });
-    return () => controller.abort();
-  }, [colaAtencionAbierta, esDemoClinico]);
+        if (!controller.signal.aborted) setErrorColaAtencion("");
+      } catch (causa) {
+        if (!controller.signal.aborted) setErrorColaAtencion(causa instanceof Error ? causa.message : "No se pudo consultar la agenda.");
+      } finally {
+        if (!controller.signal.aborted) {
+          setCargandoColaAtencion(false);
+          temporizador = window.setTimeout(cargar, 5000);
+        }
+      }
+    };
+    setCargandoColaAtencion(true);
+    void cargar();
+    return () => { controller.abort(); window.clearTimeout(temporizador); };
+  }, [esMedico, sesion?.token, esDemoClinico]);
   useEffect(() => {
     if (!colaAtencionAbierta) return;
     let cancelado = false;
@@ -1704,11 +1717,11 @@ export default function Aplicacion() {
           </div>
           {esMedico && (
             <button
-              className="cola-atencion-rapida"
+              className={`cola-atencion-rapida ${prioridadesCola.length ? "cola-atencion-critica" : ""}`}
               type="button"
               onClick={() => setColaAtencionAbierta(true)}
             >
-              <Icon name="userCheck" size={17} /> Cola de atención
+              <Icon name="userCheck" size={17} /> {prioridadesCola.length ? `Atención prioritaria (${prioridadesCola.length})` : "Cola de atención"}
             </button>
           )}
           <button
@@ -1778,11 +1791,12 @@ export default function Aplicacion() {
                 )}
                 {!cargandoColaAtencion &&
                   citasVisiblesCola.map((cita, indice) => (
-                    <article key={cita.id}>
+                    <article key={cita.id} className={prioridadPendiente(cita) ? "cola-paciente-prioritario" : ""}>
                       <span className="cola-atencion-numero">{indice + 1}</span>
                       <div className="cola-atencion-datos">
-                        <b>Por atender</b>
+                        <b>{prioridadPendiente(cita) ? "Prioridad · Siguiente" : "Por atender"}</b>
                         <strong>{cita.paciente}</strong>
+                        {prioridadPendiente(cita) && <small className="cola-alerta-detalle">{mensajePrioridad(cita.paciente, prioridadPendiente(cita)!)}</small>}
                         <small>
                           {cita.especialidad || "Consulta ambulatoria"}
                         </small>
@@ -1791,6 +1805,7 @@ export default function Aplicacion() {
                       <button
                         type="button"
                         onClick={() => {
+                          registrarAtencionAmbulatoria(cita, sesion?.usuario.nombre || cita.doctor);
                           setPacienteColaAtencion(cita);
                           setColaAtencionAbierta(false);
                           setModulo("atencion-medica");

@@ -83,7 +83,7 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
   }));
   const [registroPacienteAbierto, setRegistroPacienteAbierto] = useState(false);
   const [vista, setVista] = useState<
-    "cuenta" | "programar" | "cronograma" | "historial" | "cirugias-admin" | "cotizar"
+    "cuenta" | "programar" | "cronograma" | "historial" | "cirugias-admin"
   >(abrirFormulario ? "cuenta" : "programar");
   const [cirugias, setCirugias] = useState(leerCronograma);
   const [fechaCronograma, setFechaCronograma] = useState("");
@@ -324,16 +324,6 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
       <nav className="cuenta-q-subvistas" aria-label="Quirófano">
         <button
           type="button"
-          className={vista === "cotizar" ? "activo" : ""}
-          onClick={() => setVista("cotizar")}
-        >
-          <span>
-            <Icon name="cash" size={16} />
-          </span>
-          <strong>Cotizar cirugía</strong>
-        </button>
-        <button
-          type="button"
           className={vista === "programar" ? "activo" : ""}
           onClick={() => {
             setCirugias(leerCronograma());
@@ -343,7 +333,7 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
           <span>
             <Icon name="calendar" size={16} />
           </span>
-          <strong>Programar cirugía</strong>
+          <strong>Cotizar y programar cirugía</strong>
         </button>
         <button
           type="button"
@@ -383,17 +373,19 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
         </button>
       </nav>
       {vista === "programar" && (
-        <ProgramarCirugiaView
-          cirugias={cirugias}
-          onRegistrar={() => {
-            nuevaCuenta();
-            setVista("cuenta");
-          }}
-        />
+        <div className="cuenta-q-cotizar-programar">
+          <CotizacionCirugiaView pacientes={pacientes} />
+          <ProgramarCirugiaView
+            cirugias={cirugias}
+            onRegistrar={() => {
+              nuevaCuenta();
+              setVista("cuenta");
+            }}
+          />
+        </div>
       )}
       {vista === "historial" && <HistorialQuirofanoView cirugias={cirugias} />}
       {vista === "cirugias-admin" && <CirugiasAdminView />}
-      {vista === "cotizar" && <CotizacionCirugiaView pacientes={pacientes} />}
       {vista === "cronograma" && (
         <>
           {cuenta && (

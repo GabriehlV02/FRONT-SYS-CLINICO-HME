@@ -1,3 +1,4 @@
+import { esModoPruebaLocal } from "./datos/modoPrueba";
 import React, {
   Suspense,
   lazy,
@@ -11,6 +12,7 @@ import CentroNotificaciones, { confirmar } from "./componentes/Notificaciones";
 import { usePacientes } from "./vistas/pacientes/usePacientes";
 import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerCitasAgendaDemo } from "./datos/agendaDemo";
+import { leerCronograma } from "../flows/quirofano/cronogramaQuirofano";
 import { obtenerPacientesTerapiaDemo } from "../flows/internacion/terapiaIntensivaDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import {
@@ -899,7 +901,16 @@ export default function Aplicacion() {
       .filter(Boolean)
       .join(" "),
   );
-  const cirugiasVisiblesEnfermeria = cirugiasProgramadas.filter((cirugia) => {
+  const cirugiasLocales: CirugiaProgramada[] = import.meta.env.DEV
+    ? leerCronograma().filter((cirugia) => cirugia.id.startsWith("prueba-cirugia-")).map((cirugia) => ({
+        id: cirugia.id, hora: cirugia.hora, sala: cirugia.quirofano, paciente: cirugia.paciente,
+        procedimiento: cirugia.tipo, cirujano: cirugia.medico, estado: "Programada",
+        historia: `HC-${cirugia.ci}`, ci: cirugia.ci, edad: "Paciente de prueba",
+        diagnostico: "Escenario ficticio", anestesiologo: "Personal de prueba",
+        ayudante: "Personal de prueba", instrumentista: "Personal de prueba", circulante: "Personal de prueba",
+      }))
+    : [];
+  const cirugiasVisiblesEnfermeria = [...cirugiasProgramadas, ...cirugiasLocales].filter((cirugia) => {
     if (esAdministrador) return true;
     if (rolEnfermeriaQuirofano === "almacen") return true;
     const asignacion = buscarAsignacionQuirofano(cirugia);
@@ -942,8 +953,7 @@ export default function Aplicacion() {
   useEffect(() => {
     if (!sesion?.token) return;
     if (
-      import.meta.env.DEV &&
-      sesion.token === "frontend-demo-local"
+      esModoPruebaLocal()
     ) {
       setSignosVitalesConfigurados(cargarSignos(signosVitalesIniciales));
       setEstadoSignos("listo");
@@ -970,8 +980,7 @@ export default function Aplicacion() {
   }, [sesion?.token, versionSignos]);
   const actualizarSignosVitales = async (siguientes: SignoVitalConfig[]) => {
     if (
-      import.meta.env.DEV &&
-      sesion?.token === "frontend-demo-local"
+      esModoPruebaLocal()
     ) {
       guardarSignos(siguientes);
       setSignosVitalesConfigurados(siguientes);
@@ -1099,7 +1108,7 @@ export default function Aplicacion() {
         normalizarNombre(internacion.medico) === nombreSesion),
   );
   const esDemoClinico =
-    import.meta.env.DEV && sesion?.token === "frontend-demo-local";
+    esModoPruebaLocal();
   const citasVisiblesColaBase = esDemoClinico
     ? citasColaAtencion.length
       ? citasColaAtencion.filter((cita) => cita.estado === "confirmada")
@@ -1693,6 +1702,16 @@ export default function Aplicacion() {
               </section>
             )}
           </div>
+          {import.meta.env.DEV && (
+            <button type="button" className="clinico-indicador-prueba"
+              title="Activa o desactiva los flujos con fichas ficticias. En pruebas locales no se envían escrituras al servidor."
+              onClick={() => {
+                localStorage.setItem("clinico:pacientes-prueba:activos", esModoPruebaLocal() ? "0" : "1");
+                window.location.reload();
+              }}>
+              {esModoPruebaLocal() ? "Pruebas locales · Salir" : "Usar pacientes de prueba"}
+            </button>
+          )}
           {esMedico && (
             <button
               className="cola-atencion-rapida"

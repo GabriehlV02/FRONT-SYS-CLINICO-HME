@@ -64,7 +64,7 @@ const evento = "internacion:actualizada";
 let cache: RegistroInternacion[] | null = null;
 const idsPrueba = ["INT-PRUEBA-LOCAL-001", "INT-PRUEBA-LOCAL-002", "INT-PRUEBA-UCI-001"];
 export const esInternacionPruebaLocal = (registro: RegistroInternacion) =>
-  import.meta.env.DEV && idsPrueba.includes(registro.id);
+  import.meta.env.DEV && (idsPrueba.includes(registro.id) || registro.id.startsWith("prueba-internacion-"));
 
 export function esPacienteUci(registro: Pick<RegistroInternacion, "sala" | "tipoSala" | "servicio">) {
   const ubicacion = [registro.sala, registro.tipoSala, registro.servicio]
@@ -78,6 +78,7 @@ export function esPacienteUci(registro: Pick<RegistroInternacion, "sala" | "tipo
 
 function agregarPacientesPrueba(registros: RegistroInternacion[]) {
   if (!import.meta.env.DEV) return registros.filter((registro) => !idsPrueba.includes(registro.id));
+  if (registros.some((registro) => registro.id.startsWith("prueba-internacion-"))) return registros;
   const ahora = new Date();
   const fecha = ahora.toLocaleDateString("es-BO");
   const nuevos = idsPrueba.filter((id) => !registros.some((registro) => registro.id === id)).map((id): RegistroInternacion => {

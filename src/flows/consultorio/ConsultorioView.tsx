@@ -512,7 +512,7 @@ function TapaHistoria({ paciente }: { paciente: PacienteHistoria }) {
         </div>
         <div>
           <dt>Edad</dt>
-          <dd>{paciente.edad} años</dd>
+          <dd>{Number.isFinite(paciente.edad) ? `${paciente.edad} años` : "No registrada"}</dd>
         </div>
         <div>
           <dt>Fecha de nacimiento</dt>
@@ -798,7 +798,7 @@ export function HistoriaHojeable({
             <b>CI:</b> {paciente.ci}
           </p>
           <p>
-            <b>Edad:</b> {paciente.edad} años
+            <b>Edad:</b> {Number.isFinite(paciente.edad) ? `${paciente.edad} años` : "No registrada"}
           </p>
           <p>
             <b>Fecha de nacimiento:</b> {paciente.fechaNacimiento}

@@ -1,0 +1,47 @@
+/* Cabecera y menú comparten el mismo límite, también al desplegar por hover. */
+.sistema-app {
+  --clinico-topbar: 70px;
+}
+
+.sistema-app .sistema-topbar,
+.sistema-app.sidebar-replegado .sistema-topbar {
+  position: fixed;
+  top: 0;
+  left: 0 !important;
+  right: 0 !important;
+  width: auto !important;
+  height: var(--clinico-topbar) !important;
+  min-height: var(--clinico-topbar) !important;
+  margin-left: 0 !important;
+  box-sizing: border-box;
+  z-index: 200;
+}
+
+.sistema-app .sistema-sidebar {
+  top: var(--clinico-topbar) !important;
+  height: calc(100dvh - var(--clinico-topbar)) !important;
+  max-height: calc(100dvh - var(--clinico-topbar));
+  margin-top: 0;
+  border-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  z-index: 110;
+}
+
+.sistema-app .area-trabajo {
+  padding-top: calc(var(--clinico-topbar) + 16px) !important;
+}
+
+.sistema-app .menu-fondo {
+  top: var(--clinico-topbar) !important;
+}
+
+@media (max-width: 760px) {
+  .sistema-app { --clinico-topbar: 100px; }
+
+  .sistema-app .sistema-cuerpo,
+  .sistema-app.sidebar-replegado .sistema-cuerpo {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+}

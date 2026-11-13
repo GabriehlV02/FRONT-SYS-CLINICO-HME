@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Icon from "../../radius/componentes/Icono";
+import { leerCronograma } from "./cronogramaQuirofano";
+import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import "./MedicoQuirofanoView.css";
 
 type Rol =
@@ -41,6 +43,10 @@ const roles: { id: Rol; titulo: string; descripcion: string }[] = [
 export function MedicoQuirofanoView() {
   const [rol, setRol] = useState<Rol>("cirujano");
   const activo = roles.find((item) => item.id === rol)!;
+  const [busqueda, setBusqueda] = useState("");
+  const cirugiasPrueba = esModoPruebaLocal()
+    ? leerCronograma().filter((cirugia) => cirugia.id.startsWith("prueba-cirugia-") && `${cirugia.paciente} ${cirugia.ci}`.toLocaleLowerCase("es").includes(busqueda.trim().toLocaleLowerCase("es")))
+    : [];
   return (
     <section className="medico-q" aria-labelledby="medico-q-titulo">
       <nav
@@ -70,13 +76,16 @@ export function MedicoQuirofanoView() {
             <Icon name="userCheck" size={22} />
           </span>
         </header>
-        <div className="medico-q-vacio">
+        {esModoPruebaLocal() && <label className="medico-q-busqueda">Buscar paciente de prueba<input value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Nombre o CI" /></label>}
+        {cirugiasPrueba.length ? <div className="medico-q-pruebas">{cirugiasPrueba.map((cirugia) => (
+          <article key={cirugia.id}><strong>{cirugia.paciente}</strong><span>CI {cirugia.ci}</span><p>{cirugia.tipo}</p><small>{cirugia.fecha} · {cirugia.hora} · {cirugia.quirofano}</small></article>
+        ))}</div> : <div className="medico-q-vacio">
           <Icon name="calendar" size={28} />
           <strong>Sin cirugías asignadas</strong>
           <small>
             Las cirugías correspondientes a este rol aparecerán aquí.
           </small>
-        </div>
+        </div>}
       </section>
     </section>
   );

@@ -1,3 +1,4 @@
+import { esModoPruebaLocal } from "../../../radius/datos/modoPrueba";
 import {
   useProfesionales,
   etiquetaProfesional,
@@ -14,7 +15,6 @@ import {
   guardarCitasAgendaDemo,
   obtenerCitasAgendaDemo,
 } from "../../../radius/datos/agendaDemo";
-import { leerSesion } from "../../../radius/types/sesion";
 import { AgendarConsultaView } from "./AgendarConsultaView";
 import "./CitasRecepcionView.css";
 
@@ -107,7 +107,7 @@ export function CitasRecepcionView({
   agendarInicial = false,
 }: { medicoInicial?: string; agendarInicial?: boolean } = {}) {
   const esDemoLocal =
-    import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+    esModoPruebaLocal();
   const { medicos, resolver, errorProfesionales } = useProfesionales();
   const doctores = [
     "Todos los doctores",

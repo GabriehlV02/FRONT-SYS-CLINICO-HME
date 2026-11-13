@@ -1,3 +1,4 @@
+import { esModoPruebaLocal } from "../../datos/modoPrueba";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../api";
 
@@ -22,6 +23,11 @@ export function useEstudiosPacientes(habilitado = true) {
     if (!habilitado) return;
     let controller: AbortController | undefined;
     const cargar = () => {
+      if (esModoPruebaLocal()) {
+        setEstudios(JSON.parse(localStorage.getItem("clinico.prueba.estudios-agenda.v1") || "[]"));
+        setError("");
+        return;
+      }
       controller?.abort();
       controller = new AbortController();
       const signal = controller.signal;

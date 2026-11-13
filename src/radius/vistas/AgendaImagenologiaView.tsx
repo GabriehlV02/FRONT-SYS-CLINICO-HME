@@ -42,6 +42,8 @@ export default function AgendaImagenologiaView() {
           ECOGRAFIA: "Ecografía",
           ECOCARDIOGRAMA: "Ecocardiograma",
           RADIOGRAFIA: "Radiografía",
+          ELECTROCARDIOGRAMA: "Electrocardiograma",
+          HOLTER: "Holter",
         } as Record<string, Modalidad>
       )[e.tipo] || "Radiografía",
     estudio: e.nombre,

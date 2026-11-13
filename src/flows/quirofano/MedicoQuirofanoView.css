@@ -106,3 +106,9 @@
     min-height: 400px;
   }
 }
+.medico-q-busqueda { display:grid; gap:8px; padding:20px; color:#315875; font-size:13px; }
+.medico-q-busqueda input { padding:12px; border:1px solid #cfe3ef; border-radius:8px; }
+.medico-q-pruebas { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; padding:0 20px 20px; }
+.medico-q-pruebas article { display:grid; gap:8px; padding:20px; border:1px solid #cfe3ef; border-radius:12px; background:#f8fbfe; }
+.medico-q-pruebas p { margin:0; }
+.medico-q-pruebas span,.medico-q-pruebas small { color:#617d92; }

@@ -1,3 +1,4 @@
+import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { useProfesionales } from "../../radius/profesionales";
 import { leerSesion } from "../../radius/types/sesion";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
@@ -54,7 +55,7 @@ export function AgendaAmbulatoriaView({
 }) {
   const { profesionales } = useProfesionales();
   const esDemo =
-    import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+    esModoPruebaLocal();
   const profesionalActual = profesionales.find(
     (p) => p.usuario_id === String(leerSesion()?.usuario.id),
   );

@@ -1,6 +1,6 @@
+import { esModoPruebaLocal } from "./datos/modoPrueba";
 import { apiFetch } from "./api";
 import { obtenerPacientes } from "./datos/almacenDemo";
-import { leerSesion } from "./types/sesion";
 
 export type DatosPacienteCompartido = {
   nombres?: string;
@@ -24,8 +24,7 @@ export async function sincronizarPaciente(datos: DatosPacienteCompartido) {
       "Selecciona un paciente registrado o completa su registro en Pacientes.",
     );
   if (
-    import.meta.env.DEV &&
-    leerSesion()?.token === "frontend-demo-local"
+    esModoPruebaLocal()
   ) {
     const paciente = obtenerPacientes().find(
       (item) => item.numeroDocumento.trim() === ci.trim(),

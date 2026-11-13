@@ -1,7 +1,7 @@
+import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../../radius/api';
 import Icon from '../../radius/componentes/Icono';
-import { leerSesion } from '../../radius/types/sesion';
 import type { SignoVitalConfig } from './ConfiguracionSignosVitalesView';
 
 export type ServicioSignos = { id: string; nombre: string; descripcion: string; signos: string[] };
@@ -30,7 +30,7 @@ export function useServiciosSignosVitales() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {
-    if (import.meta.env.DEV && leerSesion()?.token === 'frontend-demo-local') {
+    if (esModoPruebaLocal()) {
       setServicios(leerServiciosDemo());
       setCargando(false);
       return;
@@ -45,7 +45,7 @@ export function useServiciosSignosVitales() {
     return () => controller.abort();
   }, []);
   async function guardar(id: string, signos: string[]) {
-    if (import.meta.env.DEV && leerSesion()?.token === 'frontend-demo-local') {
+    if (esModoPruebaLocal()) {
       const siguientes = servicios.map(servicio => servicio.id === id ? { ...servicio, signos } : servicio);
       localStorage.setItem(claveDemo, JSON.stringify(siguientes));
       setServicios(siguientes);
@@ -76,7 +76,7 @@ export function useCatalogoSignosVitales(
       setError("");
       return;
     }
-    if (import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local") {
+    if (esModoPruebaLocal()) {
       setSignos(iniciales);
       setCargando(false);
       setError("");

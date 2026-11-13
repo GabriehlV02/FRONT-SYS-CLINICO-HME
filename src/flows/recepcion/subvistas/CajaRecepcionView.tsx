@@ -435,13 +435,11 @@ export function CajaRecepcionView({
     const intervalo = window.setInterval(() => { void recuperar(); }, 30000);
     return () => { controller.abort(); window.clearInterval(intervalo); };
   }, []);
-  const [errorCatalogo, setErrorCatalogo] = useState("");
   const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
   const [recargaCatalogo, setRecargaCatalogo] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     setCargandoCatalogo(true);
-    setErrorCatalogo("");
     apiFetch("/api/catalogo", { signal: controller.signal })
       .then(async (r) => {
         const respuesta = await r.json();
@@ -466,7 +464,11 @@ export function CajaRecepcionView({
       .catch(() => {
         if (!controller.signal.aborted) {
           setCatalogo([]);
-          setErrorCatalogo("No se pudo cargar el cat?logo. Revisa la conexi?n e intenta nuevamente.");
+          notificar(
+            "advertencia",
+            "Catálogo no disponible",
+            "No se pudo cargar el catálogo. Revisa la conexión e intenta nuevamente.",
+          );
         }
       })
       .finally(() => {
@@ -1817,17 +1819,6 @@ export function CajaRecepcionView({
         >
           {cargandoCatalogo && (
             <p role="status">Consultando productos y servicios del contable…</p>
-          )}
-          {errorCatalogo && (
-            <p className="punto-catalogo-error" role="alert">
-              <span>{errorCatalogo}</span>
-              <button
-                type="button"
-                onClick={() => setRecargaCatalogo((v) => v + 1)}
-              >
-                Reintentar
-              </button>
-            </p>
           )}
           <div className="punto-busquedas">
             <label>

@@ -1,6 +1,8 @@
+import { esModoPruebaLocal } from "../../datos/modoPrueba";
 import { fechaISOEnBolivia } from "../../../utils/fechaBolivia";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../componentes/Icono";
+import { notificar } from "../../componentes/Notificaciones";
 import { apiFetch } from "../../api";
 import ModalRegistroPaciente, {
   type PacienteRegistrado,
@@ -21,7 +23,6 @@ import {
   type PacienteDemo as Paciente,
   vincularFamiliarPacienteDemo,
 } from "../../datos/almacenDemo";
-import { leerSesion } from "../../types/sesion";
 import "../usuarios/VistaUsuarios.css";
 import "./VistaPacientes.css";
 import "./TablaPacientes.css";
@@ -349,7 +350,7 @@ function FichaPacienteCompleta({
   onVerFamiliar: (familiar: Paciente) => void;
 }) {
   const demoLocal =
-    import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+    esModoPruebaLocal();
   const [vincularAbierto, setVincularAbierto] = useState(false);
   const [busquedaFamiliar, setBusquedaFamiliar] = useState("");
   const [parentesco, setParentesco] = useState("Familiar");
@@ -726,6 +727,14 @@ export default function VistaPacientes({
   const { estudios: solicitudesImagen, errorEstudios } = useEstudiosPacientes(!modoClinico);
   const [errorListado, setErrorListado] = useState("");
   const [recarga, setRecarga] = useState(0);
+  useEffect(() => {
+    if (errorListado) notificar("advertencia", "Pacientes no disponibles", errorListado);
+  }, [errorListado]);
+  useEffect(() => {
+    if (!modoClinico && errorEstudios) {
+      notificar("advertencia", "Estudios no disponibles", errorEstudios);
+    }
+  }, [modoClinico, errorEstudios]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]),
     [estudios, setEstudios] = useState<EstudioDemo[]>([]),
     [busqueda, setBusqueda] = useState(""),
@@ -790,7 +799,7 @@ export default function VistaPacientes({
   const estudiosModalidad = useMemo(
     () => {
       if (modoClinico) return estudios;
-      const modalidades: Record<string, string> = { RADIOGRAFIA: 'Radiografía', TOMOGRAFIA: 'Tomografía', ECOGRAFIA: 'Ecografía', ECOCARDIOGRAMA: 'Ecocardiograma' };
+      const modalidades: Record<string, string> = { RADIOGRAFIA: 'Radiografía', TOMOGRAFIA: 'Tomografía', ECOGRAFIA: 'Ecografía', ECOCARDIOGRAMA: 'Ecocardiograma', ELECTROCARDIOGRAMA: 'Electrocardiograma', HOLTER: 'Holter' };
       return solicitudesImagen.filter((solicitud) => modalidades[solicitud.tipo] && (!modalidad || modalidades[solicitud.tipo] === modalidad)).map((solicitud) => ({ id: solicitud.id, pacienteId: solicitud.paciente_id, paciente: [solicitud.nombres, solicitud.apellido_paterno, solicitud.apellido_materno].filter(Boolean).join(' '), titulo: solicitud.nombre, categoria: modalidades[solicitud.tipo], descripcion: solicitud.indicaciones || '', nombreArchivo: '', mime: '', creadaEn: solicitud.solicitado_en }));
     },
     [estudios, modalidad, modoClinico, solicitudesImagen],
@@ -911,7 +920,7 @@ export default function VistaPacientes({
           "Utiliza Registrar paciente para crear una ficha completa.",
         );
       const volverAFicha = volverAFichaTrasEditar;
-      const persistirDemo = import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+      const persistirDemo = esModoPruebaLocal();
       if (persistirDemo) {
         const nuevos = pacientes.map((p) => p.id === editando.id ? d : p);
         guardarPacientes(nuevos);
@@ -1080,18 +1089,6 @@ export default function VistaPacientes({
       className="usuarios-vista pacientes-vista"
       onPointerDownCapture={replegarSidebar}
     >
-      {errorListado && (
-        <div role="alert">
-          {errorListado}{" "}
-          <button
-            type="button"
-            onClick={() => setRecarga((actual) => actual + 1)}
-          >
-            Reintentar
-          </button>
-        </div>
-      )}
-      {!modoClinico && errorEstudios && <div role="alert">{errorEstudios}</div>}
       <div className="usuarios-herramientas">
         <label className="pacientes-buscador">
           <Icon name="search" size={18} />

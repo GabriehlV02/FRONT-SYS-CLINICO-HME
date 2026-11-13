@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
+import { HistoriaHojeable } from "../consultorio/ConsultorioView";
+import { obtenerEpisodios } from "../consultorio/registroHistoria";
+import { usePacientes } from "../../radius/vistas/pacientes/usePacientes";
+import { edadPaciente } from "../../radius/vistas/pacientes/pacientesApi";
 import { leerSesion } from "../../radius/types/sesion";
 import {
   esPacienteUci,
@@ -9,7 +13,6 @@ import {
 } from "./registroInternaciones";
 import "./MedicoVisitanteInternacionView.css";
 
-type SeccionVisitante = "evolucion" | "ordenes";
 type EvolucionVisitante = {
   id: string;
   pacienteId: string;
@@ -59,7 +62,8 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
   const [busqueda, setBusqueda] = useState("");
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [atendiendo, setAtendiendo] = useState(false);
-  const [seccion, setSeccion] = useState<SeccionVisitante>("evolucion");
+  const [historiaAbierta, setHistoriaAbierta] = useState(false);
+  const { pacientes: fichasPacientes } = usePacientes(historiaAbierta);
   const [evoluciones, setEvoluciones] = useState<EvolucionVisitante[]>(() => leerRegistros(claveEvoluciones));
   const [ordenes, setOrdenes] = useState<OrdenVisitante[]>(() => leerRegistros(claveOrdenes));
   const [borrador, setBorrador] = useState({ texto: "", ...fechaHoraActual() });
@@ -90,6 +94,7 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
       .sort((a, b) => a.paciente.localeCompare(b.paciente, "es"));
   }, [pacientes, busqueda, area]);
   const pacienteActual = internados.find((paciente) => paciente.id === seleccionado);
+  const fichaActual = fichasPacientes.find((paciente) => paciente.ci === pacienteActual?.ci);
   const evolucionesPaciente = evoluciones
     .filter((evolucion) => evolucion.pacienteId === seleccionado)
     .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
@@ -147,15 +152,6 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
 
   return (
     <section className="medico-visitante-internacion" aria-label="Médico visitante">
-      <header className="mvi-cabecera">
-        <div className="mvi-icono"><Icon name="userMedical" size={22} /></div>
-        <div>
-          <span>INTERNACIÓN</span>
-          <h2>Médico visitante</h2>
-          <p>Registra evoluciones y órdenes para los pacientes internados.</p>
-        </div>
-        <b>{internados.length} pacientes</b>
-      </header>
       {!atendiendo && (
         <section className="mvi-pacientes-vista" aria-label="Pacientes internados">
           <header>
@@ -175,7 +171,7 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
                 <strong>{paciente.medico || "Sin asignar"}</strong>
                 <strong>{paciente.fechaIngreso || paciente.fecha || "Sin registro"}</strong>
                 <em>Internado</em>
-                <button type="button" onClick={() => { setSeleccionado(paciente.id); setAtendiendo(true); setSeccion("evolucion"); setError(""); }}><Icon name="userMedical" size={16} /> Atender</button>
+                <button type="button" onClick={() => { setSeleccionado(paciente.id); setAtendiendo(true); setError(""); }}><Icon name="userMedical" size={16} /> Atender</button>
               </article>
             ))}
             {!internados.length && <p className="mvi-vacio">No hay pacientes internados que coincidan con la búsqueda.</p>}
@@ -183,34 +179,20 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
         </section>
       )}
       {atendiendo && <div className="mvi-contenido mvi-atendiendo">
-        <aside className="mvi-listado" aria-label="Pacientes internados" hidden>
-          <label className="mvi-busqueda">
-            <Icon name="search" size={17} />
-            <input value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Buscar paciente, CI o sala" aria-label="Buscar pacientes internados" />
-          </label>
-          {internados.map((paciente) => (
-            <button type="button" key={paciente.id} className={seleccionado === paciente.id ? "seleccionado" : ""} onClick={() => { setSeleccionado(paciente.id); setSeccion("evolucion"); setError(""); }}>
-              <span className="mvi-avatar"><Icon name="patient" size={17} /></span>
-              <span><strong>{paciente.paciente}</strong><small>HC-{paciente.ci || "S/R"} · Sala {paciente.sala || "—"} · Cama {paciente.cama || "—"}</small></span>
-              <Icon name="chevronRight" size={16} />
-            </button>
-          ))}
-          {!internados.length && <p className="mvi-vacio">No hay pacientes internados que coincidan con la búsqueda.</p>}
-        </aside>
+
           <article className="mvi-detalle">
           {pacienteActual ? (
             <>
               <button type="button" className="mvi-volver" onClick={() => setAtendiendo(false)}><Icon name="chevronLeft" size={16} /> Volver a pacientes internados</button>
               <header className="mvi-paciente-cabecera">
                 <div><small>PACIENTE INTERNADO</small><h3>{pacienteActual.paciente}</h3><p>HC-{pacienteActual.ci || "S/R"} · Sala {pacienteActual.sala || "—"} · Cama {pacienteActual.cama || "—"}</p></div>
-                <span className="mvi-estado">Internado</span>
+                <div className="mvi-paciente-acciones">
+                  <button type="button" className="mvi-ver-historia" onClick={() => setHistoriaAbierta(true)}><Icon name="fileText" size={17} /> Ver historia clínica</button>
+                  <span className="mvi-estado">Internado</span>
+                </div>
               </header>
-              <nav className="mvi-secciones" aria-label="Atención del médico visitante">
-                <button type="button" className={seccion === "evolucion" ? "activa" : ""} onClick={() => { setSeccion("evolucion"); setError(""); }}><Icon name="fileText" size={16} /> Evolución médica</button>
-                <button type="button" className={seccion === "ordenes" ? "activa" : ""} onClick={() => { setSeccion("ordenes"); setError(""); }}><Icon name="clipboardMedical" size={16} /> Órdenes médicas</button>
-              </nav>
               {error && <p className="mvi-error" role="alert">{error}</p>}
-              {seccion === "evolucion" ? (
+              <div className="mvi-visita">
                 <section className="mvi-seccion" aria-label="Evolución médica">
                   <form className="mvi-formulario" onSubmit={registrarEvolucion}>
                     <h4>Registrar evolución médica</h4>
@@ -223,14 +205,13 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
                     </div>
                     <button type="submit" disabled={!borrador.texto.trim()}><Icon name="plus" size={16} /> Guardar evolución</button>
                   </form>
-                  <div className="mvi-historial">
-                    <header><h4>Historial de evoluciones</h4><span>{evolucionesPaciente.length}</span></header>
+                  <details className="mvi-historial">
+                    <summary>Historial de evoluciones <span>{evolucionesPaciente.length}</span></summary>
                     {evolucionesPaciente.length ? evolucionesPaciente.map((evolucion) => (
                       <article key={evolucion.id}><small>{new Date(evolucion.fecha).toLocaleString("es-BO", { dateStyle: "medium", timeStyle: "short" })} · {evolucion.medico}</small><p>{evolucion.texto}</p></article>
                     )) : <p className="mvi-vacio">Aún no hay evoluciones médicas registradas.</p>}
-                  </div>
+                  </details>
                 </section>
-              ) : (
                 <section className="mvi-seccion" aria-label="Órdenes médicas">
                   <form className="mvi-formulario mvi-formulario-orden" onSubmit={registrarOrden}>
                     <h4>Registrar orden médica</h4>
@@ -247,13 +228,36 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
                     </label>
                     <button type="submit" disabled={!detalleOrden.trim()}><Icon name="plus" size={16} /> Registrar orden</button>
                   </form>
-                  <div className="mvi-historial">
-                    <header><h4>Órdenes registradas</h4><span>{ordenesPaciente.length}</span></header>
+                  <details className="mvi-historial">
+                    <summary>Órdenes registradas <span>{ordenesPaciente.length}</span></summary>
                     {ordenesPaciente.length ? ordenesPaciente.map((orden) => (
                       <article key={orden.id}><small>{tipoOrdenEtiqueta[orden.tipo]} · {new Date(orden.fecha).toLocaleString("es-BO", { dateStyle: "medium", timeStyle: "short" })} · {orden.medico}</small><p>{orden.detalle}</p></article>
                     )) : <p className="mvi-vacio">Aún no hay órdenes médicas registradas.</p>}
-                  </div>
+                  </details>
                 </section>
+              </div>
+              {historiaAbierta && (
+                <HistoriaHojeable
+                  paciente={{
+                    nombre: pacienteActual.paciente,
+                    ci: pacienteActual.ci,
+                    edad: fichaActual?.fecha_nacimiento ? edadPaciente(fichaActual.fecha_nacimiento) : Number.NaN,
+                    fechaNacimiento: fichaActual?.fecha_nacimiento?.slice(0, 10) || "No registrada",
+                    numeroHistoria: `HC-${pacienteActual.ci || "S/R"}`,
+                    datoRelevante: "Consulta los antecedentes registrados en la historia.",
+                    estado: "Al día",
+                    episodios: obtenerEpisodios()
+                      .filter((episodio) => episodio.paciente.ci === pacienteActual.ci)
+                      .sort((a, b) => a.correlativo - b.correlativo)
+                      .map((episodio) => ({
+                        ...episodio,
+                        id: episodio.episodioId,
+                        hora: episodio.paciente.hora,
+                        especialidad: episodio.paciente.especialidad,
+                      })),
+                  }}
+                  onCerrar={() => setHistoriaAbierta(false)}
+                />
               )}
             </>
           ) : (

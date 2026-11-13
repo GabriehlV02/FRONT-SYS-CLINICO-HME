@@ -1,3 +1,4 @@
+import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { apiFetch } from "../../radius/api";
 import { leerSesion } from "../../radius/types/sesion";
 
@@ -179,7 +180,7 @@ export function invalidarCacheEmergencias() {
 }
 
 async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
-  if (import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local") {
+  if (esModoPruebaLocal()) {
     const clave = "clinico-emergencias-demo-v1";
     const guardadas: CuentaEmergencia[] = JSON.parse(
       sessionStorage.getItem(clave) || "[]",

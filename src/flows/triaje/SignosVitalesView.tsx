@@ -1,3 +1,4 @@
+import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { useState, useEffect } from "react";
 import Icon from "../../radius/componentes/Icono";
 import "./SignosVitalesView.css";
@@ -7,7 +8,6 @@ import { guardarSignosVitales } from "./registroSignosVitales";
 import { useServiciosSignosVitales } from "./ServiciosSignosVitales";
 import { camposParaServicio, compararReferencia } from "./camposSignosVitales";
 import { apiFetch } from "../../radius/api";
-import { leerSesion } from "../../radius/types/sesion";
 import { obtenerCitasAgendaDemo } from "../../radius/datos/agendaDemo";
 
 type PacienteEnEspera = {
@@ -84,7 +84,7 @@ export function SignosVitalesView({
   camposConfigurados?: SignoVitalConfig[];
 }) {
   const catalogoServicios = useServiciosSignosVitales();
-  const esDemo = import.meta.env.DEV && leerSesion()?.token === "frontend-demo-local";
+  const esDemo = esModoPruebaLocal();
   const [cola, setCola] = useState(() => esDemo ? leerListaDemo(claveColaDemo, colaInicial) : []);
   const [errorPacientes, setErrorPacientes] = useState("");
   useEffect(() => {

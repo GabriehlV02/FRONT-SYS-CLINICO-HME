@@ -1,6 +1,6 @@
+import { esModoPruebaLocal } from "../../datos/modoPrueba";
 import { apiFetch } from "../../api";
 import { obtenerPacientes, type PacienteDemo } from "../../datos/almacenDemo";
-import { leerSesion } from "../../types/sesion";
 import type { PacienteRegistrado } from "./ModalRegistroPaciente";
 
 export function pacienteParaVista(paciente: PacienteRegistrado): PacienteDemo {
@@ -47,8 +47,7 @@ export async function listarFichasPacientes(
   signal?: AbortSignal,
 ): Promise<PacienteRegistrado[]> {
   if (
-    import.meta.env.DEV &&
-    leerSesion()?.token === "frontend-demo-local"
+    esModoPruebaLocal()
   ) {
     return obtenerPacientes().map((paciente) => ({
       id: paciente.id,

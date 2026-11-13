@@ -45,9 +45,3 @@
     margin-left: 0 !important;
   }
 }
-.cabecera .cola-atencion-critica, .cola-atencion-rapida.cola-atencion-critica { background: #b91c1c !important; color: #fff !important; border: 1px solid #fecaca !important; animation: alerta-signos 1.6s ease-in-out infinite; }
-@keyframes alerta-signos { 0%, 100% { filter: brightness(1); box-shadow: 0 0 0 0 rgb(220 38 38 / .25); } 50% { filter: brightness(1.15); box-shadow: 0 0 0 5px rgb(220 38 38 / .2); } }
-@media (prefers-reduced-motion: reduce) { .cola-atencion-rapida.cola-atencion-critica { animation: none; } }
-.cola-atencion-datos .cola-alerta-detalle { display: block; color: #991b1b !important; background: transparent; border: 0; border-radius: 0; padding: 0; font-size: 12px; font-weight: 400; line-height: 1.5; max-width: 48ch; }
-.cola-atencion-lista > article.cola-paciente-prioritario { border-color: #fecaca; background: #fff7f7; }
-.cola-paciente-prioritario .cola-atencion-datos b { color: #991b1b; background: #fee2e2; }

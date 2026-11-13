@@ -1,4 +1,3 @@
-import { evaluarPrioridad, type PrioridadAtencion } from "./prioridadAtencion";
 import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { useState, useEffect } from "react";
 import Icon from "../../radius/componentes/Icono";
@@ -232,7 +231,6 @@ export function SignosVitalesView({
         unidad,
         tipo: "Número decimal",
         rango: undefined,
-        alertaPrioritaria: false,
       }));
   const gruposVitales = camposVitales.reduce<
     { id: string; nombre: string; campos: typeof camposVitales }[]
@@ -269,7 +267,6 @@ export function SignosVitalesView({
     setGuardando(true);
     setErrorRegistro("");
     try {
-      let prioridad: PrioridadAtencion | null = evaluarPrioridad(camposVitales, datos, pacienteSeleccionado.edad > 0 ? pacienteSeleccionado.edad : null);
       if (!esDemo) {
         const respuesta = await apiFetch(
           `/api/v1/citas/${encodeURIComponent(pacienteSeleccionado.id)}/signos-vitales`,
@@ -287,9 +284,8 @@ export function SignosVitalesView({
           throw new Error(
             resultado.message || "No se pudieron guardar los signos vitales.",
           );
-        prioridad = resultado.data?.prioridad ?? null;
       }
-      guardarSignosVitales(pacienteSeleccionado, datos, prioridad);
+      guardarSignosVitales(pacienteSeleccionado, datos);
       if (editandoAtendido) {
         setAtendidos((actual) =>
           actual.map((item) =>

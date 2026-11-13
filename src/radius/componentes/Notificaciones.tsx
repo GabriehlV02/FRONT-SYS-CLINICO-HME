@@ -3,7 +3,7 @@ import Icon, { type IconName } from "./Icono";
 import "./Notificaciones.css";
 
 type Tipo = "exito" | "error" | "advertencia" | "informacion";
-type Aviso = { id: string; tipo: Tipo; titulo: string; mensaje: string; persistente?: boolean };
+type Aviso = { id: string; tipo: Tipo; titulo: string; mensaje: string };
 type Confirmacion = {
   titulo: string;
   mensaje: string;
@@ -15,9 +15,9 @@ type Confirmacion = {
 };
 const EVENTO_AVISO = "radiuus:notificacion",
   EVENTO_CONFIRMAR = "radiuus:confirmar";
-export const notificar = (tipo: Tipo, titulo: string, mensaje: string, persistente = false) =>
+export const notificar = (tipo: Tipo, titulo: string, mensaje: string) =>
   window.dispatchEvent(
-    new CustomEvent(EVENTO_AVISO, { detail: { tipo, titulo, mensaje, persistente } }),
+    new CustomEvent(EVENTO_AVISO, { detail: { tipo, titulo, mensaje } }),
   );
 export const confirmar = (datos: Omit<Confirmacion, "resolver">) =>
   new Promise<boolean>((resolver) =>
@@ -40,7 +40,7 @@ export default function CentroNotificaciones() {
         const dato = (evento as CustomEvent<Omit<Aviso, "id">>).detail,
           id = crypto.randomUUID();
         setAvisos((lista) => [...lista.slice(-3), { ...dato, id }]);
-        if (!dato.persistente) window.setTimeout(
+        window.setTimeout(
           () => setAvisos((lista) => lista.filter((item) => item.id !== id)),
           4800,
         );
@@ -62,7 +62,7 @@ export default function CentroNotificaciones() {
     <>
       <div className="avisos-contenedor" aria-live="polite">
         {avisos.map((a) => (
-          <article role={a.tipo === "error" ? "alert" : "status"} key={a.id} className={`aviso aviso-${a.tipo}`}>
+          <article key={a.id} className={`aviso aviso-${a.tipo}`}>
             <span>
               <Icon name={iconos[a.tipo]} size={17} />
             </span>

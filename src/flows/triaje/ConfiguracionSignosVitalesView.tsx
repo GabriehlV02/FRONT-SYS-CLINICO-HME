@@ -21,7 +21,6 @@ export type SignoVitalConfig = {
   abreviatura: string;
   tipo: "Número entero" | "Número decimal" | "Texto";
   rangoReferencia?: RangoReferencia;
-  alertaPrioritaria?: boolean;
   componentes?: {
     id: string;
     nombre: string;
@@ -364,13 +363,6 @@ function EditorSignosVitalesView({
         ...detalleRango,
       };
     }
-    const rangosAlerta = multiples
-      ? datos.componentes?.map((componente) => componente.rangoReferencia)
-      : [datos.rangoReferencia];
-    if (datos.alertaPrioritaria && (datos.tipo === "Texto" || !rangosAlerta?.length || rangosAlerta.some((rango) => !rango))) {
-      setError("Define un rango numérico para cada dato antes de activar la alerta prioritaria.");
-      return;
-    }
     setGuardando(true);
     try {
       if (editando)
@@ -416,7 +408,6 @@ function EditorSignosVitalesView({
       unidad: s.unidad,
       abreviatura: s.abreviatura,
       tipo: s.tipo,
-      alertaPrioritaria: Boolean(s.alertaPrioritaria),
     });
     setConRango(Boolean(s.rangoReferencia));
     setMinimo(s.rangoReferencia ? String(s.rangoReferencia.minimo) : "");
@@ -693,11 +684,6 @@ function EditorSignosVitalesView({
                 )}
               </>
             )}
-            <label className="config-signos-alerta-toggle">
-              <input type="checkbox" role="switch" checked={Boolean(formulario.alertaPrioritaria)}
-                onChange={(evento) => setFormulario((actual) => ({ ...actual, alertaPrioritaria: evento.target.checked }))} />
-              <span><strong>Activar alerta prioritaria</strong><small>Al guardar una medición fuera del rango configurado, avisar al médico de consulta ambulatoria y colocar al paciente primero entre los pendientes. Requiere un rango numérico por dato.</small></span>
-            </label>
             <div className="config-signos-preview">
               <small>VISTA PREVIA DEL CAMPO</small>
               <strong>

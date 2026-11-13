@@ -1,5 +1,3 @@
-import { compararCola, prioridadPendiente } from "./prioridadCola";
-import type { PrioridadAtencion } from "../triaje/prioridadAtencion";
 import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { useProfesionales } from "../../radius/profesionales";
 import { leerSesion } from "../../radius/types/sesion";
@@ -37,7 +35,6 @@ export type CitaConfirmada = {
   citaOrigenId?: number | null;
   atencionFinalizadaEn?: string | null;
   signosRegistrados?: boolean;
-  prioridad?: PrioridadAtencion | null;
   consultorio?: string;
   motivoOperativo?: string;
   nombre?: string;
@@ -121,7 +118,7 @@ export function AgendaAmbulatoriaView({
         setCargandoAgenda(false);
         setAgendaReintentando(false);
         demoraReintento = 3000;
-        temporizador = setTimeout(consultarAgenda, 5000);
+        temporizador = setTimeout(consultarAgenda, 30000);
       } catch {
         if (controller.signal.aborted) return;
         setCargandoAgenda(false);
@@ -150,7 +147,9 @@ export function AgendaAmbulatoriaView({
               ? cita.profesionalId === profesionalActual.id
               : true),
         )
-        .sort(compararCola),
+        .sort((a, b) =>
+          `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`),
+        ),
     [citas, medico, profesionalActual, esDemo],
   );
   const coincide = (cita: CitaConfirmada, texto: string) =>
@@ -263,7 +262,7 @@ export function AgendaAmbulatoriaView({
             <div className="agenda-cola-vacia" role="status">Cargando consultas...</div>
           ) : pendientes.length ? (
             pendientes.map((cita) => (
-              <article key={cita.id} className={prioridadPendiente(cita) ? "agenda-prioritaria" : ""}>
+              <article key={cita.id}>
                 <time dateTime={`${cita.fecha}T${cita.hora}`}>
                   <strong>{cita.hora}</strong>
                   <small>{cita.fecha.split("-").reverse().join("/")}</small>
@@ -272,7 +271,6 @@ export function AgendaAmbulatoriaView({
                 </time>
                 <div>
                   <strong>{cita.paciente}</strong>
-                  {prioridadPendiente(cita) && <small className="agenda-prioridad-etiqueta">Atención prioritaria</small>}
                 </div>
                 <div className="agenda-medico">
                   <strong>{cita.especialidad || "Consulta ambulatoria"}</strong>

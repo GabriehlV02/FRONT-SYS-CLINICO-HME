@@ -1,0 +1,91 @@
+.cotizacion-cirugia {
+  --cc-azul: #087fc0;
+  --cc-texto: #173d60;
+  --cc-borde: #c9dfed;
+  width: 100%;
+  color: var(--cc-texto);
+}
+.cotizacion-cirugia-cabecera,
+.cotizacion-cirugia-formulario,
+.cotizacion-cirugia-resumen {
+  border: 1px solid var(--cc-borde);
+  border-radius: 11px;
+  background: #fff;
+}
+.cotizacion-cirugia-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 20px;
+}
+.cotizacion-cirugia-cabecera p {
+  margin: 0 0 5px;
+  color: var(--cc-azul);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+.cotizacion-cirugia-cabecera h2 { margin: 0 0 4px; font-size: 20px; }
+.cotizacion-cirugia-cabecera small,
+.cotizacion-cirugia small { color: #69869b; font-size: 11px; }
+.cotizacion-cirugia-cabecera > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  border: 1px solid #b8dff1;
+  border-radius: 8px;
+  color: #0876b6;
+  background: #eaf8ff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cotizacion-cirugia-contenido {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, .8fr);
+  gap: 14px;
+  margin-top: 12px;
+}
+.cotizacion-cirugia-formulario {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  padding: 18px;
+}
+.cotizacion-cirugia-formulario label {
+  display: grid;
+  gap: 6px;
+  color: #315d7d;
+  font-size: 11px;
+  font-weight: 800;
+}
+.cotizacion-cirugia-formulario :is(select, input) {
+  width: 100%;
+  min-height: 39px;
+  padding: 0 10px;
+  border: 1px solid #bfd8e9;
+  border-radius: 7px;
+  color: var(--cc-texto);
+  background: #f8fcff;
+  font: inherit;
+  font-size: 12px;
+}
+.cotizacion-cirugia-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.cotizacion-cirugia-datos span { padding: 10px; border-radius: 7px; color: #69869b; background: #f3f9fc; font-size: 10px; }
+.cotizacion-cirugia-datos strong { display: block; margin-top: 4px; color: var(--cc-texto); font-size: 12px; }
+.cotizacion-cirugia-resumen { display: flex; flex-direction: column; align-items: flex-start; padding: 19px; }
+.cotizacion-cirugia-resumen > span { color: var(--cc-azul); font-size: 10px; font-weight: 900; letter-spacing: .12em; }
+.cotizacion-cirugia-resumen h3 { margin: 10px 0 5px; font-size: 17px; }
+.cotizacion-cirugia-resumen p { min-height: 42px; margin: 0 0 19px; color: #69869b; font-size: 11px; line-height: 1.55; }
+.cotizacion-cirugia-resumen > small { margin-bottom: 4px; }
+.cotizacion-cirugia-resumen > strong { color: #0876b6; font-size: 25px; }
+.cotizacion-cirugia-resumen em { margin-top: 9px; color: #9a6800; font-size: 11px; font-style: normal; line-height: 1.45; }
+.cotizacion-cirugia-resumen button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 38px; margin-top: 18px; padding: 0 13px; border: 0; border-radius: 7px; color: #fff; background: var(--cc-azul); font-size: 11px; font-weight: 800; cursor: pointer; }
+.cotizacion-cirugia-resumen button:disabled { cursor: not-allowed; opacity: .5; }
+.cotizacion-cirugia-resumen .cotizacion-cirugia-nota { margin-top: 12px; line-height: 1.45; }
+@media (max-width: 760px) {
+  .cotizacion-cirugia-contenido { grid-template-columns: 1fr; }
+  .cotizacion-cirugia-cabecera { align-items: flex-start; flex-direction: column; }
+}

@@ -35,6 +35,7 @@
 .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores > div + div { padding-left: 22px; border-left: 1px solid #dce8ef; }
 
 .sistema-app .em-trabajo > .em-resumen > .em-total-acciones { display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; gap: 10px; min-width: 0; padding-left: 24px; border-left: 1px solid #e5edf3; }
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido { align-self:end; width:100%; box-sizing:border-box; margin:0 0 4px; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100% !important; min-height: 44px; min-width: 0; padding: 10px 12px; border-radius: 9px; font-size: 12px !important; font-weight: 600; line-height: 1.35; box-shadow: none; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-liberar-cobrar { border: 1px solid #087eb4; color: #fff; background: #087eb4; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-resumen-editar { border: 1px solid #cbdfe9; color: #17678e; background: #fff; }
@@ -62,16 +63,16 @@
   .sistema-app .em-trabajo > .em-resumen .em-total-consumido { grid-column: 1 / -1; }
 }
 
-/* Reduce cerca de un 15% la altura de la ficha del paciente en emergencias. */
+/* Compacta el espaciado vertical de la ficha del paciente en emergencias. */
 .sistema-app .em-trabajo > .em-resumen:has(.em-resumen-identidad) {
-  padding-block: 15px !important;
+  padding-block: 12px !important;
 }
 .sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad {
-  gap: 12px;
+  gap: 8px;
 }
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar {
-  padding-top: 10px;
+  padding-top: 7px;
 }
 .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores {
-  padding-block: 8px;
+  padding-block: 6px;
 }

@@ -14,6 +14,7 @@ import { ProgramarCirugiaView } from "./ProgramarCirugiaView";
 import { HistorialQuirofanoView } from "./HistorialQuirofanoView";
 import { ConsentimientosQuirofano } from "./ConsentimientosQuirofano";
 import { CirugiasAdminView } from "./CirugiasAdminView";
+import { CotizacionCirugiaView } from "./CotizacionCirugiaView";
 import { guardarCirugia, leerCronograma } from "./cronogramaQuirofano";
 import "./CuentaQuirofanoView.css";
 import "./CuentaQuirofanoWide.css";
@@ -82,7 +83,7 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
   }));
   const [registroPacienteAbierto, setRegistroPacienteAbierto] = useState(false);
   const [vista, setVista] = useState<
-    "cuenta" | "programar" | "cronograma" | "historial" | "cirugias-admin"
+    "cuenta" | "programar" | "cronograma" | "historial" | "cirugias-admin" | "cotizar"
   >(abrirFormulario ? "cuenta" : "programar");
   const [cirugias, setCirugias] = useState(leerCronograma);
   const [fechaCronograma, setFechaCronograma] = useState("");
@@ -323,6 +324,16 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
       <nav className="cuenta-q-subvistas" aria-label="Quirófano">
         <button
           type="button"
+          className={vista === "cotizar" ? "activo" : ""}
+          onClick={() => setVista("cotizar")}
+        >
+          <span>
+            <Icon name="cash" size={16} />
+          </span>
+          <strong>Cotizar cirugía</strong>
+        </button>
+        <button
+          type="button"
           className={vista === "programar" ? "activo" : ""}
           onClick={() => {
             setCirugias(leerCronograma());
@@ -368,7 +379,7 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
           <span>
             <Icon name="fileText" size={16} />
           </span>
-          <strong>Cirugías admin</strong>
+          <strong>Catálogo de cirugías</strong>
         </button>
       </nav>
       {vista === "programar" && (
@@ -382,6 +393,7 @@ export function CuentaQuirofanoView({ abrirFormulario = false }: { abrirFormular
       )}
       {vista === "historial" && <HistorialQuirofanoView cirugias={cirugias} />}
       {vista === "cirugias-admin" && <CirugiasAdminView />}
+      {vista === "cotizar" && <CotizacionCirugiaView pacientes={pacientes} />}
       {vista === "cronograma" && (
         <>
           {cuenta && (

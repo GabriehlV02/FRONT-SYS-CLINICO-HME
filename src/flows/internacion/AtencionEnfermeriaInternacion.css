@@ -1,41 +1,45 @@
 .enfermeria-evolucion-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.65fr) minmax(300px, .9fr);
-  align-items: stretch;
-  gap: 18px;
-}
-.enfermeria-evolucion-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 288px);
-  grid-template-rows: auto auto;
+  grid-template-columns: minmax(0, 1.2fr) minmax(340px, .8fr);
   align-items: start;
   gap: 16px;
 }
+.enfermeria-evolucion-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #d7e7f0;
+  border-radius: 13px;
+  background: linear-gradient(155deg, #fff, #f8fcfe);
+  box-shadow: 0 4px 14px rgba(28,77,107,.04);
+}
 .enfermeria-evolucion-texto {
   display: grid;
-  grid-row: 1 / 3;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
   color: #355c78;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
 }
 .enfermeria-evolucion-texto textarea {
-  width: 100%; min-height: 154px; padding: 12px 13px;
+  width: 100%; min-height: 132px; padding: 12px 13px; box-sizing: border-box;
   border: 1px solid #cbdfea; border-radius: 9px; color: #24465f;
   background: #fff; font: inherit; font-weight: 400; line-height: 1.55; resize: vertical;
 }
-.enfermeria-evolucion-fecha-hora { display: grid; gap: 16px; }
+.enfermeria-evolucion-fecha-hora { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; min-width:0; }
 .enfermeria-evolucion-fecha-hora label {
-  display: grid; gap: 9px; color: #355c78; font-size: 15px; font-weight: 700;
+  display: grid; gap: 7px; min-width:0; color: #355c78; font-size: 13px; font-weight: 700;
 }
 .enfermeria-evolucion-fecha-hora input {
-  width: 100%; height: 54px; padding: 0 13px; border: 1px solid #cbdfea;
-  border-radius: 9px; color: #24465f; background: #fff; font: inherit; font-size: 15px;
+  width: 100%; height: 44px; box-sizing:border-box; padding: 0 12px; border: 1px solid #cbdfea;
+  border-radius: 8px; color: #24465f; background: #fff; font: inherit; font-size: 14px;
 }
 .enfermeria-evolucion-texto textarea:focus,
 .enfermeria-evolucion-fecha-hora input:focus { border-color: #168bc2; outline: 3px solid rgba(22,139,194,.13); }
-.enfermeria-evolucion-acciones { display: flex; align-items: center; justify-content: flex-end; grid-column: 2; gap: 10px; }
+.enfermeria-evolucion-acciones { display: flex; align-items: center; justify-content: flex-end; grid-column:1; gap: 10px; min-height:40px; }
 .enfermeria-evolucion-acciones p { margin: 0 auto 0 0; color: #b42318; }
 .enfermeria-evolucion-acciones button,
 .enfermeria-evolucion-item-acciones button {
@@ -45,7 +49,7 @@
 .enfermeria-evolucion-acciones .enfermeria-evolucion-guardar { border-color: #087fc0; color: #fff; background: #087fc0; }
 .enfermeria-evolucion-acciones button:disabled { opacity: .55; cursor: not-allowed; }
 .enfermeria-evolucion-historial {
-  display: grid; grid-template-rows: auto minmax(0,1fr); gap: 14px; min-width: 0; max-height: 490px;
+  display: grid; grid-template-rows: auto minmax(0,1fr); gap: 12px; min-width: 0; height: 100%; max-height: 430px; box-sizing:border-box;
   padding: 17px; overflow: hidden; border: 1px solid #cfe1ec; border-radius: 13px;
   background: linear-gradient(155deg,#fbfdff 0%,#f3f9fc 100%); box-shadow: 0 5px 16px rgba(28,77,107,.045);
 }
@@ -70,11 +74,10 @@
 .enfermeria-evolucion-modal > header button { width: 34px; height: 34px; border: 1px solid #d7e6ee; border-radius: 9px; color: #56768a; background: #f8fbfd; font-size: 23px; }
 .enfermeria-evolucion-modal > p { margin: 18px 0; color: #294d65; font-size: 14px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .enfermeria-evolucion-modal > small { color: #71899c; font-size: 11px; }
-@media (max-width: 900px) { .enfermeria-evolucion-layout { grid-template-columns: minmax(0,1fr); } .enfermeria-evolucion-historial { max-height: 360px; } }
+@media (max-width: 900px) { .enfermeria-evolucion-layout { grid-template-columns: minmax(0,1fr); } .enfermeria-evolucion-historial { height:auto; max-height: 360px; } }
 @media (max-width: 700px) {
-  .enfermeria-evolucion-form { grid-template-columns: minmax(0,1fr); }
+  .enfermeria-evolucion-form { grid-template-columns: minmax(0,1fr); padding:14px; }
   .enfermeria-evolucion-texto, .enfermeria-evolucion-fecha-hora, .enfermeria-evolucion-acciones { grid-column: 1; grid-row: auto; }
-  .enfermeria-evolucion-fecha-hora { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 @media (max-width: 420px) { .enfermeria-evolucion-fecha-hora { grid-template-columns: minmax(0,1fr); } }
 
@@ -310,6 +313,7 @@
 }
 .enfermeria-resumen-identidad {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
   min-width: 0;
@@ -323,6 +327,7 @@
   font-weight: 750;
   white-space: nowrap;
 }
+.enfermeria-resumen-identidad > .enfermeria-resumen-diagnostico { max-width:min(520px,38vw); overflow:hidden; color:#174d72; font-size:11px; font-weight:700; text-overflow:ellipsis; }
 .enfermeria-resumen-contexto {
   display: flex;
   align-items: stretch;
@@ -354,10 +359,7 @@
 }
 .enfermeria-resumen-datos {
   display: grid;
-  grid-template-columns: minmax(330px, 1.55fr) minmax(240px, 1fr) minmax(
-      300px,
-      1.45fr
-    );
+  grid-template-columns: minmax(330px, 1.55fr) minmax(240px, 1fr);
   border-top: 1px solid #d5e6f0;
   background: #fbfdff;
 }
@@ -397,10 +399,6 @@
   .enfermeria-resumen-datos {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .enfermeria-resumen-datos article:nth-child(3) {
-    border-top: 1px solid #d5e6f0;
-    border-left: 0;
-  }
 }
 @media (max-width: 620px) {
   .enfermeria-paciente-resumen > header {
@@ -412,6 +410,7 @@
     flex-direction: column;
     gap: 2px;
   }
+  .enfermeria-resumen-identidad > .enfermeria-resumen-diagnostico { max-width:100%; white-space:normal; }
   .enfermeria-resumen-contexto {
     flex-direction: column;
   }

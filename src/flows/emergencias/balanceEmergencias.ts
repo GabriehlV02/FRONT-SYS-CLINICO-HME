@@ -4,6 +4,7 @@ export type RegistroBalanceEmergencia = {
   tipo: "ingreso" | "egreso";
   volumen: number;
   detalle: string;
+  anotacion?: string;
   fecha: string;
   hora: string;
 };
@@ -22,6 +23,7 @@ export function leerBalanceEmergencia(cuentaId: string): RegistroBalanceEmergenc
             (item.tipo === "ingreso" || item.tipo === "egreso") &&
             Number.isFinite(item.volumen) &&
             typeof item.detalle === "string" &&
+            (item.anotacion === undefined || typeof item.anotacion === "string") &&
             typeof item.fecha === "string" &&
             typeof item.hora === "string" &&
             typeof item.id === "string",

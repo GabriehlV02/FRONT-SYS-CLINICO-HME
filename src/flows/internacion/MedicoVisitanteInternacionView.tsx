@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
 import { leerSesion } from "../../radius/types/sesion";
 import {
+  esPacienteUci,
   leerInternaciones,
   suscribirInternaciones,
   type RegistroInternacion,
@@ -53,7 +54,7 @@ const tipoOrdenEtiqueta: Record<OrdenVisitante["tipo"], string> = {
   indicacion: "Indicación médica",
 };
 
-export function MedicoVisitanteInternacionView() {
+export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?: "internacion" | "uci" }) {
   const [pacientes, setPacientes] = useState<RegistroInternacion[]>(leerInternaciones);
   const [busqueda, setBusqueda] = useState("");
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
@@ -80,13 +81,14 @@ export function MedicoVisitanteInternacionView() {
     const consulta = busqueda.trim().toLocaleLowerCase("es");
     return pacientes
       .filter((paciente) => paciente.estado === "confirmada")
+      .filter((paciente) => area === "uci" ? esPacienteUci(paciente) : !esPacienteUci(paciente))
       .filter((paciente) =>
         !consulta ||
         [paciente.paciente, paciente.ci, paciente.sala, paciente.cama]
           .some((dato) => dato?.toLocaleLowerCase("es").includes(consulta)),
       )
       .sort((a, b) => a.paciente.localeCompare(b.paciente, "es"));
-  }, [pacientes, busqueda]);
+  }, [pacientes, busqueda, area]);
   const pacienteActual = internados.find((paciente) => paciente.id === seleccionado);
   const evolucionesPaciente = evoluciones
     .filter((evolucion) => evolucion.pacienteId === seleccionado)

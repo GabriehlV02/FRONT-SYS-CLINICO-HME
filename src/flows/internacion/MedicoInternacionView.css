@@ -241,6 +241,7 @@
 }
 .internacion-atencion-cabecera > div:first-child {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 8px;
   min-width: 0;
@@ -252,6 +253,7 @@
   font-weight: 750;
   white-space: nowrap;
 }
+.internacion-atencion-cabecera > div:first-child > .internacion-atencion-diagnostico { max-width:min(520px,38vw); overflow:hidden; color:#174d72; font-size:11px; font-weight:700; text-overflow:ellipsis; }
 .internacion-atencion-contexto {
   display: flex;
   align-items: stretch;
@@ -336,6 +338,7 @@
   border-left: 1px solid #d5e6f0;
 }
 .internacion-atencion-info .internacion-atencion-datos {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
   border-top: 1px solid #d5e6f0;
   background: #fbfdff;
@@ -351,12 +354,6 @@
 }
 .internacion-atencion-info .internacion-atencion-datos article:first-child {
   padding-right: 18px;
-}
-@media (max-width: 900px) {
-  .internacion-atencion-info .internacion-atencion-datos article:nth-child(3) {
-    border-left: 0;
-    border-top: 1px solid #d5e6f0;
-  }
 }
 @media (max-width: 620px) {
   .internacion-atencion-info .internacion-atencion-contexto {

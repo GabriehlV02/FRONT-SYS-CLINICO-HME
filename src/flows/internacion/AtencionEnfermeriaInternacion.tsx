@@ -224,6 +224,7 @@ export function AtencionEnfermeriaInternacion({
               {paciente.paciente}
             </h2>
             <span>| HC-{paciente.ci || "S/R"} · Internado</span>
+            <span className="enfermeria-resumen-diagnostico">Diagnóstico: {paciente.motivo || "Sin registro"}</span>
           </div>
           <div className="enfermeria-resumen-contexto">
             <div>
@@ -257,15 +258,6 @@ export function AtencionEnfermeriaInternacion({
             <div>
               <small>Médico responsable</small>
               <strong>{paciente.medico || "Sin asignar"}</strong>
-            </div>
-          </article>
-          <article>
-            <span>
-              <Icon name="fileText" size={16} />
-            </span>
-            <div>
-              <small>Diagnóstico de ingreso</small>
-              <strong>{paciente.motivo || "Sin registro"}</strong>
             </div>
           </article>
         </div>

@@ -56,6 +56,7 @@ import {
   leerInternaciones,
   suscribirInternaciones,
   esInternacionPruebaLocal,
+  esPacienteUci,
 } from "../flows/internacion/registroInternaciones";
 import "../flows/quirofano/EnfermeriaQuirofano.css";
 import "./vistas/visor-tomografias/SubvistasTomografias.css";
@@ -562,6 +563,12 @@ const modulos: Modulo[] = [
     grupo: "TERAPIA INTENSIVA",
   },
   {
+    id: "medico-visitante-terapia-intensiva",
+    nombre: "Médico visitante",
+    icono: "userMedical",
+    grupo: "TERAPIA INTENSIVA",
+  },
+  {
     id: "ambulancia",
     nombre: "Ambulancia",
     icono: "ambulance",
@@ -587,7 +594,7 @@ const modulos: Modulo[] = [
   },
   {
     id: "cuenta-quirofano",
-    nombre: "Registro de cirugías",
+    nombre: "Menú de quirófano",
     icono: "calendar",
     grupo: "QUIRÓFANO",
   },
@@ -1085,6 +1092,7 @@ export default function Aplicacion() {
   );
   const internacionesColaAtencion = internacionesActivas.filter(
     (internacion) =>
+      !esPacienteUci(internacion) &&
       internacion.estado === "confirmada" &&
       (esAdministrador ||
         esInternacionPruebaLocal(internacion) ||
@@ -1189,6 +1197,7 @@ export default function Aplicacion() {
         "medico-internacion",
         "medico-visitante-internacion",
         "medico-terapia-intensiva",
+        "medico-visitante-terapia-intensiva",
       ].includes(item.id);
     if (perfil === "quirofano")
       return [
@@ -2456,6 +2465,8 @@ export default function Aplicacion() {
               </section>
             ) : modulo === "medico-visitante-internacion" ? (
               <MedicoVisitanteInternacionView />
+            ) : modulo === "medico-visitante-terapia-intensiva" ? (
+              <MedicoVisitanteInternacionView area="uci" />
             ) : modulo === "enfermera-quirofano" ? (
               <section className="enfermeria-quirofano-vista">
                 <nav

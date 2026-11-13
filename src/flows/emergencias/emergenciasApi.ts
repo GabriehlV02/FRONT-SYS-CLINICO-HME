@@ -95,8 +95,10 @@ export type CuentaEmergencia = {
 export type RegistroEnfermeria = {
   id: string;
   fecha: string;
+  hora?: string;
   usuario: string;
   tipo: "cuidado" | "procedimiento" | "insumo";
+  ordenId?: string;
   detalle: string;
   cantidad?: number | null;
   unidad?: string;

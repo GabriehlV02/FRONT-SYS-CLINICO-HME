@@ -193,11 +193,6 @@ function GraficaEvolucionSignos({
       <header>
         <div>
           <h4>Evolución de signos vitales</h4>
-          <small>
-            {mediciones.length
-              ? `Últimas ${medicionesVisibles.length} mediciones registradas`
-              : "Selecciona uno o más signos para compararlos."}
-          </small>
         </div>
         <span>
           {seleccionados.length} signo{seleccionados.length === 1 ? "" : "s"}{" "}
@@ -245,8 +240,8 @@ function GraficaEvolucionSignos({
                         .join(" ")}
                     />
                     {serie.coords.map((punto, indice) => (
+                      <g key={`${serie.id}-${indice}`}>
                       <circle
-                        key={`${serie.id}-${indice}`}
                         cx={punto.x}
                         cy={punto.y}
                         r="5"
@@ -256,6 +251,10 @@ function GraficaEvolucionSignos({
                           {fecha(punto.medicion.fecha)}
                         </title>
                       </circle>
+                      <text className="em-signos-grafica-etiqueta" x={punto.x} y={punto.y - 12} textAnchor="middle">
+                        {punto.valor} {serie.unidad}
+                      </text>
+                      </g>
                     ))}
                   </g>
                 ),
@@ -621,7 +620,7 @@ export function TriajeEmergenciasView({
     [camposEmergencia],
   );
   const [seccionClinica, setSeccionClinica] = useState<
-    "paciente" | "ingreso" | "insumos" | "signos" | "examen" | "descargos"
+    "paciente" | "ingreso" | "insumos" | "reportes" | "signos" | "examen" | "descargos"
   >("ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
     [activa, setActiva] = useState("");
@@ -629,7 +628,8 @@ export function TriajeEmergenciasView({
     [ocupado, setOcupado] = useState(false),
     [error, setError] = useState(""),
     [aviso, setAviso] = useState("");
-  const usoTipo: RegistroEnfermeria["tipo"] = "cuidado";
+  const [usoTipo, setUsoTipo] = useState<RegistroEnfermeria["tipo"]>("insumo");
+  const [usoOrdenId, setUsoOrdenId] = useState("");
   const [usoDetalle, setUsoDetalle] = useState(""),
     [usoCantidad, setUsoCantidad] = useState(""),
     [usoUnidad, setUsoUnidad] = useState(""),
@@ -668,6 +668,7 @@ export function TriajeEmergenciasView({
     tipo: "ingreso" as "ingreso" | "egreso",
     volumen: "",
     detalle: "",
+    anotacion: "",
     ...fechaHoraIngresoActual(),
   });
   const [errorBalanceEmergencia, setErrorBalanceEmergencia] = useState("");
@@ -927,6 +928,7 @@ export function TriajeEmergenciasView({
         tipo: formBalanceEmergencia.tipo,
         volumen: Number(formBalanceEmergencia.volumen),
         detalle: formBalanceEmergencia.detalle.trim(),
+        anotacion: formBalanceEmergencia.anotacion.trim(),
         fecha: formBalanceEmergencia.fecha,
         hora: formBalanceEmergencia.hora,
       });
@@ -935,6 +937,7 @@ export function TriajeEmergenciasView({
         ...actual,
         volumen: "",
         detalle: "",
+        anotacion: "",
         ...fechaHoraIngresoActual(),
       }));
       setErrorBalanceEmergencia("");
@@ -963,15 +966,18 @@ export function TriajeEmergenciasView({
         `/${cuenta.id}/uso-enfermeria`,
         {
           tipo: usoTipo,
+          ...(usoOrdenId ? { ordenId: usoOrdenId } : {}),
           detalle: usoDetalle.trim(),
           cantidad,
           unidad: usoUnidad.trim(),
           observacion: usoObservacion.trim(),
+          ...fechaHoraIngresoActual(),
         },
         "Registro de enfermería guardado.",
       )
     ) {
       setUsoDetalle("");
+      setUsoOrdenId("");
       setUsoCantidad("");
       setUsoUnidad("");
       setUsoObservacion("");
@@ -1116,11 +1122,12 @@ export function TriajeEmergenciasView({
   const eventosSuministracion = [
     ...(cuenta?.registrosEnfermeria || []).map((registro) => ({
       id: `enfermeria-${registro.id}`,
-      fecha: registro.fecha,
-      tipo: registro.tipo === "insumo" ? "Insumo" : registro.tipo === "procedimiento" ? "Procedimiento" : "Cuidado",
+      fecha: registro.hora ? `${registro.fecha}T${registro.hora}:00` : registro.fecha,
+      tipo: registro.tipo === "insumo" ? "Medicamento / insumo" : registro.tipo === "procedimiento" ? "Procedimiento" : "Cuidado de enfermería",
       detalle: registro.detalle,
       cantidad: registro.cantidad ? `${registro.cantidad} ${registro.unidad || ""}`.trim() : "",
       observacion: registro.observacion || "",
+      ordenId: registro.ordenId,
       estado: "Registrado",
     })),
     ...(cuenta?.consumos || []).map((consumo) => ({
@@ -1130,6 +1137,7 @@ export function TriajeEmergenciasView({
       detalle: consumo.nombre,
       cantidad: consumo.porHora ? "Por hora" : `${consumo.cantidad} ${consumo.unidad}`,
       observacion: "",
+      ordenId: consumo.ordenId,
       estado: consumo.porHora ? (consumo.fin ? "Finalizado" : "En curso") : "Aplicado",
     })),
   ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
@@ -1941,13 +1949,6 @@ export function TriajeEmergenciasView({
                       >
                         <Icon name="bed" size={15} /> Traslado a internación
                       </button>
-                      {!puedeTrasladarAInternacion && (
-                        <small className="em-traslado-internacion-ayuda">
-                          {!ordenInternacionMedica
-                            ? "Disponible cuando un médico emita una orden de hospitalización/internación."
-                            : "Completa el documento del paciente para habilitar el traslado."}
-                        </small>
-                      )}
                     </>
                   )}
                 </div>
@@ -2251,12 +2252,54 @@ export function TriajeEmergenciasView({
                     >
                       Insumos del paciente
                     </button>
+                    <button
+                      type="button"
+                      className={seccionClinica === "reportes" ? "activo" : ""}
+                      aria-current={seccionClinica === "reportes" ? "page" : undefined}
+                      onClick={() => setSeccionClinica("reportes")}
+                    >
+                      Reportes
+                    </button>
                   </nav>
+                  {seccionClinica === "reportes" && (
+                    <section className="em-panel em-reporte-atencion" aria-labelledby="em-reporte-titulo">
+                      <header className="em-panel-titulo">
+                        <div>
+                          <h3 id="em-reporte-titulo">Reporte de atención de emergencia</h3>
+                          <small>Resumen clínico y operativo de esta cuenta.</small>
+                        </div>
+                        <button type="button" className="em-primario" onClick={() => window.print()}>
+                          <Icon name="print" size={15} /> Imprimir reporte
+                        </button>
+                      </header>
+                      <div className="em-reporte-identidad">
+                        <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong><span>CI {cuenta.identidad?.documento || "Sin documento"}</span></article>
+                        <article><small>Cubículo</small><strong>{nombreCubiculo(cuenta.cubiculo)}</strong><span>{cuenta.fin ? "Atención finalizada" : "Atención activa"}</span></article>
+                        <article><small>Ingreso</small><strong>{fecha(cuenta.inicio)}</strong><span>{cuenta.fin ? `Cierre: ${fecha(cuenta.fin)}` : "En curso"}</span></article>
+                        <article><small>Total de cuenta</small><strong>{dinero(total)}</strong><span>{cuenta.consumos.length} consumos registrados</span></article>
+                      </div>
+                      <section className="em-reporte-seccion">
+                        <header><h4>Signos vitales</h4><span>{cuenta.signos.length} mediciones</span></header>
+                        {cuenta.signos.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha y hora</th>{camposEmergencia.filter((campo) => campo.tipo !== "Texto").map((campo) => <th key={campo.id}>{campo.etiqueta}</th>)}<th>Observación</th></tr></thead><tbody>{cuenta.signos.map((toma) => <tr key={toma.id}><td>{fecha(toma.fecha)}</td>{camposEmergencia.filter((campo) => campo.tipo !== "Texto").map((campo) => <td key={campo.id}>{toma.valores[campo.id] ?? "—"} {campo.unidad}</td>)}<td>{toma.observacion || "—"}</td></tr>)}</tbody></table></div> : <p>Aún no hay mediciones registradas.</p>}
+                      </section>
+                      <section className="em-reporte-seccion">
+                        <header><h4>Balance hídrico</h4><span>{balanceEmergencia.length} movimientos · Ingresos {ingresosBalanceEmergencia} ml · Egresos {egresosBalanceEmergencia} ml · Acumulado {totalBalanceEmergencia} ml</span></header>
+                        {balanceEmergencia.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha y hora</th><th>Tipo</th><th>Detalle</th><th>Volumen</th><th>Anotación</th></tr></thead><tbody>{balanceEmergencia.map((registro) => <tr key={registro.id}><td>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</td><td>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</td><td>{registro.detalle}</td><td>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen} ml</td><td>{registro.anotacion || "—"}</td></tr>)}</tbody></table></div> : <p>Aún no hay movimientos de balance.</p>}
+                      </section>
+                      <section className="em-reporte-seccion">
+                        <header><h4>Insumos y cuidados</h4><span>{eventosSuministracion.length} registros</span></header>
+                        {eventosSuministracion.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Cantidad</th><th>Observación</th><th>Estado</th></tr></thead><tbody>{eventosSuministracion.map((evento) => <tr key={evento.id}><td>{fecha(evento.fecha)}</td><td>{evento.tipo}</td><td>{evento.detalle}</td><td>{evento.cantidad || "—"}</td><td>{evento.observacion || "—"}</td><td>{evento.estado}</td></tr>)}</tbody></table></div> : <p>Aún no hay insumos o cuidados registrados.</p>}
+                      </section>
+                    </section>
+                  )}
                   {seccionClinica === "ingreso" && (
                     <>
                     <section className="em-panel em-signos-panel">
                       <header className="em-panel-titulo">
-                        <h3>Signos vitales</h3>
+                        <div>
+                          <h3>Signos vitales</h3>
+                          <small>Seguimiento de las mediciones de esta atención</small>
+                        </div>
                       </header>
                       <div className="em-signos-columnas">
                         <GraficaEvolucionSignos
@@ -2268,6 +2311,15 @@ export function TriajeEmergenciasView({
                               className="em-signos-formulario"
                               onSubmit={registrarSignos}
                             >
+                              {cuenta.signos.length > 0 && (() => {
+                                const ultimaMedicion = cuenta.signos.at(-1)!;
+                                const valoresUltimaMedicion = camposEmergencia.filter((campo) => campo.tipo !== "Texto" && ultimaMedicion.valores[campo.id] !== undefined && ultimaMedicion.valores[campo.id] !== "").slice(0, 4);
+                                return <aside className="em-signos-ultima-medicion" aria-label="Última medición registrada">
+                                  <span>ÚLTIMA MEDICIÓN</span>
+                                  <time>{fecha(ultimaMedicion.fecha)}</time>
+                                  <div>{valoresUltimaMedicion.map((campo) => <p key={campo.id}><strong>{campo.etiqueta}</strong><b>{ultimaMedicion.valores[campo.id]} {campo.unidad}</b></p>)}</div>
+                                </aside>;
+                              })()}
                               <h4>Registrar signos vitales</h4>
                               <div className="em-signos-fecha-hora">
                                 <label>
@@ -2379,39 +2431,58 @@ export function TriajeEmergenciasView({
                         <article><small>Egresos</small><strong>{egresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
                         <article className={totalBalanceEmergencia < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{totalBalanceEmergencia > 0 ? "+ " : ""}{totalBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
                       </div>
-                      {!cuenta.fin && <form className="em-balance-emergencias-form" onSubmit={registrarBalanceEmergencia}>
-                        <label>Tipo de registro
-                          <select value={formBalanceEmergencia.tipo} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: evento.target.value as "ingreso" | "egreso" }))}>
-                            <option value="ingreso">Ingreso de líquidos</option>
-                            <option value="egreso">Egreso de líquidos</option>
-                          </select>
-                        </label>
-                        <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalanceEmergencia.volumen} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>
-                        <label className="em-balance-emergencias-detalle">Detalle<input maxLength={180} placeholder={formBalanceEmergencia.tipo === "ingreso" ? "Ej. Solución intravenosa, agua" : "Ej. Diuresis, drenaje"} value={formBalanceEmergencia.detalle} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, detalle: evento.target.value }))} required /></label>
-                        <label>Fecha<input type="date" value={formBalanceEmergencia.fecha} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, fecha: evento.target.value }))} required /></label>
-                        <label>Hora<input type="time" value={formBalanceEmergencia.hora} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, hora: evento.target.value }))} required /></label>
-                        {errorBalanceEmergencia && <p role="alert">{errorBalanceEmergencia}</p>}
-                        <button type="submit"><Icon name="plus" size={16} /> Registrar balance</button>
-                      </form>}
-                      <section className="em-balance-emergencias-grafica" aria-label="Gráfica de balance acumulado">
-                        <h4>Evolución del balance acumulado</h4>
+                      <div className="em-balance-emergencias-cuerpo">
+                      <div className="em-balance-emergencias-visualizacion">
+                      <section className="em-balance-emergencias-grafica" aria-label="Gráfica de ingresos y egresos">
+                        <h4>Ingresos y egresos por movimiento</h4>
                         {puntosBalanceEmergencia.length ? (() => {
-                          const valoresGrafica = [0, ...puntosBalanceEmergencia.map((punto) => punto.acumulado)];
-                          const minimo = Math.min(...valoresGrafica);
-                          const maximo = Math.max(...valoresGrafica);
-                          const rango = maximo - minimo || 1;
-                          const coordenadas = valoresGrafica.map((valor, indice) => `${20 + indice * (760 / Math.max(valoresGrafica.length - 1, 1))},${195 - ((valor - minimo) / rango) * 155}`).join(" ");
-                          return <svg viewBox="0 0 800 225" role="img" aria-label="Gráfica de ingresos y egresos acumulados en mililitros"><path d="M20 40H780M20 118H780M20 195H780" /><polyline points={coordenadas} /><text x="20" y="218">Inicio</text>{puntosBalanceEmergencia.map((punto) => <text key={punto.id} x={20 + (punto.indice + 1) * (760 / Math.max(puntosBalanceEmergencia.length, 1))} y="218">{punto.hora}</text>)}</svg>;
-                        })() : <p>Aún no hay registros de ingresos o egresos para mostrar.</p>}
+                          const tope = Math.max(...puntosBalanceEmergencia.map((punto) => punto.volumen), 100);
+                          const escala = tope * 1.18;
+                          const yCero = 128;
+                          const alturaMaxima = 92;
+                          const anchoDisponible = 742;
+                          const anchoGrupo = anchoDisponible / puntosBalanceEmergencia.length;
+                          const anchoBarra = Math.min(54, Math.max(16, anchoGrupo * 0.58));
+                          const guias = [0, 0.5, 1].map((fraccion) => ({ y: yCero - fraccion * alturaMaxima, valor: escala * fraccion }));
+                          return <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>{puntosBalanceEmergencia.length} movimientos · balance neto {totalBalanceEmergencia > 0 ? "+" : ""}{totalBalanceEmergencia.toLocaleString("es-BO")} ml</small></div><svg viewBox="0 0 800 225" role="img" aria-label="Gráfica de columnas de ingresos y egresos en mililitros; escala ajustada al mayor movimiento"><path d={guias.map((guia) => `M58 ${guia.y}H780`).join(" ")} /><path className="em-balance-emergencias-cero" d={`M58 ${yCero}H780`} />{guias.map((guia, indice) => <text className="em-balance-emergencias-eje" key={`eje-${indice}`} x="50" y={guia.y + 4}>{Math.round(guia.valor).toLocaleString("es-BO")}</text>)}{puntosBalanceEmergencia.map((punto, indice) => {
+                            const centro = 58 + anchoGrupo * (indice + 0.5);
+                            const altura = Math.max(3, (punto.volumen / escala) * alturaMaxima);
+                            const ingreso = punto.tipo === "ingreso";
+                            const y = ingreso ? yCero - altura : yCero;
+                            const etiquetaY = ingreso ? y - 6 : y + altura + 13;
+                            return <g key={punto.id} className={`em-balance-emergencias-barra ${punto.tipo}`}><rect x={centro - anchoBarra / 2} y={y} width={anchoBarra} height={altura} rx="4"><title>{`${ingreso ? "Ingreso" : "Egreso"}: ${punto.detalle} · ${punto.volumen.toLocaleString("es-BO")} ml · ${punto.hora}`}</title></rect><text className="em-balance-emergencias-volumen" x={centro} y={etiquetaY} textAnchor="middle">{punto.volumen.toLocaleString("es-BO")}</text><text className="em-balance-emergencias-hora" x={centro} y="218" textAnchor="middle">{punto.hora}</text></g>;
+                          })}</svg></>;
+                        })() : <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>Se actualizará con cada movimiento</small></div><svg className="em-balance-emergencias-sin-datos" viewBox="0 0 800 225" role="img" aria-label="Gráfica vacía de ingresos y egresos"><path d="M58 34H780M58 73H780M58 112H780M58 151H780" /><path className="em-balance-emergencias-cero" d="M58 112H780" /><text className="em-balance-emergencias-eje" x="50" y="38">—</text><text className="em-balance-emergencias-eje" x="50" y="77">—</text><text className="em-balance-emergencias-eje" x="50" y="116">0</text><text className="em-balance-emergencias-eje" x="50" y="155">—</text><text x="420" y="111">Registra el primer movimiento para comparar ingresos y egresos</text></svg></>}
                       </section>
                       {balanceEmergencia.length > 0 && <ol className="em-balance-emergencias-historial">
                         {balanceEmergencia.slice().reverse().map((registro) => <li key={registro.id} className={registro.tipo}>
                           <span>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</span>
-                          <strong>{registro.detalle}</strong>
+                          <div><strong>{registro.detalle}</strong>{registro.anotacion && <small>{registro.anotacion}</small>}</div>
                           <b>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen.toLocaleString("es-BO")} ml</b>
                           <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
                         </li>)}
                       </ol>}
+                      </div>
+                      {!cuenta.fin && <form className="em-balance-emergencias-form" onSubmit={registrarBalanceEmergencia}>
+                        <fieldset className="em-balance-tipo-switch">
+                          <legend>Tipo de registro</legend>
+                          <div className="em-balance-tipo-pista" role="group" aria-label="Tipo de movimiento">
+                            <button type="button" className={formBalanceEmergencia.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalanceEmergencia.tipo === "ingreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true">＋</span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
+                            <button type="button" className={formBalanceEmergencia.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalanceEmergencia.tipo === "egreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true">−</span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
+                          </div>
+                        </fieldset>
+                        <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalanceEmergencia.volumen} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>
+                        <label className="em-balance-emergencias-detalle">Detalle<input maxLength={180} placeholder={formBalanceEmergencia.tipo === "ingreso" ? "Ej. Solución intravenosa, agua" : "Ej. Diuresis, drenaje"} value={formBalanceEmergencia.detalle} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, detalle: evento.target.value }))} required /></label>
+                        <label className="em-balance-emergencias-anotacion">Anotación clínica<textarea maxLength={1000} rows={2} placeholder="Observación de enfermería relacionada con este registro" value={formBalanceEmergencia.anotacion} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, anotacion: evento.target.value }))} /></label>
+                        <div className="em-balance-fecha-hora">
+                          <label>Fecha<input type="date" value={formBalanceEmergencia.fecha} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, fecha: evento.target.value }))} required /></label>
+                          <label>Hora<input type="time" value={formBalanceEmergencia.hora} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, hora: evento.target.value }))} required /></label>
+                        </div>
+                        {errorBalanceEmergencia && <p role="alert">{errorBalanceEmergencia}</p>}
+                        <button type="submit"><Icon name="plus" size={16} /> Registrar balance</button>
+                      </form>}
+                      
+                      </div>
                     </section>
                     </>
                   )}
@@ -2600,14 +2671,27 @@ export function TriajeEmergenciasView({
 <section className="em-panel em-suministracion-panel">
                         <header className="em-panel-titulo">
                           <div>
-                            <h3>Suministración al paciente</h3>
-                            <small>Registra los cuidados, procedimientos e insumos utilizados durante esta atención.</small>
+                          <h3>Administración y uso de insumos</h3>
+                            <small>Registra lo que enfermería prepara y utiliza durante la atención, además de la indicación médica.</small>
                           </div>
                           <b>{eventosSuministracion.length} registros</b>
                         </header>
                         {!cuenta.fin && <form className="em-suministracion-form" onSubmit={registrarUsoEnfermeria}>
+                          <label>Tipo de registro
+                            <select value={usoTipo} onChange={(evento) => setUsoTipo(evento.target.value as RegistroEnfermeria["tipo"])}>
+                              <option value="insumo">Medicamento, solución o material</option>
+                              <option value="procedimiento">Colocación o procedimiento</option>
+                              <option value="cuidado">Cuidado de enfermería</option>
+                            </select>
+                          </label>
+                          <label>Indicación médica relacionada
+                            <select value={usoOrdenId} onChange={(evento) => setUsoOrdenId(evento.target.value)}>
+                              <option value="">Sin indicación asociada</option>
+                              {[...(cuenta.ordenes || [])].reverse().map((orden) => <option key={orden.id} value={orden.id}>{orden.titulo} · {orden.estado === "pendiente" ? "Pendiente" : orden.estado === "en_curso" ? "En curso" : orden.estado === "aplicada" ? "Aplicada" : "Suspendida"}</option>)}
+                            </select>
+                          </label>
                           <label className="em-suministracion-detalle">Detalle utilizado
-                            <input required maxLength={500} value={usoDetalle} onChange={(evento) => setUsoDetalle(evento.target.value)} placeholder="Medicamento, insumo o cuidado realizado" />
+                            <input required maxLength={500} value={usoDetalle} onChange={(evento) => setUsoDetalle(evento.target.value)} placeholder="Ej. ampolla, jeringa, agua destilada, vía" />
                           </label>
                           <label>Cantidad
                             <input type="number" min="0.001" step="any" value={usoCantidad} onChange={(evento) => setUsoCantidad(evento.target.value)} placeholder="Opcional" />
@@ -2618,11 +2702,11 @@ export function TriajeEmergenciasView({
                           <label className="em-suministracion-detalle">Observación
                             <input maxLength={1000} value={usoObservacion} onChange={(evento) => setUsoObservacion(evento.target.value)} placeholder="Nota opcional" />
                           </label>
-                          <button className="em-primario" type="submit" disabled={ocupado || !usoDetalle.trim()}>Registrar suministración</button>
+                          <button className="em-primario" type="submit" disabled={ocupado || !usoDetalle.trim()}>Registrar uso de enfermería</button>
                         </form>}
                         <div className="em-suministracion-lista" aria-label="Historial de suministración">
                           {eventosSuministracion.length ? eventosSuministracion.map((evento) => <article key={evento.id}>
-                            <div><small>{evento.tipo} · {fecha(evento.fecha)}</small><strong>{evento.detalle}</strong>{evento.observacion && <p>{evento.observacion}</p>}</div>
+                            <div><small>{evento.tipo} · {fecha(evento.fecha)}{evento.ordenId ? ` · Indicación: ${(cuenta.ordenes || []).find((orden) => orden.id === evento.ordenId)?.titulo || "asociada"}` : ""}</small><strong>{evento.detalle}</strong>{evento.cantidad && <span>Cantidad utilizada: {evento.cantidad}</span>}{evento.observacion && <p>{evento.observacion}</p>}</div>
                             <span>{evento.cantidad || evento.estado}</span>
                           </article>) : <p className="em-vacio">Todavía no hay suministraciones registradas.</p>}
                         </div>
@@ -2912,10 +2996,6 @@ export function TriajeEmergenciasView({
                   className="em-cierre"
                   hidden={seccionClinica === "descargos"}
                 >
-                  <small>
-                    Al finalizar, la cuenta se conserva en Recepción y el
-                    cubículo queda libre.
-                  </small>
                   <button
                     disabled={ocupado || !cuenta.signos.length}
                     onClick={() => {

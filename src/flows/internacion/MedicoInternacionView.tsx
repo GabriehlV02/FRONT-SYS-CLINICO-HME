@@ -4,6 +4,7 @@ import Icon from "../../radius/componentes/Icono";
 import { leerSesion } from "../../radius/types/sesion";
 import {
   leerInternaciones,
+  esPacienteUci,
   obtenerEjemplosInternacion,
   registrarAltaInternacion,
   suscribirInternaciones,
@@ -90,9 +91,11 @@ const correspondeAlMesActual = (valor?: string) => {
   );
 };
 
-export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
+export function MedicoInternacionView({ subvista, area = "internacion" }: { subvista: Subvista; area?: "internacion" | "uci" }) {
   const registrosVinculados = useInternacionesVinculadas();
-  const registros = registrosVinculados;
+  const registros = registrosVinculados.filter((registro) =>
+    area === "uci" ? esPacienteUci(registro) : !esPacienteUci(registro),
+  );
   const [busqueda, setBusqueda] = useState("");
   const [pacienteSeleccionado, setPacienteSeleccionado] =
     useState<RegistroInternacion | null>(null);
@@ -286,6 +289,7 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
             <div>
               <h2>{pacienteActual.paciente}</h2>
               <span>| HC-{pacienteActual.ci || "S/R"} · Internado</span>
+              <span className="internacion-atencion-diagnostico">Diagnóstico: {pacienteActual.motivo || "Sin registro"}</span>
             </div>
             <div className="internacion-atencion-contexto">
               <div className="internacion-atencion-ingreso">
@@ -322,15 +326,6 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
               <div>
                 <small>Médico responsable</small>
                 <strong>{pacienteActual.medico || "Sin asignar"}</strong>
-              </div>
-            </article>
-            <article>
-              <span>
-                <Icon name="fileText" size={17} />
-              </span>
-              <div>
-                <small>Diagnóstico de ingreso</small>
-                <strong>{pacienteActual.motivo || "Sin registro"}</strong>
               </div>
             </article>
           </section>
@@ -732,14 +727,7 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
                 >
                   <Icon name="lab" size={17} /> Orden de laboratorio
                 </button>
-                <button
-                  type="button"
-                  className="orden-imagenologia"
-                  onClick={() => abrirNuevaOrden("imagenologia")}
-                >
-                  <Icon name="image" size={17} /> Orden de imagenología
-                </button>
-              <button type="button" className="orden-dietas" onClick={() => { setBusquedaOrden(""); setFiltroOrden("dieta"); }}>Dietas</button>
+                <button type="button" className="orden-dietas" onClick={() => { setBusquedaOrden(""); setFiltroOrden("dieta"); }}>Dietas</button>
               </div>
               {(filtroOrden === "dieta" || busquedaOrden.trim()) && dietasCoincidentes.length > 0 && (
                 <div className="internacion-dietas-resultados" aria-label="Dietas disponibles para ordenar">
@@ -1473,7 +1461,7 @@ export function MedicoInternacionView({ subvista }: { subvista: Subvista }) {
                   </button>
                 )}
               </label>
-              {subvista === "internados" && (
+              {subvista === "internados" && area !== "uci" && (
                 <button
                   type="button"
                   className="internacion-nueva"

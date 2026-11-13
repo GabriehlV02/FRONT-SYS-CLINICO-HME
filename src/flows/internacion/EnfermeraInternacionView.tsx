@@ -5,6 +5,7 @@ import Icon from "../../radius/componentes/Icono";
 import {
   camaDisponible,
   confirmarInternacion,
+  esPacienteUci,
   leerInternaciones,
   suscribirInternaciones,
   type RegistroInternacion,
@@ -13,10 +14,17 @@ import "./EnfermeraInternacionView.css";
 import "./EnfermeraInternacionTabla.css";
 
 type Subvista = "internados" | "altas";
+const salasPrueba = [
+  { numero: "UCI", tipo: "Terapia intensiva", camas: ["A", "B", "C"] },
+  { numero: "Recuperación", tipo: "Recuperación", camas: ["A", "B"] },
+  ...[101, 102, 103].map((numero) => ({ numero: String(numero), tipo: "Sala VIP", camas: ["A"] })),
+  ...[105, 106, 107, 108, 109, 110].map((numero) => ({ numero: String(numero), tipo: "Sala compartida", camas: ["A", "B"] })),
+  ...[111, 112, 113].map((numero) => ({ numero: String(numero), tipo: "Habitación individual", camas: ["A"] })),
+];
 
 export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   const registros = useInternacionesVinculadas();
-  const registrosVista = registros;
+  const registrosVista = registros.filter((registro) => !esPacienteUci(registro));
   const [seleccionada, setSeleccionada] = useState<RegistroInternacion | null>(
     null,
   );
@@ -29,6 +37,9 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   const [cama, setCama] = useState("");
   const [tipoSala, setTipoSala] = useState("Sala compartida");
   const [busqueda, setBusqueda] = useState("");
+  const salasDisponibles = seleccionada && /uci|terapia intensiva|recuperaci/i.test(`${seleccionada.servicio ?? ""} ${seleccionada.tipoSala ?? ""} ${seleccionada.sala ?? ""}`)
+    ? salasPrueba.filter((item) => item.tipo === "Terapia intensiva" || item.tipo === "Recuperación")
+    : salasPrueba.filter((item) => item.tipo !== "Terapia intensiva" && item.tipo !== "Recuperación");
   const pendientes = registrosVista.filter(
     (item) => item.estado === "preinternacion",
   );
@@ -48,6 +59,17 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
     !sala.trim() ||
     !cama.trim() ||
     camaDisponible(sala, cama, seleccionada.id);
+  const camasSala = salasDisponibles.find((item) => item.numero === sala)?.camas ?? [];
+
+  const seleccionarSala = (numero: string) => {
+    const habitacion = salasDisponibles.find((item) => item.numero === numero);
+    setSala(numero);
+    setTipoSala(habitacion?.tipo ?? "Sala compartida");
+    const primeraLibre = habitacion?.camas.find((camaDisponibleSala) =>
+      camaDisponible(numero, camaDisponibleSala, seleccionada?.id),
+    );
+    setCama(primeraLibre ?? "");
+  };
 
   const confirmar = () => {
     if (!seleccionada || !sala.trim() || !cama.trim()) return;
@@ -259,32 +281,54 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
             </header>
             <div className="internacion-form">
               <label>
-                Sala
-                <input
+                Sala de internación
+                <select
                   autoFocus
                   value={sala}
-                  onChange={(event) => setSala(event.target.value)}
-                  placeholder="Ej.: 108"
-                />
+                  onChange={(event) => seleccionarSala(event.target.value)}
+                >
+                  <option value="">Seleccionar sala</option>
+                  {salasDisponibles.some((item) => item.tipo === "Terapia intensiva") ? (
+                    <>
+                      <optgroup label="Terapia intensiva · 3 camas">
+                        {salasDisponibles.filter((item) => item.tipo === "Terapia intensiva").map((item) => <option key={item.numero} value={item.numero}>Sala {item.numero}</option>)}
+                      </optgroup>
+                      <optgroup label="Recuperación · 2 camas">
+                        {salasDisponibles.filter((item) => item.tipo === "Recuperación").map((item) => <option key={item.numero} value={item.numero}>Sala {item.numero}</option>)}
+                      </optgroup>
+                    </>
+                  ) : (
+                    <>
+                      <optgroup label="Salas VIP · 1 cama">
+                        {salasDisponibles.filter((item) => item.tipo === "Sala VIP").map((item) => <option key={item.numero} value={item.numero}>Sala {item.numero}</option>)}
+                      </optgroup>
+                      <optgroup label="Salas compartidas · 2 camas">
+                        {salasDisponibles.filter((item) => item.tipo === "Sala compartida").map((item) => <option key={item.numero} value={item.numero}>Sala {item.numero}</option>)}
+                      </optgroup>
+                      <optgroup label="Salas individuales · 1 cama">
+                        {salasDisponibles.filter((item) => item.tipo === "Habitación individual").map((item) => <option key={item.numero} value={item.numero}>Sala {item.numero}</option>)}
+                      </optgroup>
+                    </>
+                  )}
+                </select>
               </label>
               <label>
                 Cama
-                <input
+                <select
                   value={cama}
                   onChange={(event) => setCama(event.target.value)}
-                  placeholder="Ej.: B"
-                />
+                  disabled={!sala}
+                >
+                  <option value="">Seleccionar cama</option>
+                  {camasSala.map((camaSala) => {
+                    const ocupada = !camaDisponible(sala, camaSala, seleccionada?.id);
+                    return <option key={camaSala} value={camaSala} disabled={ocupada}>Cama {camaSala}{ocupada ? " · Ocupada" : " · Disponible"}</option>;
+                  })}
+                </select>
               </label>
               <label>
                 Tipo de sala
-                <select
-                  value={tipoSala}
-                  onChange={(event) => setTipoSala(event.target.value)}
-                >
-                  <option>Sala compartida</option>
-                  <option>Habitación privada</option>
-                  <option>Unidad de cuidados intermedios</option>
-                </select>
+                <input value={sala ? tipoSala : "Selecciona una sala"} readOnly />
               </label>
             </div>
             {!ubicacionDisponible && (

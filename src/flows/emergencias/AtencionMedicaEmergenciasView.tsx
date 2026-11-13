@@ -2614,14 +2614,8 @@ function AtencionPaciente({
               className="em-accesos-orden em-accesos-orden-panel"
               aria-label="Crear orden médica"
             >
-              <button onClick={() => abrirOrden("medicamento")}>
-                Receta / indicación
-              </button>
               <button onClick={() => abrirOrden("laboratorio")}>
                 <Icon name="lab" size={15} /> Laboratorio
-              </button>
-              <button onClick={() => abrirOrden("imagenologia")}>
-                <Icon name="image" size={15} /> Imagenología
               </button>
               <button onClick={() => abrirOrden("internacion")}>
                 Internación

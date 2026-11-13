@@ -1,4 +1,5 @@
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { fechaISOEnBolivia } from "../../utils/fechaBolivia";
 import Icon from "../../radius/componentes/Icono";
 import { HojaLaboratorios } from "./HojaLaboratorios";
 import type { CitaConfirmada } from "./AgendaAmbulatoriaView";
@@ -32,6 +33,8 @@ import {
 import { OrdenInternacionMedica } from "./OrdenInternacionMedica";
 import { RevisionConsulta } from "./RevisionConsulta";
 import { BuscadorDiagnostico } from "./BuscadorDiagnostico";
+import type { ConsultaPrevia } from "./ventanaConsultaPrevia";
+import { VentanaConsultaPrevia } from "./PanelConsultaFlotante";
 import "../laboratorio/LaboratorioView.css";
 
 type TipoOrden = "laboratorio" | "imagenologia" | "internacion";
@@ -42,6 +45,7 @@ type DatosClinicos = {
   examenFisico: string;
 };
 type DiagnosticoConPlan = { id: string; diagnostico: string; planes: string[] };
+type AtencionGuardada = { version: number; finalizadaEn: string | null; contenido: { motivo: string; enfermedadActual: string; examenFisico: string; antecedentes: string; notas: string; diagnosticos: { diagnostico: string; planes: string[] }[]; revision: Record<string, string>; ordenes: string[] } };
 const titulosOrden: Record<TipoOrden, string> = {
   laboratorio: "laboratorio",
   imagenologia: "imagenología",
@@ -230,6 +234,25 @@ export function ConsultaMedicaView({
     Record<string, boolean>
   >({});
   const [vistaImpresionAbierta, setVistaImpresionAbierta] = useState(false);
+  const [atencionServidor, setAtencionServidor] = useState<AtencionGuardada | null>(null);
+  const [citaAtencionCargada, setCitaAtencionCargada] = useState("");
+  const [errorAtencion, setErrorAtencion] = useState("");
+  const [guardandoAtencion, setGuardandoAtencion] = useState(false);
+  const [recargaAtencion, setRecargaAtencion] = useState(0);
+  const guardandoAtencionRef = useRef(false);
+  const [revisionSistemas, setRevisionSistemas] = useState<Record<string, string>>({});
+  const [historialServidor, setHistorialServidor] = useState<ConsultaPrevia[]>([]);
+  const [consultaPreviaAbierta, setConsultaPreviaAbierta] = useState<{ citaActualId: string; consulta: ConsultaPrevia } | null>(null);
+  const [citaHistorial, setCitaHistorial] = useState("");
+  const [cargandoHistorial, setCargandoHistorial] = useState(false);
+  const [errorHistorial, setErrorHistorial] = useState("");
+  const reconsultaDialog = useRef<HTMLDialogElement>(null);
+  const guardandoReconsultaRef = useRef(false);
+  const [fechaReconsulta, setFechaReconsulta] = useState("");
+  const [horaReconsulta, setHoraReconsulta] = useState("");
+  const [guardandoReconsulta, setGuardandoReconsulta] = useState(false);
+  const [mensajeReconsulta, setMensajeReconsulta] = useState("");
+  const [errorReconsulta, setErrorReconsulta] = useState("");
   const [busquedaOrdenMedica, setBusquedaOrdenMedica] = useState("");
   const [buscadorOrdenAbierto, setBuscadorOrdenAbierto] = useState(false);
   const [ordenesMedicas, setOrdenesMedicas] = useState<
@@ -241,11 +264,46 @@ export function ConsultaMedicaView({
   const [tipoOrden, setTipoOrden] = useState<TipoOrden | null>(null);
   const [detalleOrden, setDetalleOrden] = useState("");
   const [laboratoriosElegidos, setLaboratoriosElegidos] = useState("");
-  const [episodioGuardado, setEpisodioGuardado] = useState("");
   const [ordenInternacionEmitida, setOrdenInternacionEmitida] = useState("");
   const [resultadosLaboratorio, setResultadosLaboratorio] = useState<
     SolicitudLaboratorio[]
   >([]);
+  useEffect(() => { setMensajeReconsulta(""); setErrorReconsulta(""); }, [paciente?.id]);
+  useEffect(() => {
+    if (!paciente) return;
+    const controller = new AbortController();
+    setHistorialServidor([]); setErrorHistorial(""); setCargandoHistorial(true);
+    apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/historial`, { signal: controller.signal })
+      .then(async (respuesta) => { if (!respuesta.ok) throw new Error(); const resultado = await respuesta.json() as { data: ConsultaPrevia[] }; if (!Array.isArray(resultado.data)) throw new Error(); return resultado.data; })
+      .then((registros) => { if (!controller.signal.aborted) { setHistorialServidor(registros); setCitaHistorial(paciente.id); } })
+      .catch(() => { if (!controller.signal.aborted) setErrorHistorial("No se pudo cargar el historial del servidor. Revisa la conexión."); })
+      .finally(() => { if (!controller.signal.aborted) setCargandoHistorial(false); });
+    return () => controller.abort();
+  }, [paciente?.id]);
+  useEffect(() => {
+    if (!paciente) return;
+    const controller = new AbortController();
+    setCitaAtencionCargada(""); setErrorAtencion(""); setAtencionServidor(null); setRevisionSistemas({});
+    apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, { signal: controller.signal })
+      .then(async (respuesta) => {
+        if (!respuesta.ok) throw new Error("No se pudo cargar la atención desde el servidor.");
+        const resultado = await respuesta.json() as { data: AtencionGuardada | null };
+        if (controller.signal.aborted) return;
+        setAtencionServidor(resultado.data);
+        if (resultado.data) {
+          const contenido = resultado.data.contenido;
+          setDatosClinicos((actual) => ({ ...actual, [paciente.ci]: { motivoConsulta: contenido.motivo, enfermedadActual: contenido.enfermedadActual, examenFisico: contenido.examenFisico } }));
+          setAntecedentes((actual) => ({ ...actual, [paciente.ci]: contenido.antecedentes }));
+          setNotasMedicas((actual) => ({ ...actual, [paciente.ci]: contenido.notas }));
+          setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: contenido.diagnosticos.map((item, indice) => ({ ...item, id: `servidor-${indice}` })) }));
+          setOrdenesMedicas((actual) => ({ ...actual, [paciente.ci]: contenido.ordenes }));
+          setRevisionSistemas(contenido.revision);
+        }
+        setCitaAtencionCargada(paciente.id);
+      })
+      .catch(() => { if (!controller.signal.aborted) setErrorAtencion("No se pudo cargar la atención del servidor. Revisa la conexión y vuelve a intentar."); });
+    return () => controller.abort();
+  }, [paciente?.id, recargaAtencion]);
   useEffect(() => {
     const cargar = () => {
       try {
@@ -330,6 +388,7 @@ export function ConsultaMedicaView({
         </section>
       </section>
     );
+  if (citaAtencionCargada !== paciente.id) return <section className="consulta-inicio panel" role="status">{errorAtencion ? <><p>{errorAtencion}</p><button type="button" onClick={() => setRecargaAtencion((valor) => valor + 1)}>Reintentar</button><button type="button" onClick={() => window.dispatchEvent(new Event("consulta:volver-al-listado"))}>Volver al listado</button></> : "Cargando atención..."}</section>;
   const episodioActual = obtenerAtencionAmbulatoria(paciente);
   const idsAmbulatorio = catalogoServicios.servicios.find(
     (servicio) => servicio.id === "consulta-ambulatoria",
@@ -390,7 +449,7 @@ export function ConsultaMedicaView({
     examenFisico: episodioActual?.examenFisico || "",
   };
   const atencionFinalizada = Boolean(
-    atencionesCerradas[paciente.ci] || episodioActual?.finalizadaEn,
+    atencionesCerradas[paciente.ci] || atencionServidor?.finalizadaEn || episodioActual?.finalizadaEn,
   );
   const ordenesPaciente = ordenesMedicas[paciente.ci] ?? [];
   const diagnosticosPaciente =
@@ -399,26 +458,29 @@ export function ConsultaMedicaView({
       ...item,
       id: `historial-${indice}`,
     }));
-  const consultasAnteriores = obtenerEpisodios()
+  const historialActual = citaHistorial === paciente.id ? historialServidor : [];
+  const citasEnServidor = new Set(historialActual.map((item) => item.citaId));
+  const consultasLocales = obtenerEpisodios()
     .filter(
       (episodio) =>
-        episodio.paciente.ci === paciente.ci &&
-        episodio.origenId !== origenConsulta,
+        (episodio.paciente.pacienteId ? episodio.paciente.pacienteId === paciente.pacienteId : episodio.paciente.ci === paciente.ci) &&
+        episodio.tipo === "Consulta médica" && Boolean(episodio.finalizadaEn) &&
+        episodio.origenId !== origenConsulta && !citasEnServidor.has(String(episodio.paciente.id)) &&
+        `${episodio.paciente.fecha} ${episodio.paciente.hora}` < `${paciente.fecha} ${paciente.hora}`,
     )
-    .sort((a, b) =>
-      (b.actualizadoEn || "").localeCompare(a.actualizadoEn || ""),
-    );
+    .map((episodio): ConsultaPrevia => ({ citaId: String(episodio.paciente.id), fecha: episodio.fecha, hora: episodio.paciente.hora, medico: episodio.medico, especialidad: episodio.paciente.especialidad, signosVitales: Object.entries(episodio.signosVitales || {}).map(([nombre, valor]) => ({ nombre, valor })), contenido: { motivo: episodio.motivo, enfermedadActual: episodio.enfermedadActual, examenFisico: episodio.examenFisico, antecedentes: episodio.antecedentes, notas: episodio.notas, diagnosticos: episodio.diagnosticos ?? [], revision: {}, ordenes: (episodio.ordenes ?? []).map((orden) => orden.detalle), documentos: { recetas: episodio.recetas ?? [], ordenes: episodio.ordenes ?? [], resultados: episodio.resultados ?? [], reconsultas: episodio.reconsultas ?? [] } } }));
+  const consultasAnteriores = [...historialActual, ...consultasLocales].sort((a, b) => `${b.fecha} ${b.hora}`.localeCompare(`${a.fecha} ${a.hora}`));
   const ultimaConsulta = consultasAnteriores[0];
   const antecedentesPaciente =
-    consultasAnteriores.find((episodio) => episodio.antecedentes.trim())
-      ?.antecedentes || "Sin antecedentes registrados";
+    consultasAnteriores.find((episodio) => episodio.contenido.antecedentes?.trim())
+      ?.contenido.antecedentes || "Sin antecedentes registrados";
   const alergiasPaciente =
-    consultasAnteriores.find((episodio) => /alerg/i.test(episodio.antecedentes))
-      ?.antecedentes || "Sin alergias registradas";
+    consultasAnteriores.find((episodio) => /alerg/i.test(episodio.contenido.antecedentes || ""))
+      ?.contenido.antecedentes || "Sin alergias registradas";
   const diagnosticosPrevios = consultasAnteriores
     .flatMap(
       (episodio) =>
-        episodio.diagnosticos?.map((diagnostico) => diagnostico.diagnostico) ??
+        episodio.contenido.diagnosticos?.map((diagnostico) => diagnostico.diagnostico) ??
         [],
     )
     .filter(Boolean);
@@ -499,7 +561,7 @@ export function ConsultaMedicaView({
           ]
         : []),
     ];
-    const episodio = guardarEpisodio({
+    guardarEpisodio({
       origenId: origenConsulta,
       tipo: "Consulta médica",
       paciente,
@@ -530,13 +592,54 @@ export function ConsultaMedicaView({
       reconsultas: [],
       ...(finalizar ? { finalizadaEn: new Date().toISOString() } : {}),
     });
-    setEpisodioGuardado(episodio.episodioId);
     if (finalizar)
       setAtencionesCerradas((actual) => ({ ...actual, [paciente.ci]: true }));
   };
-  const finalizarAtencion = () => {
-    guardarEnHistoria(true);
-    setVistaImpresionAbierta(true);
+  const finalizarAtencion = async () => {
+    if (guardandoAtencionRef.current) return;
+    guardandoAtencionRef.current = true;
+    setGuardandoAtencion(true); setErrorAtencion("");
+    try {
+      const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, { method: "PUT", body: JSON.stringify({
+        version: atencionServidor?.version ?? null, finalizar: true,
+        contenido: { motivo: datosClinicosPaciente.motivoConsulta.trim(), enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(), examenFisico: datosClinicosPaciente.examenFisico.trim(), antecedentes: (antecedentes[paciente.ci] ?? episodioActual?.antecedentes ?? "").trim(), notas: (notasMedicas[paciente.ci] ?? episodioActual?.notas ?? "").trim(), diagnosticos: diagnosticosPaciente.filter((item) => item.diagnostico.trim()).map(({ diagnostico, planes }) => ({ diagnostico, planes: planes.filter(Boolean) })), revision: revisionSistemas, ordenes: ordenesPaciente, documentos: { recetas: episodioActual?.recetas ?? [], ordenes: [ ...(episodioActual?.ordenes ?? []), ...(laboratoriosElegidos ? [{ tipo: "Laboratorio", detalle: laboratoriosElegidos, estado: "Solicitado" }] : []), ...(tipoOrden && tipoOrden !== "laboratorio" && detalleOrden.trim() ? [{ tipo: titulosOrden[tipoOrden], detalle: detalleOrden.trim(), estado: "Solicitado" }] : []) ], resultados: episodioActual?.resultados ?? [], reconsultas: episodioActual?.reconsultas ?? [] } },
+      }) });
+      const resultado = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(resultado.message || "No se pudo guardar la atención.");
+      setAtencionServidor(resultado.data);
+      try { guardarEnHistoria(true); } catch (error) { console.error("No se pudo actualizar el historial local", error); }
+      setVistaImpresionAbierta(true);
+    } catch (error) {
+      setErrorAtencion(error instanceof TypeError ? "Se interrumpió la conexión. Recarga la atención para comprobar si se guardó antes de reintentar." : error instanceof Error ? error.message : "No se pudo guardar la atención.");
+    } finally { guardandoAtencionRef.current = false; setGuardandoAtencion(false); }
+  };
+  const agendarReconsulta = async (evento: FormEvent<HTMLFormElement>) => {
+    evento.preventDefault();
+    if (guardandoReconsultaRef.current) return;
+    if (!paciente.pacienteId || !paciente.profesionalId) {
+      setErrorReconsulta("La consulta no tiene un paciente o médico vinculado. Revisa sus datos antes de agendar.");
+      return;
+    }
+    guardandoReconsultaRef.current = true;
+    setGuardandoReconsulta(true);
+    setErrorReconsulta("");
+    try {
+      const respuesta = await apiFetch("/api/citas", { method: "POST", body: JSON.stringify({
+        paciente_id: paciente.pacienteId, profesional_id: paciente.profesionalId,
+        doctor: paciente.doctor, especialidad: paciente.especialidad, consultorio: paciente.consultorio || "Consultorio 1",
+        fecha: fechaReconsulta, hora: horaReconsulta, estado: "por_confirmar", tipo: "reconsulta", cita_origen_id: Number(paciente.id),
+      }) });
+      const resultado = await respuesta.json();
+      if (!respuesta.ok) throw new Error(String(Object.values(resultado.errors || {}).flat()[0] || resultado.message || "No se pudo agendar la reconsulta."));
+      setMensajeReconsulta(`Reconsulta agendada para el ${fechaReconsulta.split("-").reverse().join("/")} a las ${horaReconsulta}. Pendiente de confirmación.`);
+      window.dispatchEvent(new Event("citas:actualizadas"));
+      reconsultaDialog.current?.close();
+    } catch (error) {
+      setErrorReconsulta(error instanceof TypeError ? "Se interrumpió la conexión. Revisa la agenda antes de reintentar para evitar duplicados." : error instanceof Error ? error.message : "No se pudo agendar la reconsulta. Revisa la agenda antes de reintentar.");
+    } finally {
+      guardandoReconsultaRef.current = false;
+      setGuardandoReconsulta(false);
+    }
   };
   return (
     <section
@@ -577,40 +680,6 @@ export function ConsultaMedicaView({
                   </div>
                 </dl>
               </div>
-              <section
-                className="consulta-contexto-clinico"
-                aria-label="Resumen de antecedentes del paciente"
-              >
-                <header>
-                  <p>RESUMEN CLÍNICO</p>
-                </header>
-                <dl>
-                  <div>
-                    <dt>Antecedentes</dt>
-                    <dd>{antecedentesPaciente}</dd>
-                  </div>
-                  <div>
-                    <dt>Alergias</dt>
-                    <dd>{alergiasPaciente}</dd>
-                  </div>
-                  <div>
-                    <dt>Diagnósticos previos</dt>
-                    <dd>
-                      {diagnosticosPrevios.length
-                        ? diagnosticosPrevios.join(" · ")
-                        : "Sin diagnósticos registrados"}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Última consulta</dt>
-                    <dd>
-                      {ultimaConsulta
-                        ? `${ultimaConsulta.fecha} · ${ultimaConsulta.motivo || "Sin motivo registrado"}`
-                        : "Sin consultas previas"}
-                    </dd>
-                  </div>
-                </dl>
-              </section>
             </div>
           </header>
           <div className="consulta-secciones-bar">
@@ -631,24 +700,6 @@ export function ConsultaMedicaView({
                 </button>
               ))}
             </nav>
-            {seccion === "atencion" && (
-              <div className="consulta-guardar-historia consulta-guardar-en-barra">
-                <button
-                  type="button"
-                  onClick={() => guardarEnHistoria()}
-                  disabled={!datosClinicosPaciente.motivoConsulta.trim()}
-                >
-                  <Icon name="fileText" size={16} /> Guardar episodio
-                  cl&iacute;nico
-                </button>
-                {episodioGuardado && (
-                  <span>
-                    Episodio {episodioGuardado} actualizado en la historia
-                    cl&iacute;nica.
-                  </span>
-                )}
-              </div>
-            )}
           </div>
         </div>
         {seccion === "atencion" && (
@@ -720,21 +771,6 @@ export function ConsultaMedicaView({
                     </button>
                   )}
                 </>
-              )}
-            </div>
-            <div className="consulta-guardar-historia">
-              <button
-                type="button"
-                onClick={() => guardarEnHistoria()}
-                disabled={!datosClinicosPaciente.motivoConsulta.trim()}
-              >
-                <Icon name="fileText" size={16} /> Guardar episodio clínico
-              </button>
-              {episodioGuardado && (
-                <span>
-                  Episodio {episodioGuardado} actualizado en la historia
-                  clínica.
-                </span>
               )}
             </div>
             {tipoOrden === "laboratorio" && (
@@ -1028,7 +1064,7 @@ export function ConsultaMedicaView({
                       />
                     </div>
                   </details>
-                  <RevisionConsulta pacienteId={paciente.ci} />
+                  <RevisionConsulta key={paciente.id} pacienteId={paciente.ci} cerrada={atencionFinalizada} storageKey={`revision-consulta:${paciente.id}`} registros={revisionSistemas} onChange={setRevisionSistemas} />
                   <section className="consulta-seguimiento-panel consulta-diagnostico-final">
                     <header>
                       <div>
@@ -1201,21 +1237,42 @@ export function ConsultaMedicaView({
                           imprimirlo.
                         </small>
                       </div>
-                      {!atencionFinalizada && (
-                        <button type="button" onClick={finalizarAtencion}>
-                          Finalizar atención
-                        </button>
-                      )}
+                      <div className="consulta-cierre-acciones">
+                        <button type="button" className="consulta-reconsulta-boton" onClick={() => { setErrorReconsulta(""); setFechaReconsulta(""); setHoraReconsulta(""); reconsultaDialog.current?.showModal(); }}>Agendar reconsulta</button>
+                        {!atencionFinalizada && <button type="button" disabled={guardandoAtencion} onClick={() => void finalizarAtencion()}>{guardandoAtencion ? "Guardando..." : "Finalizar atención"}</button>}
+                      </div>
                     </header>
                     <p>
                       {atencionFinalizada
                         ? "Atención finalizada y trasladada a Atendidos hoy."
                         : "Al finalizar se abrirá la vista previa de la historia clínica y órdenes."}
                     </p>
+                    {mensajeReconsulta && <p role="status">{mensajeReconsulta}</p>}
+                    {errorAtencion && <p role="alert">{errorAtencion}</p>}
+                    <dialog ref={reconsultaDialog} className="consulta-reconsulta-dialog" aria-labelledby="reconsulta-titulo" onCancel={(evento) => { if (guardandoReconsulta) evento.preventDefault(); }}>
+                      <form onSubmit={agendarReconsulta}>
+                        <h3 id="reconsulta-titulo">Agendar reconsulta</h3>
+                        <p>{paciente.paciente} · {paciente.doctor}</p>
+                        <label>Fecha<input type="date" required min={fechaISOEnBolivia() > paciente.fecha ? fechaISOEnBolivia() : paciente.fecha} value={fechaReconsulta} onChange={(evento) => setFechaReconsulta(evento.target.value)} /></label>
+                        <label>Hora<input type="time" required value={horaReconsulta} onChange={(evento) => setHoraReconsulta(evento.target.value)} /></label>
+                        <small>La cita quedará pendiente de confirmación. No se registrará un cobro.</small>
+                        {errorReconsulta && <p role="alert">{errorReconsulta}</p>}
+                        <footer><button type="button" disabled={guardandoReconsulta} onClick={() => reconsultaDialog.current?.close()}>Cancelar</button><button type="submit" disabled={guardandoReconsulta}>{guardandoReconsulta ? "Agendando..." : "Agendar"}</button></footer>
+                      </form>
+                    </dialog>
                   </section>
                 </section>
               </div>
               <div className="consulta-atencion-lateral">
+                <section className="consulta-contexto-clinico consulta-contexto-lateral panel" aria-label="Resumen de antecedentes del paciente">
+                  <header><p>RESUMEN CLÍNICO</p></header>
+                  <dl>
+                    <div><dt>Antecedentes</dt><dd>{antecedentesPaciente}</dd></div>
+                    <div><dt>Alergias</dt><dd>{alergiasPaciente}</dd></div>
+                    <div><dt>Diagnósticos previos</dt><dd>{diagnosticosPrevios.length ? diagnosticosPrevios.join(" · ") : "Sin diagnósticos registrados"}</dd></div>
+                    <div><dt>Última consulta</dt><dd>{ultimaConsulta ? `${ultimaConsulta.fecha} · ${ultimaConsulta.contenido.motivo || "Sin motivo registrado"}` : "Sin consultas previas"}</dd></div>
+                  </dl>
+                </section>
                 <section className="consulta-ordenes-medicas panel">
                   <header>
                     <div>
@@ -1315,6 +1372,7 @@ export function ConsultaMedicaView({
                     )}
                   </section>
                 </section>
+
               </div>
             </div>
           </>
@@ -1387,25 +1445,24 @@ export function ConsultaMedicaView({
             <div className="consulta-resumen-clinico">
               <article>
                 <small>Antecedentes patológicos</small>
-                <strong>Sin antecedentes registrados</strong>
+                <strong>{antecedentesPaciente}</strong>
               </article>
               <article>
                 <small>Alergias</small>
-                <strong>Sin alergias registradas</strong>
+                <strong>{alergiasPaciente}</strong>
               </article>
               <article>
                 <small>Cirugías previas</small>
                 <strong>Sin cirugías registradas</strong>
               </article>
             </div>
-            <div className="consulta-estado-vacio compacto">
-              <Icon name="calendar" size={27} />
-              <strong>Sin consultas anteriores</strong>
-              <small>
-                Las atenciones finalizadas se mostrarán aquí en orden
-                cronológico.
-              </small>
-            </div>
+            {errorHistorial && <p className="consulta-historial-error" role="alert">{errorHistorial}</p>}
+            {cargandoHistorial && <p className="consulta-historial-cargando" role="status">Cargando consultas anteriores...</p>}
+            {consultasAnteriores.length ? <div className="consulta-historial-lista">
+              {consultasAnteriores.map((consulta) => <button type="button" className="consulta-historial-item consulta-historial-abrir" key={consulta.citaId} onClick={() => setConsultaPreviaAbierta({ citaActualId: paciente.id, consulta })}>
+                <span><strong>{consulta.fecha.split("-").reverse().join("/")} · {consulta.hora}</strong><small>{consulta.tipo === "reconsulta" ? "Reconsulta" : "Consulta"} · {consulta.especialidad || "Consulta médica"} · {consulta.medico}</small></span><Icon name="chevronRight" size={16} />
+              </button>)}
+            </div> : !cargandoHistorial && !errorHistorial && <div className="consulta-estado-vacio compacto"><Icon name="calendar" size={27} /><strong>Sin consultas anteriores</strong><small>Las atenciones finalizadas se mostrarán aquí en orden cronológico.</small></div>}
           </section>
         )}
         {seccion === "tratamientos" && (
@@ -1512,6 +1569,7 @@ export function ConsultaMedicaView({
             </section>
           </div>
         )}
+        {consultaPreviaAbierta?.citaActualId === paciente.id && <VentanaConsultaPrevia key={consultaPreviaAbierta.consulta.citaId} consulta={consultaPreviaAbierta.consulta} paciente={paciente} onCerrar={() => setConsultaPreviaAbierta(null)} />}
       </section>
     </section>
   );

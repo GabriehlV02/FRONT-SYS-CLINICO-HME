@@ -61,14 +61,14 @@ export type EpisodioClinico = {
 const CLAVE = "hme-episodios-clinicos-v1";
 const cargar = (): EpisodioClinico[] => {
   try {
-    const guardados = JSON.parse(
+    const guardados: unknown = JSON.parse(
       localStorage.getItem(CLAVE) || "[]",
-    ) as EpisodioClinico[];
-    const completos = guardados.filter(
-      (episodio) => !episodio.origenId.startsWith("demo:") && !episodio.paciente.id.startsWith("demo-") && episodio.origenId !== "consulta:agenda-demo-3",
     );
-    localStorage.setItem(CLAVE, JSON.stringify(completos));
-    return completos;
+    if (!Array.isArray(guardados)) return [];
+    return guardados.filter((episodio): episodio is EpisodioClinico =>
+      Boolean(episodio && typeof episodio.origenId === "string" && episodio.paciente && typeof episodio.paciente.id === "string") &&
+      !episodio.origenId.startsWith("demo:") && !episodio.paciente.id.startsWith("demo-") && episodio.origenId !== "consulta:agenda-demo-3",
+    );
   } catch {
     return [];
   }
@@ -80,9 +80,9 @@ export const obtenerEpisodios = () => episodios;
 export const origenConsultaAmbulatoria = (cita: CitaConfirmada) => {
   const anterior = episodios.find(
     (episodio) =>
-      episodio.origenId === `consulta:${cita.id}` &&
+      (episodio.origenId === `consulta:${cita.id}` || episodio.origenId.startsWith(`consulta:${cita.id}:`)) &&
       episodio.paciente.fecha === cita.fecha &&
-      episodio.paciente.hora === cita.hora,
+      episodio.paciente.hora?.slice(0, 5) === cita.hora?.slice(0, 5),
   );
   return anterior?.origenId || `consulta:${cita.id}:${cita.fecha}:${cita.hora}`;
 };

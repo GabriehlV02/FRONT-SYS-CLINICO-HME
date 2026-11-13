@@ -263,34 +263,22 @@ export function EsterilizacionView({
   const [formMaterial, setFormMaterial] = useState(MATERIAL_VACIO);
   const [guardandoMaterial, setGuardandoMaterial] = useState(false);
   const [exportandoInventario, setExportandoInventario] = useState(false);
-  const cantidadDialog = useRef<HTMLDialogElement>(null);
-  const [materialCantidad, setMaterialCantidad] = useState<MaterialEsteril | null>(null);
-  const [cantidadNueva, setCantidadNueva] = useState('');
-  const [guardandoCantidad, setGuardandoCantidad] = useState(false);
-  const [errorCantidad, setErrorCantidad] = useState('');
-  const abrirCantidad = (material: MaterialEsteril) => {
-    setMaterialCantidad(material);
-    setCantidadNueva(String(material.cantidad ?? 0));
-    setErrorCantidad('');
-    cantidadDialog.current?.showModal();
-  };
-  const guardarCantidad = async (evento: FormEvent<HTMLFormElement>) => {
-    evento.preventDefault();
-    if (!materialCantidad || guardandoCantidad) return;
-    setGuardandoCantidad(true);
-    setErrorCantidad('');
-    try {
-      const respuesta = await apiFetch(`/api/v1/instrumental/${encodeURIComponent(materialCantidad.id)}/cantidad`, {
-        method: 'PATCH', body: JSON.stringify({ cantidad: Number(cantidadNueva) }),
-      });
-      const resultado = await respuesta.json();
-      if (!respuesta.ok) throw new Error(Object.values(resultado.errors || {}).flat()[0] as string || resultado.message || 'No se pudo actualizar la cantidad.');
-      setDatos(actual => ({ ...actual, materiales: actual.materiales.map(item => item.id === materialCantidad.id ? { ...item, cantidad: resultado.data.cantidad } : item) }));
-      cantidadDialog.current?.close();
-      setAviso('Cantidad actualizada correctamente.');
-    } catch (causa) {
-      setErrorCantidad(causa instanceof Error ? causa.message : 'No se pudo actualizar la cantidad.');
-    } finally { setGuardandoCantidad(false); }
+  const [materialEditando, setMaterialEditando] = useState<MaterialEsteril | null>(null);
+  const [quitarImagen, setQuitarImagen] = useState(false);
+  const edicionActiva = useRef<string | null>(null);
+  const abrirEdicionMaterial = (material: MaterialEsteril) => {
+    edicionActiva.current = material.id;
+    setMaterialEditando(material);
+    setQuitarImagen(false);
+    setError("");
+    setFormMaterial({ codigo: material.codigo, nombre: material.nombre, lote: material.lote || "", medida: material.medida || "", cuentaConLogo: Boolean(material.cuentaConLogo), cantidad: String(material.cantidad ?? 0), descripcion: material.descripcion || "", imagen: material.imagen || "" });
+    setModal("material");
+    if (material.tieneImagen && !material.imagen) {
+      apiFetch(`/api/v1/instrumental/${encodeURIComponent(material.id)}/imagen`)
+        .then((respuesta) => { if (!respuesta.ok) throw new Error(); return respuesta.blob(); })
+        .then((imagen) => { if (edicionActiva.current === material.id) setFormMaterial((actual) => actual.imagen ? actual : { ...actual, imagen: URL.createObjectURL(imagen) }); })
+        .catch(() => { if (edicionActiva.current === material.id) setError("No se pudo cargar la vista previa de la imagen. La imagen guardada se conservará."); });
+    }
   };
   const [formKit, setFormKit] = useState(KIT_VACIO);
   const ampliarImagenDialog = useRef<HTMLDialogElement>(null);
@@ -324,6 +312,7 @@ export function EsterilizacionView({
   };
 
   const cerrarModal = () => {
+    edicionActiva.current = null;
     detenerCamaraMaterial();
     setErrorCamara("");
     setModal(null);
@@ -533,7 +522,7 @@ export function EsterilizacionView({
   const codigoMaterialNormalizado = normalizarCodigoMaterial(formMaterial.codigo);
   const codigoMaterialDuplicado = Boolean(
     codigoMaterialNormalizado && datos.materiales.some(
-      (item) => normalizarCodigoMaterial(item.codigo) === codigoMaterialNormalizado,
+      (item) => item.id !== materialEditando?.id && normalizarCodigoMaterial(item.codigo) === codigoMaterialNormalizado,
     ),
   );
 
@@ -543,7 +532,7 @@ export function EsterilizacionView({
     const materialesActuales = leerEsterilizacion().materiales;
     if (
       materialesActuales.some(
-        (item) => normalizarCodigoMaterial(item.codigo) === normalizarCodigoMaterial(codigo),
+        (item) => item.id !== materialEditando?.id && normalizarCodigoMaterial(item.codigo) === normalizarCodigoMaterial(codigo),
       )
     ) {
       setError("Ya existe un material con ese código único. Ingresa uno diferente.");
@@ -561,16 +550,17 @@ export function EsterilizacionView({
       cuerpo.set('cuenta_con_logo', formMaterial.cuentaConLogo ? '1' : '0');
       cuerpo.set('cantidad', formMaterial.cantidad);
       cuerpo.set('descripcion', formMaterial.descripcion.trim());
-      if (formMaterial.imagen) cuerpo.set('imagen', await (await fetch(formMaterial.imagen)).blob(), 'instrumental.jpg');
-      const respuesta = await apiFetch('/api/v1/instrumental', { method: 'POST', body: cuerpo });
+      if (formMaterial.imagen && (!materialEditando || formMaterial.imagen.startsWith('data:'))) cuerpo.set('imagen', await (await fetch(formMaterial.imagen)).blob(), 'instrumental.jpg');
+      if (materialEditando) { cuerpo.set('_method', 'PATCH'); cuerpo.set('eliminar_imagen', quitarImagen ? '1' : '0'); }
+      const respuesta = await apiFetch(materialEditando ? `/api/v1/instrumental/${encodeURIComponent(materialEditando.id)}` : '/api/v1/instrumental', { method: 'POST', body: cuerpo });
       const resultado = await respuesta.json();
       if (!respuesta.ok) throw new Error(Object.values(resultado.errors || {}).flat()[0] as string || resultado.message || 'No se pudo registrar el material.');
       const registro = resultado.data;
-      const material: MaterialEsteril = { id: registro.id, codigo: registro.codigo, nombre: registro.nombre, lote: registro.lote || '', medida: registro.medida || '', cuentaConLogo: Boolean(registro.cuenta_con_logo), tieneImagen: Boolean(registro.imagen_ruta), cantidad: registro.cantidad, imagen: formMaterial.imagen, descripcion: registro.descripcion || '', tipo: 'Instrumento', marca: '', serie: '', sector: registro.ubicacion, estado: 'pendiente', cirugiaId: '', actualizadoEn: registro.updated_at };
-      setDatos(actual => ({ ...actual, materiales: [...actual.materiales, material] }));
+      const material: MaterialEsteril = { ...materialEditando, id: registro.id, codigo: registro.codigo, nombre: registro.nombre, lote: registro.lote || '', medida: registro.medida || '', cuentaConLogo: Boolean(registro.cuenta_con_logo), tieneImagen: Boolean(registro.imagen_ruta), cantidad: registro.cantidad, imagen: formMaterial.imagen, descripcion: registro.descripcion || '', tipo: materialEditando?.tipo || 'Instrumento', marca: materialEditando?.marca || '', serie: materialEditando?.serie || '', sector: registro.ubicacion, estado: registro.estado, cirugiaId: materialEditando?.cirugiaId || '', actualizadoEn: registro.updated_at };
+      setDatos(actual => ({ ...actual, materiales: materialEditando ? actual.materiales.map(item => item.id === material.id ? material : item) : [...actual.materiales, material] }));
       setFormMaterial(MATERIAL_VACIO);
       cerrarModal();
-      setAviso('Material registrado correctamente.');
+      setAviso(materialEditando ? 'Material actualizado correctamente.' : 'Material registrado correctamente.');
     } catch (error) {
       setError(error instanceof Error ? error.message : 'No se pudo registrar el material.');
     } finally { setGuardandoMaterial(false); }
@@ -1210,6 +1200,8 @@ export function EsterilizacionView({
               onClick={async () => {
                 setExportandoInventario(true);
                 setError("");
+                setMaterialEditando(null);
+                setQuitarImagen(false);
                 try {
                   await exportarInstrumentalPdf(datos.materiales, (item) => ubicacionMaterial(item, cirugias));
                   setAviso("Reporte PDF generado correctamente.");
@@ -1245,7 +1237,7 @@ export function EsterilizacionView({
                     <td>{item.cantidad ?? 1}</td>
                     <td>{ubicacionMaterial(item, cirugias)}</td>
                     <td className="est-descripcion-material">{item.descripcion || "-"}</td>
-                    <td><div className="est-acciones-instrumental"><button type="button" title="Ver detalle" aria-label={`Ver detalle de ${item.nombre}`} onClick={() => verSeguimiento(item.id)}><Icon name="eye" size={17} /></button><button type="button" title="Editar cantidad" aria-label={`Editar cantidad de ${item.nombre}`} onClick={() => abrirCantidad(item)}><Icon name="edit" size={17} /></button></div></td>
+                    <td><div className="est-acciones-instrumental"><button type="button" title="Ver detalle" aria-label={`Ver detalle de ${item.nombre}`} onClick={() => verSeguimiento(item.id)}><Icon name="eye" size={17} /></button><button type="button" title="Editar material" aria-label={`Editar ${item.nombre}`} onClick={() => abrirEdicionMaterial(item)}><Icon name="edit" size={17} /></button></div></td>
                   </tr>
                 ))}
                 {!materialesVisibles.length && <tr><td colSpan={7}>No hay materiales que coincidan con la busqueda.</td></tr>}
@@ -1677,15 +1669,6 @@ export function EsterilizacionView({
           </div>
         )}
       </dialog>
-      <dialog ref={cantidadDialog} className="est-modal est-cantidad-dialog" aria-labelledby="cantidad-instrumental-titulo" onClose={() => setMaterialCantidad(null)}>
-        <header><div><p>INVENTARIO DE MATERIAL</p><h3 id="cantidad-instrumental-titulo">Editar cantidad</h3></div><button type="button" aria-label="Cerrar" onClick={() => cantidadDialog.current?.close()}><Icon name="close" size={17} /></button></header>
-        <form onSubmit={guardarCantidad}>
-          <p>{materialCantidad?.nombre} ? {materialCantidad?.codigo}</p>
-          <label>Cantidad disponible<input autoFocus type="number" min="0" max="1000000" step="1" required value={cantidadNueva} onChange={evento => setCantidadNueva(evento.target.value)} /></label>
-          {errorCantidad && <p className="est-error" role="alert">{errorCantidad}</p>}
-          <footer><button type="button" disabled={guardandoCantidad} onClick={() => cantidadDialog.current?.close()}>Cancelar</button><button type="submit" disabled={guardandoCantidad}>{guardandoCantidad ? 'Guardando...' : 'Guardar cantidad'}</button></footer>
-        </form>
-      </dialog>
       {modal && (
         <div
           className="est-modal-fondo"
@@ -1700,7 +1683,7 @@ export function EsterilizacionView({
               modal === "recepcion"
                 ? "Recepción de material sucio"
                 : modal === "material"
-                  ? "Registrar material estéril"
+                  ? (materialEditando ? "Editar material estéril" : "Registrar material estéril")
                   : modal === "kit"
                     ? "Crear caja quirúrgica de instrumental"
                     : modal === "agregar"
@@ -1716,7 +1699,7 @@ export function EsterilizacionView({
                   {modal === "recepcion"
                     ? "Recepción de material sucio"
                     : modal === "material"
-                      ? "Registrar nuevo material"
+                      ? (materialEditando ? "Editar material" : "Registrar nuevo material")
                       : modal === "kit"
                         ? "Crear caja quirúrgica"
                         : modal === "agregar"
@@ -1930,7 +1913,7 @@ export function EsterilizacionView({
                           <button type="button" onClick={() => ampliarImagenDialog.current?.close()} aria-label="Cerrar imagen ampliada">Cerrar</button>
                           <img src={formMaterial.imagen} alt="Imagen ampliada del material" />
                         </dialog>
-                        <button type="button" onClick={() => setFormMaterial({ ...formMaterial, imagen: "" })}>Quitar imagen</button>
+                        <button type="button" onClick={() => { setQuitarImagen(true); setFormMaterial({ ...formMaterial, imagen: "" }); }}>Quitar imagen</button>
                       </span>
                     )}
                     </div>
@@ -1960,7 +1943,7 @@ export function EsterilizacionView({
                       </label>
                       <label>
                         Cantidad *
-                        <input required type="number" min="1" step="1" value={formMaterial.cantidad} onChange={(e) => setFormMaterial({ ...formMaterial, cantidad: e.target.value })} />
+                        <input required type="number" min={materialEditando ? "0" : "1"} max="1000000" step="1" value={formMaterial.cantidad} onChange={(e) => setFormMaterial({ ...formMaterial, cantidad: e.target.value })} />
                       </label>
                       <label>
                         Descripción / observaciones
@@ -1969,7 +1952,7 @@ export function EsterilizacionView({
                     </div>
                   </div>
                 </div>
-                <p className="est-ayuda">Ubicación inicial: Almacén esterilización.</p>
+                {!materialEditando && <p className="est-ayuda">Ubicación inicial: Almacén esterilización.</p>}
                 {error && (
                   <p className="est-error" role="alert">
                     {error}
@@ -1979,7 +1962,7 @@ export function EsterilizacionView({
                   <button type="button" onClick={cerrarModal}>
                     Cancelar
                   </button>
-                  <button type="submit" disabled={codigoMaterialDuplicado}>Registrar material</button>
+                  <button type="submit" disabled={codigoMaterialDuplicado || guardandoMaterial}>{guardandoMaterial ? "Guardando..." : materialEditando ? "Guardar cambios" : "Registrar material"}</button>
                 </footer>
               </form>
             )}

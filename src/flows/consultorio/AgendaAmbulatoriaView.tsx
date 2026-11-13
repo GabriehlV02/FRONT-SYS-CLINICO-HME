@@ -30,6 +30,9 @@ export type CitaConfirmada = {
   fecha: string;
   hora: string;
   estado?: string;
+  tipo?: "consulta" | "reconsulta";
+  citaOrigenId?: number | null;
+  atencionFinalizadaEn?: string | null;
   signosRegistrados?: boolean;
   consultorio?: string;
   motivoOperativo?: string;
@@ -163,7 +166,7 @@ export function AgendaAmbulatoriaView({
       coincide(cita, busqueda),
   );
   const atendidas = visibles.filter((cita) => {
-    const finalizada = obtenerAtencionAmbulatoria(cita)?.finalizadaEn;
+    const finalizada = cita.atencionFinalizadaEn || obtenerAtencionAmbulatoria(cita)?.finalizadaEn;
     return (
       finalizada &&
       coincideFecha(cita) &&
@@ -262,6 +265,7 @@ export function AgendaAmbulatoriaView({
                 <time dateTime={`${cita.fecha}T${cita.hora}`}>
                   <strong>{cita.hora}</strong>
                   <small>{cita.fecha.split("-").reverse().join("/")}</small>
+                  {cita.tipo === "reconsulta" && <small>Reconsulta</small>}
                   {cita.estado === "por_confirmar" && <small>Por confirmar</small>}
                 </time>
                 <div>
@@ -331,7 +335,7 @@ export function AgendaAmbulatoriaView({
                     <small>{cita.fecha.split("-").reverse().join("/")}</small>
                     <small>{cita.especialidad || "Consulta ambulatoria"}</small>
                   </div>
-                  {obtenerAtencionAmbulatoria(cita)?.finalizadaEn ? (
+                  {cita.atencionFinalizadaEn || obtenerAtencionAmbulatoria(cita)?.finalizadaEn ? (
                     <Icon name="check" size={16} />
                   ) : (
                     <button type="button" onClick={() => atender(cita)}>

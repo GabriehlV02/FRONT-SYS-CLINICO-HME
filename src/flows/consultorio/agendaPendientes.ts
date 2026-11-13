@@ -6,6 +6,7 @@ export const fechaLocalISO = fechaISOEnBolivia;
 
 export const estaSinAtender = (cita: CitaConfirmada) =>
   (cita.estado === "confirmada" || cita.estado === "por_confirmar") &&
+  !cita.atencionFinalizadaEn &&
   !obtenerAtencionAmbulatoria(cita)?.finalizadaEn;
 
 export const esPendienteDeAtencion = (

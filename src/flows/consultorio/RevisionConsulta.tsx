@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Icon from "../../radius/componentes/Icono";
 import "./RevisionConsulta.css";
 
@@ -100,21 +100,38 @@ export function RevisionConsulta({
   pacienteId,
   cerrada = false,
   storageKey,
+  registros: registrosGuardados = {},
+  onChange,
 }: {
   pacienteId: string;
   cerrada?: boolean;
   storageKey?: string;
+  registros?: Record<string, string>;
+  onChange?: (registros: Record<string, string>) => void;
 }) {
+  const desdeServidor = (): Record<string, RegistroRevision> => Object.fromEntries(Object.entries(registrosGuardados).map(([id, valor]) => {
+    try {
+      const registro: unknown = JSON.parse(valor);
+      if (registro && typeof registro === "object" && !Array.isArray(registro)) {
+        const datos = registro as Record<string, unknown>;
+        return [id, { estados: Array.isArray(datos.estados) ? datos.estados.filter((estado): estado is string => typeof estado === "string") : [], detalle: typeof datos.detalle === "string" ? datos.detalle : "" }];
+      }
+    } catch { /* Los registros anteriores contienen texto simple. */ }
+    return [id, { estados: [], detalle: valor === "Negativo" ? "" : valor }];
+  }));
+  const serializar = (valores: Record<string, RegistroRevision>) => Object.fromEntries(Object.entries(valores).map(([id, valor]) => [id, valor.estados.length || valor.detalle ? JSON.stringify(valor) : "Negativo"]));
   const [registros, setRegistros] = useState<
     Record<string, RegistroRevision>
   >(() =>
-    leerRegistros(storageKey),
+    Object.keys(registrosGuardados).length ? desdeServidor() : leerRegistros(storageKey),
   );
+  useEffect(() => { onChange?.(serializar(registros)); }, []);
   const [abierto, setAbierto] = useState<string | null>(null);
   const [error, setError] = useState("");
   const actualizar = (id: string, registro: RegistroRevision) => {
     const siguientes = { ...registros, [id]: registro };
     setRegistros(siguientes);
+    onChange?.(serializar(siguientes));
     if (!storageKey) return;
     try {
       sessionStorage.setItem(storageKey, JSON.stringify(siguientes));

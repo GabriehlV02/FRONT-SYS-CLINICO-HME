@@ -19,9 +19,6 @@ async function iniciar() {
     const { cargarPacientesPrueba } = await import("./radius/datos/pacientesPrueba");
     try {
       cargarPacientesPrueba(localStorage, sessionStorage);
-      if (localStorage.getItem("clinico:pacientes-prueba:activos") === null) {
-        localStorage.setItem("clinico:pacientes-prueba:activos", "1");
-      }
     } catch (error) {
       console.error("No se pudieron preparar los pacientes de prueba sin alterar los datos existentes.", error);
     }

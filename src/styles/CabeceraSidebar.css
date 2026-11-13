@@ -1,6 +1,6 @@
 /* Cabecera y menú comparten el mismo límite, también al desplegar por hover. */
 .sistema-app {
-  --clinico-topbar: 70px;
+  --clinico-topbar: 60px;
 }
 
 .sistema-app .sistema-topbar,

@@ -1702,16 +1702,6 @@ export default function Aplicacion() {
               </section>
             )}
           </div>
-          {import.meta.env.DEV && (
-            <button type="button" className="clinico-indicador-prueba"
-              title="Activa o desactiva los flujos con fichas ficticias. En pruebas locales no se envían escrituras al servidor."
-              onClick={() => {
-                localStorage.setItem("clinico:pacientes-prueba:activos", esModoPruebaLocal() ? "0" : "1");
-                window.location.reload();
-              }}>
-              {esModoPruebaLocal() ? "Pruebas locales · Salir" : "Usar pacientes de prueba"}
-            </button>
-          )}
           {esMedico && (
             <button
               className="cola-atencion-rapida"

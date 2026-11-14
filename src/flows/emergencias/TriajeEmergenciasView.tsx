@@ -2559,9 +2559,6 @@ export function TriajeEmergenciasView({
                           <header>
                             <div>
                               <h3>Historial de anotaciones</h3>
-                              <small>
-                                Evoluciones registradas durante esta atención
-                              </small>
                             </div>
                             <span>{evolucionesEnfermeria.length}</span>
                           </header>
@@ -2630,7 +2627,21 @@ export function TriajeEmergenciasView({
                       </div>
                     </section>
                     <div className="em-seguimiento-enfermeria">
-                      <InsumosEnfermeriaPanel />
+                      <InsumosEnfermeriaPanel
+                        onUtilizar={(item, cantidad) =>
+                          guardar(
+                            `/${cuenta.id}/uso-enfermeria`,
+                            {
+                              tipo: "insumo",
+                              detalle: item.nombre,
+                              cantidad,
+                              unidad: item.unidad,
+                              observacion: item.codigo ? `Código: ${item.codigo}` : undefined,
+                            },
+                            `${item.nombre} registrado como insumo utilizado.`,
+                          )
+                        }
+                      />
                       <OrdenesEmergencias
                         key={`indicaciones-${cuenta.id}`}
                         cuenta={cuenta}

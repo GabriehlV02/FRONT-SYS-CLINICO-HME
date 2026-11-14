@@ -1,9 +1,10 @@
 .em-tratamiento-paciente { margin-top: 24px; }
-.em-tratamiento-herramientas { display: flex; gap: 14px; align-items: end; flex-wrap: wrap; margin-bottom: 16px; }
+.em-tratamiento-herramientas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(210px, 235px) auto; gap: 14px; align-items: end; margin-bottom: 16px; }
 .em-tratamiento-herramientas label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; color: #355c78; min-width: 0; }
-.em-tratamiento-herramientas label:first-child { flex: 1 1 260px; }
-.em-tratamiento-herramientas label:last-child { flex: 0 1 235px; }
 .em-tratamiento-herramientas :is(input, select) { width: 100%; min-height: 40px; padding: 9px 12px; border: 1px solid #a9c9dd; border-radius: 8px; font: inherit; background: #fff; color: #244d6a; }
+.em-hoja-tratamiento { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 0 14px; border: 1px solid #b6d6e5; border-radius: 8px; color: #0877a8; background: #f2f9fc; font: inherit; font-size: 12px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+.em-hoja-tratamiento:hover { border-color: #74b8d3; background: #e5f4fa; }
+.em-hoja-tratamiento:focus-visible { outline: 3px solid #087fc033; outline-offset: 2px; }
 .em-tratamiento-scroll { overflow-x: auto; max-height: 530px; border: 1px solid #c8dfea; border-radius: 9px; }
 .em-tratamiento-scroll:focus-visible { outline: 3px solid #087fc040; outline-offset: 2px; }
 .em-tratamiento-scroll table { width: 100%; min-width: 1050px; border-collapse: separate; border-spacing: 0; text-align: left; font-size: 12px; color: #315875; }
@@ -22,4 +23,5 @@
 .sistema-app[data-theme="dark"] .em-tratamiento-paciente :is(td, label) { color: #c5dceb; }
 .sistema-app[data-theme="dark"] .em-tratamiento-paciente :is(th, input, select, .em-tratamiento-estado) { background: #12334e; color: #d3e4f0; border-color: #42647d; }
 .sistema-app[data-theme="dark"] .em-tratamiento-scroll tbody tr:nth-child(even) { background: #102c46; }
-@media (max-width: 600px) { .em-tratamiento-herramientas label:last-child { flex: 1 1 100%; } }
+@media (max-width: 850px) { .em-tratamiento-herramientas { grid-template-columns: minmax(0, 1fr) minmax(190px, .7fr); } .em-hoja-tratamiento { grid-column: 1/-1; justify-self: end; } }
+@media (max-width: 600px) { .em-tratamiento-herramientas { grid-template-columns: minmax(0, 1fr); } .em-tratamiento-herramientas > *, .em-hoja-tratamiento { grid-column: 1; width: 100%; } }

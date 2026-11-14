@@ -43,11 +43,9 @@ export function OrdenesEmergencias({
               ? "Indicaciones médicas para enfermería"
               : "Órdenes e indicaciones emitidas"}
           </h3>
-          <small>
-            {enfermeria
-              ? "Revisa la indicación y confirma cada aplicación. Las cantidades son de consumo, no la dosis prescrita."
-              : "Se muestran automáticamente en Triaje de emergencias."}
-          </small>
+          {!enfermeria && (
+            <small>Se muestran automáticamente en Triaje de emergencias.</small>
+          )}
         </div>
         <b>
           {

@@ -2,14 +2,20 @@ import Icon from "../../radius/componentes/Icono";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { leerSesion } from "../../radius/types/sesion";
 import { notificar } from "../../radius/componentes/Notificaciones";
-import { opcionesInsumos, stockInsumos, solicitudesInsumos, enviarSolicitudInsumos, type OpcionesInsumos, type StockInsumos, type SolicitudInsumos } from "./insumosEnfermeriaApi";
+import { opcionesInsumos, stockInsumos, solicitudesInsumos, enviarSolicitudInsumos, type ItemInsumos, type OpcionesInsumos, type StockInsumos, type SolicitudInsumos } from "./insumosEnfermeriaApi";
 
-export function InsumosEnfermeriaPanel() {
+type InsumosEnfermeriaPanelProps = {
+  onUtilizar?: (item: ItemInsumos, cantidad: number) => Promise<boolean>;
+};
+
+export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelProps = {}) {
   const claveAlmacen = `enfermeria:almacen:${leerSesion()?.usuario.id || "local"}`;
   const [opciones, setOpciones] = useState<OpcionesInsumos>({ almacenes: [], catalogo: [] });
   const [almacen, setAlmacen] = useState(() => sessionStorage.getItem(claveAlmacen) || "");
   const [estado, setEstado] = useState("activos");
   const [buscarStock, setBuscarStock] = useState("");
+  const [seleccionados, setSeleccionados] = useState<{ item: ItemInsumos; cantidad: string }[]>([]);
+  const [utilizando, setUtilizando] = useState<number | null>(null);
   const [stock, setStock] = useState<StockInsumos[]>([]);
   const [solicitudes, setSolicitudes] = useState<SolicitudInsumos[]>([]);
   const [cargando, setCargando] = useState(true), [error, setError] = useState(""), [version, setVersion] = useState(0);
@@ -56,9 +62,42 @@ export function InsumosEnfermeriaPanel() {
     (item.estado === "ACTIVO" && item.estado_producto === "ACTIVO") === (estado === "activos") &&
     normalizar(`${item.nombre} ${item.codigo || ""} ${item.unidad}`).includes(normalizar(buscarStock)),
   );
+  const resultadosBusqueda = buscarStock.trim()
+    ? opciones.catalogo.filter((item) =>
+        normalizar(`${item.nombre} ${item.codigo || ""} ${item.unidad}`).includes(normalizar(buscarStock)) &&
+        !seleccionados.some((seleccionado) => seleccionado.item.id === item.id),
+      )
+    : [];
   const pedidosAlmacen = solicitudes.filter((pedido) => Number(pedido.almacen_destino_id) === Number(almacen));
   const abrir = () => {
     idSolicitud.current = crypto.randomUUID(); setLineas([{ item_id: "", cantidad: "1" }]); setObservacion(""); setBusqueda(""); setErrorSolicitud(""); modal.current?.showModal();
+  };
+  const agregarSeleccionado = (item: ItemInsumos) => {
+    setSeleccionados((actuales) =>
+      actuales.some((seleccionado) => seleccionado.item.id === item.id)
+        ? actuales
+        : [...actuales, { item, cantidad: "1" }],
+    );
+    setBuscarStock("");
+  };
+  const utilizarSeleccionado = async (item: ItemInsumos, cantidad: string) => {
+    const cantidadNumerica = Number(cantidad);
+    if (!Number.isFinite(cantidadNumerica) || cantidadNumerica <= 0) {
+      notificar("advertencia", "Cantidad no válida", "Escribe una cantidad mayor que cero.");
+      return;
+    }
+    if (!onUtilizar) {
+      notificar("advertencia", "Atención no seleccionada", "Abre los insumos desde la atención del paciente para registrar su uso.");
+      return;
+    }
+    setUtilizando(item.id);
+    try {
+      if (await onUtilizar(item, cantidadNumerica)) {
+        setSeleccionados((actuales) => actuales.filter((seleccionado) => seleccionado.item.id !== item.id));
+      }
+    } finally {
+      setUtilizando(null);
+    }
   };
   const enviar = async (evento: FormEvent) => {
     evento.preventDefault();
@@ -80,10 +119,25 @@ export function InsumosEnfermeriaPanel() {
         </div>
       </header>
       <div className="em-insumos-enfermeria-herramientas">
-        <label className="em-insumos-buscar">
-          Buscar insumo
-          <span><Icon name="search" size={16} /><input type="search" value={buscarStock} onChange={(evento) => setBuscarStock(evento.target.value)} placeholder="Nombre, código o unidad" /></span>
-        </label>
+        <div className="em-insumos-buscar-contenedor">
+          <label className="em-insumos-buscar">
+            Buscar insumo
+            <span><Icon name="search" size={16} /><input type="search" value={buscarStock} onChange={(evento) => setBuscarStock(evento.target.value)} placeholder="Nombre, código o unidad" /></span>
+          </label>
+          {!!resultadosBusqueda.length && (
+            <div className="em-insumos-resultados" role="listbox" aria-label="Resultados de insumos">
+              {resultadosBusqueda.slice(0, 8).map((item) => (
+                <button key={item.id} type="button" role="option" aria-selected="false" onClick={() => agregarSeleccionado(item)}>
+                  <span><strong>{item.nombre}</strong><small>{item.codigo} · {item.unidad}</small></span>
+                  <b>Añadir</b>
+                </button>
+              ))}
+            </div>
+          )}
+          {buscarStock.trim() && !resultadosBusqueda.length && (
+            <div className="em-insumos-resultados em-insumos-resultados-vacio">No hay insumos que coincidan con la búsqueda.</div>
+          )}
+        </div>
         <label className="em-insumos-filtro">
           Filtro
           <select value={estado} onChange={(evento) => setEstado(evento.target.value)}>
@@ -91,7 +145,7 @@ export function InsumosEnfermeriaPanel() {
             <option value="inactivos">Inactivos</option>
           </select>
         </label>
-        <button type="button" className="em-primario" disabled={!almacen || cargando || !!error} onClick={abrir}>
+        <button type="button" className="em-primario" onClick={abrir}>
           <Icon name="package" size={16} /> Solicitar descargo
         </button>
       </div>
@@ -99,9 +153,14 @@ export function InsumosEnfermeriaPanel() {
       {!cargando && !error && !opciones.almacenes.length && <p className="em-pendiente">No tienes almacenes asignados. Solicita la asignación de tu almacén a Administración.</p>}
       <div className="em-insumos-enfermeria-tabla">
         <table>
-          <thead><tr><th scope="col">Insumo</th><th scope="col">Cantidad</th><th scope="col">Unidad</th></tr></thead>
-          <tbody>{visibles.map((item) => <tr key={item.id}><td><strong>{item.nombre}</strong><small>{item.codigo}</small></td><td>{Number(item.cantidad).toLocaleString("es-BO", { maximumFractionDigits: 3 })}</td><td>{item.unidad}</td></tr>)}
-            {!visibles.length && <tr><td colSpan={3} className="em-insumos-enfermeria-vacio">{cargando ? "Cargando stock…" : error ? "No se pudo consultar el stock." : !almacen ? "No hay un almacén definido para esta sesión." : buscarStock.trim() ? "No hay insumos que coincidan con la búsqueda y el filtro." : `No hay insumos ${estado} en este almacén.`}</td></tr>}
+          <thead><tr><th scope="col">Insumo</th><th scope="col">Cantidad</th><th scope="col">Unidad</th><th scope="col">Acción</th></tr></thead>
+          <tbody>{seleccionados.map(({ item, cantidad }) => <tr key={item.id}>
+            <td><strong>{item.nombre}</strong><small>{item.codigo}</small></td>
+            <td><input className="em-insumos-cantidad" type="number" min="0.001" step="0.001" value={cantidad} aria-label={`Cantidad de ${item.nombre}`} onChange={(evento) => setSeleccionados((actuales) => actuales.map((seleccionado) => seleccionado.item.id === item.id ? { ...seleccionado, cantidad: evento.target.value } : seleccionado))} /></td>
+            <td>{item.unidad}</td>
+            <td><button className="em-insumos-utilizar" type="button" disabled={utilizando === item.id} onClick={() => void utilizarSeleccionado(item, cantidad)}>{utilizando === item.id ? "Registrando…" : "Utilizar"}</button></td>
+          </tr>)}
+            {!seleccionados.length && <tr><td colSpan={4} className="em-insumos-enfermeria-vacio">{cargando ? "Cargando stock…" : error ? "No se pudo consultar el stock." : !almacen ? "No hay un almacén definido para esta sesión." : visibles.length ? "Busca un insumo y selecciónalo para añadirlo a la lista." : `No hay insumos ${estado} en este almacén.`}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -110,7 +169,16 @@ export function InsumosEnfermeriaPanel() {
       </details>}
       <dialog ref={modal} className="em-insumos-solicitud-modal" onCancel={(evento) => { if (enviando) evento.preventDefault(); }}>
         <form onSubmit={enviar}>
-          <header><div><h3>Solicitar descargo a Farmacia</h3><p>Destino: {opciones.almacenes.find((a) => String(a.id) === almacen)?.nombre}</p></div><button type="button" disabled={enviando} aria-label="Cerrar solicitud" onClick={() => modal.current?.close()}>×</button></header>
+          <header><div><h3>Solicitar descargo a Farmacia</h3>{almacen && <p>Destino: {opciones.almacenes.find((a) => String(a.id) === almacen)?.nombre}</p>}</div><button type="button" disabled={enviando} aria-label="Cerrar solicitud" onClick={() => modal.current?.close()}>×</button></header>
+          {!almacen ? (
+            <>
+              <div className="em-insumos-solicitud-vacia" aria-label="Solicitud vacía" />
+              <footer>
+                <button type="button" onClick={() => modal.current?.close()}>Cerrar</button>
+              </footer>
+            </>
+          ) : (
+            <>
           <label>Buscar insumo<input value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Nombre o código del catálogo" /></label>
           <div className="em-insumos-solicitud-lineas">{lineas.map((linea, indice) => <div key={indice}>
             <label>Insumo<select required disabled={enviando} value={linea.item_id} onChange={(evento) => setLineas((actuales) => actuales.map((actual, i) => i === indice ? { ...actual, item_id: evento.target.value } : actual))}><option value="">Seleccionar insumo</option>{opciones.catalogo.filter((item) => String(item.id) === linea.item_id || `${item.nombre} ${item.codigo}`.toLocaleLowerCase().includes(busqueda.toLocaleLowerCase())).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {item.unidad}</option>)}</select></label>
@@ -122,6 +190,8 @@ export function InsumosEnfermeriaPanel() {
           <p>La solicitud quedará pendiente. El stock se actualizará después de que Farmacia dispense los insumos.</p>
           {errorSolicitud && <p role="alert" className="em-error">{errorSolicitud}</p>}
           <footer><button type="button" disabled={enviando} onClick={() => modal.current?.close()}>Cancelar</button><button type="submit" className="em-primario" disabled={enviando || !opciones.catalogo.length}>{enviando ? "Enviando…" : "Enviar solicitud"}</button></footer>
+            </>
+          )}
         </form>
       </dialog>
     </section>

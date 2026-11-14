@@ -65,14 +65,24 @@
 
 /* Compacta el espaciado vertical de la ficha del paciente en emergencias. */
 .sistema-app .em-trabajo > .em-resumen:has(.em-resumen-identidad) {
-  padding-block: 12px !important;
+  padding-block: 8px !important;
 }
 .sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad {
-  gap: 8px;
+  gap: 5px;
 }
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar {
-  padding-top: 7px;
+  padding-top: 4px;
 }
 .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores {
-  padding-block: 6px;
+  padding-block: 3px;
+}
+.sistema-app .em-trabajo > .em-resumen > .em-total-acciones {
+  gap: 6px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido {
+  padding-block: 11px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones button {
+  min-height: 40px;
+  padding-block: 8px;
 }

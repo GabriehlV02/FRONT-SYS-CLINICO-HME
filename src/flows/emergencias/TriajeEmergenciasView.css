@@ -771,7 +771,7 @@
 .em-evolucion-modal>p{margin:18px 0;color:#294d65;font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
 .em-evolucion-modal>small{display:block;color:#71899c;font-size:11px}
 .em-evolucion-modal>.em-evolucion-editada{margin-top:6px;color:#1684ae}
-.em-seguimiento-enfermeria{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,0.9fr);align-items:start;gap:18px;margin-top:18px;padding-inline:19px}
+.em-seguimiento-enfermeria{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,0.9fr);align-items:stretch;gap:18px;margin-top:18px}
 .em-seguimiento-enfermeria>.em-panel{min-width:0;height:100%;margin:0}
 .em-suministracion-panel{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:14px;padding:18px;border:1px solid #cfe1ec;border-radius:13px;background:linear-gradient(155deg,#fbfdff 0%,#f3f9fc 100%);box-shadow:0 5px 16px rgba(28,77,107,.045)}
 .em-suministracion-panel>.em-panel-titulo{align-items:flex-start;gap:10px}

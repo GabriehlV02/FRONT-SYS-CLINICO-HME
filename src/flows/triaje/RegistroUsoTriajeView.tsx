@@ -19,7 +19,7 @@ const fechaVisible = (fecha: string) =>
     ? new Date(`${fecha}T12:00:00`).toLocaleDateString("es-BO")
     : "Sin fecha";
 
-export function RegistroUsoTriajeView() {
+export function RegistroUsoTriajeView({ medicoForzado }: { medicoForzado?: string } = {}) {
   const episodios = useSyncExternalStore(
     suscribirEpisodios,
     obtenerEpisodios,
@@ -28,7 +28,6 @@ export function RegistroUsoTriajeView() {
   const [busqueda, setBusqueda] = useState("");
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
-  const [consultorio, setConsultorio] = useState("");
   const [medico, setMedico] = useState("");
   const [especialidad, setEspecialidad] = useState("");
   const [seleccionado, setSeleccionado] = useState<EpisodioClinico | null>(
@@ -46,7 +45,8 @@ export function RegistroUsoTriajeView() {
         .filter(
           (episodio) =>
             episodio.tipo === "Consulta médica" &&
-            Boolean(episodio.finalizadaEn),
+            Boolean(episodio.finalizadaEn) &&
+            (!medicoForzado || episodio.medico === medicoForzado),
         )
         .sort((a, b) =>
           `${fechaISO(b)} ${b.paciente.hora || ""}`.localeCompare(
@@ -55,13 +55,6 @@ export function RegistroUsoTriajeView() {
         ),
     [episodios],
   );
-  const consultorios = [
-    ...new Set(
-      atendidos.map(
-        (episodio) => episodio.paciente.consultorio || "Sin asignar",
-      ),
-    ),
-  ].sort();
   const medicos = [
     ...new Set(atendidos.map((episodio) => episodio.medico || "No registrado")),
   ].sort();
@@ -73,8 +66,6 @@ export function RegistroUsoTriajeView() {
     ),
   ].sort();
   const coincideFiltros = (episodio: EpisodioClinico) =>
-    (!consultorio ||
-      (episodio.paciente.consultorio || "Sin asignar") === consultorio) &&
     (!medico || (episodio.medico || "No registrado") === medico) &&
     (!especialidad ||
       (episodio.paciente.especialidad || "Consulta externa") === especialidad);
@@ -172,34 +163,22 @@ export function RegistroUsoTriajeView() {
             onChange={(evento) => setHasta(evento.target.value)}
           />
         </label>
-        <label>
-          Consultorio
-          <select
-            value={consultorio}
-            onChange={(evento) => setConsultorio(evento.target.value)}
-          >
-            <option value="">Todos</option>
-            {consultorios.map((valor) => (
-              <option key={valor} value={valor}>
-                {valor}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Médico
-          <select
-            value={medico}
-            onChange={(evento) => setMedico(evento.target.value)}
-          >
-            <option value="">Todos</option>
-            {medicos.map((valor) => (
-              <option key={valor} value={valor}>
-                {valor}
-              </option>
-            ))}
-          </select>
-        </label>
+        {!medicoForzado && (
+          <label>
+            Médico
+            <select
+              value={medico}
+              onChange={(evento) => setMedico(evento.target.value)}
+            >
+              <option value="">Todos</option>
+              {medicos.map((valor) => (
+                <option key={valor} value={valor}>
+                  {valor}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           Especialidad
           <select

@@ -1,4 +1,5 @@
 import type { CitaConfirmada } from "./AgendaAmbulatoriaView";
+import type { DatosAntecedentesConsulta } from "./AntecedentesConsulta";
 
 export type TipoEpisodio =
   | "Consulta médica"
@@ -46,6 +47,7 @@ export type EpisodioClinico = {
   enfermedadActual: string;
   examenFisico: string;
   antecedentes: string;
+  antecedentesEstructurados?: DatosAntecedentesConsulta;
   notas: string;
   diagnosticos?: { diagnostico: string; planes: string[] }[];
   signosVitales: Record<string, string>;

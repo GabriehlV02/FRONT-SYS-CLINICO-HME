@@ -450,7 +450,14 @@
     justify-content: center;
   }
   .em-medica-atencion {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100%;
+  }
+  .em-medica-datos {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
   }
   .em-medica-datos {
     grid-row: 1;
@@ -2178,28 +2185,31 @@
 }
 
 .sistema-app .em-trabajo > .em-medica-resumen:has(.em-resumen-identidad) {
-  padding-block: 12.5px !important;
+  padding-block: 5px !important;
 }
 .sistema-app .em-trabajo > .em-medica-resumen > .em-resumen-identidad {
-  gap: 7px;
-}
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila > div {
   gap: 3px;
 }
+.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila > div {
+  gap: 2px;
+}
 .sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila-familiar {
-  padding-top: 6px;
+  padding-top: 2px;
 }
 .sistema-app .em-trabajo > .em-medica-resumen .em-cuenta-indicadores {
-  padding-block: 4px;
+  padding-block: 1px;
 }
 @media (min-width: 1001px) {
   .sistema-app .em-trabajo > .em-medica-resumen > .em-total-acciones {
-    gap: 6px;
+    gap: 4px;
   }
   .sistema-app .em-trabajo > .em-medica-resumen .em-total-acciones > button {
     min-height: 36px;
     padding: 6px 8px;
     font-size: 11px !important;
     line-height: 1.25;
+  }
+  .sistema-app .em-trabajo > .em-medica-resumen .em-total-consumido {
+    padding-block: 11px;
   }
 }

@@ -23,7 +23,6 @@ import {
   type DocumentoEpisodio,
 } from "./registroHistoria";
 import { RecetarioMedico } from "./RecetarioMedico";
-import { leerPaquetes, type Paquete } from "./FavoritosPaquetes";
 import {
   crearSolicitudLaboratorio,
   leerSolicitudesLaboratorio,
@@ -32,6 +31,11 @@ import {
 } from "../laboratorio/almacenLaboratorio";
 import { OrdenInternacionMedica } from "./OrdenInternacionMedica";
 import { RevisionConsulta } from "./RevisionConsulta";
+import {
+  AntecedentesConsulta,
+  antecedentesConsultaVacios,
+  type DatosAntecedentesConsulta,
+} from "./AntecedentesConsulta";
 import { BuscadorDiagnostico } from "./BuscadorDiagnostico";
 import type { ConsultaPrevia } from "./ventanaConsultaPrevia";
 import { VentanaConsultaPrevia } from "./PanelConsultaFlotante";
@@ -45,7 +49,7 @@ type DatosClinicos = {
   examenFisico: string;
 };
 type DiagnosticoConPlan = { id: string; diagnostico: string; planes: string[] };
-type AtencionGuardada = { version: number; finalizadaEn: string | null; contenido: { motivo: string; enfermedadActual: string; examenFisico: string; antecedentes: string; notas: string; diagnosticos: { diagnostico: string; planes: string[] }[]; revision: Record<string, string>; ordenes: string[] } };
+type AtencionGuardada = { version: number; finalizadaEn: string | null; contenido: { motivo: string; enfermedadActual: string; examenFisico: string; antecedentes: string; antecedentesEstructurados?: DatosAntecedentesConsulta; notas: string; diagnosticos: { diagnostico: string; planes: string[] }[]; revision: Record<string, string>; ordenes: string[] } };
 const titulosOrden: Record<TipoOrden, string> = {
   laboratorio: "laboratorio",
   imagenologia: "imagenología",
@@ -211,8 +215,6 @@ export function ConsultaMedicaView({
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [seccion, setSeccion] = useState<SeccionConsulta>("atencion");
   const [recetarioAbierto, setRecetarioAbierto] = useState(false);
-  const [paqueteId, setPaqueteId] = useState("");
-  const [paqueteAplicado, setPaqueteAplicado] = useState<Paquete | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [vitales, setVitales] = useState<Record<string, string>>({});
   const [cargandoValoracion, setCargandoValoracion] = useState(true);
@@ -227,6 +229,8 @@ export function ConsultaMedicaView({
   const [recargaValoracion, setRecargaValoracion] = useState(0);
   const [notasMedicas, setNotasMedicas] = useState<Record<string, string>>({});
   const [antecedentes, setAntecedentes] = useState<Record<string, string>>({});
+  const [antecedentesEstructurados, setAntecedentesEstructurados] = useState<DatosAntecedentesConsulta>(antecedentesConsultaVacios);
+  const [mensajeAntecedentes, setMensajeAntecedentes] = useState("");
   const [diagnosticosFinales, setDiagnosticosFinales] = useState<
     Record<string, DiagnosticoConPlan[]>
   >({});
@@ -284,6 +288,8 @@ export function ConsultaMedicaView({
     if (!paciente) return;
     const controller = new AbortController();
     setCitaAtencionCargada(""); setErrorAtencion(""); setAtencionServidor(null); setRevisionSistemas({});
+    setAntecedentesEstructurados(antecedentesConsultaVacios);
+    setMensajeAntecedentes("");
     apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, { signal: controller.signal })
       .then(async (respuesta) => {
         if (!respuesta.ok) throw new Error("No se pudo cargar la atención desde el servidor.");
@@ -294,6 +300,7 @@ export function ConsultaMedicaView({
           const contenido = resultado.data.contenido;
           setDatosClinicos((actual) => ({ ...actual, [paciente.ci]: { motivoConsulta: contenido.motivo, enfermedadActual: contenido.enfermedadActual, examenFisico: contenido.examenFisico } }));
           setAntecedentes((actual) => ({ ...actual, [paciente.ci]: contenido.antecedentes }));
+          setAntecedentesEstructurados({ ...antecedentesConsultaVacios, ...contenido.antecedentesEstructurados });
           setNotasMedicas((actual) => ({ ...actual, [paciente.ci]: contenido.notas }));
           setDiagnosticosFinales((actual) => ({ ...actual, [paciente.ci]: contenido.diagnosticos.map((item, indice) => ({ ...item, id: `servidor-${indice}` })) }));
           setOrdenesMedicas((actual) => ({ ...actual, [paciente.ci]: contenido.ordenes }));
@@ -578,6 +585,7 @@ export function ConsultaMedicaView({
         episodioActual?.antecedentes ??
         ""
       ).trim(),
+      antecedentesEstructurados: { ...antecedentesEstructurados },
       notas: (notasMedicas[paciente.ci] ?? episodioActual?.notas ?? "").trim(),
       diagnosticos: diagnosticosPaciente.map(({ diagnostico, planes }) => ({
         diagnostico,
@@ -595,15 +603,73 @@ export function ConsultaMedicaView({
     if (finalizar)
       setAtencionesCerradas((actual) => ({ ...actual, [paciente.ci]: true }));
   };
+  const obtenerContenidoAtencion = () => ({
+    motivo: datosClinicosPaciente.motivoConsulta.trim(),
+    enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(),
+    examenFisico: datosClinicosPaciente.examenFisico.trim(),
+    antecedentes: (antecedentes[paciente.ci] ?? episodioActual?.antecedentes ?? "").trim(),
+    antecedentesEstructurados: { ...antecedentesEstructurados },
+    notas: (notasMedicas[paciente.ci] ?? episodioActual?.notas ?? "").trim(),
+    diagnosticos: diagnosticosPaciente
+      .filter((item) => item.diagnostico.trim())
+      .map(({ diagnostico, planes }) => ({ diagnostico, planes: planes.filter(Boolean) })),
+    revision: revisionSistemas,
+    ordenes: ordenesPaciente,
+    documentos: {
+      recetas: episodioActual?.recetas ?? [],
+      ordenes: [
+        ...(episodioActual?.ordenes ?? []),
+        ...(laboratoriosElegidos ? [{ tipo: "Laboratorio", detalle: laboratoriosElegidos, estado: "Solicitado" }] : []),
+        ...(tipoOrden && tipoOrden !== "laboratorio" && detalleOrden.trim()
+          ? [{ tipo: titulosOrden[tipoOrden], detalle: detalleOrden.trim(), estado: "Solicitado" }]
+          : []),
+      ],
+      resultados: episodioActual?.resultados ?? [],
+      reconsultas: episodioActual?.reconsultas ?? [],
+    },
+  });
+  const guardarAntecedentesConsulta = async () => {
+    if (guardandoAtencionRef.current || atencionFinalizada) return;
+    guardandoAtencionRef.current = true;
+    setGuardandoAtencion(true);
+    setErrorAtencion("");
+    setMensajeAntecedentes("");
+    try {
+      const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, {
+        method: "PUT",
+        body: JSON.stringify({
+          version: atencionServidor?.version ?? null,
+          finalizar: false,
+          contenido: obtenerContenidoAtencion(),
+        }),
+      });
+      const resultado = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) throw new Error(resultado.message || "No se pudieron guardar los antecedentes.");
+      setAtencionServidor(resultado.data);
+      guardarEnHistoria(false);
+      setMensajeAntecedentes("Antecedentes guardados.");
+    } catch (error) {
+      setErrorAtencion(error instanceof TypeError
+        ? "Se interrumpió la conexión. Revisa la conexión y vuelve a guardar."
+        : error instanceof Error ? error.message : "No se pudieron guardar los antecedentes.");
+    } finally {
+      guardandoAtencionRef.current = false;
+      setGuardandoAtencion(false);
+    }
+  };
   const finalizarAtencion = async () => {
     if (guardandoAtencionRef.current) return;
     guardandoAtencionRef.current = true;
     setGuardandoAtencion(true); setErrorAtencion("");
     try {
-      const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, { method: "PUT", body: JSON.stringify({
-        version: atencionServidor?.version ?? null, finalizar: true,
-        contenido: { motivo: datosClinicosPaciente.motivoConsulta.trim(), enfermedadActual: datosClinicosPaciente.enfermedadActual.trim(), examenFisico: datosClinicosPaciente.examenFisico.trim(), antecedentes: (antecedentes[paciente.ci] ?? episodioActual?.antecedentes ?? "").trim(), notas: (notasMedicas[paciente.ci] ?? episodioActual?.notas ?? "").trim(), diagnosticos: diagnosticosPaciente.filter((item) => item.diagnostico.trim()).map(({ diagnostico, planes }) => ({ diagnostico, planes: planes.filter(Boolean) })), revision: revisionSistemas, ordenes: ordenesPaciente, documentos: { recetas: episodioActual?.recetas ?? [], ordenes: [ ...(episodioActual?.ordenes ?? []), ...(laboratoriosElegidos ? [{ tipo: "Laboratorio", detalle: laboratoriosElegidos, estado: "Solicitado" }] : []), ...(tipoOrden && tipoOrden !== "laboratorio" && detalleOrden.trim() ? [{ tipo: titulosOrden[tipoOrden], detalle: detalleOrden.trim(), estado: "Solicitado" }] : []) ], resultados: episodioActual?.resultados ?? [], reconsultas: episodioActual?.reconsultas ?? [] } },
-      }) });
+      const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, {
+        method: "PUT",
+        body: JSON.stringify({
+          version: atencionServidor?.version ?? null,
+          finalizar: true,
+          contenido: obtenerContenidoAtencion(),
+        }),
+      });
       const resultado = await respuesta.json().catch(() => ({}));
       if (!respuesta.ok) throw new Error(resultado.message || "No se pudo guardar la atención.");
       setAtencionServidor(resultado.data);
@@ -659,16 +725,18 @@ export function ConsultaMedicaView({
               <Icon name="chevronLeft" size={16} />
               <span>Volver al listado</span>
             </button>
+            <span className="consulta-etiqueta-contexto">CONSULTA MÉDICA</span>
           </div>
           <header className="consulta-area-cabecera">
             <div className="consulta-resumen-paciente">
               <div>
-                <p>CONSULTA MÉDICA</p>
-                <small>CI {paciente.ci}</small>
                 <dl className="consulta-datos-personales">
                   <div>
                     <dt>Paciente</dt>
-                    <dd>{nombreCompletoPaciente}</dd>
+                    <dd className="consulta-paciente-identidad">
+                      <span className="consulta-paciente-nombre">{nombreCompletoPaciente}</span>
+                      <span className="consulta-paciente-ci">CI {paciente.ci}</span>
+                    </dd>
                   </div>
                   <div>
                     <dt>Edad</dt>
@@ -704,81 +772,9 @@ export function ConsultaMedicaView({
         </div>
         {seccion === "atencion" && (
           <>
-            <div className="consulta-paquete">
-              <label>
-                Paquete favorito
-                <select
-                  value={paqueteId}
-                  onChange={(e) => setPaqueteId(e.target.value)}
-                >
-                  <option value="">Seleccionar paquete</option>
-                  {leerPaquetes(medico).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nombre}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button
-                type="button"
-                disabled={!paqueteId || atencionFinalizada}
-                onClick={() => {
-                  const paquete = leerPaquetes(medico).find(
-                    (p) => p.id === paqueteId,
-                  );
-                  if (!paquete) return;
-                  setPaqueteAplicado(paquete);
-                  if (paquete.indicaciones.length)
-                    setDiagnosticosFinales((actual) => ({
-                      ...actual,
-                      [paciente.ci]: [
-                        ...(actual[paciente.ci] ?? diagnosticosPaciente),
-                        {
-                          id: crypto.randomUUID(),
-                          diagnostico: "",
-                          planes: [...paquete.indicaciones],
-                        },
-                      ],
-                    }));
-                }}
-              >
-                Cargar paquete
-              </button>
-              {paqueteAplicado && (
-                <>
-                  <p>
-                    Paquete «{paqueteAplicado.nombre}» cargado. Revisa las
-                    indicaciones y prepara los documentos correspondientes.
-                  </p>
-                  {paqueteAplicado.medicamentos.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSeccion("tratamientos");
-                        setRecetarioAbierto(true);
-                      }}
-                    >
-                      Revisar receta ({paqueteAplicado.medicamentos.length})
-                    </button>
-                  )}
-                  {paqueteAplicado.laboratorios.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setTipoOrden("laboratorio")}
-                    >
-                      Revisar laboratorios (
-                      {paqueteAplicado.laboratorios.length})
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
             {tipoOrden === "laboratorio" && (
               <HojaLaboratorios
                 permitirEstudiosLocales
-                seleccionInicial={paqueteAplicado?.laboratorios.map(
-                  (l) => l.id,
-                )}
                 paciente={paciente.paciente}
                 onCerrar={() => setTipoOrden(null)}
                 onAceptar={(items) => {
@@ -1064,6 +1060,14 @@ export function ConsultaMedicaView({
                       />
                     </div>
                   </details>
+                  <AntecedentesConsulta
+                    value={antecedentesEstructurados}
+                    onChange={setAntecedentesEstructurados}
+                    onSave={() => void guardarAntecedentesConsulta()}
+                    disabled={atencionFinalizada}
+                    saving={guardandoAtencion}
+                    status={mensajeAntecedentes}
+                  />
                   <RevisionConsulta key={paciente.id} pacienteId={paciente.ci} cerrada={atencionFinalizada} storageKey={`revision-consulta:${paciente.id}`} registros={revisionSistemas} onChange={setRevisionSistemas} />
                   <section className="consulta-seguimiento-panel consulta-diagnostico-final">
                     <header>
@@ -1474,7 +1478,6 @@ export function ConsultaMedicaView({
                 : medico
             }
             abierto={recetarioAbierto}
-            medicamentosIniciales={paqueteAplicado?.medicamentos}
             onAbrir={() => setRecetarioAbierto(true)}
             onCerrar={() => setRecetarioAbierto(false)}
             onGuardar={guardarReceta}

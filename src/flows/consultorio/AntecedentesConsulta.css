@@ -1,0 +1,112 @@
+.consulta-antecedentes-estructurados {
+  border-top: 3px solid #087fb7;
+  padding: 16px 18px;
+}
+.consulta-antecedentes-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.consulta-antecedentes-cabecera h3 {
+  margin: 0;
+  color: #173f62;
+  font-size: 15px;
+}
+.consulta-antecedentes-cabecera small {
+  display: block;
+  margin-top: 4px;
+  color: #688096;
+  font-size: 11px;
+}
+.consulta-antecedentes-cabecera > svg {
+  color: #087fb7;
+}
+.consulta-antecedentes-grupos > details {
+  padding: 9px 0;
+  border-top: 1px solid #e6eef3;
+  color: #315b77;
+  font-size: 13px;
+  font-weight: 600;
+}
+.consulta-antecedentes-grupos > details:first-child {
+  border-top: 0;
+}
+.consulta-antecedentes-grupos summary {
+  color: #315b77;
+  cursor: pointer;
+  font-weight: 700;
+}
+.consulta-antecedentes-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 12px 0 3px;
+}
+.consulta-antecedentes-campos label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: #58758a;
+  font-size: 11px;
+  font-weight: 600;
+}
+.consulta-antecedentes-campos :is(textarea, select) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid #c8dce8;
+  border-radius: 7px;
+  color: #244b66;
+  background: #fbfdff;
+  font: inherit;
+  font-weight: 500;
+}
+.consulta-antecedentes-campos textarea {
+  resize: vertical;
+}
+.consulta-antecedentes-campos :is(textarea, select):focus {
+  border-color: #138cbe;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgb(19 140 190 / 12%);
+}
+.consulta-antecedentes-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 10px;
+}
+.consulta-antecedentes-acciones span {
+  margin-right: auto;
+  color: #167349;
+  font-size: 12px;
+}
+.consulta-antecedentes-acciones button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #087fb7;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.consulta-antecedentes-acciones button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+@media (max-width: 600px) {
+  .consulta-antecedentes-campos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .consulta-antecedentes-acciones {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -18,6 +18,7 @@ import { registrarAtencionAmbulatoria } from "./registroHistoria";
 import { ConsultaMedicaView } from "./ConsultaMedicaView";
 import type { SignoVitalConfig } from "../triaje/ConfiguracionSignosVitalesView";
 import { FavoritosPaquetes } from "./FavoritosPaquetes";
+import { RegistroUsoTriajeView } from "../triaje/RegistroUsoTriajeView";
 import "./ConsultorioView.css";
 import "./HistoriasClinicasView.css";
 import "./HistoriaHojeable.css";
@@ -31,7 +32,7 @@ import {
   type DocumentoEpisodio,
 } from "./registroHistoria";
 
-type Subvista = "consulta" | "historias" | "favoritos";
+type Subvista = "consulta" | "historial-atencion" | "historias" | "favoritos";
 type EpisodioHistoria = {
   id: string;
   tipo: string;
@@ -68,6 +69,7 @@ type PaginaLibro = {
 
 const subvistas: { id: Subvista; nombre: string; icono: IconName }[] = [
   { id: "consulta", nombre: "Consulta", icono: "userCheck" },
+  { id: "historial-atencion", nombre: "Historial de atención", icono: "calendar" },
   { id: "historias", nombre: "Historias clínicas", icono: "fileText" },
   { id: "favoritos", nombre: "Favoritos", icono: "sparkles" },
 ];
@@ -137,6 +139,8 @@ export function ConsultorioView({
         )
       ) : subvista === "historias" ? (
         <HistoriasClinicasView />
+      ) : subvista === "historial-atencion" ? (
+        <RegistroUsoTriajeView medicoForzado={medico} />
       ) : (
         <FavoritosPaquetes medico={medico} />
       )}

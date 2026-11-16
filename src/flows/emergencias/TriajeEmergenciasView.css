@@ -3191,7 +3191,7 @@
 .em-signos-panel > .em-panel-titulo small { display:block; margin-top:4px; color:#718a9d; font-size:11px; font-weight:500; }
 .em-signos-columnas {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
   gap: 18px;
   align-items: start;
 }
@@ -3562,6 +3562,23 @@
   overflow-x: auto;
   padding: 1px 1px 5px;
 }
+.em-signos-vista-switch { display:flex; width:max-content; gap:4px; margin:12px 0; padding:4px; border:1px solid #cfe2ee; border-radius:9px; background:#eef7fb; }
+.em-signos-vista-switch button { padding:7px 14px; border:0; border-radius:6px; color:#35617d; background:transparent; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+.em-signos-vista-switch button.activo { color:#fff; background:#087fc0; }
+.em-signos-tabla-contenedor { max-width:100%; overflow:auto; border:1px solid #d7e8f2; border-radius:9px; background:#fff; }
+.em-signos-tabla { width:100%; border-collapse:collapse; color:#294d65; font-size:12px; }
+.em-signos-tabla th,.em-signos-tabla td { padding:11px 12px; border-bottom:1px solid #e4eef4; text-align:left; white-space:nowrap; }
+.em-signos-tabla th { color:#315979; background:#f2f8fb; }
+.em-signos-tabla th:not(:first-child), .em-signos-tabla td:not(:first-child) { text-align:center; }
+.em-signos-tabla th span, .em-signos-tabla th small { display:block; }
+.em-signos-tabla th small { margin-top:4px; color:#7792a6; font-size:10px; font-weight:600; text-transform:none; }
+.em-signos-tabla td { height:52px; box-sizing:border-box; }
+.em-signos-tabla td time { color:#496a81; font-variant-numeric:tabular-nums; }
+.em-signos-tabla td strong { color:#15567d; font-size:14px; font-weight:700; font-variant-numeric:tabular-nums; }
+.em-signos-tabla tbody tr:nth-child(even) { background:#f7fbfd; }
+.em-signos-tabla tbody tr:hover { background:#edf7fc; }
+.em-signos-tabla tbody tr:last-child td { border-bottom:0; }
+.em-signos-tabla-contenedor > p { padding:20px; color:#71899c; text-align:center; }
 .em-signos-selector button {
   flex: 0 0 auto;
   min-height: 42px;

@@ -11,7 +11,7 @@
   box-shadow: 0 5px 22px rgb(20 62 87 / 5%) !important;
 }
 .sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad { display: grid; gap: 18px; }
-.sistema-app .em-trabajo > .em-resumen .em-identidad-fila { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, .7fr)); gap: 24px; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); gap: 20px; }
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila > div,
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child {
   display: flex;
@@ -29,7 +29,7 @@
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila small { color: #6b8192; font-size: 11px; font-weight: 500; letter-spacing: .01em; text-transform: none; }
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila strong { color: #24465f; font-size: 14px; font-weight: 500; line-height: 1.45; overflow-wrap: anywhere; }
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child strong { color: #143d59; font-size: clamp(18px, 1.5vw, 23px); font-weight: 650; line-height: 1.35; }
-.sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); padding-top: 16px; border-top: 1px solid #edf2f6; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-top: 16px; border-top: 1px solid #edf2f6; }
 .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 14px 18px; border: 1px solid #e0edf4; border-radius: 11px; background: #f4f9fc; }
 .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores > div:first-child { border: 0; background: transparent; }
 .sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores > div + div { padding-left: 22px; border-left: 1px solid #dce8ef; }
@@ -61,8 +61,66 @@
 .sistema-app .em-trabajo > .em-resumen .em-total-consumido { display: grid; gap: 6px; margin-bottom: 4px; padding: 14px; border: 1px solid #e0edf4; border-radius: 10px; background: #f4f9fc; }
 .sistema-app .em-trabajo > .em-resumen .em-total-consumido small { color: #6b8192; font-size: 11px; font-weight: 500; text-transform: none; }
 .sistema-app .em-trabajo > .em-resumen .em-total-consumido strong { color: #087bb2; font-size: 23px; font-weight: 650; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila > div {
+  flex-direction: row !important;
+  align-items: baseline !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap;
+  gap: 0 8px !important;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila small {
+  white-space: nowrap;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child strong {
+  font-size: clamp(17px, 1.35vw, 21px);
+}
+.sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad {
+  min-height: 0;
+  height: 100%;
+  align-content: center;
+  align-items: center;
+  gap: 9px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila {
+  align-items: center;
+  width: 100%;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila > div {
+  align-self: center;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar {
+  padding-top: 7px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores {
+  align-self: center;
+  padding: 8px 12px;
+}
 @media (max-width: 1000px) {
   .sistema-app .em-trabajo > .em-resumen .em-total-consumido { grid-column: 1 / -1; }
+}
+
+@media (min-width: 1001px) {
+  .sistema-app .em-trabajo:has(> .em-resumen) > .em-resumen {
+    position: relative;
+    grid-template-columns: minmax(0, 1fr);
+    height: 176px;
+    min-height: 176px;
+    box-sizing: border-box;
+    padding-right: 220px !important;
+    overflow: visible !important;
+  }
+  .sistema-app .em-trabajo:has(> .em-resumen) > .em-resumen > .em-total-acciones {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    bottom: -52px;
+    width: 198px;
+    box-sizing: border-box;
+    padding: 8px 8px 8px 11px;
+    border-left: 1px solid #e5edf3;
+    background: #fff;
+  }
 }
 
 /* Compacta el espaciado vertical de la ficha del paciente en emergencias. */
@@ -85,6 +143,17 @@
   padding-block: 11px;
 }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones button {
-  min-height: 40px;
-  padding-block: 8px;
+  min-height: 35px;
+  padding: 6px 8px;
+  gap: 6px;
+  font-size: 11px !important;
+  line-height: 1.2;
+}
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido {
+  gap: 3px;
+  margin-bottom: 2px;
+  padding: 8px 10px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido strong {
+  font-size: 20px;
 }

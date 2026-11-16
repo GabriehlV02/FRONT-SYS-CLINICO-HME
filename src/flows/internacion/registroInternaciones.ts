@@ -33,6 +33,8 @@ export type EvolucionEnfermeriaInternacion = {
 };
 
 export type TomaSignosInternacion = {
+  valores?: Record<string, string>;
+  observacion?: string;
   id: string;
   pacienteId: string;
   fecha: string;
@@ -47,6 +49,7 @@ export type TomaSignosInternacion = {
 };
 
 export type RegistroBalanceInternacion = {
+  anotacion?: string;
   id: string;
   pacienteId: string;
   tipo: "ingreso" | "egreso";

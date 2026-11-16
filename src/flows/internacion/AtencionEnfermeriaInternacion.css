@@ -86,6 +86,7 @@
   gap: 18px;
   color: #173d60;
 }
+.enfermeria-paciente { gap: 0; }
 .enfermeria-paciente button {
   font: inherit;
   cursor: pointer;
@@ -104,6 +105,7 @@
   font-size: 13px;
   font-weight: 700;
   transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+  margin-bottom: 12px;
 }
 .enfermeria-paciente-volver:hover {
   border-color: #a91f1f;
@@ -303,6 +305,7 @@
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 4px 14px rgb(25 75 111 / 6%);
+  border-radius: 12px 12px 0 0;
 }
 .enfermeria-paciente-resumen > header {
   display: flex;
@@ -349,6 +352,27 @@
   line-height: 1.35;
   white-space: normal;
 }
+.enfermeria-flujo-nav button.enfermeria-resumen-trasladar {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  align-self:center;
+  min-height:46px;
+  padding:0 15px;
+  margin:0 12px 0 auto;
+  border:1px solid #e77608;
+  border-radius:9px;
+  color:#fff;
+  background:linear-gradient(110deg,#ef850b,#f29312);
+  box-shadow:0 5px 12px rgb(220 116 8 / 19%);
+  font:inherit;
+  font-size:13px;
+  font-weight:800;
+  white-space:nowrap;
+  cursor:pointer;
+}
+.enfermeria-flujo-nav button.enfermeria-resumen-trasladar:hover { background:#d96d05; }
 .enfermeria-resumen-contexto {
   display: flex;
   align-items: stretch;
@@ -460,7 +484,11 @@
 .enfermeria-paciente-flujo {
   min-width: 0;
   overflow: hidden;
-  border-bottom: 1px solid #cddfea;
+  margin-top: -1px;
+  border: 1px solid #c9dfed;
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: #fff;
 }
 .enfermeria-flujo-nav {
   display: flex;
@@ -822,5 +850,36 @@
 }
 
 .enfermeria-paciente-uci .enfermeria-balance-panel {
+  display: none;
+}
+.enfermeria-paciente .enfermeria-evolucion-layout {
+  display: none;
+}
+
+.enfermeria-paciente .enfermeria-signos-panel {
+  display: none;
+}
+
+.enfermeria-paciente .enfermeria-balance-panel {
+  display: none;
+}
+
+.enfermeria-ingreso-controles { display:grid; gap:14px; padding:16px; }
+.enfermeria-ingreso-controles .em-signos-formulario .em-form-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; }
+.enfermeria-ingreso-controles .em-signos-formulario .em-signos label { display:grid; gap:6px; min-width:0; color:#315979; font-size:12px; font-weight:700; }
+.enfermeria-ingreso-controles .em-signos-formulario .em-signos label > span { display:flex; align-items:center; gap:5px; min-width:0; font-size:11px; font-weight:400; white-space:nowrap; }
+.enfermeria-ingreso-controles .em-signos-formulario input,
+.enfermeria-ingreso-controles .em-signos-formulario textarea { box-sizing:border-box; width:100%; min-width:0; padding:10px; border:1px solid #c7ddea; border-radius:7px; color:#244b68; background:#fff; font:inherit; }
+.enfermeria-ingreso-controles .em-signos-formulario > label { display:grid; gap:6px; color:#315979; font-size:12px; font-weight:700; }
+.enfermeria-ingreso-controles .em-signos-formulario .em-acciones { display:flex; justify-content:flex-end; }
+.enfermeria-ingreso-controles .em-signos-formulario .em-primario { padding:9px 14px; border:1px solid #087fc0; border-radius:8px; color:#fff; background:#087fc0; font-weight:700; }
+@media (max-width:620px) { .enfermeria-ingreso-controles .em-signos-formulario .em-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.enfermeria-paciente:not(.enfermeria-paciente-uci) .enfermeria-ingreso-controles .enfermeria-signos-panel,
+.enfermeria-paciente:not(.enfermeria-paciente-uci) .enfermeria-ingreso-controles .enfermeria-balance-panel { display:grid; margin:0; }
+.enfermeria-paciente-flujo > .enfermeria-paciente-subvistas {
+  display: none;
+}
+
+.enfermeria-paciente-flujo > .enfermeria-reporte-panel {
   display: none;
 }

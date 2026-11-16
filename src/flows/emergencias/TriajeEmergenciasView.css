@@ -3562,9 +3562,9 @@
   overflow-x: auto;
   padding: 1px 1px 5px;
 }
-.em-signos-vista-switch { display:flex; width:max-content; gap:4px; margin:12px 0; padding:4px; border:1px solid #cfe2ee; border-radius:9px; background:#eef7fb; }
-.em-signos-vista-switch button { padding:7px 14px; border:0; border-radius:6px; color:#35617d; background:transparent; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
-.em-signos-vista-switch button.activo { color:#fff; background:#087fc0; }
+.em-signos-vista-switch { display:flex; width:max-content; gap:4px; margin:12px 0; padding:4px; border:1px solid #b9ded8; border-radius:9px; background:#edf8f6; }
+.em-signos-vista-switch button { padding:7px 14px; border:0; border-radius:6px; color:#256d65; background:transparent; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+.em-signos-vista-switch button.activo { color:#fff; background:#087f73; }
 .em-signos-tabla-contenedor { max-width:100%; overflow:auto; border:1px solid #d7e8f2; border-radius:9px; background:#fff; }
 .em-signos-tabla { width:100%; border-collapse:collapse; color:#294d65; font-size:12px; }
 .em-signos-tabla th,.em-signos-tabla td { padding:11px 12px; border-bottom:1px solid #e4eef4; text-align:left; white-space:nowrap; }

@@ -157,3 +157,27 @@
 .sistema-app .em-trabajo > .em-resumen .em-total-consumido strong {
   font-size: 20px;
 }
+
+/* Jerarquía de texto de la ficha, sin alterar su distribución. */
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila small {
+  color: #617e92;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila strong {
+  color: #214b67;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.sistema-app .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child strong {
+  color: #113d59;
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+.sistema-app .em-trabajo > .em-resumen .em-cuenta-indicadores strong {
+  color: #087bb2;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido small { color: #617e92; font-weight: 600; }
+.sistema-app .em-trabajo > .em-resumen .em-total-consumido strong { letter-spacing: -.02em; }

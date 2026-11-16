@@ -42,6 +42,8 @@ const MATERIAL_VACIO = {
 
 const normalizarCodigoMaterial = (codigo: string) =>
   codigo.normalize("NFKC").replace(/\s+/g, "").toLocaleUpperCase("es");
+const normalizarBusquedaMaterial = (texto: string) =>
+  texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es").trim();
 const KIT_VACIO = { nombre: "", descripcion: "" };
 
 function PaginacionInventario({ pagina, totalPaginas, total, inicio, cantidad, onCambiar }: {
@@ -440,10 +442,11 @@ export function EsterilizacionView({
     () =>
       datos.materiales
         .filter((item) => {
-          const texto =
-            `${item.codigo} ${item.nombre} ${item.lote || ""} ${item.descripcion} ${item.tipo} ${item.marca} ${item.serie}`.toLowerCase();
+          const texto = normalizarBusquedaMaterial(
+            `${item.codigo} ${item.nombre} ${item.lote || ""} ${item.descripcion} ${item.tipo} ${item.marca} ${item.serie}`,
+          );
           return (
-            texto.includes(busqueda.toLowerCase()) &&
+            (texto.includes(normalizarBusquedaMaterial(busqueda)) || normalizarCodigoMaterial(item.codigo).includes(normalizarCodigoMaterial(busqueda))) &&
             (!filtroEstado || item.estado === filtroEstado) &&
             (!filtroSector ||
               (subvista === "inventario"
@@ -520,11 +523,12 @@ export function EsterilizacionView({
       .includes(busquedaRecepcion.toLowerCase()),
   );
   const codigoMaterialNormalizado = normalizarCodigoMaterial(formMaterial.codigo);
-  const codigoMaterialDuplicado = Boolean(
-    codigoMaterialNormalizado && datos.materiales.some(
+  const materialConCodigoDuplicado = codigoMaterialNormalizado
+    ? datos.materiales.find(
       (item) => item.id !== materialEditando?.id && normalizarCodigoMaterial(item.codigo) === codigoMaterialNormalizado,
-    ),
-  );
+    )
+    : undefined;
+  const codigoMaterialDuplicado = Boolean(materialConCodigoDuplicado);
 
   const crearMaterial = async (evento: FormEvent<HTMLFormElement>) => {
     evento.preventDefault();
@@ -1922,7 +1926,7 @@ export function EsterilizacionView({
                         Código único *
                         <input required value={formMaterial.codigo} aria-invalid={codigoMaterialDuplicado} aria-describedby="material-codigo-ayuda" onChange={(e) => { setFormMaterial({ ...formMaterial, codigo: e.target.value }); setError(""); }} placeholder="Ej. INST-001" />
                         <small id="material-codigo-ayuda" className={codigoMaterialDuplicado ? "est-codigo-ayuda est-codigo-ayuda-error" : "est-codigo-ayuda"} role={codigoMaterialDuplicado ? "alert" : undefined}>
-                          {codigoMaterialDuplicado ? "Este código ya está registrado. Usa uno distinto." : "El código debe ser único en el inventario."}
+                          {materialConCodigoDuplicado ? `Este código ya pertenece a ${materialConCodigoDuplicado.nombre} (${materialConCodigoDuplicado.codigo}). Usa uno distinto.` : "El código debe ser único en el inventario."}
                         </small>
                       </label>
                       <label>

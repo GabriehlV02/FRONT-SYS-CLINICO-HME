@@ -6,9 +6,10 @@ import { opcionesInsumos, stockInsumos, solicitudesInsumos, enviarSolicitudInsum
 
 type InsumosEnfermeriaPanelProps = {
   onUtilizar?: (item: ItemInsumos, cantidad: number) => Promise<boolean>;
+  silenciarAlmacenNoAsignado?: boolean;
 };
 
-export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelProps = {}) {
+export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado = false }: InsumosEnfermeriaPanelProps = {}) {
   const claveAlmacen = `enfermeria:almacen:${leerSesion()?.usuario.id || "local"}`;
   const [opciones, setOpciones] = useState<OpcionesInsumos>({ almacenes: [], catalogo: [] });
   const [almacen, setAlmacen] = useState(() => sessionStorage.getItem(claveAlmacen) || "");
@@ -164,7 +165,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
         </button>
       </div>
       {error && <p role="alert" className="em-error">{error} <button type="button" onClick={() => setVersion((actual) => actual + 1)}>Reintentar</button></p>}
-      {!cargando && !error && !opciones.almacenes.length && <p className="em-pendiente">No tienes almacenes asignados. Solicita la asignación de tu almacén a Administración.</p>}
+      {!silenciarAlmacenNoAsignado && !cargando && !error && !opciones.almacenes.length && <p className="em-pendiente">No tienes almacenes asignados. Solicita la asignación de tu almacén a Administración.</p>}
       <div className="em-insumos-enfermeria-tabla">
         <table>
           <thead><tr><th scope="col">Insumo</th><th scope="col">Cantidad</th><th scope="col">Unidad</th><th scope="col">Acción</th></tr></thead>
@@ -174,7 +175,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
             <td>{item.unidad}</td>
             <td><button className="em-insumos-utilizar" type="button" disabled={utilizando === item.id} onClick={() => void utilizarSeleccionado(item, cantidad)}>{utilizando === item.id ? "Registrando…" : "Utilizar"}</button></td>
           </tr>)}
-            {!seleccionados.length && <tr><td colSpan={4} className="em-insumos-enfermeria-vacio">{cargando ? "Cargando stock…" : error ? "No se pudo consultar el stock." : !almacen ? "No hay un almacén definido para esta sesión." : visibles.length ? "Busca un insumo y selecciónalo para añadirlo a la lista." : `No hay insumos ${estado} en este almacén.`}</td></tr>}
+            {!seleccionados.length && !(silenciarAlmacenNoAsignado && !cargando && !error && !almacen) && <tr><td colSpan={4} className="em-insumos-enfermeria-vacio">{cargando ? "Cargando stock…" : error ? "No se pudo consultar el stock." : !almacen ? "No hay un almacén definido para esta sesión." : visibles.length ? "Busca un insumo y selecciónalo para añadirlo a la lista." : `No hay insumos ${estado} en este almacén.`}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -184,7 +185,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
       <dialog ref={modal} className="em-insumos-solicitud-modal" onCancel={(evento) => { if (enviando) evento.preventDefault(); }}>
         <form onSubmit={enviar}>
           <header><div><h3>Solicitar descargo a Farmacia</h3>{almacen && <p>Destino: {opciones.almacenes.find((a) => String(a.id) === almacen)?.nombre}</p>}</div><button type="button" disabled={enviando} aria-label="Cerrar solicitud" onClick={() => modal.current?.close()}>×</button></header>
-          {!almacen && <p role="status" className="em-insumos-solicitud-aviso">No tienes un almacén de destino asignado. Puedes preparar la lista, pero necesitarás que Administración te asigne un almacén para enviar la solicitud.</p>}
+          {!almacen && !silenciarAlmacenNoAsignado && <p role="status" className="em-insumos-solicitud-aviso">No tienes un almacén de destino asignado. Puedes preparar la lista, pero necesitarás que Administración te asigne un almacén para enviar la solicitud.</p>}
           {!opciones.catalogo.length && <p role="status" className="em-insumos-solicitud-aviso">No hay insumos disponibles en el catálogo para solicitar.</p>}
           <div className="em-insumos-solicitud-buscador">
             <label htmlFor="em-insumos-solicitud-busqueda">Buscar insumos para agregar</label>

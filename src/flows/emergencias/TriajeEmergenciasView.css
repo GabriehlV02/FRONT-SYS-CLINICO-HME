@@ -5387,6 +5387,8 @@
 .emergencias-vista:has(> .em-triaje-cabecera) > .em-triaje-cabecera > div { flex:0 0 auto; }
 .emergencias-vista:has(> .em-triaje-cabecera) .em-triaje-cabecera-acciones { gap:8px; }
 .emergencias-vista:has(> .em-triaje-cabecera) .em-triaje-cabecera-acciones button { min-width:0; min-height:40px; padding:8px 14px; }
+.emergencias-vista:has(> .em-triaje-cabecera) > .em-triaje-cabecera { justify-content:space-between; }
+.emergencias-vista:has(> .em-triaje-cabecera) .em-triaje-cabecera-acciones { margin-left:auto; }
 @media (max-width: 700px) {
   .emergencias-vista:has(> .em-triaje-cabecera) { padding:8px 10px 12px; }
   .emergencias-vista:has(> .em-triaje-cabecera) > .em-triaje-cabecera { flex-wrap:wrap; gap:10px; }

@@ -22,9 +22,11 @@ import "./AtencionEnfermeriaInternacion.css";
 export function AtencionEnfermeriaInternacion({
   paciente,
   onVolver,
+  unidad,
 }: {
   paciente: RegistroInternacion;
   onVolver: () => void;
+  unidad?: "internacion" | "uci";
 }) {
   const titulo = useRef<HTMLHeadingElement>(null);
   const fechaHoraActual = () => {
@@ -215,7 +217,7 @@ export function AtencionEnfermeriaInternacion({
 
   return (
     <section
-      className="enfermeria-paciente"
+      className={`enfermeria-paciente${unidad === "uci" ? " enfermeria-paciente-uci" : ""}`}
       aria-labelledby="enfermeria-paciente-titulo"
     >
       <button
@@ -223,7 +225,8 @@ export function AtencionEnfermeriaInternacion({
         className="enfermeria-paciente-volver"
         onClick={onVolver}
       >
-        <Icon name="chevronLeft" size={17} /> Volver a pacientes internados
+        <Icon name="chevronLeft" size={17} />
+        {unidad === "uci" ? "Volver a pacientes UCI" : "Volver a pacientes internados"}
       </button>
       <section
         className="enfermeria-paciente-resumen"
@@ -234,7 +237,7 @@ export function AtencionEnfermeriaInternacion({
             <h2 id="enfermeria-paciente-titulo" ref={titulo} tabIndex={-1}>
               {paciente.paciente}
             </h2>
-            <span className="enfermeria-resumen-ci">HC-{paciente.ci || "S/R"} · Internado</span>
+            <span className="enfermeria-resumen-ci">HC-{paciente.ci || "S/R"} · {unidad === "uci" ? "UCI" : "Internado"}</span>
             <span className="enfermeria-resumen-diagnostico">Diagnóstico: {paciente.motivo || "Sin registro"}</span>
           </div>
           <div className="enfermeria-resumen-contexto">

@@ -104,6 +104,7 @@
   padding: 0;
   overflow: hidden;
 }
+.internacion-listado-oculto { display:none !important; }
 .internacion-listado-titulo {
   display: flex;
   align-items: end;

@@ -817,3 +817,10 @@
 .enfermeria-balance-historial li > time { color:#71899c; font-size:10px; white-space:nowrap; }
 @media(max-width:900px) { .enfermeria-balance-form { grid-template-columns:repeat(2,minmax(0,1fr)); } .enfermeria-balance-form button { justify-self:end; } }
 @media(max-width:620px) { .enfermeria-balance-panel { padding:14px; } .enfermeria-balance-resumen { grid-template-columns:1fr; } .enfermeria-balance-resumen article + article { border-top:1px solid #dce9f1; border-left:0; } .enfermeria-balance-form { grid-template-columns:1fr; } .enfermeria-balance-form button { justify-self:stretch; } .enfermeria-balance-historial li { grid-template-columns:65px minmax(0,1fr) auto; } .enfermeria-balance-historial li > time { grid-column:2/-1; } }
+.enfermeria-paciente-uci .enfermeria-signos-panel {
+  display: none;
+}
+
+.enfermeria-paciente-uci .enfermeria-balance-panel {
+  display: none;
+}

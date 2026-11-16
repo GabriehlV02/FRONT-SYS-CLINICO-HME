@@ -4,7 +4,6 @@ import { edadPaciente } from "../../radius/vistas/pacientes/pacientesApi";
 import Icon from "../../radius/componentes/Icono";
 import "./RegistroEnfermeriaTerapiaView.css";
 import "./RegistroEnfermeriaTerapiaCompacto.css";
-import "./CierreTurnoUci.css";
 
 type TomaSignos = {
   hora: string;
@@ -341,7 +340,10 @@ export function RegistroEnfermeriaTerapiaView() {
   const [paciente, setPaciente] = useState<(typeof pacientes)[number] | null>(
     null,
   );
-  const [turnoFinalizado, setTurnoFinalizado] = useState(false);
+  const registroSeleccionado = paciente
+    ? internaciones.find((registro) => registro.id === paciente.id)
+    : null;
+  const [seccionPaciente, setSeccionPaciente] = useState<"ingreso" | "atencion" | "reportes">("atencion");
   if (paciente)
     return (
       <section
@@ -355,66 +357,27 @@ export function RegistroEnfermeriaTerapiaView() {
         >
           <Icon name="chevronLeft" size={16} /> Pacientes UCI
         </button>
-        <header>
-          <p>REGISTRO DE ENFERMERÍA · {paciente.cubiculo}</p>
-          <h2 id="uci-registro-ficha-titulo">{paciente.paciente}</h2>
-          <small>
-            {paciente.historia} · {paciente.diagnostico}
-          </small>
-        </header>
-        <SignosVitalesUci />
-        <AplicacionesPaciente />
-        <div className="uci-registro-formulario">
-          <label>
-            Nota de enfermería
-            <textarea placeholder="Registra la valoración, cuidados realizados y observaciones del turno." />
-          </label>
-          <label>
-            Estado del paciente
-            <select defaultValue="Estable">
-              <option>Estable</option>
-              <option>En observación</option>
-              <option>Requiere valoración médica</option>
-            </select>
-          </label>
-          <button type="button">
-            <Icon name="check" size={16} /> Guardar registro
-          </button>
-        </div>
-        <footer className="uci-cierre-turno">
-          <div>
-            {turnoFinalizado ? (
-              <>
-                <strong>Turno finalizado</strong>
-                <small>El resumen quedó listo para imprimir y entregar.</small>
-              </>
-            ) : (
-              <>
-                <strong>Cierre de turno</strong>
-                <small>
-                  Verifica las notas, signos vitales y aplicaciones antes de
-                  finalizar.
-                </small>
-              </>
-            )}
+        <section className="uci-paciente-resumen" aria-labelledby="uci-registro-ficha-titulo">
+          <div className="uci-paciente-resumen-identidad">
+            <div><small>Paciente</small><h2 id="uci-registro-ficha-titulo">{paciente.paciente}</h2></div>
+            <div><small>Edad</small><strong>{paciente.edad}</strong></div>
+            <div><small>Sexo</small><strong>{paciente.sexo || "No registrado"}</strong></div>
           </div>
-          <button
-            type="button"
-            className="uci-imprimir-turno"
-            onClick={() => window.print()}
-          >
-            <Icon name="fileText" size={16} /> Imprimir resumen
-          </button>
-          <button
-            type="button"
-            className="uci-finalizar-turno"
-            disabled={turnoFinalizado}
-            onClick={() => setTurnoFinalizado(true)}
-          >
-            <Icon name="check" size={16} />
-            {turnoFinalizado ? "Turno finalizado" : "Finalizar turno"}
-          </button>
-        </footer>
+          <div className="uci-paciente-resumen-familiar">
+            <div><small>Familiar o responsable</small><strong>{registroSeleccionado?.datosPaciente?.familiar || "Sin registro"}</strong></div>
+            <div><small>Número de referencia</small><strong>{registroSeleccionado?.datosPaciente?.telefonoFamiliar || registroSeleccionado?.datosPaciente?.telefono || "Sin registro"}</strong></div>
+          </div>
+          <div className="uci-paciente-resumen-ubicacion">
+            <div><small>Unidad</small><strong>Terapia intensiva · {paciente.cubiculo || "UCI"}</strong></div>
+            <div><small>Hora de ingreso</small><strong>{paciente.ingreso || "Sin registro"}</strong></div>
+            <div><small>Historia clínica</small><strong>{paciente.historia}</strong></div>
+          </div>
+        </section>
+        <nav className="enfermeria-flujo-nav" aria-label="Secciones de atención UCI">
+          <button type="button" className={seccionPaciente === "ingreso" ? "activo" : ""} aria-current={seccionPaciente === "ingreso" ? "page" : undefined} onClick={() => setSeccionPaciente("ingreso")}><span><Icon name="home" size={17} /></span>Evolución del paciente</button>
+          <button type="button" className={seccionPaciente === "atencion" ? "activo" : ""} aria-current={seccionPaciente === "atencion" ? "page" : undefined} onClick={() => setSeccionPaciente("atencion")}><span><Icon name="stethoscope" size={17} /></span>Atención del paciente</button>
+          <button type="button" className={seccionPaciente === "reportes" ? "activo" : ""} aria-current={seccionPaciente === "reportes" ? "page" : undefined} onClick={() => setSeccionPaciente("reportes")}><span><Icon name="clipboardMedical" size={17} /></span>Reportes</button>
+        </nav>
       </section>
     );
   return (

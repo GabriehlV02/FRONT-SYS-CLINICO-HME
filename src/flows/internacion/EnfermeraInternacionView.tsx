@@ -22,7 +22,7 @@ const salasPrueba = [
   ...[111, 112, 113].map((numero) => ({ numero: String(numero), tipo: "Habitación individual", camas: ["A"] })),
 ];
 
-export function EnfermeraInternacionView({ subvista, unidad = "internacion" }: { subvista: Subvista; unidad?: "internacion" | "uci" }) {
+export function EnfermeraInternacionView({ subvista, unidad = "internacion", soloPendientes = false }: { subvista: Subvista; unidad?: "internacion" | "uci"; soloPendientes?: boolean }) {
   const registros = useInternacionesVinculadas();
   const registrosVista = registros.filter((registro) => unidad === "uci" ? esPacienteUci(registro) : !esPacienteUci(registro));
   const [seleccionada, setSeleccionada] = useState<RegistroInternacion | null>(
@@ -140,7 +140,7 @@ export function EnfermeraInternacionView({ subvista, unidad = "internacion" }: {
           ))}
         </section>
       )}
-      <section className="internacion-listado">
+      <section className={`internacion-listado ${soloPendientes ? "internacion-listado-oculto" : ""}`}>
         <div className="internacion-herramientas">
           <label>
             <Icon name="search" size={18} />

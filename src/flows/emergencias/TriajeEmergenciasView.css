@@ -561,6 +561,37 @@
   background: #087fb7;
   color: #fff;
 }
+.em-traslado-modal-fondo { position:fixed; z-index:1200; inset:0; display:grid; place-items:center; padding:20px; background:rgb(12 37 58 / 52%); backdrop-filter:blur(3px); }
+.em-traslado-modal { display:grid; gap:20px; width:min(620px,100%); max-height:min(90vh,760px); overflow:auto; padding:24px; border:1px solid #d4e5ef; border-radius:18px; background:#fff; box-shadow:0 24px 70px rgb(12 37 58 / 28%); }
+.em-traslado-modal > header { display:grid; grid-template-columns:48px minmax(0,1fr) 36px; align-items:start; gap:13px; }
+.em-traslado-modal-icono { display:grid; place-items:center; width:46px; height:46px; border:1px solid #f4c78c; border-radius:13px; color:#b55a05; background:#fff5e8; }
+.em-traslado-modal > header > div { display:grid; gap:5px; }
+.em-traslado-modal > header small { color:#bf690c; font-size:10px; font-weight:850; letter-spacing:.1em; }
+.em-traslado-modal > header h3 { margin:0; color:#173f5d; font-size:21px; }
+.em-traslado-modal > header p { margin:0; color:#688195; font-size:13px; line-height:1.5; }
+.em-traslado-modal > header > button { display:grid; place-items:center; width:36px; height:36px; border:1px solid #d7e5ed; border-radius:9px; color:#55758b; background:#fff; }
+.em-traslado-destinos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; min-width:0; margin:0; padding:0; border:0; }
+.em-traslado-destinos legend { margin-bottom:10px; color:#315875; font-size:13px; font-weight:800; }
+.em-traslado-destinos label { position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; min-height:104px; padding:13px; border:1px solid #d5e4ec; border-radius:11px; color:#087fc0; background:#fbfdfe; cursor:pointer; transition:border-color .15s,background-color .15s,box-shadow .15s; }
+.em-traslado-destinos label.seleccionado { border-color:#e97808; background:#fff8ee; box-shadow:0 0 0 2px rgb(233 120 8 / 12%); }
+.em-traslado-destinos input { position:absolute; top:12px; right:12px; width:16px; height:16px; accent-color:#e97808; }
+.em-traslado-destinos label > svg { flex:0 0 auto; margin-top:2px; }
+.em-traslado-destinos label > span { display:grid; gap:6px; min-width:0; padding-right:10px; }
+.em-traslado-destinos label strong { color:#244c67; font-size:12px; line-height:1.35; }
+.em-traslado-destinos label small { color:#71899a; font-size:10px; line-height:1.45; }
+.em-traslado-modal-datos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); overflow:hidden; border:1px solid #dce9f1; border-radius:12px; background:#f8fbfd; }
+.em-traslado-modal-datos article { display:grid; align-content:start; gap:5px; min-width:0; padding:14px 16px; }
+.em-traslado-modal-datos article:nth-child(n+3) { border-top:1px solid #dce9f1; }
+.em-traslado-modal-datos article:nth-child(even) { border-left:1px solid #dce9f1; }
+.em-traslado-modal-datos small { color:#72899a; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.em-traslado-modal-datos strong { color:#244c67; font-size:13px; line-height:1.45; overflow-wrap:anywhere; }
+.em-traslado-modal-error { margin:0; padding:10px 12px; border:1px solid #f2c9c9; border-radius:8px; color:#a52d2d; background:#fff4f4; font-size:12px; }
+.em-traslado-modal > footer { display:flex; justify-content:flex-end; gap:10px; padding-top:15px; border-top:1px solid #e5edf2; }
+.em-traslado-modal > footer button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:0 16px; border:1px solid #d0e0e9; border-radius:9px; color:#42647b; background:#fff; font-size:13px; font-weight:750; }
+.em-traslado-modal > footer .em-traslado-confirmar { border-color:#e97808; color:#fff; background:linear-gradient(135deg,#f59e0b,#e97808); box-shadow:0 4px 10px rgb(233 120 8 / 20%); }
+.em-traslado-modal > footer button:disabled { opacity:.55; cursor:not-allowed; }
+@media(max-width:700px) { .em-traslado-destinos { grid-template-columns:1fr; } .em-traslado-destinos label { min-height:0; } }
+@media(max-width:520px) { .em-traslado-modal { padding:18px; border-radius:14px; } .em-traslado-modal > header { grid-template-columns:40px minmax(0,1fr) 34px; gap:9px; } .em-traslado-modal-icono { width:40px; height:40px; } .em-traslado-modal > header h3 { font-size:18px; } .em-traslado-modal-datos article { padding:11px; } .em-traslado-modal > footer { flex-direction:column-reverse; } .em-traslado-modal > footer button { width:100%; } }
 /* Mantiene el patrón de pestañas de ingreso/atención frente a los overrides globales. */
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button {
   min-height: 54px;

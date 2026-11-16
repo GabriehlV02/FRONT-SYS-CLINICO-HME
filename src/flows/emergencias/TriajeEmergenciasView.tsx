@@ -675,6 +675,8 @@ export function TriajeEmergenciasView({
   );
   const [identidad, setIdentidad] = useState<Identidad | null>(null),
     [revisionIdentidad, setRevisionIdentidad] = useState(0);
+  const [trasladoModal, setTrasladoModal] = useState(false);
+  const [destinoTraslado, setDestinoTraslado] = useState<"sala" | "ambulancia" | "uci">("sala");
   const [cobroModal, setCobroModal] = useState(false),
     [metodoPago, setMetodoPago] = useState("Efectivo"),
     [montoRecibido, setMontoRecibido] = useState(""),
@@ -1119,30 +1121,35 @@ export function TriajeEmergenciasView({
     try {
       const identidadPaciente = cuenta.identidad;
       const ingreso = new Date();
-      const preinternacion = crearPreinternacion({
-        pacienteId: cuenta.pacienteId || undefined,
-        paciente: nombrePaciente(cuenta),
-        ci: identidadPaciente.documento.trim(),
-        medico: "Pendiente de asignación",
-        motivo: cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias",
-        fechaIngreso: ingreso.toLocaleDateString("es-BO"),
-        horaIngreso: ingreso.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false }),
-        origen: "Emergencias",
-        servicio: "Internación",
-        observaciones: "Traslado del paciente solicitado desde Emergencias.",
-        datosPaciente: {
-          nacimiento: identidadPaciente.nacimiento || "",
-          sexo: identidadPaciente.sexo || "",
-          responsableNombre: identidadPaciente.familiar || "",
-        },
-      });
-      preinternacionId = preinternacion.id;
+      const nombreDestino = destinoTraslado === "sala" ? "Sala de internación" : destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : "Traslado en ambulancia";
+      if (destinoTraslado !== "ambulancia") {
+        const preinternacion = crearPreinternacion({
+          pacienteId: cuenta.pacienteId || undefined,
+          paciente: nombrePaciente(cuenta),
+          ci: identidadPaciente.documento.trim(),
+          medico: "Pendiente de asignación",
+          motivo: cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias",
+          fechaIngreso: ingreso.toLocaleDateString("es-BO"),
+          horaIngreso: ingreso.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false }),
+          origen: "Emergencias",
+          servicio: destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : "Internación",
+          tipoSala: destinoTraslado === "uci" ? "UCI" : "Sala de internación",
+          observaciones: `Traslado del paciente solicitado desde Emergencias. Destino programado: ${nombreDestino}.`,
+          datosPaciente: {
+            nacimiento: identidadPaciente.nacimiento || "",
+            sexo: identidadPaciente.sexo || "",
+            responsableNombre: identidadPaciente.familiar || "",
+          },
+        });
+        preinternacionId = preinternacion.id;
+      }
       const actualizada = await pedir<Cuenta>(`/${cuenta.id}/cierre`, {
         condicionEgreso: "vivo",
-        causaEgreso: "internacion",
-        observacionEgreso: "Traslado del paciente a Internación desde Emergencias.",
+        causaEgreso: destinoTraslado === "ambulancia" ? "transferencia" : "internacion",
+        observacionEgreso: `Traslado del paciente desde Emergencias. Destino programado: ${nombreDestino}.`,
       });
       setCuentas((prev) => [actualizada, ...prev.filter((item) => item.id !== actualizada.id)]);
+      setTrasladoModal(false);
       setAviso("Traslado registrado. Enfermería puede confirmar la cama desde Internación.");
     } catch (causa) {
       if (preinternacionId) cancelarPreinternacion(preinternacionId);
@@ -1921,7 +1928,7 @@ export function TriajeEmergenciasView({
                         title={!cuenta.identidad?.documento?.trim()
                           ? "Completa primero el documento del paciente."
                           : "Trasladar al paciente a Internación."}
-                        onClick={() => void trasladarAInternacion()}
+                        onClick={() => setTrasladoModal(true)}
                       >
                         <Icon name="bed" size={15} /> Traslado del paciente
                       </button>
@@ -2959,6 +2966,34 @@ export function TriajeEmergenciasView({
           )}
         </main>
       </div>
+      {trasladoModal && cuenta && (
+        <div className="em-traslado-modal-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget && !ocupado) setTrasladoModal(false); }}>
+          <form className="em-traslado-modal" role="dialog" aria-modal="true" aria-labelledby="em-traslado-titulo" onSubmit={(evento) => { evento.preventDefault(); void trasladarAInternacion(); }}>
+            <header>
+              <span className="em-traslado-modal-icono"><Icon name="bed" size={22} /></span>
+              <div><small>DERIVACIÓN ASISTENCIAL</small><h3 id="em-traslado-titulo">Traslado del paciente</h3><p>Selecciona el destino para programar la derivación.</p></div>
+              <button type="button" aria-label="Cerrar ventana de traslado" disabled={ocupado} onClick={() => setTrasladoModal(false)}><Icon name="close" size={18} /></button>
+            </header>
+            <fieldset className="em-traslado-destinos">
+              <legend>¿A dónde se trasladará?</legend>
+              <label className={destinoTraslado === "sala" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="sala" checked={destinoTraslado === "sala"} onChange={() => setDestinoTraslado("sala")} /><Icon name="bed" size={21} /><span><strong>Sala de internación</strong><small>Enviar a preinternación para asignación de sala y cama.</small></span></label>
+              <label className={destinoTraslado === "ambulancia" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="ambulancia" checked={destinoTraslado === "ambulancia"} onChange={() => setDestinoTraslado("ambulancia")} /><Icon name="ambulance" size={21} /><span><strong>Traslado en ambulancia</strong><small>Registrar egreso por transferencia desde Emergencias.</small></span></label>
+              <label className={destinoTraslado === "uci" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="uci" checked={destinoTraslado === "uci"} onChange={() => setDestinoTraslado("uci")} /><Icon name="heartbeat" size={21} /><span><strong>UCI · Unidad de Cuidados Intensivos</strong><small>Enviar a preinternación con destino UCI.</small></span></label>
+            </fieldset>
+            <div className="em-traslado-modal-datos">
+              <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong></article>
+              <article><small>Documento</small><strong>{cuenta.identidad?.documento?.trim() || "Sin documento"}</strong></article>
+              <article><small>Destino programado</small><strong>{destinoTraslado === "sala" ? "Sala de internación · asignación pendiente" : destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : "Traslado en ambulancia"}</strong></article>
+              <article><small>Diagnóstico / motivo</small><strong>{cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias"}</strong></article>
+            </div>
+            {!cuenta.identidad?.documento?.trim() && <p className="em-traslado-modal-error" role="alert">Completa el documento del paciente antes de continuar.</p>}
+            <footer>
+              <button type="button" disabled={ocupado} onClick={() => setTrasladoModal(false)}>Cancelar</button>
+              <button type="submit" className="em-traslado-confirmar" disabled={ocupado || !cuenta.identidad?.documento?.trim()}><Icon name="bed" size={16} />{ocupado ? "Procesando traslado…" : "Confirmar traslado"}</button>
+            </footer>
+          </form>
+        </div>
+      )}
     </section>
   );
 }

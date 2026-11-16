@@ -331,6 +331,17 @@ export function camaDisponible(sala: string, cama: string, exceptoId = "") {
   );
 }
 
+export function salaDisponibleEnHorario(sala: string, fecha: string, hora: string, exceptoId = "") {
+  const ubicacion = sala.trim().toLocaleLowerCase("es");
+  return !leerInternaciones().some((item) =>
+    item.id !== exceptoId &&
+    item.estado === "preinternacion" &&
+    item.sala?.trim().toLocaleLowerCase("es") === ubicacion &&
+    item.fechaIngreso === fecha &&
+    item.horaIngreso === hora,
+  );
+}
+
 export function confirmarInternacion(
   id: string,
   asignacion: Pick<RegistroInternacion, "sala" | "cama" | "tipoSala">,

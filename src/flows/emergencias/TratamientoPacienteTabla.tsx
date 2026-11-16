@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { CuentaEmergencia } from "./emergenciasApi";
-import { formatearFechaTratamiento, reunirTratamiento, type CategoriaTratamiento } from "./tratamientoPaciente";
+import { formatearFechaTratamiento, reunirTratamiento, type CategoriaTratamiento, type FilaTratamiento } from "./tratamientoPaciente";
 import Icon from "../../radius/componentes/Icono";
 import { notificar } from "../../radius/componentes/Notificaciones";
 import "./TratamientoPacienteTabla.css";
@@ -8,6 +8,7 @@ import "./TratamientoPacienteTabla.css";
 export function TratamientoPacienteTabla({ cuenta }: { cuenta: CuentaEmergencia }) {
   const [buscar, setBuscar] = useState("");
   const [categoria, setCategoria] = useState<CategoriaTratamiento | "todos">("todos");
+  const [filaEnVista, setFilaEnVista] = useState<FilaTratamiento | null>(null);
   const { filas } = reunirTratamiento(cuenta);
   const normalizar = (valor: string) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase().trim();
   const visibles = filas.filter((fila) => (categoria === "todos" || fila.categoria === categoria) && normalizar(`${fila.tipo} ${fila.detalle} ${fila.responsable} ${fila.prescripcion} ${fila.observacion} ${fila.estado}`).includes(normalizar(buscar)));
@@ -42,12 +43,10 @@ export function TratamientoPacienteTabla({ cuenta }: { cuenta: CuentaEmergencia 
       <button type="button" className="em-hoja-tratamiento" onClick={imprimirHoja}><Icon name="print" size={16} /> Hoja de tratamiento</button>
     </div>
     <div className="em-tratamiento-scroll" tabIndex={0} role="region" aria-label="Registros de suministración y tratamiento">
-      <table><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Tipo</th><th scope="col">Detalle e indicaciones</th><th scope="col">Cantidad registrada</th><th scope="col">Prescripción</th><th scope="col">Profesional responsable</th><th scope="col">Estado</th></tr></thead>
-        <tbody>{visibles.map((fila) => <tr key={fila.id}>
-          <td><time dateTime={fila.fecha}>{formatearFechaTratamiento(fila.fecha)}</time></td>
-          <td>{fila.tipo}</td><td><strong>{fila.detalle}</strong>{fila.observacion && <p>{fila.observacion}</p>}</td><td>{fila.cantidad}</td><td>{fila.prescripcion || "—"}</td><td>{fila.responsable}</td><td><span className={`em-tratamiento-estado ${fila.estado === "En uso" || fila.estado === "En curso" ? "en-uso" : ""}`}>{fila.estado}</span></td>
-        </tr>)}{!visibles.length && <tr><td colSpan={7} className="em-tratamiento-vacio">{filas.length ? "No hay registros que coincidan con la búsqueda y el filtro." : "Aún no hay suministraciones, tratamientos o indicaciones registrados en esta atención."}</td></tr>}</tbody>
+      <table><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Insumo utilizado</th><th scope="col">Cantidad</th><th scope="col">Médico prescriptor</th><th scope="col">Opciones</th></tr></thead>
+        <tbody>{visibles.map((fila) => <tr key={fila.id}><td><time dateTime={fila.fecha}>{formatearFechaTratamiento(fila.fecha)}</time></td><td><strong>{fila.detalle}</strong></td><td>{fila.cantidad}</td><td>{fila.responsable}</td><td><button type="button" className="em-tratamiento-ver" onClick={() => setFilaEnVista(fila)}><Icon name="eye" size={15} /> Ver</button></td></tr>)}{!visibles.length && <tr><td colSpan={5} className="em-tratamiento-vacio">{filas.length ? "No hay registros que coincidan con la búsqueda y el filtro." : "Aún no hay suministraciones, tratamientos o indicaciones registrados en esta atención."}</td></tr>}</tbody>
       </table>
     </div>
+    {filaEnVista && <div className="em-tratamiento-detalle-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setFilaEnVista(null); }}><section className="em-tratamiento-detalle" role="dialog" aria-modal="true" aria-labelledby="em-tratamiento-detalle-titulo"><header><div><small>DETALLE DEL REGISTRO</small><h3 id="em-tratamiento-detalle-titulo">{filaEnVista.detalle}</h3></div><button type="button" aria-label="Cerrar detalle" onClick={() => setFilaEnVista(null)}><Icon name="close" size={17} /></button></header><dl><div><dt>Fecha y hora</dt><dd>{formatearFechaTratamiento(filaEnVista.fecha)}</dd></div><div><dt>Insumo utilizado</dt><dd>{filaEnVista.detalle}</dd></div><div><dt>Cantidad</dt><dd>{filaEnVista.cantidad}</dd></div><div><dt>Médico prescriptor</dt><dd>{filaEnVista.responsable}</dd></div><div><dt>Tipo de registro</dt><dd>{filaEnVista.tipo}</dd></div><div><dt>Estado</dt><dd>{filaEnVista.estado}</dd></div>{filaEnVista.prescripcion && <div><dt>Prescripción</dt><dd>{filaEnVista.prescripcion}</dd></div>}{filaEnVista.observacion && <div><dt>Observaciones</dt><dd>{filaEnVista.observacion}</dd></div>}</dl><footer><button type="button" onClick={() => setFilaEnVista(null)}>Cerrar</button></footer></section></div>}
   </section>;
 }

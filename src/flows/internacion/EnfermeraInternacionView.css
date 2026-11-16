@@ -171,11 +171,23 @@
   border-bottom: 1px solid #dceaf2;
 }
 .internacion-modal header button {
-  border: 0;
-  color: #45657e;
-  background: transparent;
-  font-size: 26px;
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid #a9c0cf;
+  border-radius: 9px;
+  color: #173d57;
+  background: #eef4f8;
+  font-size: 27px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: color .15s,background-color .15s,border-color .15s;
 }
+.internacion-modal header button:hover { border-color: #6d91a8; color: #102f45; background: #dce8ef; }
+.internacion-modal header button:focus-visible { outline: 3px solid #1686bd55; outline-offset: 2px; }
 .internacion-form {
   display: grid;
   grid-template-columns: 1fr 1fr;

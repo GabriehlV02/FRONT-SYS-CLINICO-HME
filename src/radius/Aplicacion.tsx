@@ -841,10 +841,10 @@ export default function Aplicacion() {
         "internados",
     );
   const [subvistaTerapia, setSubvistaTerapia] = useState<
-    "registro-enfermeria" | "monitorizacion" | "registros"
+    "registro-enfermeria" | "monitorizacion" | "registros" | "internacion"
   >(
     (ubicacionInicial.subvistaTerapia as
-      "registro-enfermeria" | "monitorizacion" | "registros") ||
+      "registro-enfermeria" | "monitorizacion" | "registros" | "internacion") ||
       "registro-enfermeria",
   );
   useEffect(() => {
@@ -2299,80 +2299,21 @@ export default function Aplicacion() {
               />
             ) : modulo === "enfermera-terapia-intensiva" ? (
               <section className="triaje-ambulatorio-vista">
-                <HorizontalSubvistaNav
-                  className="recepcion-subvistas"
-                  ariaLabel="Subvistas de enfermería de terapia intensiva"
-                >
-                  <button
-                    type="button"
-                    aria-current={
-                      subvistaTerapia === "registro-enfermeria"
-                        ? "page"
-                        : undefined
-                    }
-                    className={
-                      subvistaTerapia === "registro-enfermeria" ? "activo" : ""
-                    }
-                    onClick={() => setSubvistaTerapia("registro-enfermeria")}
-                  >
-                    <span>
-                      <Icon name="audit" size={17} />
-                    </span>
-                    <strong>Registro de enfermería</strong>
-                    <small>
-                      Registro y seguimiento de cuidados de enfermería.
-                    </small>
+                <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Subvistas de enfermería de terapia intensiva">
+                  <button type="button" aria-current={subvistaTerapia === "registro-enfermeria" ? "page" : undefined} className={subvistaTerapia === "registro-enfermeria" ? "activo" : ""} onClick={() => setSubvistaTerapia("registro-enfermeria")}>
+                    <span><Icon name="audit" size={17} /></span><strong>Registro de enfermería</strong><small>Registro y seguimiento de cuidados de enfermería.</small>
                   </button>
-                  <button
-                    type="button"
-                    aria-current={
-                      subvistaTerapia === "monitorizacion" ? "page" : undefined
-                    }
-                    className={
-                      subvistaTerapia === "monitorizacion" ? "activo" : ""
-                    }
-                    onClick={() => setSubvistaTerapia("monitorizacion")}
-                  >
-                    <span>
-                      <Icon name="patient" size={17} />
-                    </span>
-                    <strong>Monitorización</strong>
-                    <small>
-                      Seguimiento de pacientes en terapia intensiva.
-                    </small>
+                  <button type="button" aria-current={subvistaTerapia === "monitorizacion" ? "page" : undefined} className={subvistaTerapia === "monitorizacion" ? "activo" : ""} onClick={() => setSubvistaTerapia("monitorizacion")}>
+                    <span><Icon name="patient" size={17} /></span><strong>Monitorización</strong><small>Seguimiento de pacientes en terapia intensiva.</small>
                   </button>
-                  <button
-                    type="button"
-                    aria-current={
-                      subvistaTerapia === "registros" ? "page" : undefined
-                    }
-                    className={subvistaTerapia === "registros" ? "activo" : ""}
-                    onClick={() => setSubvistaTerapia("registros")}
-                  >
-                    <span>
-                      <Icon name="audit" size={17} />
-                    </span>
-                    <strong>Registros</strong>
-                    <small>Registros de enfermería de terapia intensiva.</small>
+                  <button type="button" aria-current={subvistaTerapia === "registros" ? "page" : undefined} className={subvistaTerapia === "registros" ? "activo" : ""} onClick={() => setSubvistaTerapia("registros")}>
+                    <span><Icon name="audit" size={17} /></span><strong>Registros</strong><small>Registros de enfermería de terapia intensiva.</small>
+                  </button>
+                  <button type="button" aria-current={subvistaTerapia === "internacion" ? "page" : undefined} className={subvistaTerapia === "internacion" ? "activo" : ""} onClick={() => setSubvistaTerapia("internacion")}>
+                    <span><Icon name="bed" size={17} /></span><strong>Internación UCI</strong><small>Pacientes, ingresos pendientes y altas.</small>
                   </button>
                 </HorizontalSubvistaNav>
-                {subvistaTerapia === "registro-enfermeria" ? (
-                  <RegistroEnfermeriaTerapiaView />
-                ) : subvistaTerapia === "monitorizacion" ? (
-                  <TerapiaIntensivaView />
-                ) : (
-                  <section
-                    className="em-panel"
-                    aria-labelledby="terapia-subvista-titulo"
-                  >
-                    <header className="em-panel-titulo">
-                      <h2 id="terapia-subvista-titulo">Registros</h2>
-                    </header>
-                    <p className="em-vacio">
-                      Aún no hay registros de enfermería.
-                    </p>
-                  </section>
-                )}
+                {subvistaTerapia === "internacion" ? <EnfermeraInternacionView subvista={subvistaEnfermeraInternacion} unidad="uci" /> : subvistaTerapia === "registro-enfermeria" ? <RegistroEnfermeriaTerapiaView /> : subvistaTerapia === "monitorizacion" ? <TerapiaIntensivaView /> : <section className="em-panel" aria-labelledby="terapia-subvista-titulo"><header className="em-panel-titulo"><h2 id="terapia-subvista-titulo">Registros</h2></header><p className="em-vacio">Aún no hay registros de enfermería.</p></section>}
               </section>
             ) : modulo === "ambulancia" ? (
               <AmbulanciaView />

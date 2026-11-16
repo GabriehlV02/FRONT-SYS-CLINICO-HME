@@ -562,36 +562,54 @@
   color: #fff;
 }
 .em-traslado-modal-fondo { position:fixed; z-index:1200; inset:0; display:grid; place-items:center; padding:20px; background:rgb(12 37 58 / 52%); backdrop-filter:blur(3px); }
-.em-traslado-modal { display:grid; gap:20px; width:min(620px,100%); max-height:min(90vh,760px); overflow:auto; padding:24px; border:1px solid #d4e5ef; border-radius:18px; background:#fff; box-shadow:0 24px 70px rgb(12 37 58 / 28%); }
+.em-traslado-modal { display:grid; gap:22px; width:min(900px,100%); max-height:min(92vh,900px); overflow:auto; padding:30px; border:1px solid #d4e5ef; border-radius:20px; background:#fff; box-shadow:0 24px 70px rgb(12 37 58 / 28%); }
 .em-traslado-modal > header { display:grid; grid-template-columns:48px minmax(0,1fr) 36px; align-items:start; gap:13px; }
 .em-traslado-modal-icono { display:grid; place-items:center; width:46px; height:46px; border:1px solid #f4c78c; border-radius:13px; color:#b55a05; background:#fff5e8; }
 .em-traslado-modal > header > div { display:grid; gap:5px; }
 .em-traslado-modal > header small { color:#bf690c; font-size:10px; font-weight:850; letter-spacing:.1em; }
-.em-traslado-modal > header h3 { margin:0; color:#173f5d; font-size:21px; }
-.em-traslado-modal > header p { margin:0; color:#688195; font-size:13px; line-height:1.5; }
+.em-traslado-modal > header h3 { margin:0; color:#173f5d; font-size:25px; }
+.em-traslado-modal > header p { margin:0; color:#688195; font-size:15px; line-height:1.5; }
 .em-traslado-modal > header > button { display:grid; place-items:center; width:36px; height:36px; border:1px solid #d7e5ed; border-radius:9px; color:#55758b; background:#fff; }
-.em-traslado-destinos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; min-width:0; margin:0; padding:0; border:0; }
-.em-traslado-destinos legend { margin-bottom:10px; color:#315875; font-size:13px; font-weight:800; }
-.em-traslado-destinos label { position:relative; display:flex; align-items:flex-start; gap:10px; min-width:0; min-height:104px; padding:13px; border:1px solid #d5e4ec; border-radius:11px; color:#087fc0; background:#fbfdfe; cursor:pointer; transition:border-color .15s,background-color .15s,box-shadow .15s; }
+.em-traslado-destinos { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; min-width:0; margin:0; padding:0; border:0; }
+.em-traslado-destinos legend { margin-bottom:12px; color:#315875; font-size:16px; font-weight:800; }
+.em-traslado-destinos label { position:relative; display:flex; align-items:flex-start; gap:12px; min-width:0; min-height:132px; padding:17px; border:1px solid #d5e4ec; border-radius:13px; color:#087fc0; background:#fbfdfe; cursor:pointer; transition:border-color .15s,background-color .15s,box-shadow .15s; }
 .em-traslado-destinos label.seleccionado { border-color:#e97808; background:#fff8ee; box-shadow:0 0 0 2px rgb(233 120 8 / 12%); }
 .em-traslado-destinos input { position:absolute; top:12px; right:12px; width:16px; height:16px; accent-color:#e97808; }
 .em-traslado-destinos label > svg { flex:0 0 auto; margin-top:2px; }
-.em-traslado-destinos label > span { display:grid; gap:6px; min-width:0; padding-right:10px; }
-.em-traslado-destinos label strong { color:#244c67; font-size:12px; line-height:1.35; }
+.em-traslado-destinos label > span { display:grid; gap:6px; min-width:0; padding-right:14px; }
+.em-traslado-destinos label strong { color:#244c67; font-size:15px; line-height:1.4; }
 .em-traslado-destinos label small { color:#71899a; font-size:10px; line-height:1.45; }
+.em-traslado-destinos label { display:grid; grid-template-columns:minmax(0,1fr) 22px; grid-template-rows:auto auto; align-items:center; gap:12px 10px; min-height:112px; padding:14px 16px; border-color:#cbdde8; border-radius:14px; background:linear-gradient(145deg,#fff 0%,#f7fbfd 100%); box-shadow:0 3px 10px rgb(23 63 93 / 4%); transition:transform .18s,border-color .18s,background .18s,box-shadow .18s; }
+.em-traslado-destinos label:hover { transform:translateY(-2px); border-color:#84b9d2; background:#f5fbfe; box-shadow:0 8px 18px rgb(23 63 93 / 9%); }
+.em-traslado-destinos label:focus-within { outline:3px solid rgb(8 127 192 / 20%); outline-offset:2px; }
+.em-traslado-destinos label.seleccionado { transform:translateY(-1px); border-color:#ed7909; background:linear-gradient(145deg,#fffaf3 0%,#fff3e3 100%); box-shadow:0 0 0 2px rgb(233 120 8 / 15%),0 8px 18px rgb(184 93 0 / 9%); }
+.em-traslado-destinos input { position:static; grid-column:2; grid-row:1; justify-self:end; width:20px; height:20px; margin:0; cursor:pointer; }
+.em-traslado-destinos label > svg { grid-column:1; grid-row:1; width:30px; height:30px; box-sizing:content-box; margin:0; padding:7px; border:1px solid #d7eaf3; border-radius:11px; color:#087fc0; background:#edf7fc; }
+.em-traslado-destinos label.seleccionado > svg { border-color:#f2d2ad; color:#bc5b00; background:#fff; }
+.em-traslado-destinos label > span { grid-column:1/-1; grid-row:2; padding:0; }
+.em-traslado-destinos label strong { color:#244c67; font-size:16px; font-weight:800; line-height:1.35; }
 .em-traslado-modal-datos { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); overflow:hidden; border:1px solid #dce9f1; border-radius:12px; background:#f8fbfd; }
-.em-traslado-modal-datos article { display:grid; align-content:start; gap:5px; min-width:0; padding:14px 16px; }
-.em-traslado-modal-datos article:nth-child(n+3) { border-top:1px solid #dce9f1; }
+.em-traslado-modal-datos { grid-template-columns:minmax(0,1.5fr) minmax(0,.8fr) minmax(0,1.5fr); }
+.em-traslado-modal-datos article { display:grid; align-content:start; gap:7px; min-width:0; padding:17px 20px; }
+.em-traslado-modal-datos article:nth-child(n+3) { border-top:0; }
 .em-traslado-modal-datos article:nth-child(even) { border-left:1px solid #dce9f1; }
-.em-traslado-modal-datos small { color:#72899a; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
-.em-traslado-modal-datos strong { color:#244c67; font-size:13px; line-height:1.45; overflow-wrap:anywhere; }
+.em-traslado-modal-datos article:nth-child(3) { border-left:1px solid #dce9f1; }
+.em-traslado-modal-datos small { color:#72899a; font-size:13px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.em-traslado-modal-datos strong { color:#244c67; font-size:16px; line-height:1.5; overflow-wrap:anywhere; }
+.em-traslado-programacion { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; padding:18px; border:1px solid #dce9f1; border-radius:13px; background:#f8fbfd; }
+.em-traslado-programacion label { display:grid; align-content:start; gap:7px; color:#315875; font-size:13px; font-weight:800; }
+.em-traslado-programacion input,.em-traslado-programacion select { width:100%; min-height:46px; padding:0 12px; border:1px solid #cbdde8; border-radius:9px; color:#244c67; background:#fff; font:inherit; font-size:15px; }
+.em-traslado-programacion p { grid-column:1/-1; margin:0; color:#688195; font-size:13px; line-height:1.5; }
+.em-traslado-ambulancia { grid-template-columns:repeat(2,minmax(0,1fr)); }
 .em-traslado-modal-error { margin:0; padding:10px 12px; border:1px solid #f2c9c9; border-radius:8px; color:#a52d2d; background:#fff4f4; font-size:12px; }
 .em-traslado-modal > footer { display:flex; justify-content:flex-end; gap:10px; padding-top:15px; border-top:1px solid #e5edf2; }
 .em-traslado-modal > footer button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:0 16px; border:1px solid #d0e0e9; border-radius:9px; color:#42647b; background:#fff; font-size:13px; font-weight:750; }
 .em-traslado-modal > footer .em-traslado-confirmar { border-color:#e97808; color:#fff; background:linear-gradient(135deg,#f59e0b,#e97808); box-shadow:0 4px 10px rgb(233 120 8 / 20%); }
 .em-traslado-modal > footer button:disabled { opacity:.55; cursor:not-allowed; }
 @media(max-width:700px) { .em-traslado-destinos { grid-template-columns:1fr; } .em-traslado-destinos label { min-height:0; } }
-@media(max-width:520px) { .em-traslado-modal { padding:18px; border-radius:14px; } .em-traslado-modal > header { grid-template-columns:40px minmax(0,1fr) 34px; gap:9px; } .em-traslado-modal-icono { width:40px; height:40px; } .em-traslado-modal > header h3 { font-size:18px; } .em-traslado-modal-datos article { padding:11px; } .em-traslado-modal > footer { flex-direction:column-reverse; } .em-traslado-modal > footer button { width:100%; } }
+@media(max-width:700px) { .em-traslado-programacion { grid-template-columns:1fr; } .em-traslado-programacion p { grid-column:auto; } }
+@media(max-width:700px) { .em-traslado-modal-datos { grid-template-columns:minmax(0,1fr); } .em-traslado-modal-datos article:nth-child(n) { border-top:1px solid #dce9f1; border-left:0; } .em-traslado-modal-datos article:first-child { border-top:0; } }
+@media(max-width:520px) { .em-traslado-modal { gap:17px; padding:18px; border-radius:14px; } .em-traslado-modal > header { grid-template-columns:40px minmax(0,1fr) 34px; gap:9px; } .em-traslado-modal-icono { width:40px; height:40px; } .em-traslado-modal > header h3 { font-size:20px; } .em-traslado-modal-datos article { padding:11px; } .em-traslado-modal-datos small { font-size:10px; } .em-traslado-modal-datos strong { font-size:13px; } .em-traslado-modal > footer { flex-direction:column-reverse; } .em-traslado-modal > footer button { width:100%; } }
 /* Mantiene el patrón de pestañas de ingreso/atención frente a los overrides globales. */
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button {
   min-height: 54px;
@@ -5340,3 +5358,37 @@
 .em-distribucion[hidden] { display: none; }
 .em-inventario-general { width: 100%; min-width: 0; }
 .em-inventario-general > .em-insumos-enfermeria { min-height: 350px; margin: 0; }
+.emergencias-vista .em-cubiculo.em-cubiculo-traslado { display:flex !important; grid-template-columns:none !important; flex-direction:column; align-items:stretch; justify-content:center; gap:7px; min-width:0 !important; min-height:112px; margin:8px 0 !important; padding:17px 20px !important; border:1px solid #f2c27d !important; border-left:6px solid #e97808 !important; border-radius:12px !important; color:#74400b; background:linear-gradient(100deg,#fff5e6,#fffaf2) !important; box-shadow:0 4px 14px rgb(180 91 0 / 10%) !important; text-align:left; }
+.emergencias-vista .em-cubiculo.em-cubiculo-traslado:hover:not(:disabled) { border-color:#eaa84d !important; border-left-color:#d86600 !important; background:linear-gradient(100deg,#ffefd6,#fff6e9) !important; box-shadow:0 7px 18px rgb(180 91 0 / 15%) !important; }
+.em-cubiculo-traslado .em-paciente-lista { color:#8a4a08 !important; font-size:14px !important; font-weight:800 !important; white-space:normal !important; }
+.em-cubiculo-traslado .em-traslado-ambulancia-titulo { color:#9a4b00 !important; font-size:19px !important; font-weight:900 !important; line-height:1.3; white-space:normal !important; }
+.em-cubiculo-traslado .em-traslado-ambulancia-destino,.em-cubiculo-traslado .em-traslado-ambulancia-motivo { color:#805628 !important; font-size:12px !important; font-weight:650 !important; white-space:normal !important; }
+.sistema-app[data-theme="dark"] .emergencias-vista .em-cubiculo.em-cubiculo-traslado { border-color:#a46a2c !important; border-left-color:#f59e0b !important; color:#ffdda8; background:linear-gradient(100deg,#49351f,#382d21) !important; }
+.sistema-app[data-theme="dark"] .em-cubiculo-traslado .em-paciente-lista,.sistema-app[data-theme="dark"] .em-cubiculo-traslado .em-traslado-ambulancia-titulo { color:#ffcf86 !important; }
+.sistema-app[data-theme="dark"] .em-cubiculo-traslado .em-traslado-ambulancia-destino,.sistema-app[data-theme="dark"] .em-cubiculo-traslado .em-traslado-ambulancia-motivo { color:#ecd0a5 !important; }
+.emergencias-vista .em-cubiculo.em-cubiculo-traslado { display:grid !important; grid-template-columns:minmax(210px,.85fr) minmax(360px,1.25fr) minmax(280px,1fr) !important; grid-template-rows:auto auto; align-items:center !important; justify-content:stretch; gap:3px 20px; min-height:76px; margin:5px 0 !important; padding:10px 16px !important; border-left-width:5px !important; border-radius:10px !important; text-align:left !important; }
+.em-cubiculo-traslado .em-paciente-lista { grid-column:1; grid-row:1/3; font-size:13px !important; }
+.em-cubiculo-traslado .em-traslado-ambulancia-titulo { grid-column:2; grid-row:1/3; font-size:16px !important; }
+.em-cubiculo-traslado .em-traslado-ambulancia-destino { grid-column:3; grid-row:1; font-size:11px !important; }
+.em-cubiculo-traslado .em-traslado-ambulancia-motivo { grid-column:3; grid-row:2; font-size:11px !important; }
+@media (max-width: 900px) {
+  .emergencias-vista .em-cubiculo.em-cubiculo-traslado { grid-template-columns:minmax(0,1fr) minmax(0,1.5fr) !important; gap:4px 12px; }
+  .em-cubiculo-traslado .em-paciente-lista { grid-column:1; grid-row:1; }
+  .em-cubiculo-traslado .em-traslado-ambulancia-titulo { grid-column:2; grid-row:1; }
+  .em-cubiculo-traslado .em-traslado-ambulancia-destino { grid-column:1; grid-row:2; }
+  .em-cubiculo-traslado .em-traslado-ambulancia-motivo { grid-column:2; grid-row:2; }
+}
+@media (max-width: 560px) {
+  .emergencias-vista .em-cubiculo.em-cubiculo-traslado { grid-template-columns:minmax(0,1fr) !important; min-height:0; gap:4px; }
+  .em-cubiculo-traslado .em-paciente-lista,.em-cubiculo-traslado .em-traslado-ambulancia-titulo,.em-cubiculo-traslado .em-traslado-ambulancia-destino,.em-cubiculo-traslado .em-traslado-ambulancia-motivo { grid-column:1; grid-row:auto; }
+}
+.emergencias-vista:has(> .em-triaje-cabecera) { gap:8px; padding:8px 16px 12px; }
+.emergencias-vista:has(> .em-triaje-cabecera) > .em-triaje-cabecera { justify-content:flex-start; gap:16px; }
+.emergencias-vista:has(> .em-triaje-cabecera) > .em-triaje-cabecera > div { flex:0 0 auto; }
+.emergencias-vista:has(> .em-triaje-cabecera) .em-triaje-cabecera-acciones { gap:8px; }
+.emergencias-vista:has(> .em-triaje-cabecera) .em-triaje-cabecera-acciones button { min-width:0; min-height:40px; padding:8px 14px; }
+@media (max-width: 700px) {
+  .emergencias-vista:has(> .em-triaje-cabecera) { padding:8px 10px 12px; }
+  .emergencias-vista:has(> .em-triaje-cabecera) > .em-triaje-cabecera { flex-wrap:wrap; gap:10px; }
+  .emergencias-vista:has(> .em-triaje-cabecera) .em-triaje-cabecera-acciones { width:100%; }
+}

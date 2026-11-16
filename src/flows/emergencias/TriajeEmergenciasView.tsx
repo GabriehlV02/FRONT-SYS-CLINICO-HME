@@ -28,7 +28,7 @@ import {
   type CuentaEmergencia,
 } from "./emergenciasApi";
 import { camposParaServicio } from "../triaje/camposSignosVitales";
-import { cancelarPreinternacion, crearPreinternacion } from "../internacion/registroInternaciones";
+import { cancelarPreinternacion, crearPreinternacion, salaDisponibleEnHorario } from "../internacion/registroInternaciones";
 import {
   useCatalogoSignosVitales,
   useServiciosSignosVitales,
@@ -63,6 +63,8 @@ type PagoCobro = {
 };
 type Identidad = Record<string, string>;
 type Cuenta = CuentaEmergencia;
+type TrasladoAmbulanciaProgramado = { fecha: string; hora: string; motivo: string; destino: string };
+const CLAVE_TRASLADOS_AMBULANCIA = "hme:emergencias:traslados-ambulancia:v1";
 const dinero = (n: number) =>
   `Bs ${n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fecha = (v: string) => new Date(v).toLocaleString("es-BO");
@@ -625,6 +627,9 @@ export function TriajeEmergenciasView({
   >("ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
     [activa, setActiva] = useState("");
+  const [trasladosAmbulancia, setTrasladosAmbulancia] = useState<Record<string, TrasladoAmbulanciaProgramado>>(() => {
+    try { return JSON.parse(window.localStorage.getItem(CLAVE_TRASLADOS_AMBULANCIA) || "{}"); } catch { return {}; }
+  });
   const [cargando, setCargando] = useState(true),
     [ocupado, setOcupado] = useState(false),
     [error, setError] = useState(""),
@@ -677,6 +682,11 @@ export function TriajeEmergenciasView({
     [revisionIdentidad, setRevisionIdentidad] = useState(0);
   const [trasladoModal, setTrasladoModal] = useState(false);
   const [destinoTraslado, setDestinoTraslado] = useState<"sala" | "ambulancia" | "uci">("sala");
+  const [motivoAmbulancia, setMotivoAmbulancia] = useState("");
+  const [destinoAmbulancia, setDestinoAmbulancia] = useState("");
+  const [salaTraslado, setSalaTraslado] = useState("105");
+  const [fechaTraslado, setFechaTraslado] = useState(() => new Date().toLocaleDateString("en-CA"));
+  const [horaTraslado, setHoraTraslado] = useState(() => new Date(Date.now() + 60 * 60 * 1000).toTimeString().slice(0, 5));
   const [cobroModal, setCobroModal] = useState(false),
     [metodoPago, setMetodoPago] = useState("Efectivo"),
     [montoRecibido, setMontoRecibido] = useState(""),
@@ -1120,21 +1130,38 @@ export function TriajeEmergenciasView({
     setAviso("");
     try {
       const identidadPaciente = cuenta.identidad;
-      const ingreso = new Date();
-      const nombreDestino = destinoTraslado === "sala" ? "Sala de internación" : destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : "Traslado en ambulancia";
-      if (destinoTraslado !== "ambulancia") {
+      const nombreDestino = destinoTraslado === "sala" ? "Sala de internación" : destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : `Traslado en ambulancia a ${destinoAmbulancia.trim()}`;
+      if (destinoTraslado === "ambulancia") {
+        const fechaProgramada = new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO");
+        const solicitudesActualizadas = {
+          ...trasladosAmbulancia,
+          [cuenta.id]: { fecha: fechaProgramada, hora: horaTraslado, motivo: motivoAmbulancia, destino: destinoAmbulancia.trim() },
+        };
+        window.localStorage.setItem(CLAVE_TRASLADOS_AMBULANCIA, JSON.stringify(solicitudesActualizadas));
+        setTrasladosAmbulancia(solicitudesActualizadas);
+        setTrasladoModal(false);
+        setActiva("");
+        setAviso(`${nombrePaciente(cuenta)} será trasladado en ambulancia a las ${horaTraslado}.`);
+        return;
+      }
+        const salaReservada = destinoTraslado === "sala" ? salaTraslado : "UCI";
+        if (!salaDisponibleEnHorario(salaReservada, new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO"), horaTraslado)) {
+          throw new Error("Esa sala ya tiene una solicitud para la misma fecha y hora. Elige otro horario o sala.");
+        }
+        const fechaProgramada = new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO");
         const preinternacion = crearPreinternacion({
           pacienteId: cuenta.pacienteId || undefined,
           paciente: nombrePaciente(cuenta),
           ci: identidadPaciente.documento.trim(),
           medico: "Pendiente de asignación",
           motivo: cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias",
-          fechaIngreso: ingreso.toLocaleDateString("es-BO"),
-          horaIngreso: ingreso.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false }),
+          fechaIngreso: fechaProgramada,
+          horaIngreso: horaTraslado,
+          sala: salaReservada,
           origen: "Emergencias",
           servicio: destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : "Internación",
           tipoSala: destinoTraslado === "uci" ? "UCI" : "Sala de internación",
-          observaciones: `Traslado del paciente solicitado desde Emergencias. Destino programado: ${nombreDestino}.`,
+          observaciones: `Traslado solicitado desde Emergencias para ${fechaProgramada} a las ${horaTraslado}. Sala reservada: ${destinoTraslado === "sala" ? salaTraslado : "UCI"}. Pendiente de aprobación de Enfermería.`,
           datosPaciente: {
             nacimiento: identidadPaciente.nacimiento || "",
             sexo: identidadPaciente.sexo || "",
@@ -1142,10 +1169,9 @@ export function TriajeEmergenciasView({
           },
         });
         preinternacionId = preinternacion.id;
-      }
       const actualizada = await pedir<Cuenta>(`/${cuenta.id}/cierre`, {
         condicionEgreso: "vivo",
-        causaEgreso: destinoTraslado === "ambulancia" ? "transferencia" : "internacion",
+        causaEgreso: "internacion",
         observacionEgreso: `Traslado del paciente desde Emergencias. Destino programado: ${nombreDestino}.`,
       });
       setCuentas((prev) => [actualizada, ...prev.filter((item) => item.id !== actualizada.id)]);
@@ -1761,9 +1787,18 @@ export function TriajeEmergenciasView({
             {cuentasPagina.map((c) => (
               <button
                 key={c.id}
-                className={`em-cubiculo ${activa === c.id ? "seleccionado" : ""}`}
+                className={`em-cubiculo ${activa === c.id ? "seleccionado" : ""} ${trasladosAmbulancia[c.id] ? "em-cubiculo-traslado" : ""}`}
                 onClick={() => seleccionar(c.id)}
               >
+                {trasladosAmbulancia[c.id] ? (
+                  <>
+                    <span className="em-paciente-lista">{nombrePaciente(c)}</span>
+                    <strong className="em-traslado-ambulancia-titulo">Será trasladado en ambulancia a las {trasladosAmbulancia[c.id].hora}</strong>
+                    <span className="em-traslado-ambulancia-destino">{trasladosAmbulancia[c.id].fecha} · Destino: {trasladosAmbulancia[c.id].destino}</span>
+                    <small className="em-traslado-ambulancia-motivo">Motivo: {trasladosAmbulancia[c.id].motivo}</small>
+                  </>
+                ) : (
+                  <>
                 <strong>{nombreCubiculo(c.cubiculo)}</strong>
                 <span className="em-paciente-lista">{nombrePaciente(c)}</span>
                 {!recepcion && (
@@ -1795,6 +1830,8 @@ export function TriajeEmergenciasView({
                         c.consumos.reduce((s, i) => s + importe(i, ahora), 0),
                       )}
                     </b>
+                  </>
+                )}
                   </>
                 )}
               </button>
@@ -2971,25 +3008,49 @@ export function TriajeEmergenciasView({
           <form className="em-traslado-modal" role="dialog" aria-modal="true" aria-labelledby="em-traslado-titulo" onSubmit={(evento) => { evento.preventDefault(); void trasladarAInternacion(); }}>
             <header>
               <span className="em-traslado-modal-icono"><Icon name="bed" size={22} /></span>
-              <div><small>DERIVACIÓN ASISTENCIAL</small><h3 id="em-traslado-titulo">Traslado del paciente</h3><p>Selecciona el destino para programar la derivación.</p></div>
+              <div><small>DERIVACIÓN ASISTENCIAL</small><h3 id="em-traslado-titulo">Traslado del paciente</h3></div>
               <button type="button" aria-label="Cerrar ventana de traslado" disabled={ocupado} onClick={() => setTrasladoModal(false)}><Icon name="close" size={18} /></button>
             </header>
-            <fieldset className="em-traslado-destinos">
-              <legend>¿A dónde se trasladará?</legend>
-              <label className={destinoTraslado === "sala" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="sala" checked={destinoTraslado === "sala"} onChange={() => setDestinoTraslado("sala")} /><Icon name="bed" size={21} /><span><strong>Sala de internación</strong><small>Enviar a preinternación para asignación de sala y cama.</small></span></label>
-              <label className={destinoTraslado === "ambulancia" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="ambulancia" checked={destinoTraslado === "ambulancia"} onChange={() => setDestinoTraslado("ambulancia")} /><Icon name="ambulance" size={21} /><span><strong>Traslado en ambulancia</strong><small>Registrar egreso por transferencia desde Emergencias.</small></span></label>
-              <label className={destinoTraslado === "uci" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="uci" checked={destinoTraslado === "uci"} onChange={() => setDestinoTraslado("uci")} /><Icon name="heartbeat" size={21} /><span><strong>UCI · Unidad de Cuidados Intensivos</strong><small>Enviar a preinternación con destino UCI.</small></span></label>
-            </fieldset>
             <div className="em-traslado-modal-datos">
               <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong></article>
               <article><small>Documento</small><strong>{cuenta.identidad?.documento?.trim() || "Sin documento"}</strong></article>
-              <article><small>Destino programado</small><strong>{destinoTraslado === "sala" ? "Sala de internación · asignación pendiente" : destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : "Traslado en ambulancia"}</strong></article>
-              <article><small>Diagnóstico / motivo</small><strong>{cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias"}</strong></article>
+              <article><small>{destinoTraslado === "ambulancia" ? "Motivo del traslado" : "Diagnóstico / motivo"}</small><strong>{destinoTraslado === "ambulancia" ? motivoAmbulancia || "Seleccionar motivo" : cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias"}</strong></article>
             </div>
+            <fieldset className="em-traslado-destinos">
+              <legend>¿A dónde se trasladará?</legend>
+              <label className={destinoTraslado === "sala" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="sala" checked={destinoTraslado === "sala"} onChange={() => setDestinoTraslado("sala")} /><Icon name="bed" size={24} /><span><strong>Sala de internación</strong></span></label>
+              <label className={destinoTraslado === "ambulancia" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="ambulancia" checked={destinoTraslado === "ambulancia"} onChange={() => setDestinoTraslado("ambulancia")} /><Icon name="ambulance" size={24} /><span><strong>Traslado en ambulancia</strong></span></label>
+              <label className={destinoTraslado === "uci" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="uci" checked={destinoTraslado === "uci"} onChange={() => setDestinoTraslado("uci")} /><Icon name="heartbeat" size={24} /><span><strong>UCI · Unidad de Cuidados Intensivos</strong></span></label>
+            </fieldset>
+            {(destinoTraslado === "sala" || destinoTraslado === "uci") && <div className="em-traslado-programacion">
+              <label>{destinoTraslado === "uci" ? "Sala UCI" : "Número de sala"}
+                {destinoTraslado === "uci" ? <input value="UCI" readOnly aria-label="Sala UCI" /> : <select value={salaTraslado} onChange={(evento) => setSalaTraslado(evento.target.value)} aria-label="Número de sala"><option value="">Seleccionar sala</option>{[101,102,103,105,106,107,108,109,110,111,112,113].map((numero) => <option key={numero} value={String(numero)}>Sala {numero}</option>)}</select>}
+              </label>
+              <label>Fecha de traslado<input type="date" value={fechaTraslado} min={new Date().toLocaleDateString("en-CA")} onChange={(evento) => setFechaTraslado(evento.target.value)} /></label>
+              <label>Hora de traslado<input type="time" value={horaTraslado} onChange={(evento) => setHoraTraslado(evento.target.value)} /></label>
+            </div>}
+            {destinoTraslado === "ambulancia" && <div className="em-traslado-programacion em-traslado-ambulancia">
+              <label>Motivo del traslado
+                <select value={motivoAmbulancia} onChange={(evento) => setMotivoAmbulancia(evento.target.value)} required>
+                  <option value="">Seleccionar motivo</option>
+                  <option value="Atención especializada">Atención especializada</option>
+                  <option value="Falta de servicio o equipamiento">Falta de servicio o equipamiento</option>
+                  <option value="Mayor capacidad resolutiva">Mayor capacidad resolutiva</option>
+                  <option value="Solicitud del paciente o familiar">Solicitud del paciente o familiar</option>
+                  <option value="Continuidad de tratamiento">Continuidad de tratamiento</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </label>
+              <label>Lugar de destino
+                <input value={destinoAmbulancia} onChange={(evento) => setDestinoAmbulancia(evento.target.value)} placeholder="Nombre del hospital o centro de salud" required />
+              </label>
+              <label>Fecha del traslado<input type="date" value={fechaTraslado} min={new Date().toLocaleDateString("en-CA")} onChange={(evento) => setFechaTraslado(evento.target.value)} required /></label>
+              <label>Hora del traslado<input type="time" value={horaTraslado} onChange={(evento) => setHoraTraslado(evento.target.value)} required /></label>
+            </div>}
             {!cuenta.identidad?.documento?.trim() && <p className="em-traslado-modal-error" role="alert">Completa el documento del paciente antes de continuar.</p>}
             <footer>
               <button type="button" disabled={ocupado} onClick={() => setTrasladoModal(false)}>Cancelar</button>
-              <button type="submit" className="em-traslado-confirmar" disabled={ocupado || !cuenta.identidad?.documento?.trim()}><Icon name="bed" size={16} />{ocupado ? "Procesando traslado…" : "Confirmar traslado"}</button>
+              <button type="submit" className="em-traslado-confirmar" disabled={ocupado || !cuenta.identidad?.documento?.trim() || ((destinoTraslado === "sala" || destinoTraslado === "uci") && (!fechaTraslado || !horaTraslado || (destinoTraslado === "sala" && !salaTraslado))) || (destinoTraslado === "ambulancia" && (!motivoAmbulancia || !destinoAmbulancia.trim()))}><Icon name={destinoTraslado === "ambulancia" ? "ambulance" : "bed"} size={16} />{ocupado ? "Procesando traslado…" : "Trasladar paciente"}</button>
             </footer>
           </form>
         </div>

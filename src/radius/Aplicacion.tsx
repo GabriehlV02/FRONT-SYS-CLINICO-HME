@@ -1,4 +1,4 @@
-import { esModoPruebaLocal } from "./datos/modoPrueba";
+﻿import { esModoPruebaLocal } from "./datos/modoPrueba";
 import React, {
   Suspense,
   lazy,
@@ -1766,7 +1766,6 @@ export default function Aplicacion() {
                 <div>
                   <p>CONSULTORIO MÉDICO</p>
                   <h2>Cola de atención</h2>
-                  <small>Pacientes confirmados pendientes de atención.</small>
                 </div>
                 <button
                   type="button"
@@ -1779,11 +1778,6 @@ export default function Aplicacion() {
               <div className="cola-atencion-lista">
                 {cargandoColaAtencion && (
                   <p className="cola-atencion-estado">Cargando agenda…</p>
-                )}
-                {!cargandoColaAtencion && !citasVisiblesCola.length && (
-                  <p className="cola-atencion-estado">
-                    No tienes pacientes confirmados para atender hoy.
-                  </p>
                 )}
                 {!cargandoColaAtencion &&
                   citasVisiblesCola.map((cita, indice) => (
@@ -2838,3 +2832,4 @@ export default function Aplicacion() {
     </main>
   );
 }
+

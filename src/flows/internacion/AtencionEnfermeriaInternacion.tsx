@@ -18,7 +18,223 @@ import {
   type SolicitudLaboratorio,
 } from "../laboratorio/almacenLaboratorio";
 import "./AtencionEnfermeriaInternacion.css";
+import "./BalanceEmergenciasCompartido.css";
 
+const campos = [["temperatura", "Temperatura", "°C"], ["glicemia", "Glicemia capilar", "mg/dL"], ["frecuenciaCardiaca", "Frecuencia cardíaca", "P/min"], ["frecuenciaRespiratoria", "Frecuencia respiratoria", "Res/min"], ["presionSistolica", "Presión sistólica", "mmHg"], ["presionDiastolica", "Presión diastólica", "mmHg"], ["saturacion", "Saturación ambiente", "%"], ["oxigeno", "Oxígeno", "L"], ["saturacionOxigeno", "Saturación con oxígeno", "%"], ["peso", "Peso", "kg"], ["estatura", "Estatura", "cm"], ["imc", "IMC", "kg/m²"]] as const;
+const fecha = (v: string) => new Date(v).toLocaleString("es-BO");
+const horaIngreso = (v: string) => new Date(v).toLocaleTimeString("es-BO", {hour:"2-digit",minute:"2-digit",hour12:false});
+function GraficaEvolucionSignos({
+  mediciones,
+  camposGrafica = campos,
+}: {
+  mediciones: { id: string; fecha: string; valores: Record<string, string | number>; observacion?: string }[];
+  camposGrafica?: readonly (readonly [string, string, string])[];
+}) {
+  const [signosSeleccionados, setSignosSeleccionados] = useState<string[]>([]);
+  const colores = [
+    "#087fc0",
+    "#f0783b",
+    "#7655c5",
+    "#18a17e",
+    "#db7a51",
+    "#0c9e88",
+    "#9a6bc3",
+    "#547e9b",
+  ];
+  const medicionesVisibles = mediciones.slice(-8);
+  const series = camposGrafica.map(([id, nombre, unidad], indice) => {
+    const valores = medicionesVisibles
+      .map((medicion, posicion) => ({
+        medicion,
+        posicion,
+        valor: Number(medicion.valores[id]),
+      }))
+      .filter((punto) => punto.medicion.valores[id] !== undefined && punto.medicion.valores[id] !== "" && Number.isFinite(punto.valor));
+    const minimo = valores.length
+      ? Math.min(...valores.map((punto) => punto.valor!))
+      : 0;
+    const maximo = valores.length
+      ? Math.max(...valores.map((punto) => punto.valor!))
+      : 1;
+    const margen = Math.max(
+      (maximo - minimo) * 0.2,
+      Math.abs(maximo || minimo) * 0.08,
+      1,
+    );
+    const bajo = minimo - margen,
+      alto = maximo + margen;
+    return {
+      id,
+      nombre,
+      unidad,
+      color: colores[indice],
+      valores,
+      coords: valores.map((punto) => ({
+        ...punto,
+        x:
+          medicionesVisibles.length === 1
+            ? 415
+            : 55 + punto.posicion * (720 / (medicionesVisibles.length - 1)),
+        y: 30 + ((alto - punto.valor!) / (alto - bajo)) * 160,
+      })),
+    };
+  });
+  const alternarSigno = (id: string) =>
+    setSignosSeleccionados((actual) =>
+      actual.includes(id)
+        ? actual.filter((signo) => signo !== id)
+        : [...actual, id],
+    );
+  useEffect(() => {
+    setSignosSeleccionados(camposGrafica.slice(0, 2).map(([id]) => id));
+  }, [camposGrafica]);
+  const seleccionados = series.filter((serie) =>
+    signosSeleccionados.includes(serie.id),
+  );
+  return (
+    <section
+      className="em-signos-grafica"
+      aria-label="Evolución de signos vitales"
+    >
+      <header>
+        <div>
+          <h4>Evolución de signos vitales</h4>
+        </div>
+        <span>
+          {seleccionados.length} signo{seleccionados.length === 1 ? "" : "s"}{" "}
+          seleccionado{seleccionados.length === 1 ? "" : "s"}
+        </span>
+      </header>
+      <nav
+        className="em-signos-selector"
+        aria-label="Seleccionar signos vitales"
+      >
+        {series.map((serie) => (
+          <button
+            type="button"
+            key={serie.id}
+            className={signosSeleccionados.includes(serie.id) ? "activo" : ""}
+            onClick={() => alternarSigno(serie.id)}
+            aria-pressed={signosSeleccionados.includes(serie.id)}
+          >
+            {serie.nombre}
+          </button>
+        ))}
+      </nav>
+      {medicionesVisibles.length &&
+      seleccionados.some((serie) => serie.coords.length) ? (
+        <>
+          <svg
+            viewBox="0 0 830 235"
+            role="img"
+            aria-label="Comparación de la evolución de los signos vitales seleccionados"
+          >
+            <g className="em-signos-grafica-guia">
+              <path d="M55 30H775M55 83H775M55 136H775M55 190H775" />
+            </g>
+            {seleccionados.map(
+              (serie) =>
+                serie.coords.length > 0 && (
+                  <g
+                    className="em-signos-serie"
+                    key={serie.id}
+                    style={{ color: serie.color }}
+                  >
+                    <polyline
+                      points={serie.coords
+                        .map((punto) => `${punto.x},${punto.y}`)
+                        .join(" ")}
+                    />
+                    {serie.coords.map((punto, indice) => (
+                      <g key={`${serie.id}-${indice}`}>
+                      <circle
+                        cx={punto.x}
+                        cy={punto.y}
+                        r="5"
+                      >
+                        <title>
+                          {serie.nombre}: {punto.valor} {serie.unidad} ·{" "}
+                          {fecha(punto.medicion.fecha)}
+                        </title>
+                      </circle>
+                      <text className="em-signos-grafica-etiqueta" x={punto.x} y={punto.y - 12} textAnchor="middle">
+                        {punto.valor} {serie.unidad}
+                      </text>
+                      </g>
+                    ))}
+                  </g>
+                ),
+            )}
+            {medicionesVisibles.length > 0 && (
+              <>
+                <text
+                  className="em-signos-grafica-hora"
+                  x="55"
+                  y="222"
+                  textAnchor="start"
+                >
+                  {horaIngreso(medicionesVisibles[0].fecha)}
+                </text>
+                <text
+                  className="em-signos-grafica-hora"
+                  x="775"
+                  y="222"
+                  textAnchor="end"
+                >
+                  {horaIngreso(medicionesVisibles.at(-1)!.fecha)}
+                </text>
+              </>
+            )}
+          </svg>
+          <p className="em-signos-grafica-nota">
+            Cada signo se escala según sus propias mediciones; pasa sobre un
+            punto para consultar su valor exacto.
+          </p>
+        </>
+      ) : (
+        <div className="em-signos-grafica-vacia">
+          <Icon name="patient" size={23} />
+          <strong>
+            {mediciones.length
+              ? "No hay datos para los signos seleccionados"
+              : "Aún no hay mediciones"}
+          </strong>
+          <span>
+            {mediciones.length
+              ? "Elige otro signo para ver sus mediciones."
+              : "Registra los signos vitales para iniciar la gráfica de evolución."}
+          </span>
+        </div>
+      )}
+      {mediciones.length > 0 && (
+        <details className="em-signos-historial-inline">
+          <summary>
+            <Icon name="chevronRight" size={15} /> Ver mediciones registradas (
+            {mediciones.length})
+          </summary>
+          <div className="em-mediciones">
+            {[...mediciones].reverse().map((medicion) => (
+              <details key={medicion.id}>
+                <summary>
+                  {fecha(medicion.fecha)} ·{" "}
+                  {Object.entries(medicion.valores)
+                    .map(
+                      ([id, valor]) =>
+                        `${campos.find((campo) => campo[0] === id)?.[1] || id}: ${valor}`,
+                    )
+                    .join(" · ") || "Medición no disponible"}
+                </summary>
+                <p>
+                  {medicion.observacion || "Sin observaciones adicionales."}
+                </p>
+              </details>
+            ))}
+          </div>
+        </details>
+      )}
+    </section>
+  );
+}
 export function AtencionEnfermeriaInternacion({
   paciente,
   onVolver,
@@ -49,8 +265,11 @@ export function AtencionEnfermeriaInternacion({
   const [signos, setSignos] = useState<TomaSignosInternacion[]>(() => leerSignosInternacion(paciente.id));
   const [formSignos, setFormSignos] = useState({ temperatura: "", frecuenciaCardiaca: "", frecuenciaRespiratoria: "", saturacion: "", presionSistolica: "", presionDiastolica: "" });
   const [errorSignos, setErrorSignos] = useState("");
+  const [valoresSignos, setValoresSignos] = useState<Record<string, string>>({});
+  const [fechaHoraSignos, setFechaHoraSignos] = useState(fechaHoraActual);
+  const [observacionSignos, setObservacionSignos] = useState("");
   const [balance, setBalance] = useState<RegistroBalanceInternacion[]>(() => leerBalanceInternacion(paciente.id));
-  const [formBalance, setFormBalance] = useState({ tipo: "ingreso" as "ingreso" | "egreso", volumen: "", detalle: "" });
+  const [formBalance, setFormBalance] = useState({ tipo: "ingreso" as "ingreso" | "egreso", volumen: "", detalle: "", anotacion: "", ...fechaHoraActual() });
   const [errorBalance, setErrorBalance] = useState("");
   const [solicitudesLaboratorio, setSolicitudesLaboratorio] = useState<
     SolicitudLaboratorio[]
@@ -109,7 +328,8 @@ export function AtencionEnfermeriaInternacion({
       }
     };
     window.addEventListener("storage", actualizar);
-    return () => window.removeEventListener("storage", actualizar);
+
+  return () => window.removeEventListener("storage", actualizar);
   }, [paciente.id]);
 
   useEffect(() => {
@@ -157,13 +377,11 @@ export function AtencionEnfermeriaInternacion({
   function registrarSignos(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     try {
-      const fechaHora = fechaHoraActual();
-      guardarSignosInternacion(paciente.id, {
-        ...Object.fromEntries(Object.entries(formSignos).map(([clave, valor]) => [clave, Number(valor)])) as Omit<TomaSignosInternacion, "id" | "pacienteId" | "registradaEn" | "fecha" | "hora">,
-        ...fechaHora,
-      });
+      if (!Object.values(valoresSignos).some((valor) => valor.trim()) && !observacionSignos.trim()) { setErrorSignos("Ingresa al menos una medición o una observación."); return; }
+      const numero = (clave: string) => valoresSignos[clave] ? Number(valoresSignos[clave]) : 0;
+      guardarSignosInternacion(paciente.id, { temperatura: numero("temperatura"), frecuenciaCardiaca: numero("frecuenciaCardiaca"), frecuenciaRespiratoria: numero("frecuenciaRespiratoria"), saturacion: numero("saturacion"), presionSistolica: numero("presionSistolica"), presionDiastolica: numero("presionDiastolica"), valores: valoresSignos, observacion: observacionSignos.trim(), ...fechaHoraSignos });
       setSignos(leerSignosInternacion(paciente.id));
-      setFormSignos({ temperatura: "", frecuenciaCardiaca: "", frecuenciaRespiratoria: "", saturacion: "", presionSistolica: "", presionDiastolica: "" });
+      setValoresSignos({}); setObservacionSignos(""); setFechaHoraSignos(fechaHoraActual());
       setErrorSignos("");
     } catch (error) {
       setErrorSignos((error as Error).message || "No se pudieron guardar los signos vitales.");
@@ -177,10 +395,12 @@ export function AtencionEnfermeriaInternacion({
         tipo: formBalance.tipo,
         volumen: Number(formBalance.volumen),
         detalle: formBalance.detalle.trim(),
-        ...fechaHoraActual(),
+        anotacion: formBalance.anotacion.trim(),
+        fecha: formBalance.fecha,
+        hora: formBalance.hora,
       });
       setBalance(leerBalanceInternacion(paciente.id));
-      setFormBalance((actual) => ({ ...actual, volumen: "", detalle: "" }));
+      setFormBalance((actual) => ({ ...actual, volumen: "", detalle: "", anotacion: "", ...fechaHoraActual() }));
       setErrorBalance("");
     } catch (error) {
       setErrorBalance((error as Error).message || "No se pudo guardar el balance hídrico.");
@@ -195,25 +415,93 @@ export function AtencionEnfermeriaInternacion({
     acumuladoTemporal += registro.tipo === "ingreso" ? registro.volumen : -registro.volumen;
     return { ...registro, acumulado: acumuladoTemporal, indice };
   });
-  const datosIngreso = [
-    { etiqueta: "Documento de identidad", valor: paciente.ci || "Sin registro" },
-    { etiqueta: "Fecha de nacimiento", valor: datos.nacimiento || "Sin registro" },
-    { etiqueta: "Sexo", valor: datos.sexo || "Sin registro" },
-    { etiqueta: "Servicio", valor: paciente.servicio || paciente.tipoSala || "Sin registro" },
-    { etiqueta: "Procedencia", valor: paciente.origen || "Sin registro" },
-    { etiqueta: "Hora de ingreso", valor: paciente.horaIngreso || "Sin registro" },
-    { etiqueta: "Familiar responsable", valor: responsable },
-    { etiqueta: "Teléfono de contacto", valor: telefonoResponsable },
-  ];
 
-  const signosGrafica = [
-    { clave: "temperatura", etiqueta: "Temperatura", unidad: "°C", color: "#e07b39" },
-    { clave: "frecuenciaCardiaca", etiqueta: "Frecuencia cardíaca", unidad: "lpm", color: "#d95365" },
-    { clave: "frecuenciaRespiratoria", etiqueta: "Frecuencia respiratoria", unidad: "rpm", color: "#7058bc" },
-    { clave: "saturacion", etiqueta: "Saturación O₂", unidad: "%", color: "#168dbb" },
-    { clave: "presionSistolica", etiqueta: "Presión sistólica", unidad: "mmHg", color: "#418b61" },
-    { clave: "presionDiastolica", etiqueta: "Presión diastólica", unidad: "mmHg", color: "#459b91" },
-  ] as const;
+
+  const panelSignos = (
+    <section className="em-panel em-signos-panel">
+      <header className="em-panel-titulo"><div><h3>Signos vitales</h3></div></header>
+      <div className="em-signos-columnas">
+        <GraficaEvolucionSignos mediciones={signos.map((toma) => ({ id: toma.id, fecha: toma.fecha + "T" + toma.hora, observacion: toma.observacion, valores: toma.valores ?? { temperatura: toma.temperatura, frecuenciaCardiaca: toma.frecuenciaCardiaca, frecuenciaRespiratoria: toma.frecuenciaRespiratoria, saturacion: toma.saturacion, presionSistolica: toma.presionSistolica, presionDiastolica: toma.presionDiastolica } }))} />
+        <form className="em-signos-formulario" onSubmit={registrarSignos}>
+          <h4>Registrar signos vitales</h4>
+          <div className="em-signos-fecha-hora"><label>Fecha de la medición<input type="date" required value={fechaHoraSignos.fecha} onChange={(e) => setFechaHoraSignos({ ...fechaHoraSignos, fecha:e.target.value })} /></label><label>Hora de la medición<input type="time" required value={fechaHoraSignos.hora} onChange={(e) => setFechaHoraSignos({ ...fechaHoraSignos, hora:e.target.value })} /></label></div>
+          <div className="em-form-grid em-signos">{campos.map(([id, etiqueta, unidad]) => <label key={id}>{etiqueta}<span><input type="number" step="any" value={valoresSignos[id] || ""} onChange={(e) => setValoresSignos({ ...valoresSignos, [id]: e.target.value })} />{unidad}</span></label>)}</div>
+          <label>Observación o motivo de medición no disponible<textarea maxLength={1000} value={observacionSignos} onChange={(e) => setObservacionSignos(e.target.value)} /></label>
+          {errorSignos && <p role="alert">{errorSignos}</p>}<div className="em-acciones"><button className="em-primario" type="submit">Guardar signos vitales</button></div>
+        </form>
+      </div>
+    </section>
+  );
+
+  const panelBalance = (
+                    <section className="em-panel em-balance-emergencias" aria-label="Balance hídrico">
+                      <header className="em-balance-emergencias-cabecera">
+                        <div>
+                          <span>CONTROL DE LÍQUIDOS</span>
+                          <h3>Balance hídrico</h3>
+                        </div>
+                        <b>{balance.length} {balance.length === 1 ? "registro" : "registros"}</b>
+                      </header>
+                      <div className="em-balance-emergencias-resumen">
+                        <article><small>Ingresos</small><strong>{totalIngresos.toLocaleString("es-BO")} ml</strong></article>
+                        <article><small>Egresos</small><strong>{totalEgresos.toLocaleString("es-BO")} ml</strong></article>
+                        <article className={balanceAcumulado < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{balanceAcumulado > 0 ? "+ " : ""}{balanceAcumulado.toLocaleString("es-BO")} ml</strong></article>
+                      </div>
+                      <div className="em-balance-emergencias-cuerpo">
+                      <div className="em-balance-emergencias-visualizacion">
+                      <section className="em-balance-emergencias-grafica" aria-label="Gráfica de ingresos y egresos">
+                        <h4>Ingresos y egresos por movimiento</h4>
+                        {puntosBalance.length ? (() => {
+                          const tope = Math.max(...puntosBalance.map((punto) => punto.volumen), 100);
+                          const escala = tope * 1.18;
+                          const yCero = 128;
+                          const alturaMaxima = 92;
+                          const anchoDisponible = 742;
+                          const anchoGrupo = anchoDisponible / puntosBalance.length;
+                          const anchoBarra = Math.min(54, Math.max(16, anchoGrupo * 0.58));
+                          const guias = [0, 0.5, 1].map((fraccion) => ({ y: yCero - fraccion * alturaMaxima, valor: escala * fraccion }));
+                          return <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>{puntosBalance.length} movimientos · balance neto {balanceAcumulado > 0 ? "+" : ""}{balanceAcumulado.toLocaleString("es-BO")} ml</small></div><svg viewBox="0 0 800 225" role="img" aria-label="Gráfica de columnas de ingresos y egresos en mililitros; escala ajustada al mayor movimiento"><path d={guias.map((guia) => `M58 ${guia.y}H780`).join(" ")} /><path className="em-balance-emergencias-cero" d={`M58 ${yCero}H780`} />{guias.map((guia, indice) => <text className="em-balance-emergencias-eje" key={`eje-${indice}`} x="50" y={guia.y + 4}>{Math.round(guia.valor).toLocaleString("es-BO")}</text>)}{puntosBalance.map((punto, indice) => {
+                            const centro = 58 + anchoGrupo * (indice + 0.5);
+                            const altura = Math.max(3, (punto.volumen / escala) * alturaMaxima);
+                            const ingreso = punto.tipo === "ingreso";
+                            const y = ingreso ? yCero - altura : yCero;
+                            const etiquetaY = ingreso ? y - 6 : y + altura + 13;
+                            return <g key={punto.id} className={`em-balance-emergencias-barra ${punto.tipo}`}><rect x={centro - anchoBarra / 2} y={y} width={anchoBarra} height={altura} rx="4"><title>{`${ingreso ? "Ingreso" : "Egreso"}: ${punto.detalle} · ${punto.volumen.toLocaleString("es-BO")} ml · ${punto.hora}`}</title></rect><text className="em-balance-emergencias-volumen" x={centro} y={etiquetaY} textAnchor="middle">{punto.volumen.toLocaleString("es-BO")}</text><text className="em-balance-emergencias-hora" x={centro} y="218" textAnchor="middle">{punto.hora}</text></g>;
+                          })}</svg></>;
+                        })() : <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>Se actualizará con cada movimiento</small></div><svg className="em-balance-emergencias-sin-datos" viewBox="0 0 800 225" role="img" aria-label="Gráfica vacía de ingresos y egresos"><path d="M58 34H780M58 73H780M58 112H780M58 151H780" /><path className="em-balance-emergencias-cero" d="M58 112H780" /><text className="em-balance-emergencias-eje" x="50" y="38">—</text><text className="em-balance-emergencias-eje" x="50" y="77">—</text><text className="em-balance-emergencias-eje" x="50" y="116">0</text><text className="em-balance-emergencias-eje" x="50" y="155">—</text><text x="420" y="111">Registra el primer movimiento para comparar ingresos y egresos</text></svg></>}
+                      </section>
+                      {balance.length > 0 && <ol className="em-balance-emergencias-historial">
+                        {balance.slice().reverse().map((registro) => <li key={registro.id} className={registro.tipo}>
+                          <span>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</span>
+                          <div><strong>{registro.detalle}</strong>{registro.anotacion && <small>{registro.anotacion}</small>}</div>
+                          <b>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen.toLocaleString("es-BO")} ml</b>
+                          <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
+                        </li>)}
+                      </ol>}
+                      </div>
+                      {<form className="em-balance-emergencias-form" onSubmit={registrarBalance}>
+                        <fieldset className="em-balance-tipo-switch">
+                          <legend>Tipo de registro</legend>
+                          <div className="em-balance-tipo-pista" role="group" aria-label="Tipo de movimiento">
+                            <button type="button" className={formBalance.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalance.tipo === "ingreso"} onClick={() => setFormBalance((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true">＋</span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
+                            <button type="button" className={formBalance.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalance.tipo === "egreso"} onClick={() => setFormBalance((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true">−</span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
+                          </div>
+                        </fieldset>
+                        <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalance.volumen} onChange={(evento) => setFormBalance((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>
+                        <label className="em-balance-emergencias-detalle">Detalle<input maxLength={180} placeholder={formBalance.tipo === "ingreso" ? "Ej. Solución intravenosa, agua" : "Ej. Diuresis, drenaje"} value={formBalance.detalle} onChange={(evento) => setFormBalance((actual) => ({ ...actual, detalle: evento.target.value }))} required /></label>
+                        <label className="em-balance-emergencias-anotacion">Anotación clínica<textarea maxLength={1000} rows={2} placeholder="Observación de enfermería relacionada con este registro" value={formBalance.anotacion} onChange={(evento) => setFormBalance((actual) => ({ ...actual, anotacion: evento.target.value }))} /></label>
+                        <div className="em-balance-fecha-hora">
+                          <label>Fecha<input type="date" value={formBalance.fecha} onChange={(evento) => setFormBalance((actual) => ({ ...actual, fecha: evento.target.value }))} required /></label>
+                          <label>Hora<input type="time" value={formBalance.hora} onChange={(evento) => setFormBalance((actual) => ({ ...actual, hora: evento.target.value }))} required /></label>
+                        </div>
+                        {errorBalance && <p role="alert">{errorBalance}</p>}
+                        <button type="submit"><Icon name="plus" size={16} /> Registrar balance</button>
+                      </form>}
+                      
+                      </div>
+                    </section>
+  );
+
 
   return (
     <section
@@ -278,16 +566,15 @@ export function AtencionEnfermeriaInternacion({
       </section>
       <section className="enfermeria-paciente-flujo">
         <nav className="enfermeria-flujo-nav" aria-label="Secciones de enfermería del paciente">
-          <button type="button" className={seccionPaciente === "ingreso" ? "activo" : ""} aria-current={seccionPaciente === "ingreso" ? "page" : undefined} onClick={() => setSeccionPaciente("ingreso")}><span aria-hidden="true"><Icon name="home" size={17} /></span>Ingreso del paciente</button>
+          <button type="button" className={seccionPaciente === "ingreso" ? "activo" : ""} aria-current={seccionPaciente === "ingreso" ? "page" : undefined} onClick={() => setSeccionPaciente("ingreso")}><span aria-hidden="true"><Icon name="home" size={17} /></span>{unidad === "uci" ? "Ingreso del paciente" : "Evolución del paciente"}</button>
           <button type="button" className={seccionPaciente === "atencion" ? "activo" : ""} aria-current={seccionPaciente === "atencion" ? "page" : undefined} onClick={() => setSeccionPaciente("atencion")}><span aria-hidden="true"><Icon name="stethoscope" size={17} /></span>Atención del paciente</button>
           <button type="button" className={seccionPaciente === "reportes" ? "activo" : ""} aria-current={seccionPaciente === "reportes" ? "page" : undefined} onClick={() => setSeccionPaciente("reportes")}><span aria-hidden="true"><Icon name="clipboardMedical" size={17} /></span>Reportes</button>
+          {unidad !== "uci" && <button type="button" className="enfermeria-resumen-trasladar"><Icon name="bed" size={16} /> Trasladar paciente</button>}
         </nav>
-        {seccionPaciente === "ingreso" && (
-          <section className="enfermeria-ingreso-panel" aria-labelledby="enfermeria-ingreso-titulo">
-            <header><div><span>ADMISIÓN A INTERNACIÓN</span><h3 id="enfermeria-ingreso-titulo">Ingreso del paciente</h3><p>Datos registrados al inicio de esta internación.</p></div><b>{paciente.estado === "confirmada" ? "Internación activa" : paciente.estado}</b></header>
-            <div className="enfermeria-ingreso-datos">{datosIngreso.map((dato) => <article key={dato.etiqueta}><small>{dato.etiqueta}</small><strong>{dato.valor}</strong></article>)}</div>
-            <section className="enfermeria-ingreso-motivo"><div><small>Diagnóstico o motivo de internación</small><p>{paciente.motivo || "Sin registro"}</p></div>{paciente.observaciones && <div><small>Observaciones de ingreso</small><p>{paciente.observaciones}</p></div>}</section>
-            <button type="button" className="enfermeria-ingreso-continuar" onClick={() => setSeccionPaciente("atencion")}>Ir a atención del paciente <Icon name="chevronRight" size={16} /></button>
+        {seccionPaciente === "ingreso" && unidad !== "uci" && (
+          <section className="enfermeria-ingreso-controles" aria-label="Signos vitales y balance h?drico">
+            {panelSignos}
+            {panelBalance}
           </section>
         )}
         {seccionPaciente === "reportes" && (
@@ -389,107 +676,8 @@ export function AtencionEnfermeriaInternacion({
                 )}
               </aside>
             </div>
-            <section className="enfermeria-signos-panel" aria-label="Registro y evolución de signos vitales">
-              <header>
-                <div>
-                  <span>CONTROL DE ENFERMERÍA</span>
-                  <h3>Signos vitales</h3>
-                  <p>Registra una toma para actualizar la gráfica del paciente.</p>
-                </div>
-                <b>{signos.length} {signos.length === 1 ? "toma" : "tomas"}</b>
-              </header>
-              <form className="enfermeria-signos-form" onSubmit={registrarSignos}>
-                <label>Temperatura (°C)<input type="number" min="30" max="45" step="0.1" placeholder="36.8" value={formSignos.temperatura} onChange={(evento) => setFormSignos((actual) => ({ ...actual, temperatura: evento.target.value }))} required /></label>
-                <label>Frecuencia cardíaca (lpm)<input type="number" min="20" max="250" placeholder="78" value={formSignos.frecuenciaCardiaca} onChange={(evento) => setFormSignos((actual) => ({ ...actual, frecuenciaCardiaca: evento.target.value }))} required /></label>
-                <label>Frecuencia respiratoria (rpm)<input type="number" min="5" max="80" placeholder="18" value={formSignos.frecuenciaRespiratoria} onChange={(evento) => setFormSignos((actual) => ({ ...actual, frecuenciaRespiratoria: evento.target.value }))} required /></label>
-                <label>Saturación O₂ (%)<input type="number" min="50" max="100" placeholder="98" value={formSignos.saturacion} onChange={(evento) => setFormSignos((actual) => ({ ...actual, saturacion: evento.target.value }))} required /></label>
-                <label>Presión sistólica (mmHg)<input type="number" min="50" max="250" placeholder="120" value={formSignos.presionSistolica} onChange={(evento) => setFormSignos((actual) => ({ ...actual, presionSistolica: evento.target.value }))} required /></label>
-                <label>Presión diastólica (mmHg)<input type="number" min="30" max="160" placeholder="80" value={formSignos.presionDiastolica} onChange={(evento) => setFormSignos((actual) => ({ ...actual, presionDiastolica: evento.target.value }))} required /></label>
-                {errorSignos && <p className="enfermeria-signos-error" role="alert">{errorSignos}</p>}
-                <button type="submit"><Icon name="plus" size={16} /> Registrar signos vitales</button>
-              </form>
-              <div className="enfermeria-signos-graficas">
-                {signosGrafica.map((serie) => {
-                  const valores = signos.map((toma) => toma[serie.clave]);
-                  const minimo = Math.min(...valores);
-                  const maximo = Math.max(...valores);
-                  const rango = maximo - minimo || 1;
-                  const puntos = valores.map((valor, indice) => {
-                    const x = valores.length < 2 ? 160 : 12 + indice * (296 / (valores.length - 1));
-                    const y = 62 - ((valor - minimo) / rango) * 42;
-                    return `${x},${y}`;
-                  }).join(" ");
-                  const ultimo = signos.at(-1);
-                  return (
-                    <article key={serie.clave}>
-                      <header><span style={{ color: serie.color }}>{serie.etiqueta}</span><strong>{ultimo ? `${ultimo[serie.clave]} ${serie.unidad}` : "Sin datos"}</strong></header>
-                      {signos.length ? (
-                        <svg viewBox="0 0 320 78" role="img" aria-label={`Gráfica de ${serie.etiqueta}`}>
-                          <path className="enfermeria-signos-guia" d="M8 20H312M8 41H312M8 62H312" />
-                          {signos.length > 1 && <polyline points={puntos} style={{ stroke: serie.color }} />}
-                          {valores.map((valor, indice) => {
-                            const x = valores.length < 2 ? 160 : 12 + indice * (296 / (valores.length - 1));
-                            const y = 62 - ((valor - minimo) / rango) * 42;
-                            return <circle key={signos[indice].id} cx={x} cy={y} r="3.5" style={{ fill: serie.color }} />;
-                          })}
-                        </svg>
-                      ) : <p>Aún no hay tomas registradas.</p>}
-                      {signos.length > 0 && <small>{signos.length} mediciones · más reciente {new Date(`${signos.at(-1)!.fecha}T12:00:00`).toLocaleDateString("es-BO")} {signos.at(-1)!.hora}</small>}
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-            <section className="enfermeria-balance-panel" aria-label="Balance hídrico">
-              <header>
-                <div>
-                  <span>CONTROL DE LÍQUIDOS</span>
-                  <h3>Balance hídrico</h3>
-                  <p>Registra los ingresos y egresos de líquidos del paciente.</p>
-                </div>
-                <b>{balance.length} {balance.length === 1 ? "registro" : "registros"}</b>
-              </header>
-              <div className="enfermeria-balance-resumen">
-                <article><small>Ingresos</small><strong>{totalIngresos.toLocaleString("es-BO")} ml</strong></article>
-                <article><small>Egresos</small><strong>{totalEgresos.toLocaleString("es-BO")} ml</strong></article>
-                <article className={balanceAcumulado < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{balanceAcumulado > 0 ? "+ " : ""}{balanceAcumulado.toLocaleString("es-BO")} ml</strong></article>
-              </div>
-              <form className="enfermeria-balance-form" onSubmit={registrarBalance}>
-                <label>Tipo de registro
-                  <select value={formBalance.tipo} onChange={(evento) => setFormBalance((actual) => ({ ...actual, tipo: evento.target.value as "ingreso" | "egreso" }))}>
-                    <option value="ingreso">Ingreso de líquidos</option>
-                    <option value="egreso">Egreso de líquidos</option>
-                  </select>
-                </label>
-                <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalance.volumen} onChange={(evento) => setFormBalance((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>
-                <label className="enfermeria-balance-detalle">Detalle<input maxLength={180} placeholder={formBalance.tipo === "ingreso" ? "Ej. Solución intravenosa, agua" : "Ej. Diuresis, drenaje"} value={formBalance.detalle} onChange={(evento) => setFormBalance((actual) => ({ ...actual, detalle: evento.target.value }))} required /></label>
-                {errorBalance && <p role="alert">{errorBalance}</p>}
-                <button type="submit"><Icon name="plus" size={16} /> Registrar balance</button>
-              </form>
-              <section className="enfermeria-balance-grafica" aria-label="Gráfica de balance acumulado">
-                <h4>Evolución del balance acumulado</h4>
-                {puntosBalance.length ? (() => {
-                  const valores = [0, ...puntosBalance.map((punto) => punto.acumulado)];
-                  const minimo = Math.min(...valores);
-                  const maximo = Math.max(...valores);
-                  const rango = maximo - minimo || 1;
-                  const coordenadas = valores.map((valor, indice) => `${20 + indice * (760 / Math.max(valores.length - 1, 1))},${200 - ((valor - minimo) / rango) * 160}`).join(" ");
-                  return <svg viewBox="0 0 800 230" role="img" aria-label="Gráfica de ingresos y egresos acumulados en mililitros"><path d="M20 40H780M20 120H780M20 200H780" /><polyline points={coordenadas} /><text x="20" y="222">Inicio</text>{puntosBalance.map((punto) => <text key={punto.id} x={20 + (punto.indice + 1) * (760 / Math.max(puntosBalance.length, 1))} y="222">{punto.hora}</text>)}</svg>;
-                })() : <p>Aún no hay registros de ingresos o egresos para mostrar.</p>}
-              </section>
-              {balance.length > 0 && (
-                <ol className="enfermeria-balance-historial">
-                  {balance.slice().reverse().map((registro) => (
-                    <li key={registro.id} className={registro.tipo}>
-                      <span>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</span>
-                      <strong>{registro.detalle}</strong>
-                      <b>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen.toLocaleString("es-BO")} ml</b>
-                      <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
+            {panelSignos}
+            {panelBalance}
             {evolucionEnVista && (
               <div className="enfermeria-evolucion-modal-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setEvolucionEnVista(null); }}>
                 <section className="enfermeria-evolucion-modal" role="dialog" aria-modal="true" aria-labelledby="enfermeria-evolucion-modal-titulo">

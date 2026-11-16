@@ -1,6 +1,7 @@
 import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "../../radius/componentes/Icono";
+import { notificar } from "../../radius/componentes/Notificaciones";
 import "./SignosVitalesView.css";
 import "./ColaTriaje.css";
 import type { SignoVitalConfig } from "./ConfiguracionSignosVitalesView";
@@ -71,11 +72,13 @@ export function SignosVitalesView({
   const catalogoServicios = useServiciosSignosVitales();
   const esDemo = esModoPruebaLocal();
   const [cola, setCola] = useState(() => esDemo ? leerListaDemo(claveColaDemo, colaInicial) : []);
+  const citasVistas = useRef(new Set(cola.map((cita) => cita.id)));
   const [errorPacientes, setErrorPacientes] = useState("");
   useEffect(() => {
     if (esDemo) return;
     const controller = new AbortController();
-    apiFetch("/api/citas", { signal: controller.signal })
+    let cargaInicial = true;
+    const actualizarCitas = () => apiFetch("/api/citas", { signal: controller.signal })
       .then(async (respuesta) => {
         if (!respuesta.ok)
           throw new Error("No se pudieron cargar las consultas.");
@@ -89,7 +92,23 @@ export function SignosVitalesView({
           (cita) =>
             cita.estado === "confirmada" || cita.estado === "por_confirmar",
         );
-        setCola(activas.filter((cita) => !cita.signosRegistrados));
+        const nuevas = cargaInicial ? [] : activas.filter((cita) => !citasVistas.current.has(cita.id));
+        activas.forEach((cita) => citasVistas.current.add(cita.id));
+        cargaInicial = false;
+        nuevas.forEach((cita) => notificar(
+          "informacion",
+          "Nueva consulta para triaje",
+          `${cita.paciente} · ${cita.hora}. Enfermería puede registrar sus signos vitales.`,
+        ));
+        setCola((actual) => {
+          const anteriores = new Map(actual.map((cita) => [cita.id, cita]));
+          return activas
+            .filter((cita) => !cita.signosRegistrados)
+            .map((cita) => ({
+              ...cita,
+              signosRegistrados: anteriores.get(cita.id)?.signosRegistrados,
+            }));
+        });
         setAtendidos(
           activas
             .filter((cita) => cita.signosRegistrados)
@@ -109,7 +128,12 @@ export function SignosVitalesView({
               : "No se pudieron cargar las consultas.",
           );
       });
-    return () => controller.abort();
+    void actualizarCitas();
+    const intervalo = window.setInterval(() => void actualizarCitas(), 15000);
+    return () => {
+      controller.abort();
+      window.clearInterval(intervalo);
+    };
   }, [esDemo]);
   const [busqueda, setBusqueda] = useState("");
   const [pacienteSeleccionado, setPacienteSeleccionado] =
@@ -135,9 +159,17 @@ export function SignosVitalesView({
     if (!esDemo) return;
     const actualizarAgenda = () => {
       const anteriores = new Map(cola.map((cita) => [cita.id, cita]));
+      const citas = obtenerCitasAgendaDemo()
+        .filter((cita) => cita.estado === "confirmada" || cita.estado === "por_confirmar");
+      const nuevas = citas.filter((cita) => !citasVistas.current.has(cita.id));
+      citas.forEach((cita) => citasVistas.current.add(cita.id));
+      nuevas.forEach((cita) => notificar(
+        "informacion",
+        "Nueva consulta para triaje",
+        `${cita.paciente} · ${cita.hora}. Enfermería puede registrar sus signos vitales.`,
+      ));
       setCola(
-        obtenerCitasAgendaDemo()
-          .filter((cita) => cita.estado === "confirmada" || cita.estado === "por_confirmar")
+        citas
           .map((cita) => ({
             ...cita,
             motivoConsulta: cita.motivoOperativo,

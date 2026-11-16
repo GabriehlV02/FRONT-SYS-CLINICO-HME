@@ -128,6 +128,7 @@ function GraficaEvolucionSignos({
   camposGrafica?: readonly (readonly [string, string, string])[];
 }) {
   const [signosSeleccionados, setSignosSeleccionados] = useState<string[]>([]);
+  const [vistaSignos, setVistaSignos] = useState<"grafica" | "tabla">("grafica");
   const colores = [
     "#087fc0",
     "#f0783b",
@@ -202,6 +203,10 @@ function GraficaEvolucionSignos({
           seleccionado{seleccionados.length === 1 ? "" : "s"}
         </span>
       </header>
+      <div className="em-signos-vista-switch" role="group" aria-label="Vista de las mediciones">
+        <button type="button" className={vistaSignos === "grafica" ? "activo" : ""} aria-pressed={vistaSignos === "grafica"} onClick={() => setVistaSignos("grafica")}>Gráfica</button>
+        <button type="button" className={vistaSignos === "tabla" ? "activo" : ""} aria-pressed={vistaSignos === "tabla"} onClick={() => setVistaSignos("tabla")}>Tabla</button>
+      </div>
       <nav
         className="em-signos-selector"
         aria-label="Seleccionar signos vitales"
@@ -218,7 +223,11 @@ function GraficaEvolucionSignos({
           </button>
         ))}
       </nav>
-      {medicionesVisibles.length &&
+      {vistaSignos === "tabla" ? (
+        <div className="em-signos-tabla-contenedor">
+          {mediciones.length ? <table className="em-signos-tabla"><thead><tr><th>Fecha y hora</th>{seleccionados.map((serie) => <th key={serie.id}><span>{serie.nombre}</span>{serie.unidad && <small>{serie.unidad}</small>}</th>)}</tr></thead><tbody>{[...mediciones].reverse().map((medicion) => <tr key={medicion.id}><td><time dateTime={medicion.fecha}>{fecha(medicion.fecha)}</time></td>{seleccionados.map((serie) => <td key={serie.id}><strong>{medicion.valores[serie.id] !== undefined && medicion.valores[serie.id] !== "" ? medicion.valores[serie.id] : "—"}</strong></td>)}</tr>)}</tbody></table> : <p>Aún no hay mediciones registradas.</p>}
+        </div>
+      ) : medicionesVisibles.length &&
       seleccionados.some((serie) => serie.coords.length) ? (
         <>
           <svg
@@ -283,10 +292,6 @@ function GraficaEvolucionSignos({
               </>
             )}
           </svg>
-          <p className="em-signos-grafica-nota">
-            Cada signo se escala según sus propias mediciones; pasa sobre un
-            punto para consultar su valor exacto.
-          </p>
         </>
       ) : (
         <div className="em-signos-grafica-vacia">
@@ -2325,15 +2330,6 @@ export function TriajeEmergenciasView({
                               className="em-signos-formulario"
                               onSubmit={registrarSignos}
                             >
-                              {cuenta.signos.length > 0 && (() => {
-                                const ultimaMedicion = cuenta.signos.at(-1)!;
-                                const valoresUltimaMedicion = camposEmergencia.filter((campo) => campo.tipo !== "Texto" && ultimaMedicion.valores[campo.id] !== undefined && ultimaMedicion.valores[campo.id] !== "").slice(0, 4);
-                                return <aside className="em-signos-ultima-medicion" aria-label="Última medición registrada">
-                                  <span>ÚLTIMA MEDICIÓN</span>
-                                  <time>{fecha(ultimaMedicion.fecha)}</time>
-                                  <div>{valoresUltimaMedicion.map((campo) => <p key={campo.id}><strong>{campo.etiqueta}</strong><b>{ultimaMedicion.valores[campo.id]} {campo.unidad}</b></p>)}</div>
-                                </aside>;
-                              })()}
                               <h4>Registrar signos vitales</h4>
                               <div className="em-signos-fecha-hora">
                                 <label>

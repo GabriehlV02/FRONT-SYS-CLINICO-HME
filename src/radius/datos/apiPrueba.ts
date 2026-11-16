@@ -69,7 +69,7 @@ export async function respuestaPrueba(input: string, init: RequestInit): Promise
     return responder({ data: ficha }, 201);
   }
   if (!["GET", "HEAD", "OPTIONS"].includes(metodo)) {
-    return responder({ message: "Esta operación requiere el backend. Los pacientes de prueba se guardan únicamente en este navegador." }, 501);
+    return responder({ message: "El modo de pruebas locales está activo y no permite guardar esta operación en el servidor. Selecciona ‘Pruebas locales · Salir’ en la barra superior e inicia sesión con tu cuenta para registrar datos reales." }, 501);
   }
   return null;
 }

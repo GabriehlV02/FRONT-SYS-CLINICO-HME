@@ -39,11 +39,11 @@ export const antecedentesConsultaVacios: DatosAntecedentesConsulta = {
   familiares: "",
 };
 
-const sociales: { id: keyof DatosAntecedentesConsulta; etiqueta: string }[] = [
-  { id: "vivienda", etiqueta: "Vivienda" },
-  { id: "serviciosBasicos", etiqueta: "Acceso a servicios básicos" },
-  { id: "alimentacion", etiqueta: "Alimentación" },
-  { id: "habitos", etiqueta: "Hábitos" },
+const sociales: { id: keyof DatosAntecedentesConsulta; etiqueta: string; ejemplo: string }[] = [
+  { id: "vivienda", etiqueta: "Vivienda", ejemplo: "Describe las condiciones de vivienda" },
+  { id: "serviciosBasicos", etiqueta: "Acceso a servicios básicos", ejemplo: "Agua, electricidad, saneamiento..." },
+  { id: "alimentacion", etiqueta: "Alimentación", ejemplo: "Describe la alimentación habitual" },
+  { id: "habitos", etiqueta: "Hábitos", ejemplo: "Actividad física, tabaco, alcohol..." },
 ];
 
 const patologicos: { id: keyof DatosAntecedentesConsulta; etiqueta: string }[] = [
@@ -74,19 +74,16 @@ export function AntecedentesConsulta({
 }) {
   const setCampo = (id: keyof DatosAntecedentesConsulta, dato: string) =>
     onChange({ ...value, [id]: dato });
+  const resumen = (campos: { id: keyof DatosAntecedentesConsulta; etiqueta: string }[]) =>
+    campos.filter((campo) => value[campo.id]?.trim()).map((campo) => `${campo.etiqueta}: ${value[campo.id]}`).join(" · ") || "Sin datos registrados";
 
   return (
-    <section className="consulta-antecedentes-estructurados consulta-seguimiento-panel">
-      <header className="consulta-antecedentes-cabecera">
-        <div>
-          <h3>Antecedentes</h3>
-          <small>Grupos de antecedentes</small>
-        </div>
-        <Icon name="fileText" size={18} />
-      </header>
+    <details className="consulta-antecedentes-estructurados consulta-seguimiento-panel">
+      <summary><span>Antecedentes</span><Icon name="chevronRight" size={18} /></summary>
+      <div className="consulta-antecedentes-contenido">
       <div className="consulta-antecedentes-grupos">
         <details>
-          <summary>Antecedentes sociales</summary>
+          <summary><strong>Antecedentes sociales</strong><span>{resumen(sociales)}</span><Icon name="chevronRight" size={15} /></summary>
           <div className="consulta-antecedentes-campos">
             {sociales.map((campo) => (
               <label key={campo.id}>
@@ -94,6 +91,7 @@ export function AntecedentesConsulta({
                 <textarea
                   rows={2}
                   maxLength={5000}
+                  placeholder={campo.ejemplo}
                   value={value[campo.id]}
                   disabled={disabled || saving}
                   onChange={(event) => setCampo(campo.id, event.target.value)}
@@ -103,7 +101,7 @@ export function AntecedentesConsulta({
           </div>
         </details>
         <details>
-          <summary>Antecedentes patológicos</summary>
+          <summary><strong>Antecedentes patológicos</strong><span>{resumen([...patologicos, { id: "otroPatologico", etiqueta: "Otro" }])}</span><Icon name="chevronRight" size={15} /></summary>
           <div className="consulta-antecedentes-campos">
             {patologicos.map((campo) => (
               <label key={campo.id}>
@@ -137,7 +135,7 @@ export function AntecedentesConsulta({
           ["familiares", "Antecedentes familiares"],
         ] as const).map(([id, titulo]) => (
           <details key={id}>
-            <summary>{titulo}</summary>
+            <summary><strong>{titulo}</strong><span>{value[id]?.trim() || "Sin datos registrados"}</span><Icon name="chevronRight" size={15} /></summary>
             <div className="consulta-antecedentes-campos">
               <label>
                 {titulo}
@@ -159,6 +157,7 @@ export function AntecedentesConsulta({
           {saving ? "Guardando…" : "Guardar antecedentes"}
         </button>
       </footer>
-    </section>
+      </div>
+    </details>
   );
 }

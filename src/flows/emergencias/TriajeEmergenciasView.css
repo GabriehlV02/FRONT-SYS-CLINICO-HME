@@ -525,11 +525,22 @@
   font-size: 11px;
   font-weight: 700;
 }
+.emergencias-vista .em-paginacion-clinica button .em-pestana-icono {
+  display:grid;
+  place-items:center;
+  width:28px;
+  height:28px;
+  flex:0 0 28px;
+  border:1px solid #cde4f0;
+  border-radius:8px;
+  background:#eaf6fb;
+  color:#087fc0;
+}
 .emergencias-vista .em-paginacion-clinica button.activo {
-  border-color: transparent;
-  color: #0678b6;
-  background: #f7fbfe;
-  box-shadow: none;
+  border-color: #c6e4f2;
+  color: #fff;
+  background: #087fc0;
+  box-shadow: 0 5px 14px rgb(8 127 192 / 20%);
 }
 .emergencias-vista .em-paginacion-clinica button.activo::after {
   content: "";
@@ -539,7 +550,12 @@
   left: 12px;
   height: 3px;
   border-radius: 999px 999px 0 0;
-  background: #078fc8;
+  background: #20b5e8;
+}
+.emergencias-vista .em-paginacion-clinica button.activo .em-pestana-icono {
+  border-color:rgb(255 255 255 / 35%);
+  background:rgb(255 255 255 / 16%);
+  color:#fff;
 }
 .emergencias-vista .em-paginacion-clinica button.activo span {
   background: #087fb7;
@@ -548,6 +564,7 @@
 /* Mantiene el patrón de pestañas de ingreso/atención frente a los overrides globales. */
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button {
   min-height: 54px;
+  gap: 9px;
   padding: 0 24px 1px;
   border: 1px solid transparent;
   border-bottom: 0;
@@ -559,19 +576,21 @@
   box-shadow: none;
 }
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button.activo {
-  border-color: transparent;
+  border-color: #c6e4f2;
   border-bottom: 0;
-  color: #0678b6;
-  background: #f7fbfe;
-  box-shadow: none;
+  color: #fff;
+  background: #087fc0;
+  box-shadow: 0 5px 14px rgb(8 127 192 / 20%);
 }
 .sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button.activo::after {
   right: 12px;
   bottom: -1px;
   left: 12px;
   height: 3px;
-  background: #078fc8;
+  background: #20b5e8;
 }
+.sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button .em-pestana-icono { display:grid; place-items:center; width:28px; height:28px; flex:0 0 28px; border:1px solid #cde4f0; border-radius:8px; background:#eaf6fb; color:#087fc0; }
+.sistema-app .area-trabajo .emergencias-vista .em-atencion-clinica .em-paginacion-clinica button.activo .em-pestana-icono { border-color:rgb(255 255 255 / 35%); background:rgb(255 255 255 / 16%); color:#fff; }
 .em-registro-ingreso > div:last-child {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5089,15 +5108,54 @@
   gap: 12px;
 }
 .em-insumos-buscar-contenedor { position: relative; grid-column: 1; min-width: 0; }
-.em-insumos-resultados { position: absolute; z-index: 20; top: calc(100% + 5px); right: 0; left: 0; display: grid; max-height: 260px; overflow-y: auto; border: 1px solid #c8dfea; border-radius: 9px; background: #fff; box-shadow: 0 12px 28px #12334e1f; }
-.em-insumos-resultados > button { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; padding: 10px 12px; border: 0; border-bottom: 1px solid #e5eef3; color: #244d6a; background: #fff; text-align: left; cursor: pointer; }
-.em-insumos-resultados > button:last-child { border-bottom: 0; }
-.em-insumos-resultados > button:hover, .em-insumos-resultados > button:focus-visible { background: #eff8fc; }
-.em-insumos-resultados > button > span { display: grid; min-width: 0; gap: 3px; }
-.em-insumos-resultados > button strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.em-insumos-resultados > button small { color: #71899c; font-size: 11px; }
-.em-insumos-resultados > button b { flex: 0 0 auto; color: #0877a8; font-size: 11px; }
-.em-insumos-resultados-vacio { padding: 12px; color: #71899c; font-size: 12px; }
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  right: 0;
+  left: 0;
+  display: grid;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid #c5dce9;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 16px 34px rgb(20 57 82 / 18%), 0 3px 8px rgb(20 57 82 / 7%);
+}
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 56px;
+  padding: 9px 11px;
+  border: 0;
+  border-bottom: 1px solid #e8f0f5;
+  border-radius: 7px;
+  color: #244d6a;
+  background: #fff;
+  text-align: left !important;
+  cursor: pointer;
+  transition: background-color 140ms ease, box-shadow 140ms ease;
+}
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button:last-child { border-bottom: 0; }
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button:hover,
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button:focus-visible {
+  background: #f0f8fc;
+  box-shadow: inset 3px 0 #0788c8;
+  outline: 0;
+}
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button > span { display: grid; min-width: 0; gap: 4px; text-align: left; }
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button strong { overflow: hidden; color: #174568; font-size: 13px; font-weight: 750; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button small { color: #6c8599; font-size: 11px; line-height: 1.2; }
+.sistema-app .em-insumos-enfermeria .em-insumos-resultados > button b { justify-self: end; padding: 6px 9px; border: 1px solid #d1e7f2; border-radius: 7px; color: #0877a8; background: #f3fafe; font-size: 11px; font-weight: 750; }
+.em-insumos-resultados-vacio { padding: 14px 12px; border-radius: 7px; color: #71899c; background: #f8fbfd; font-size: 12px; }
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria .em-insumos-resultados { border-color: #42647d; background: #102c46; }
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria .em-insumos-resultados > button { border-bottom-color: #294b64; color: #d3e4f0; background: #102c46; }
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria .em-insumos-resultados > button strong { color: #e2eef6; }
+.sistema-app[data-theme="dark"] .em-insumos-enfermeria .em-insumos-resultados > button small { color: #a9c2d3; }
 .em-insumos-filtro { width: 110px; }
 .em-insumos-buscar > span { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 11px; border: 1px solid #a9c9dd; border-radius: 8px; background: #fff; color: #63849b; }
 .em-insumos-buscar input { width: 100%; min-width: 0; min-height: 38px; padding: 0; border: 0; background: transparent; font: inherit; font-weight: 400; color: #244d6a; outline: none; }
@@ -5199,15 +5257,53 @@
 .em-insumos-solicitud-modal button { min-height: 38px; padding: 8px 12px; border: 1px solid #a9c9dd; border-radius: 8px; cursor: pointer; }
 .em-insumos-solicitud-modal :is(button, input, select, textarea):focus-visible { outline: 3px solid #087fc033; outline-offset: 2px; }
 .em-insumos-solicitud-modal button:disabled { opacity: .5; cursor: not-allowed; }
-.em-insumos-solicitud-lineas { display: grid; gap: 12px; }
-.em-insumos-solicitud-lineas > div { display: grid; grid-template-columns: minmax(0, 1fr) 105px auto; gap: 10px; align-items: end; }
+.em-insumos-solicitud-buscador { position: relative; display: grid; gap: 7px; }
+.em-insumos-solicitud-buscador > label { color: #355c78; font-size: 12px; font-weight: 750; }
+.em-insumos-solicitud-campo-busqueda { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 0 12px; border: 1px solid #a9c9dd; border-radius: 9px; color: #66859a; background: #fff; }
+.em-insumos-solicitud-campo-busqueda:focus-within { border-color: #087fc0; box-shadow: 0 0 0 3px #087fc018; }
+.em-insumos-solicitud-campo-busqueda input { flex: 1; min-width: 0; min-height: 40px; padding: 0; border: 0; outline: 0; color: #234c68; background: transparent; font: inherit; }
+.em-insumos-solicitud-campo-busqueda input:focus-visible { outline: 0; }
+.em-insumos-solicitud-resultados { position: absolute; z-index: 5; top: calc(100% + 4px); right: 0; left: 0; display: grid; max-height: 230px; overflow: auto; padding: 5px; border: 1px solid #c8dfea; border-radius: 10px; background: #fff; box-shadow: 0 14px 28px #12334e26; }
+.em-insumos-solicitud-resultados > button { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; min-width: 0; min-height: 53px; padding: 8px 10px; border: 0; border-bottom: 1px solid #e6eff4; border-radius: 7px; color: #244d6a; background: #fff; text-align: left; cursor: pointer; }
+.em-insumos-solicitud-resultados > button:last-child { border-bottom: 0; }
+.em-insumos-solicitud-resultados > button:hover:not(:disabled), .em-insumos-solicitud-resultados > button:focus-visible { background: #f0f8fc; outline: 0; }
+.em-insumos-solicitud-resultados > button > span { display: grid; min-width: 0; gap: 3px; }
+.em-insumos-solicitud-resultados strong { overflow: hidden; color: #174568; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.em-insumos-solicitud-resultados small { color: #71899c; font-size: 11px; }
+.em-insumos-solicitud-resultados b { padding: 6px 9px; border: 1px solid #d1e7f2; border-radius: 7px; color: #0877a8; background: #f3fafe; font-size: 11px; white-space: nowrap; }
+.em-insumos-solicitud-sin-resultados { margin: 0; padding: 10px 12px; border: 1px solid #e1edf3; border-radius: 8px; color: #71899c; background: #f8fbfd; font-size: 12px; }
+.em-insumos-solicitud-aviso { margin: 0 !important; padding: 10px 12px; border: 1px solid #f0d49c; border-radius: 8px; color: #77541d !important; background: #fff9eb; font-size: 12px !important; line-height: 1.45 !important; }
+.em-insumos-solicitud-seleccionados { display: grid; gap: 9px; min-width: 0; }
+.em-insumos-solicitud-seleccionados > header { display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; border-bottom: 1px solid #dce9f1; }
+.em-insumos-solicitud-seleccionados > header h4 { margin: 0; color: #234c68; font-size: 13px; }
+.em-insumos-solicitud-seleccionados > header small { color: #71899c; font-size: 11px; }
+.em-insumos-solicitud-lineas { display: grid; gap: 7px; max-height: 230px; overflow-y: auto; }
+.em-insumos-solicitud-lineas > article { display: grid; grid-template-columns: minmax(0, 1fr) 118px auto; gap: 12px; align-items: center; min-width: 0; padding: 9px 10px; border: 1px solid #dce9f1; border-radius: 9px; background: #f8fbfd; }
+.em-insumos-solicitud-producto { display: grid; min-width: 0; gap: 3px; }
+.em-insumos-solicitud-producto strong { overflow: hidden; color: #244d6a; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.em-insumos-solicitud-producto small { color: #71899c; font-size: 10px; }
+.em-insumos-solicitud-lineas label { display: grid; gap: 4px; color: #557287; font-size: 10px; font-weight: 700; }
+.em-insumos-solicitud-lineas input { min-height: 36px !important; padding: 6px 8px !important; }
+.em-insumos-solicitud-lineas > article > button { min-height: 34px; padding: 6px 9px; color: #547287; background: #fff; font-size: 11px; }
+.em-insumos-solicitud-lista-vacia { margin: 0 !important; padding: 14px; border: 1px dashed #cbdde8; border-radius: 9px; color: #71899c !important; background: #f8fbfd; font-size: 12px !important; text-align: center; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-buscador > label,
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-seleccionados > header h4 { color: #d3e4f0; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-campo-busqueda,
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-resultados,
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-resultados > button,
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-lineas > article { border-color: #42647d; color: #d3e4f0; background: #163b58; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-resultados strong,
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-producto strong { color: #e2eef6; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-campo-busqueda input { color: #e2eef6; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-resultados small,
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-producto small { color: #a9c2d3; }
+.sistema-app[data-theme="dark"] .em-insumos-solicitud-aviso { border-color: #80653b; color: #f1d9a8 !important; background: #3c3323; }
 .em-insumos-solicitud-modal footer { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid #d5e5ef; }
 .sistema-app[data-theme="dark"] .em-insumos-solicitud-modal { background: #102c46; color: #d3e4f0; }
 .sistema-app[data-theme="dark"] .em-insumos-solicitud-modal :is(input, select, textarea) { background: #163b58; color: #d3e4f0; }
 @media (max-width: 520px) {
   .em-insumos-solicitud-modal { padding: 16px; }
-  .em-insumos-solicitud-lineas > div { grid-template-columns: minmax(0, 1fr) 90px; }
-  .em-insumos-solicitud-lineas > div > button { grid-column: 1/-1; }
+  .em-insumos-solicitud-lineas > article { grid-template-columns: minmax(0, 1fr) 92px auto; gap: 7px; padding: 8px; }
   .em-insumos-solicitudes article { align-items: flex-start; flex-direction: column; }
 }
 .em-distribucion[hidden] { display: none; }

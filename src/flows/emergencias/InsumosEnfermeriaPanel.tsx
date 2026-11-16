@@ -22,7 +22,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
   const [busqueda, setBusqueda] = useState("");
   const modal = useRef<HTMLDialogElement>(null);
   const idSolicitud = useRef(crypto.randomUUID());
-  const [lineas, setLineas] = useState([{ item_id: "", cantidad: "1" }]);
+  const [lineas, setLineas] = useState<{ item_id: string; cantidad: string }[]>([]);
   const [observacion, setObservacion] = useState(""), [enviando, setEnviando] = useState(false), [errorSolicitud, setErrorSolicitud] = useState("");
   useEffect(() => {
     let vigente = true;
@@ -68,9 +68,15 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
         !seleccionados.some((seleccionado) => seleccionado.item.id === item.id),
       )
     : [];
+  const resultadosSolicitud = busqueda.trim()
+    ? opciones.catalogo.filter((item) =>
+        normalizar(`${item.nombre} ${item.codigo || ""} ${item.unidad}`).includes(normalizar(busqueda)) &&
+        !lineas.some((linea) => Number(linea.item_id) === item.id),
+      ).slice(0, 8)
+    : [];
   const pedidosAlmacen = solicitudes.filter((pedido) => Number(pedido.almacen_destino_id) === Number(almacen));
   const abrir = () => {
-    idSolicitud.current = crypto.randomUUID(); setLineas([{ item_id: "", cantidad: "1" }]); setObservacion(""); setBusqueda(""); setErrorSolicitud(""); modal.current?.showModal();
+    idSolicitud.current = crypto.randomUUID(); setLineas([]); setObservacion(""); setBusqueda(""); setErrorSolicitud(""); modal.current?.showModal();
   };
   const agregarSeleccionado = (item: ItemInsumos) => {
     setSeleccionados((actuales) =>
@@ -79,6 +85,14 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
         : [...actuales, { item, cantidad: "1" }],
     );
     setBuscarStock("");
+  };
+  const agregarASolicitud = (item: ItemInsumos) => {
+    if (lineas.length >= 30) return;
+    setLineas((actuales) => actuales.some((linea) => Number(linea.item_id) === item.id)
+      ? actuales
+      : [...actuales, { item_id: String(item.id), cantidad: "1" }]);
+    setBusqueda("");
+    setErrorSolicitud("");
   };
   const utilizarSeleccionado = async (item: ItemInsumos, cantidad: string) => {
     const cantidadNumerica = Number(cantidad);
@@ -104,7 +118,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
     if (enviando) return;
     setEnviando(true); setErrorSolicitud("");
     try {
-      if (!almacen || lineas.some((linea) => !linea.item_id || !Number.isFinite(Number(linea.cantidad)) || Number(linea.cantidad) <= 0) || new Set(lineas.map((linea) => linea.item_id)).size !== lineas.length) throw new Error("Selecciona insumos diferentes y cantidades mayores que cero.");
+      if (!almacen || !lineas.length || lineas.some((linea) => !linea.item_id || !Number.isFinite(Number(linea.cantidad)) || Number(linea.cantidad) <= 0) || new Set(lineas.map((linea) => linea.item_id)).size !== lineas.length) throw new Error("Agrega al menos un insumo y verifica que todas las cantidades sean mayores que cero.");
       await enviarSolicitudInsumos({ id: idSolicitud.current, almacen_destino_id: Number(almacen), detalles: lineas.map((linea) => ({ item_id: Number(linea.item_id), cantidad: Number(linea.cantidad) })), observacion });
       modal.current?.close(); setVersion((actual) => actual + 1);
       notificar("exito", "Solicitud enviada a Farmacia", "Las cantidades se sumarán a tu almacén cuando Farmacia confirme la dispensación.");
@@ -170,28 +184,34 @@ export function InsumosEnfermeriaPanel({ onUtilizar }: InsumosEnfermeriaPanelPro
       <dialog ref={modal} className="em-insumos-solicitud-modal" onCancel={(evento) => { if (enviando) evento.preventDefault(); }}>
         <form onSubmit={enviar}>
           <header><div><h3>Solicitar descargo a Farmacia</h3>{almacen && <p>Destino: {opciones.almacenes.find((a) => String(a.id) === almacen)?.nombre}</p>}</div><button type="button" disabled={enviando} aria-label="Cerrar solicitud" onClick={() => modal.current?.close()}>×</button></header>
-          {!almacen ? (
-            <>
-              <div className="em-insumos-solicitud-vacia" aria-label="Solicitud vacía" />
-              <footer>
-                <button type="button" onClick={() => modal.current?.close()}>Cerrar</button>
-              </footer>
-            </>
-          ) : (
-            <>
-          <label>Buscar insumo<input value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Nombre o código del catálogo" /></label>
-          <div className="em-insumos-solicitud-lineas">{lineas.map((linea, indice) => <div key={indice}>
-            <label>Insumo<select required disabled={enviando} value={linea.item_id} onChange={(evento) => setLineas((actuales) => actuales.map((actual, i) => i === indice ? { ...actual, item_id: evento.target.value } : actual))}><option value="">Seleccionar insumo</option>{opciones.catalogo.filter((item) => String(item.id) === linea.item_id || `${item.nombre} ${item.codigo}`.toLocaleLowerCase().includes(busqueda.toLocaleLowerCase())).map((item) => <option key={item.id} value={item.id}>{item.nombre} · {item.unidad}</option>)}</select></label>
-            <label>Cantidad<input required disabled={enviando} type="number" min="0.001" max="100000" step="0.001" value={linea.cantidad} onChange={(evento) => setLineas((actuales) => actuales.map((actual, i) => i === indice ? { ...actual, cantidad: evento.target.value } : actual))} /></label>
-            <button type="button" disabled={lineas.length === 1 || enviando} aria-label={`Quitar insumo ${indice + 1}`} onClick={() => setLineas((actuales) => actuales.filter((_, i) => i !== indice))}>Quitar</button>
-          </div>)}</div>
-          <button type="button" disabled={lineas.length >= 30 || enviando} onClick={() => setLineas((actuales) => [...actuales, { item_id: "", cantidad: "1" }])}>+ Añadir insumo</button>
+          {!almacen && <p role="status" className="em-insumos-solicitud-aviso">No tienes un almacén de destino asignado. Puedes preparar la lista, pero necesitarás que Administración te asigne un almacén para enviar la solicitud.</p>}
+          {!opciones.catalogo.length && <p role="status" className="em-insumos-solicitud-aviso">No hay insumos disponibles en el catálogo para solicitar.</p>}
+          <div className="em-insumos-solicitud-buscador">
+            <label htmlFor="em-insumos-solicitud-busqueda">Buscar insumos para agregar</label>
+            <div className="em-insumos-solicitud-campo-busqueda"><Icon name="search" size={17} /><input id="em-insumos-solicitud-busqueda" type="search" disabled={enviando || lineas.length >= 30 || !opciones.catalogo.length} value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Escribe el nombre, código o unidad" /></div>
+            {!!resultadosSolicitud.length && <div className="em-insumos-solicitud-resultados" role="listbox" aria-label="Resultados para agregar a la solicitud">
+              {resultadosSolicitud.map((item) => <button key={item.id} type="button" role="option" aria-selected="false" disabled={enviando} onClick={() => agregarASolicitud(item)}>
+                <span><strong>{item.nombre}</strong><small>{item.codigo || "Sin código"} · {item.unidad}</small></span><b>+ Agregar</b>
+              </button>)}
+            </div>}
+            {busqueda.trim() && !resultadosSolicitud.length && <p className="em-insumos-solicitud-sin-resultados">{lineas.length >= 30 ? "La solicitud permite hasta 30 insumos." : "No hay insumos disponibles que coincidan con la búsqueda."}</p>}
+          </div>
+          <section className="em-insumos-solicitud-seleccionados" aria-label="Insumos seleccionados">
+            <header><div><h4>Insumos solicitados</h4><small>{lineas.length} de 30 seleccionados</small></div></header>
+            {lineas.length ? <div className="em-insumos-solicitud-lineas">{lineas.map((linea) => {
+              const item = opciones.catalogo.find((opcion) => String(opcion.id) === linea.item_id);
+              if (!item) return null;
+              return <article key={linea.item_id}>
+                <div className="em-insumos-solicitud-producto"><strong>{item.nombre}</strong><small>{item.codigo || "Sin código"} · {item.unidad}</small></div>
+                <label>Cantidad<input required disabled={enviando} type="number" min="0.001" max="100000" step="0.001" value={linea.cantidad} aria-label={`Cantidad de ${item.nombre}`} onChange={(evento) => setLineas((actuales) => actuales.map((actual) => actual.item_id === linea.item_id ? { ...actual, cantidad: evento.target.value } : actual))} /></label>
+                <button type="button" disabled={enviando} aria-label={`Quitar ${item.nombre}`} onClick={() => setLineas((actuales) => actuales.filter((actual) => actual.item_id !== linea.item_id))}>Quitar</button>
+              </article>;
+            })}</div> : <p className="em-insumos-solicitud-lista-vacia">Busca un insumo y elige “Agregar”. Aquí podrás indicar la cantidad antes de enviar.</p>}
+          </section>
           <label>Observación<textarea maxLength={1000} disabled={enviando} value={observacion} onChange={(evento) => setObservacion(evento.target.value)} placeholder="Motivo de la reposición (opcional)" /></label>
           <p>La solicitud quedará pendiente. El stock se actualizará después de que Farmacia dispense los insumos.</p>
           {errorSolicitud && <p role="alert" className="em-error">{errorSolicitud}</p>}
-          <footer><button type="button" disabled={enviando} onClick={() => modal.current?.close()}>Cancelar</button><button type="submit" className="em-primario" disabled={enviando || !opciones.catalogo.length}>{enviando ? "Enviando…" : "Enviar solicitud"}</button></footer>
-            </>
-          )}
+          <footer><button type="button" disabled={enviando} onClick={() => modal.current?.close()}>Cancelar</button><button type="submit" className="em-primario" disabled={enviando || !almacen || !lineas.length || !opciones.catalogo.length}>{enviando ? "Enviando…" : "Enviar solicitud"}</button></footer>
         </form>
       </dialog>
     </section>

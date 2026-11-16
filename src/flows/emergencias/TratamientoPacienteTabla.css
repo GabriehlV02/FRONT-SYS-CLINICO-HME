@@ -25,3 +25,78 @@
 .sistema-app[data-theme="dark"] .em-tratamiento-scroll tbody tr:nth-child(even) { background: #102c46; }
 @media (max-width: 850px) { .em-tratamiento-herramientas { grid-template-columns: minmax(0, 1fr) minmax(190px, .7fr); } .em-hoja-tratamiento { grid-column: 1/-1; justify-self: end; } }
 @media (max-width: 600px) { .em-tratamiento-herramientas { grid-template-columns: minmax(0, 1fr); } .em-tratamiento-herramientas > *, .em-hoja-tratamiento { grid-column: 1; width: 100%; } }
+
+/* Presentación refinada de la hoja clínica del paciente. */
+.em-tratamiento-paciente {
+  display: grid;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid #d3e3ed;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #fff 0%, #fbfdff 100%);
+  box-shadow: 0 5px 18px rgb(22 70 103 / 6%);
+}
+.em-tratamiento-paciente > .em-panel-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0;
+}
+.em-tratamiento-paciente > .em-tratamiento-encabezado { min-height: 48px; padding-bottom: 12px; border-bottom: 1px solid #e2edf4; }
+.em-tratamiento-titulo-grupo { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.em-tratamiento-titulo-icono { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; border: 1px solid #c6e2f1; border-radius: 11px; color: #fff; background: linear-gradient(145deg, #168fca, #0866a7); box-shadow: 0 4px 10px rgb(8 102 167 / 18%); }
+.em-tratamiento-titulo-grupo > div { display: grid; gap: 2px; min-width: 0; }
+.em-tratamiento-titulo-grupo small { color: #1681b4; font-size: 9px; font-weight: 850; letter-spacing: .11em; }
+.em-tratamiento-paciente > .em-tratamiento-encabezado h3 { margin: 0; color: #174568; font-size: 17px; font-weight: 800; letter-spacing: -.02em; line-height: 1.25; }
+.em-tratamiento-conteo { display: inline-flex; align-items: baseline; gap: 6px; flex: 0 0 auto; padding: 7px 11px; border: 1px solid #d1e6f1; border-radius: 9px; color: #286084; background: linear-gradient(135deg, #f3faff, #eaf5fb); }
+.em-tratamiento-conteo strong { color: #086eaa; font-size: 16px; font-weight: 850; font-variant-numeric: tabular-nums; }
+.em-tratamiento-conteo span { color: #54738a; font-size: 10px; font-weight: 750; }
+.em-tratamiento-herramientas { grid-template-columns: minmax(0, 1fr) minmax(190px, 220px) auto; gap: 12px; margin: 0; }
+.em-tratamiento-herramientas label { gap: 6px; color: #42647d; font-size: 11px; font-weight: 750; }
+.em-tratamiento-herramientas :is(input, select) { min-height: 39px; border-color: #c8dce9; border-radius: 8px; font-size: 12px; }
+.em-tratamiento-herramientas :is(input, select):focus-visible { border-color: #1686bd; outline: 3px solid rgb(22 134 189 / 13%); outline-offset: 1px; }
+.em-hoja-tratamiento { min-height: 39px; border-color: #c8dce9; border-radius: 8px; color: #17638f; background: #f7fbfe; }
+.em-tratamiento-scroll { max-height: 530px; border-color: #d2e2ec; border-radius: 10px; box-shadow: 0 2px 7px rgb(25 72 104 / 4%); }
+.em-tratamiento-scroll:focus-visible { outline: 2px solid #1686bd66; outline-offset: 2px; }
+.em-tratamiento-scroll table { min-width: 1100px; font-size: 12px; }
+.em-tratamiento-scroll th { padding: 11px 13px; background: #eff6fb; color: #315c78; font-size: 10px; font-weight: 800; letter-spacing: .035em; }
+.em-tratamiento-scroll td { padding: 12px 13px; border-bottom-color: #e5edf3; vertical-align: middle; }
+.em-tratamiento-scroll tbody tr { transition: background-color 120ms ease; }
+.em-tratamiento-scroll tbody tr:hover { background: #f2f8fc; }
+.em-tratamiento-scroll tbody tr:nth-child(even) { background: #f9fbfd; }
+.em-tratamiento-scroll tbody tr:nth-child(even):hover { background: #f0f7fb; }
+.em-tratamiento-scroll td:first-child { width: 160px; color: #365e78; font-size: 11px; font-variant-numeric: tabular-nums; }
+.em-tratamiento-scroll time { font-weight: 650; white-space: nowrap; }
+.em-tratamiento-scroll td:nth-child(2) { color: #476a83; font-size: 11px; }
+.em-tratamiento-scroll td:nth-child(3) { min-width: 250px; max-width: 390px; }
+.em-tratamiento-scroll td:nth-child(3) > strong { color: #214f70; font-weight: 750; }
+.em-tratamiento-scroll td:nth-child(3) p { font-size: 11px; line-height: 1.45; }
+.em-tratamiento-scroll td:nth-child(4) { color: #315c78; font-weight: 650; white-space: nowrap; }
+.em-tratamiento-estado { padding: 5px 9px; border-color: #d5e5ef; border-radius: 999px; color: #42647d; background: #f4f8fb; font-size: 10px; font-weight: 700; }
+.em-tratamiento-estado.en-uso { color: #14724e; border-color: #c4e5d3; background: #eff9f3; }
+.em-tratamiento-scroll .em-tratamiento-vacio { padding: 32px 18px; color: #70879a; }
+.sistema-app[data-theme="dark"] .em-tratamiento-paciente { border-color: #38566e; background: #102c46; box-shadow: 0 5px 18px #061b2b66; }
+.sistema-app[data-theme="dark"] .em-tratamiento-paciente > .em-tratamiento-encabezado { border-bottom-color: #294b64; }
+.sistema-app[data-theme="dark"] .em-tratamiento-titulo-grupo small { color: #83c8e8; }
+.sistema-app[data-theme="dark"] .em-tratamiento-paciente > .em-tratamiento-encabezado h3 { color: #e2eef6; }
+.sistema-app[data-theme="dark"] .em-tratamiento-conteo { border-color: #42647d; background: #163b58; }
+.sistema-app[data-theme="dark"] .em-tratamiento-conteo strong { color: #83c8e8; }
+.sistema-app[data-theme="dark"] .em-tratamiento-conteo span { color: #c5dceb; }
+.sistema-app[data-theme="dark"] .em-tratamiento-scroll tbody tr:hover,
+.sistema-app[data-theme="dark"] .em-tratamiento-scroll tbody tr:nth-child(even):hover { background: #193b56; }
+.sistema-app[data-theme="dark"] .em-tratamiento-scroll td:nth-child(3) > strong { color: #d3e4f0; }
+@media (max-width: 850px) {
+  .em-tratamiento-paciente { padding: 14px; }
+  .em-tratamiento-herramientas { grid-template-columns: minmax(0, 1fr) minmax(160px, .7fr); }
+}
+@media (max-width: 600px) {
+  .em-tratamiento-paciente { gap: 12px; padding: 12px; border-radius: 11px; }
+  .em-tratamiento-paciente > .em-panel-titulo { align-items: flex-start; }
+  .em-tratamiento-titulo-icono { flex-basis: 36px; width: 36px; height: 36px; }
+  .em-tratamiento-paciente > .em-tratamiento-encabezado h3 { font-size: 14px; }
+  .em-tratamiento-conteo { gap: 4px; padding: 6px 8px; }
+  .em-tratamiento-conteo strong { font-size: 14px; }
+  .em-tratamiento-herramientas { gap: 9px; }
+}

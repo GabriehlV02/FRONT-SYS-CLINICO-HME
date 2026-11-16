@@ -12,6 +12,10 @@ const etiquetas: Record<string, [CategoriaTratamiento, string]> = {
 };
 const estadosOrden = { pendiente: "Indicado · pendiente", en_curso: "En curso", aplicada: "Aplicación registrada", cancelada: "Suspendido" };
 const instante = (fecha: string, hora?: string) => /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? `${fecha}T${hora || "12:00"}:00` : fecha;
+export const formatearFechaTratamiento = (valor: string) => {
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? "Sin fecha registrada" : new Intl.DateTimeFormat("es-BO", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(fecha);
+};
 
 export function reunirTratamiento(cuenta: CuentaEmergencia): { filas: FilaTratamiento[]; medicos: string[] } {
   const filas: FilaTratamiento[] = [];
@@ -27,7 +31,7 @@ export function reunirTratamiento(cuenta: CuentaEmergencia): { filas: FilaTratam
     agregar({ id: `consumo-${consumo.registroId}`, fecha: consumo.inicio, categoria: consumo.tipo === "servicio" ? "servicios" : "insumos", tipo: consumo.tipo === "servicio" ? "Servicio utilizado" : "Consumo de insumo",
       detalle: consumo.nombre, cantidad: consumo.porHora ? "Por tiempo de uso" : `${consumo.cantidad} ${consumo.unidad}`,
       responsable: "No registrado", estado: consumo.porHora ? (consumo.fin || cuenta.fin ? "Finalizado" : "En uso") : "Consumo registrado",
-      observacion: [orden ? `Relacionado con: ${orden.titulo}` : "", consumo.fin ? `Fin: ${consumo.fin}` : ""].filter(Boolean).join(" · ") });
+      observacion: [orden ? `Relacionado con: ${orden.titulo}` : "", consumo.fin ? `Finalizó: ${formatearFechaTratamiento(consumo.fin)}` : ""].filter(Boolean).join(" · ") });
   }
   for (const orden of cuenta.ordenes || []) {
     registrarMedico(orden.usuario, orden.autorTipo);

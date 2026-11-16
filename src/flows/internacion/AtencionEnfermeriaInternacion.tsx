@@ -37,6 +37,7 @@ export function AtencionEnfermeriaInternacion({
   const [subvista, setSubvista] = useState<"evolucion" | "indicaciones">(
     "evolucion",
   );
+  const [seccionPaciente, setSeccionPaciente] = useState<"ingreso" | "atencion" | "reportes">("ingreso");
   const [evoluciones, setEvoluciones] = useState<EvolucionEnfermeriaInternacion[]>(() => leerEvolucionesEnfermeriaInternacion(paciente.id));
   const [textoEvolucion, setTextoEvolucion] = useState("");
   const [fechaHoraEvolucion, setFechaHoraEvolucion] = useState(fechaHoraActual);
@@ -192,6 +193,16 @@ export function AtencionEnfermeriaInternacion({
     acumuladoTemporal += registro.tipo === "ingreso" ? registro.volumen : -registro.volumen;
     return { ...registro, acumulado: acumuladoTemporal, indice };
   });
+  const datosIngreso = [
+    { etiqueta: "Documento de identidad", valor: paciente.ci || "Sin registro" },
+    { etiqueta: "Fecha de nacimiento", valor: datos.nacimiento || "Sin registro" },
+    { etiqueta: "Sexo", valor: datos.sexo || "Sin registro" },
+    { etiqueta: "Servicio", valor: paciente.servicio || paciente.tipoSala || "Sin registro" },
+    { etiqueta: "Procedencia", valor: paciente.origen || "Sin registro" },
+    { etiqueta: "Hora de ingreso", valor: paciente.horaIngreso || "Sin registro" },
+    { etiqueta: "Familiar responsable", valor: responsable },
+    { etiqueta: "Teléfono de contacto", valor: telefonoResponsable },
+  ];
 
   const signosGrafica = [
     { clave: "temperatura", etiqueta: "Temperatura", unidad: "°C", color: "#e07b39" },
@@ -223,7 +234,7 @@ export function AtencionEnfermeriaInternacion({
             <h2 id="enfermeria-paciente-titulo" ref={titulo} tabIndex={-1}>
               {paciente.paciente}
             </h2>
-            <span>| HC-{paciente.ci || "S/R"} · Internado</span>
+            <span className="enfermeria-resumen-ci">HC-{paciente.ci || "S/R"} · Internado</span>
             <span className="enfermeria-resumen-diagnostico">Diagnóstico: {paciente.motivo || "Sin registro"}</span>
           </div>
           <div className="enfermeria-resumen-contexto">
@@ -262,7 +273,37 @@ export function AtencionEnfermeriaInternacion({
           </article>
         </div>
       </section>
-      <section className="enfermeria-paciente-subvistas">
+      <section className="enfermeria-paciente-flujo">
+        <nav className="enfermeria-flujo-nav" aria-label="Secciones de enfermería del paciente">
+          <button type="button" className={seccionPaciente === "ingreso" ? "activo" : ""} aria-current={seccionPaciente === "ingreso" ? "page" : undefined} onClick={() => setSeccionPaciente("ingreso")}><span aria-hidden="true"><Icon name="home" size={17} /></span>Ingreso del paciente</button>
+          <button type="button" className={seccionPaciente === "atencion" ? "activo" : ""} aria-current={seccionPaciente === "atencion" ? "page" : undefined} onClick={() => setSeccionPaciente("atencion")}><span aria-hidden="true"><Icon name="stethoscope" size={17} /></span>Atención del paciente</button>
+          <button type="button" className={seccionPaciente === "reportes" ? "activo" : ""} aria-current={seccionPaciente === "reportes" ? "page" : undefined} onClick={() => setSeccionPaciente("reportes")}><span aria-hidden="true"><Icon name="clipboardMedical" size={17} /></span>Reportes</button>
+        </nav>
+        {seccionPaciente === "ingreso" && (
+          <section className="enfermeria-ingreso-panel" aria-labelledby="enfermeria-ingreso-titulo">
+            <header><div><span>ADMISIÓN A INTERNACIÓN</span><h3 id="enfermeria-ingreso-titulo">Ingreso del paciente</h3><p>Datos registrados al inicio de esta internación.</p></div><b>{paciente.estado === "confirmada" ? "Internación activa" : paciente.estado}</b></header>
+            <div className="enfermeria-ingreso-datos">{datosIngreso.map((dato) => <article key={dato.etiqueta}><small>{dato.etiqueta}</small><strong>{dato.valor}</strong></article>)}</div>
+            <section className="enfermeria-ingreso-motivo"><div><small>Diagnóstico o motivo de internación</small><p>{paciente.motivo || "Sin registro"}</p></div>{paciente.observaciones && <div><small>Observaciones de ingreso</small><p>{paciente.observaciones}</p></div>}</section>
+            <button type="button" className="enfermeria-ingreso-continuar" onClick={() => setSeccionPaciente("atencion")}>Ir a atención del paciente <Icon name="chevronRight" size={16} /></button>
+          </section>
+        )}
+        {seccionPaciente === "reportes" && (
+          <section className="enfermeria-reporte-panel" aria-labelledby="enfermeria-reporte-titulo">
+            <header><div><span>RESUMEN DE INTERNACIÓN</span><h3 id="enfermeria-reporte-titulo">Reportes de enfermería</h3><p>Registros clínicos asociados a esta internación.</p></div><button type="button" onClick={() => window.print()}><Icon name="fileText" size={16} /> Imprimir reporte</button></header>
+            <div className="enfermeria-reporte-metricas">
+              <article><small>Evoluciones</small><strong>{evoluciones.length}</strong></article>
+              <article><small>Tomas de signos</small><strong>{signos.length}</strong></article>
+              <article><small>Movimientos de balance</small><strong>{balance.length}</strong></article>
+              <article><small>Indicaciones</small><strong>{indicacionesLaboratorio.length}</strong></article>
+              <article><small>Balance acumulado</small><strong>{balanceAcumulado.toLocaleString("es-BO")} ml</strong></article>
+            </div>
+            <section className="enfermeria-reporte-seccion"><h4>Últimos registros de enfermería</h4>
+              {evoluciones.length ? <ol>{evoluciones.slice().reverse().slice(0, 5).map((item) => <li key={item.id}><time>{new Date(`${item.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {item.hora}</time><p>{item.texto}</p></li>)}</ol> : <p className="enfermeria-reporte-vacio">Aún no hay evoluciones registradas para esta internación.</p>}
+            </section>
+            {signos.length > 0 && <section className="enfermeria-reporte-seccion"><h4>Última toma de signos vitales</h4>{(() => { const toma = signos.at(-1)!; return <div className="enfermeria-reporte-signos"><span>Temperatura <b>{toma.temperatura} °C</b></span><span>Frecuencia cardíaca <b>{toma.frecuenciaCardiaca} lpm</b></span><span>Frecuencia respiratoria <b>{toma.frecuenciaRespiratoria} rpm</b></span><span>Saturación <b>{toma.saturacion}%</b></span><span>Presión arterial <b>{toma.presionSistolica}/{toma.presionDiastolica} mmHg</b></span><time>{new Date(`${toma.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {toma.hora}</time></div>; })()}</section>}
+          </section>
+        )}
+        {seccionPaciente === "atencion" && <section className="enfermeria-paciente-subvistas">
         {errorLaboratorio && <p role="alert">{errorLaboratorio}</p>}
         <nav aria-label="Información clínica del paciente">
           <button
@@ -513,6 +554,7 @@ export function AtencionEnfermeriaInternacion({
             )}
           </section>
         )}
+      </section>}
       </section>
     </section>
   );

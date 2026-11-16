@@ -1110,14 +1110,8 @@ export function TriajeEmergenciasView({
       estado: consumo.porHora ? (consumo.fin ? "Finalizado" : "En curso") : "Aplicado",
     })),
   ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
-  const ordenInternacionMedica = (cuenta?.ordenes || []).find(
-    (orden) => orden.tipo === "internacion" && orden.autorTipo === "medico" && orden.estado !== "cancelada",
-  );
-  const puedeTrasladarAInternacion = Boolean(
-    ordenInternacionMedica && cuenta?.identidad?.documento?.trim(),
-  );
   async function trasladarAInternacion() {
-    if (!cuenta || !ordenInternacionMedica || !cuenta.identidad?.documento?.trim()) return;
+    if (!cuenta || !cuenta.identidad?.documento?.trim()) return;
     let preinternacionId = "";
     setOcupado(true);
     setError("");
@@ -1129,13 +1123,13 @@ export function TriajeEmergenciasView({
         pacienteId: cuenta.pacienteId || undefined,
         paciente: nombrePaciente(cuenta),
         ci: identidadPaciente.documento.trim(),
-        medico: ordenInternacionMedica.usuario,
-        motivo: [ordenInternacionMedica.titulo, ordenInternacionMedica.indicaciones].filter(Boolean).join(" · "),
+        medico: "Pendiente de asignación",
+        motivo: cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias",
         fechaIngreso: ingreso.toLocaleDateString("es-BO"),
         horaIngreso: ingreso.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false }),
         origen: "Emergencias",
         servicio: "Internación",
-        observaciones: `Traslado solicitado mediante orden médica ${ordenInternacionMedica.id}.`,
+        observaciones: "Traslado del paciente solicitado desde Emergencias.",
         datosPaciente: {
           nacimiento: identidadPaciente.nacimiento || "",
           sexo: identidadPaciente.sexo || "",
@@ -1146,7 +1140,7 @@ export function TriajeEmergenciasView({
       const actualizada = await pedir<Cuenta>(`/${cuenta.id}/cierre`, {
         condicionEgreso: "vivo",
         causaEgreso: "internacion",
-        observacionEgreso: `Traslado a internación con orden médica ${ordenInternacionMedica.id}.`,
+        observacionEgreso: "Traslado del paciente a Internación desde Emergencias.",
       });
       setCuentas((prev) => [actualizada, ...prev.filter((item) => item.id !== actualizada.id)]);
       setAviso("Traslado registrado. Enfermería puede confirmar la cama desde Internación.");
@@ -1923,15 +1917,13 @@ export function TriajeEmergenciasView({
                       <button
                         className="em-traslado-internacion"
                         type="button"
-                        disabled={ocupado || !puedeTrasladarAInternacion}
-                        title={!ordenInternacionMedica
-                          ? "Requiere una orden de internación emitida por un médico."
-                          : !cuenta.identidad?.documento?.trim()
-                            ? "Completa primero el documento del paciente."
-                            : "Trasladar al paciente a internación."}
+                        disabled={ocupado || !cuenta.identidad?.documento?.trim()}
+                        title={!cuenta.identidad?.documento?.trim()
+                          ? "Completa primero el documento del paciente."
+                          : "Trasladar al paciente a Internación."}
                         onClick={() => void trasladarAInternacion()}
                       >
-                        <Icon name="bed" size={15} /> Traslado a internación
+                        <Icon name="bed" size={15} /> Traslado del paciente
                       </button>
                     </>
                   )}
@@ -2216,6 +2208,7 @@ export function TriajeEmergenciasView({
                       aria-current={seccionClinica === "ingreso" ? "page" : undefined}
                       onClick={() => setSeccionClinica("ingreso")}
                     >
+                      <span className="em-pestana-icono" aria-hidden="true"><Icon name="home" size={17} /></span>
                       Ingreso del paciente
                     </button>
                     <button
@@ -2226,6 +2219,7 @@ export function TriajeEmergenciasView({
                       }
                       onClick={() => setSeccionClinica("paciente")}
                     >
+                      <span className="em-pestana-icono" aria-hidden="true"><Icon name="stethoscope" size={17} /></span>
                       Atención del paciente
                     </button>
                     <button
@@ -2234,6 +2228,7 @@ export function TriajeEmergenciasView({
                       aria-current={seccionClinica === "reportes" ? "page" : undefined}
                       onClick={() => setSeccionClinica("reportes")}
                     >
+                      <span className="em-pestana-icono" aria-hidden="true"><Icon name="clipboardMedical" size={17} /></span>
                       Reportes
                     </button>
                   </nav>

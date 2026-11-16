@@ -39,7 +39,9 @@
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100% !important; min-height: 44px; min-width: 0; padding: 10px 12px; border-radius: 9px; font-size: 12px !important; font-weight: 600; line-height: 1.35; box-shadow: none; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-liberar-cobrar { border: 1px solid #087eb4; color: #fff; background: #087eb4; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-resumen-editar { border: 1px solid #cbdfe9; color: #17678e; background: #fff; }
-.sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-traslado-internacion { border: 1px solid #b8d9ca; color: #176947; background: #f5fbf7; }
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-traslado-internacion { border: 1px solid #e97808; color: #fff; background: linear-gradient(135deg,#f59e0b 0%,#e97808 100%); box-shadow: 0 4px 10px rgb(233 120 8 / 22%); }
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-traslado-internacion:hover:not(:disabled) { border-color:#c85e05; color:#fff; background:linear-gradient(135deg,#e98b08 0%,#c85e05 100%); box-shadow:0 5px 13px rgb(200 94 5 / 26%); }
+.sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-traslado-internacion svg { color:currentColor; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-traslado-internacion:disabled { color: #718496; border-color: #d8e2e8; background: #f3f6f8; cursor: not-allowed; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones .em-traslado-internacion-ayuda { color: #73889a; font-size: 11px; line-height: 1.4; }
 .sistema-app .em-trabajo > .em-resumen .em-total-acciones button:hover:not(:disabled) { box-shadow: none; transform: none; filter: brightness(.97); }

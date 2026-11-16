@@ -130,32 +130,6 @@ export function AnestesiologiaView() {
           ))}
         </HorizontalSubvistaNav>
       </div>
-      <header className="anestesia-cabecera">
-        <div>
-          <p>QUIRÓFANO · ANESTESIOLOGÍA</p>
-          <h2>Gestión anestésica</h2>
-          <small>Materiales, informes y disponibilidad del área.</small>
-        </div>
-        <span className="anestesia-alerta">
-          {alertas.length} alerta{alertas.length === 1 ? "" : "s"} de stock
-        </span>
-      </header>
-      <HorizontalSubvistaNav
-        className="anestesia-subvistas"
-        ariaLabel="Subvistas de Anestesiología"
-      >
-        {opciones.map((opcion) => (
-          <button
-            type="button"
-            key={opcion.id}
-            className={subvista === opcion.id ? "activo" : ""}
-            onClick={() => setSubvista(opcion.id)}
-          >
-            <Icon name={opcion.icono} size={17} />
-            <strong>{opcion.nombre}</strong>
-          </button>
-        ))}
-      </HorizontalSubvistaNav>
       {subvista === "materiales" && (
         <section className="anestesia-panel anestesia-materiales">
           <header>

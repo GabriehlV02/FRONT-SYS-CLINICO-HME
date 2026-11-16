@@ -2153,6 +2153,16 @@ body:has(.consulta-cabecera-fija),
 .consulta-cabecera-fija .consulta-secciones-bar {
   margin-top: 0;
 }
+@media (min-width: 901px) {
+  .consulta-atencion-lateral {
+    position: sticky;
+    top: calc(82px + var(--consulta-altura-cabecera, 200px));
+    align-self: start;
+    max-height: max(160px, calc(100dvh - 94px - var(--consulta-altura-cabecera, 200px)));
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
 .consulta-medica .consulta-signos-sin-datos {
   margin: 14px 0 0;
   color: #58758c;

@@ -15,14 +15,6 @@ import "./styles/AdaptacionPantallas.css";
 import "./styles/CabeceraSidebar.css";
 
 async function iniciar() {
-  if (import.meta.env.DEV) {
-    const { cargarPacientesPrueba } = await import("./radius/datos/pacientesPrueba");
-    try {
-      cargarPacientesPrueba(localStorage, sessionStorage);
-    } catch (error) {
-      console.error("No se pudieron preparar los pacientes de prueba sin alterar los datos existentes.", error);
-    }
-  }
   const { App } = await import("./App.tsx");
   createRoot(document.getElementById("root")!).render(
     <StrictMode><ErrorAplicacion><App /></ErrorAplicacion></StrictMode>,

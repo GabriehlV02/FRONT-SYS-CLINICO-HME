@@ -1,6 +1,6 @@
 .consulta-antecedentes-estructurados {
   border-top: 3px solid #087fb7;
-  padding: 16px 18px;
+  padding: 0;
 }
 .consulta-antecedentes-cabecera {
   display: flex;
@@ -24,8 +24,8 @@
   color: #087fb7;
 }
 .consulta-antecedentes-grupos > details {
-  padding: 9px 0;
-  border-top: 1px solid #e6eef3;
+  padding: 0;
+  border-top: 1px solid #dcebf3;
   color: #315b77;
   font-size: 13px;
   font-weight: 600;
@@ -33,24 +33,40 @@
 .consulta-antecedentes-grupos > details:first-child {
   border-top: 0;
 }
-.consulta-antecedentes-grupos summary {
+.consulta-seguimiento-panel .consulta-antecedentes-grupos summary {
+  display: grid;
+  grid-template-columns: minmax(180px, 28%) minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
   color: #315b77;
   cursor: pointer;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 400;
+}
+.consulta-antecedentes-grupos { overflow: hidden; border: 1px solid #d6e8f2; border-radius: 9px; }
+.consulta-antecedentes-grupos summary:hover { background: #f1f8fc; }
+.consulta-antecedentes-grupos summary span { overflow-wrap: anywhere; color: #58758a; font-weight: 400; }
+.consulta-antecedentes-grupos > details > summary svg { color: #087fb7; transform: none; }
+.consulta-antecedentes-grupos > details[open] > summary svg { transform: rotate(90deg); }
+.consulta-seguimiento-panel .consulta-antecedentes-grupos > details[open] > summary {
+  background: #eef7fc;
+  border-bottom: 1px solid #d6e8f2;
 }
 .consulta-antecedentes-campos {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  padding: 12px 0 3px;
+  gap: 16px;
+  padding: 18px;
+  background: #f8fbfd;
 }
 .consulta-antecedentes-campos label {
   display: grid;
-  gap: 5px;
+  gap: 7px;
   min-width: 0;
-  color: #58758a;
-  font-size: 11px;
-  font-weight: 600;
+  color: #315b77;
+  font-size: 12px;
+  font-weight: 700;
 }
 .consulta-antecedentes-campos :is(textarea, select) {
   box-sizing: border-box;
@@ -66,8 +82,11 @@
   font-weight: 500;
 }
 .consulta-antecedentes-campos textarea {
+  min-height: 76px;
+  line-height: 1.5;
   resize: vertical;
 }
+.consulta-antecedentes-campos textarea::placeholder { color: #8299aa; font-weight: 400; }
 .consulta-antecedentes-campos :is(textarea, select):focus {
   border-color: #138cbe;
   outline: 0;
@@ -102,6 +121,9 @@
   cursor: not-allowed;
 }
 @media (max-width: 600px) {
+  .consulta-seguimiento-panel .consulta-antecedentes-grupos summary { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 8px; }
+  .consulta-antecedentes-grupos summary span { grid-column: 1; }
+  .consulta-antecedentes-grupos summary svg { grid-column: 2; grid-row: 1 / span 2; }
   .consulta-antecedentes-campos {
     grid-template-columns: minmax(0, 1fr);
   }

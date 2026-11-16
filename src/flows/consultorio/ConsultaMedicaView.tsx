@@ -211,6 +211,18 @@ export function ConsultaMedicaView({
   signos: SignoVitalConfig[];
   estadoSignos: "cargando" | "listo" | "error";
 }) {
+  const consultaRef = useRef<HTMLElement>(null);
+  const cabeceraRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const cabecera = cabeceraRef.current;
+    const consulta = consultaRef.current;
+    if (!cabecera || !consulta) return;
+    const actualizarAltura = () => consulta.style.setProperty("--consulta-altura-cabecera", `${cabecera.getBoundingClientRect().height}px`);
+    actualizarAltura();
+    const observador = new ResizeObserver(actualizarAltura);
+    observador.observe(cabecera);
+    return () => observador.disconnect();
+  }, [paciente]);
   const catalogoServicios = useServiciosSignosVitales();
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [seccion, setSeccion] = useState<SeccionConsulta>("atencion");
@@ -710,10 +722,11 @@ export function ConsultaMedicaView({
   return (
     <section
       className="consulta-medica"
+      ref={consultaRef}
       aria-label={`Consulta de ${paciente.paciente}`}
     >
       <section className="consulta-activa-derecha">
-        <div className="consulta-cabecera-fija">
+        <div className="consulta-cabecera-fija" ref={cabeceraRef}>
           <div className="consulta-volver-listado-fila">
             <button
               type="button"

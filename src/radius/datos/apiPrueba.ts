@@ -10,6 +10,41 @@ export async function respuestaPrueba(input: string, init: RequestInit): Promise
   const metodo = (init.method || "GET").toUpperCase();
   init.signal?.throwIfAborted();
   if (metodo === "GET" && url.pathname === "/api/citas") return responder(obtenerCitasAgendaDemo());
+  const rutaCita = url.pathname.match(/^\/api\/v1\/citas\/([^/]+)\/(atencion|historial|signos-vitales)$/);
+  const citaDemo = rutaCita && obtenerCitasAgendaDemo().find((cita) => cita.id === decodeURIComponent(rutaCita[1]));
+  if (rutaCita && citaDemo) {
+    const clave = `hme:api-prueba:${citaDemo.id}`;
+    const leer = <T,>(seccion: string, inicial: T): T => {
+      try {
+        return JSON.parse(localStorage.getItem(`${clave}:${seccion}`) || "null") ?? inicial;
+      } catch {
+        return inicial;
+      }
+    };
+    if (rutaCita[2] === "historial" && metodo === "GET") return responder({ data: [] });
+    if (rutaCita[2] === "atencion" && metodo === "GET") return responder({ data: leer("atencion", null) });
+    if (rutaCita[2] === "signos-vitales" && metodo === "GET") return responder({ data: leer("signos-vitales", { id: null, valores: {} }) });
+    if (typeof init.body === "string" && rutaCita[2] === "atencion" && metodo === "PUT") {
+      const solicitud = JSON.parse(init.body) as { finalizar?: boolean; contenido?: Record<string, unknown> };
+      const anterior = leer<{ version: number; finalizadaEn: string | null; contenido: Record<string, unknown> } | null>("atencion", null);
+      const atencion = {
+        version: (anterior?.version ?? 0) + 1,
+        finalizadaEn: solicitud.finalizar ? new Date().toISOString() : anterior?.finalizadaEn ?? null,
+        contenido: solicitud.contenido ?? anterior?.contenido ?? {},
+      };
+      localStorage.setItem(`${clave}:atencion`, JSON.stringify(atencion));
+      return responder({ data: atencion });
+    }
+    if (typeof init.body === "string" && rutaCita[2] === "signos-vitales" && metodo === "POST") {
+      const solicitud = JSON.parse(init.body) as { valores?: Record<string, string> };
+      const resultado = {
+        id: `${citaDemo.id}:signos-vitales`,
+        valores: solicitud.valores ?? {},
+      };
+      localStorage.setItem(`${clave}:signos-vitales`, JSON.stringify(resultado));
+      return responder({ data: resultado });
+    }
+  }
   if (metodo === "GET" && url.pathname === "/api/v1/profesionales") {
     return responder({ data: [{
       id: "prueba-profesional-1", nombres: "Médico", apellidos: "de prueba", nombre: "Administrador temporal",

@@ -183,6 +183,11 @@ const RegistroEnfermeriaTerapiaView = lazy(() =>
     default: m.RegistroEnfermeriaTerapiaView,
   })),
 );
+const InsumosEnfermeriaPanel = lazy(() =>
+  import("../flows/emergencias/InsumosEnfermeriaPanel").then((m) => ({
+    default: m.InsumosEnfermeriaPanel,
+  })),
+);
 const AmbulanciaView = lazy(() =>
   import("../flows/ambulancia/AmbulanciaView").then((m) => ({
     default: m.AmbulanciaView,
@@ -841,11 +846,15 @@ export default function Aplicacion() {
         "internados",
     );
   const [subvistaTerapia, setSubvistaTerapia] = useState<
-    "registro-enfermeria" | "monitorizacion" | "registros"
+    "registro-enfermeria" | "monitorizacion" | "registros" | "inventario"
   >(
-    (ubicacionInicial.subvistaTerapia as
-      "registro-enfermeria" | "monitorizacion" | "registros") ||
-      "registro-enfermeria",
+    ubicacionInicial.subvistaTerapia === "monitorizacion"
+      ? "monitorizacion"
+      : ubicacionInicial.subvistaTerapia === "registros"
+        ? "registros"
+        : ubicacionInicial.subvistaTerapia === "inventario"
+          ? "inventario"
+        : "registro-enfermeria",
   );
   useEffect(() => {
     localStorage.setItem(
@@ -1702,16 +1711,6 @@ export default function Aplicacion() {
               </section>
             )}
           </div>
-          {import.meta.env.DEV && (
-            <button type="button" className="clinico-indicador-prueba"
-              title="Activa o desactiva los flujos con fichas ficticias. En pruebas locales no se envían escrituras al servidor."
-              onClick={() => {
-                localStorage.setItem("clinico:pacientes-prueba:activos", esModoPruebaLocal() ? "0" : "1");
-                window.location.reload();
-              }}>
-              {esModoPruebaLocal() ? "Pruebas locales · Salir" : "Usar pacientes de prueba"}
-            </button>
-          )}
           {esMedico && (
             <button
               className="cola-atencion-rapida"
@@ -2104,7 +2103,7 @@ export default function Aplicacion() {
             ) : modulo === "farmacia-movimientos" || modulo === "almacen" ? (
               <AdministracionFarmaciaView />
             ) : modulo === "dispensar" ? (
-              <FarmaciaView />
+              <FarmaciaView key="dispensar" solicitudesIniciales />
             ) : modulo === "cocina" ? (
               <CocinaVentasView />
             ) : modulo === "cocina-internacion" ? (
@@ -2309,80 +2308,25 @@ export default function Aplicacion() {
               />
             ) : modulo === "enfermera-terapia-intensiva" ? (
               <section className="triaje-ambulatorio-vista">
-                <HorizontalSubvistaNav
-                  className="recepcion-subvistas"
-                  ariaLabel="Subvistas de enfermería de terapia intensiva"
-                >
-                  <button
-                    type="button"
-                    aria-current={
-                      subvistaTerapia === "registro-enfermeria"
-                        ? "page"
-                        : undefined
-                    }
-                    className={
-                      subvistaTerapia === "registro-enfermeria" ? "activo" : ""
-                    }
-                    onClick={() => setSubvistaTerapia("registro-enfermeria")}
-                  >
-                    <span>
-                      <Icon name="audit" size={17} />
-                    </span>
-                    <strong>Registro de enfermería</strong>
-                    <small>
-                      Registro y seguimiento de cuidados de enfermería.
-                    </small>
-                  </button>
-                  <button
-                    type="button"
-                    aria-current={
-                      subvistaTerapia === "monitorizacion" ? "page" : undefined
-                    }
-                    className={
-                      subvistaTerapia === "monitorizacion" ? "activo" : ""
-                    }
-                    onClick={() => setSubvistaTerapia("monitorizacion")}
-                  >
-                    <span>
-                      <Icon name="patient" size={17} />
-                    </span>
-                    <strong>Monitorización</strong>
-                    <small>
-                      Seguimiento de pacientes en terapia intensiva.
-                    </small>
-                  </button>
-                  <button
-                    type="button"
-                    aria-current={
-                      subvistaTerapia === "registros" ? "page" : undefined
-                    }
-                    className={subvistaTerapia === "registros" ? "activo" : ""}
-                    onClick={() => setSubvistaTerapia("registros")}
-                  >
-                    <span>
-                      <Icon name="audit" size={17} />
-                    </span>
-                    <strong>Registros</strong>
-                    <small>Registros de enfermería de terapia intensiva.</small>
-                  </button>
-                </HorizontalSubvistaNav>
-                {subvistaTerapia === "registro-enfermeria" ? (
-                  <RegistroEnfermeriaTerapiaView />
-                ) : subvistaTerapia === "monitorizacion" ? (
-                  <TerapiaIntensivaView />
-                ) : (
-                  <section
-                    className="em-panel"
-                    aria-labelledby="terapia-subvista-titulo"
-                  >
-                    <header className="em-panel-titulo">
-                      <h2 id="terapia-subvista-titulo">Registros</h2>
-                    </header>
-                    <p className="em-vacio">
-                      Aún no hay registros de enfermería.
-                    </p>
-                  </section>
-                )}
+                <div className="uci-atencion-barra">
+                  <HorizontalSubvistaNav className="recepcion-subvistas" ariaLabel="Vistas de atención de terapia intensiva">
+                    <button type="button" aria-current={subvistaTerapia === "registro-enfermeria" ? "page" : undefined} className={subvistaTerapia === "registro-enfermeria" ? "activo" : ""} onClick={() => setSubvistaTerapia("registro-enfermeria")}>
+                      <span><Icon name="patient" size={17} /></span><strong>Atención UCI</strong>
+                    </button>
+                    <button type="button" aria-current={subvistaTerapia === "registros" ? "page" : undefined} className={subvistaTerapia === "registros" ? "activo" : ""} onClick={() => setSubvistaTerapia("registros")}>
+                      <span><Icon name="fileText" size={17} /></span><strong>Historial de atención</strong>
+                    </button>
+                    <button type="button" aria-current={subvistaTerapia === "inventario" ? "page" : undefined} className={subvistaTerapia === "inventario" ? "activo" : ""} onClick={() => setSubvistaTerapia("inventario")}>
+                      <span><Icon name="package" size={17} /></span><strong>Inventario UCI</strong>
+                    </button>
+                    <button type="button" aria-current={subvistaTerapia === "monitorizacion" ? "page" : undefined} className={subvistaTerapia === "monitorizacion" ? "activo" : ""} onClick={() => setSubvistaTerapia("monitorizacion")}>
+                      <span><Icon name="heartbeat" size={17} /></span><strong>Monitorización</strong>
+                    </button>
+                  </HorizontalSubvistaNav>
+                </div>
+                <div className="uci-atencion-contenido">
+                  {subvistaTerapia === "registro-enfermeria" ? <><EnfermeraInternacionView subvista="internados" unidad="uci" soloPendientes /><RegistroEnfermeriaTerapiaView /></> : subvistaTerapia === "monitorizacion" ? <TerapiaIntensivaView /> : subvistaTerapia === "inventario" ? <InsumosEnfermeriaPanel silenciarAlmacenNoAsignado /> : <EnfermeraInternacionView subvista="altas" unidad="uci" />}
+                </div>
               </section>
             ) : modulo === "ambulancia" ? (
               <AmbulanciaView />

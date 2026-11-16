@@ -69,6 +69,8 @@ export type CuentaEmergencia = {
   })[];
   evaluaciones?: {
     id?: string;
+    autorId?: string | null;
+    autorTipo?: "medico" | "otro";
     revision: number;
     fecha: string;
     usuario: string;
@@ -251,7 +253,9 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
           id: crypto.randomUUID(),
           revision: 1,
           fecha,
-          usuario: "Admin demo",
+          usuario: leerSesion()?.usuario.nombre || "Profesional de turno",
+          autorId: String(leerSesion()?.usuario.id || "local"),
+          autorTipo: leerSesion()?.usuario.perfilAtencion === "medico" || /m[eé]dico/i.test(leerSesion()?.usuario.rol || "") ? "medico" : "otro",
           campos: datos.campos || datos,
         });
       else if (accion === "signos") {
@@ -291,7 +295,7 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
           id: crypto.randomUUID(),
           revision: 1,
           fecha,
-          usuario: "Admin demo",
+          usuario: sesion?.usuario.nombre || "Profesional de turno",
           autorTipo: rolMedico ? "medico" : "otro",
           estado: "pendiente",
           aplicaciones: [],

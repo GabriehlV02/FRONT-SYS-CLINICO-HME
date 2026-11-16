@@ -14,6 +14,8 @@ import "./ResumenPacienteEmergencias.css";
 import "./EditarPacienteEmergencias.css";
 import { cubiculosEmergencias, nombreCubiculo } from "./cubiculos";
 import { OrdenesEmergencias } from "./OrdenesEmergencias";
+import { InsumosEnfermeriaPanel } from "./InsumosEnfermeriaPanel";
+import { TratamientoPacienteTabla } from "./TratamientoPacienteTabla";
 import {
   guardarBalanceEmergencia,
   leerBalanceEmergencia,
@@ -24,10 +26,9 @@ import {
   apiEmergencias,
   nombrePaciente,
   type CuentaEmergencia,
-  type RegistroEnfermeria,
 } from "./emergenciasApi";
 import { camposParaServicio } from "../triaje/camposSignosVitales";
-import { cancelarPreinternacion, crearPreinternacion } from "../internacion/registroInternaciones";
+import { cancelarPreinternacion, crearPreinternacion, salaDisponibleEnHorario } from "../internacion/registroInternaciones";
 import {
   useCatalogoSignosVitales,
   useServiciosSignosVitales,
@@ -62,6 +63,8 @@ type PagoCobro = {
 };
 type Identidad = Record<string, string>;
 type Cuenta = CuentaEmergencia;
+type TrasladoAmbulanciaProgramado = { fecha: string; hora: string; motivo: string; destino: string };
+const CLAVE_TRASLADOS_AMBULANCIA = "hme:emergencias:traslados-ambulancia:v1";
 const dinero = (n: number) =>
   `Bs ${n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fecha = (v: string) => new Date(v).toLocaleString("es-BO");
@@ -620,20 +623,17 @@ export function TriajeEmergenciasView({
     [camposEmergencia],
   );
   const [seccionClinica, setSeccionClinica] = useState<
-    "paciente" | "ingreso" | "insumos" | "reportes" | "signos" | "examen" | "descargos"
+    "paciente" | "ingreso" | "reportes" | "signos" | "examen" | "descargos"
   >("ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
     [activa, setActiva] = useState("");
+  const [trasladosAmbulancia, setTrasladosAmbulancia] = useState<Record<string, TrasladoAmbulanciaProgramado>>(() => {
+    try { return JSON.parse(window.localStorage.getItem(CLAVE_TRASLADOS_AMBULANCIA) || "{}"); } catch { return {}; }
+  });
   const [cargando, setCargando] = useState(true),
     [ocupado, setOcupado] = useState(false),
     [error, setError] = useState(""),
     [aviso, setAviso] = useState("");
-  const [usoTipo, setUsoTipo] = useState<RegistroEnfermeria["tipo"]>("insumo");
-  const [usoOrdenId, setUsoOrdenId] = useState("");
-  const [usoDetalle, setUsoDetalle] = useState(""),
-    [usoCantidad, setUsoCantidad] = useState(""),
-    [usoUnidad, setUsoUnidad] = useState(""),
-    [usoObservacion, setUsoObservacion] = useState("");
   const [ahora, setAhora] = useState(Date.now()),
     desfase = useRef(0),
     ultimaLectura = useRef(0);
@@ -648,7 +648,7 @@ export function TriajeEmergenciasView({
   const [datosIniciales, setDatosIniciales] = useState<Identidad>({});
   const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const [busquedaCuenta, setBusquedaCuenta] = useState(""),
-    [subvista, setSubvista] = useState<"atencion" | "historial">("atencion");
+    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario">("atencion");
   const [modalExportarHistorial, setModalExportarHistorial] = useState(false);
   const [fechaDesdeHistorial, setFechaDesdeHistorial] = useState("");
   const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
@@ -680,6 +680,13 @@ export function TriajeEmergenciasView({
   );
   const [identidad, setIdentidad] = useState<Identidad | null>(null),
     [revisionIdentidad, setRevisionIdentidad] = useState(0);
+  const [trasladoModal, setTrasladoModal] = useState(false);
+  const [destinoTraslado, setDestinoTraslado] = useState<"sala" | "ambulancia" | "uci">("sala");
+  const [motivoAmbulancia, setMotivoAmbulancia] = useState("");
+  const [destinoAmbulancia, setDestinoAmbulancia] = useState("");
+  const [salaTraslado, setSalaTraslado] = useState("105");
+  const [fechaTraslado, setFechaTraslado] = useState(() => new Date().toLocaleDateString("en-CA"));
+  const [horaTraslado, setHoraTraslado] = useState(() => new Date(Date.now() + 60 * 60 * 1000).toTimeString().slice(0, 5));
   const [cobroModal, setCobroModal] = useState(false),
     [metodoPago, setMetodoPago] = useState("Efectivo"),
     [montoRecibido, setMontoRecibido] = useState(""),
@@ -957,32 +964,6 @@ export function TriajeEmergenciasView({
     acumuladoBalanceEmergencia += registro.tipo === "ingreso" ? registro.volumen : -registro.volumen;
     return { ...registro, acumulado: acumuladoBalanceEmergencia, indice };
   });
-  async function registrarUsoEnfermeria(e: FormEvent) {
-    e.preventDefault();
-    if (!cuenta) return;
-    const cantidad = usoCantidad.trim() ? Number(usoCantidad) : null;
-    if (
-      await guardar(
-        `/${cuenta.id}/uso-enfermeria`,
-        {
-          tipo: usoTipo,
-          ...(usoOrdenId ? { ordenId: usoOrdenId } : {}),
-          detalle: usoDetalle.trim(),
-          cantidad,
-          unidad: usoUnidad.trim(),
-          observacion: usoObservacion.trim(),
-          ...fechaHoraIngresoActual(),
-        },
-        "Registro de enfermería guardado.",
-      )
-    ) {
-      setUsoDetalle("");
-      setUsoOrdenId("");
-      setUsoCantidad("");
-      setUsoUnidad("");
-      setUsoObservacion("");
-    }
-  }
   const serviciosPorHora = catalogo.filter(
     (item) =>
       /^(hora|horas|hr|hrs)$/i.test(item.unidad.trim()) ||
@@ -1141,45 +1122,60 @@ export function TriajeEmergenciasView({
       estado: consumo.porHora ? (consumo.fin ? "Finalizado" : "En curso") : "Aplicado",
     })),
   ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
-  const ordenInternacionMedica = (cuenta?.ordenes || []).find(
-    (orden) => orden.tipo === "internacion" && orden.autorTipo === "medico" && orden.estado !== "cancelada",
-  );
-  const puedeTrasladarAInternacion = Boolean(
-    ordenInternacionMedica && cuenta?.identidad?.documento?.trim(),
-  );
   async function trasladarAInternacion() {
-    if (!cuenta || !ordenInternacionMedica || !cuenta.identidad?.documento?.trim()) return;
+    if (!cuenta || !cuenta.identidad?.documento?.trim()) return;
     let preinternacionId = "";
     setOcupado(true);
     setError("");
     setAviso("");
     try {
       const identidadPaciente = cuenta.identidad;
-      const ingreso = new Date();
-      const preinternacion = crearPreinternacion({
-        pacienteId: cuenta.pacienteId || undefined,
-        paciente: nombrePaciente(cuenta),
-        ci: identidadPaciente.documento.trim(),
-        medico: ordenInternacionMedica.usuario,
-        motivo: [ordenInternacionMedica.titulo, ordenInternacionMedica.indicaciones].filter(Boolean).join(" · "),
-        fechaIngreso: ingreso.toLocaleDateString("es-BO"),
-        horaIngreso: ingreso.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit", hour12: false }),
-        origen: "Emergencias",
-        servicio: "Internación",
-        observaciones: `Traslado solicitado mediante orden médica ${ordenInternacionMedica.id}.`,
-        datosPaciente: {
-          nacimiento: identidadPaciente.nacimiento || "",
-          sexo: identidadPaciente.sexo || "",
-          responsableNombre: identidadPaciente.familiar || "",
-        },
-      });
-      preinternacionId = preinternacion.id;
+      const nombreDestino = destinoTraslado === "sala" ? "Sala de internación" : destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : `Traslado en ambulancia a ${destinoAmbulancia.trim()}`;
+      if (destinoTraslado === "ambulancia") {
+        const fechaProgramada = new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO");
+        const solicitudesActualizadas = {
+          ...trasladosAmbulancia,
+          [cuenta.id]: { fecha: fechaProgramada, hora: horaTraslado, motivo: motivoAmbulancia, destino: destinoAmbulancia.trim() },
+        };
+        window.localStorage.setItem(CLAVE_TRASLADOS_AMBULANCIA, JSON.stringify(solicitudesActualizadas));
+        setTrasladosAmbulancia(solicitudesActualizadas);
+        setTrasladoModal(false);
+        setActiva("");
+        setAviso(`${nombrePaciente(cuenta)} será trasladado en ambulancia a las ${horaTraslado}.`);
+        return;
+      }
+        const salaReservada = destinoTraslado === "sala" ? salaTraslado : "UCI";
+        if (!salaDisponibleEnHorario(salaReservada, new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO"), horaTraslado)) {
+          throw new Error("Esa sala ya tiene una solicitud para la misma fecha y hora. Elige otro horario o sala.");
+        }
+        const fechaProgramada = new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO");
+        const preinternacion = crearPreinternacion({
+          pacienteId: cuenta.pacienteId || undefined,
+          paciente: nombrePaciente(cuenta),
+          ci: identidadPaciente.documento.trim(),
+          medico: "Pendiente de asignación",
+          motivo: cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias",
+          fechaIngreso: fechaProgramada,
+          horaIngreso: horaTraslado,
+          sala: salaReservada,
+          origen: "Emergencias",
+          servicio: destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : "Internación",
+          tipoSala: destinoTraslado === "uci" ? "UCI" : "Sala de internación",
+          observaciones: `Traslado solicitado desde Emergencias para ${fechaProgramada} a las ${horaTraslado}. Sala reservada: ${destinoTraslado === "sala" ? salaTraslado : "UCI"}. Pendiente de aprobación de Enfermería.`,
+          datosPaciente: {
+            nacimiento: identidadPaciente.nacimiento || "",
+            sexo: identidadPaciente.sexo || "",
+            responsableNombre: identidadPaciente.familiar || "",
+          },
+        });
+        preinternacionId = preinternacion.id;
       const actualizada = await pedir<Cuenta>(`/${cuenta.id}/cierre`, {
         condicionEgreso: "vivo",
         causaEgreso: "internacion",
-        observacionEgreso: `Traslado a internación con orden médica ${ordenInternacionMedica.id}.`,
+        observacionEgreso: `Traslado del paciente desde Emergencias. Destino programado: ${nombreDestino}.`,
       });
       setCuentas((prev) => [actualizada, ...prev.filter((item) => item.id !== actualizada.id)]);
+      setTrasladoModal(false);
       setAviso("Traslado registrado. Enfermería puede confirmar la cama desde Internación.");
     } catch (causa) {
       if (preinternacionId) cancelarPreinternacion(preinternacionId);
@@ -1235,10 +1231,19 @@ export function TriajeEmergenciasView({
                   </span>
                   <strong>Historial de atención</strong>
                 </button>
+                <button
+                  type="button"
+                  className={subvista === "inventario" ? "activo" : ""}
+                  aria-current={subvista === "inventario" ? "page" : undefined}
+                  onClick={() => setSubvista("inventario")}
+                >
+                  <span><Icon name="package" size={16} /></span>
+                  <strong>Inventario</strong>
+                </button>
               </HorizontalSubvistaNav>
             )}
           </div>
-          {!cuenta && (
+          {!cuenta && subvista !== "inventario" && (
             <div className="em-triaje-cabecera-acciones">
               <button
                 className="em-actualizar"
@@ -1732,7 +1737,13 @@ export function TriajeEmergenciasView({
           </form>
         </div>
       )}
+      {!recepcion && subvista === "inventario" && (
+        <section className="em-inventario-general" aria-label="Inventario de Triaje emergencias">
+          <InsumosEnfermeriaPanel />
+        </section>
+      )}
       <div
+        hidden={!recepcion && subvista === "inventario"}
         className={`em-distribucion ${nueva && !recepcion ? "formulario-abierto" : ""} ${cuenta && !recepcion ? "atencion-activa" : ""}`}
       >
         {!cuenta && (
@@ -1776,9 +1787,18 @@ export function TriajeEmergenciasView({
             {cuentasPagina.map((c) => (
               <button
                 key={c.id}
-                className={`em-cubiculo ${activa === c.id ? "seleccionado" : ""}`}
+                className={`em-cubiculo ${activa === c.id ? "seleccionado" : ""} ${trasladosAmbulancia[c.id] ? "em-cubiculo-traslado" : ""}`}
                 onClick={() => seleccionar(c.id)}
               >
+                {trasladosAmbulancia[c.id] ? (
+                  <>
+                    <span className="em-paciente-lista">{nombrePaciente(c)}</span>
+                    <strong className="em-traslado-ambulancia-titulo">Será trasladado en ambulancia a las {trasladosAmbulancia[c.id].hora}</strong>
+                    <span className="em-traslado-ambulancia-destino">{trasladosAmbulancia[c.id].fecha} · Destino: {trasladosAmbulancia[c.id].destino}</span>
+                    <small className="em-traslado-ambulancia-motivo">Motivo: {trasladosAmbulancia[c.id].motivo}</small>
+                  </>
+                ) : (
+                  <>
                 <strong>{nombreCubiculo(c.cubiculo)}</strong>
                 <span className="em-paciente-lista">{nombrePaciente(c)}</span>
                 {!recepcion && (
@@ -1810,6 +1830,8 @@ export function TriajeEmergenciasView({
                         c.consumos.reduce((s, i) => s + importe(i, ahora), 0),
                       )}
                     </b>
+                  </>
+                )}
                   </>
                 )}
               </button>
@@ -1939,15 +1961,13 @@ export function TriajeEmergenciasView({
                       <button
                         className="em-traslado-internacion"
                         type="button"
-                        disabled={ocupado || !puedeTrasladarAInternacion}
-                        title={!ordenInternacionMedica
-                          ? "Requiere una orden de internación emitida por un médico."
-                          : !cuenta.identidad?.documento?.trim()
-                            ? "Completa primero el documento del paciente."
-                            : "Trasladar al paciente a internación."}
-                        onClick={() => void trasladarAInternacion()}
+                        disabled={ocupado || !cuenta.identidad?.documento?.trim()}
+                        title={!cuenta.identidad?.documento?.trim()
+                          ? "Completa primero el documento del paciente."
+                          : "Trasladar al paciente a Internación."}
+                        onClick={() => setTrasladoModal(true)}
                       >
-                        <Icon name="bed" size={15} /> Traslado a internación
+                        <Icon name="bed" size={15} /> Traslado del paciente
                       </button>
                     </>
                   )}
@@ -2232,6 +2252,7 @@ export function TriajeEmergenciasView({
                       aria-current={seccionClinica === "ingreso" ? "page" : undefined}
                       onClick={() => setSeccionClinica("ingreso")}
                     >
+                      <span className="em-pestana-icono" aria-hidden="true"><Icon name="home" size={17} /></span>
                       Ingreso del paciente
                     </button>
                     <button
@@ -2242,15 +2263,8 @@ export function TriajeEmergenciasView({
                       }
                       onClick={() => setSeccionClinica("paciente")}
                     >
+                      <span className="em-pestana-icono" aria-hidden="true"><Icon name="stethoscope" size={17} /></span>
                       Atención del paciente
-                    </button>
-                    <button
-                      type="button"
-                      className={seccionClinica === "insumos" ? "activo" : ""}
-                      aria-current={seccionClinica === "insumos" ? "page" : undefined}
-                      onClick={() => setSeccionClinica("insumos")}
-                    >
-                      Insumos del paciente
                     </button>
                     <button
                       type="button"
@@ -2258,6 +2272,7 @@ export function TriajeEmergenciasView({
                       aria-current={seccionClinica === "reportes" ? "page" : undefined}
                       onClick={() => setSeccionClinica("reportes")}
                     >
+                      <span className="em-pestana-icono" aria-hidden="true"><Icon name="clipboardMedical" size={17} /></span>
                       Reportes
                     </button>
                   </nav>
@@ -2298,7 +2313,6 @@ export function TriajeEmergenciasView({
                       <header className="em-panel-titulo">
                         <div>
                           <h3>Signos vitales</h3>
-                          <small>Seguimiento de las mediciones de esta atención</small>
                         </div>
                       </header>
                       <div className="em-signos-columnas">
@@ -2422,7 +2436,6 @@ export function TriajeEmergenciasView({
                         <div>
                           <span>CONTROL DE LÍQUIDOS</span>
                           <h3>Balance hídrico</h3>
-                          <p>Registra y consulta los ingresos y egresos de líquidos durante esta atención.</p>
                         </div>
                         <b>{balanceEmergencia.length} {balanceEmergencia.length === 1 ? "registro" : "registros"}</b>
                       </header>
@@ -2585,9 +2598,6 @@ export function TriajeEmergenciasView({
                           <header>
                             <div>
                               <h3>Historial de anotaciones</h3>
-                              <small>
-                                Evoluciones registradas durante esta atención
-                              </small>
                             </div>
                             <span>{evolucionesEnfermeria.length}</span>
                           </header>
@@ -2656,6 +2666,21 @@ export function TriajeEmergenciasView({
                       </div>
                     </section>
                     <div className="em-seguimiento-enfermeria">
+                      <InsumosEnfermeriaPanel
+                        onUtilizar={(item, cantidad) =>
+                          guardar(
+                            `/${cuenta.id}/uso-enfermeria`,
+                            {
+                              tipo: "insumo",
+                              detalle: item.nombre,
+                              cantidad,
+                              unidad: item.unidad,
+                              observacion: item.codigo ? `Código: ${item.codigo}` : undefined,
+                            },
+                            `${item.nombre} registrado como insumo utilizado.`,
+                          )
+                        }
+                      />
                       <OrdenesEmergencias
                         key={`indicaciones-${cuenta.id}`}
                         cuenta={cuenta}
@@ -2665,52 +2690,8 @@ export function TriajeEmergenciasView({
                         enfermeria
                       />
                     </div>
+                    <TratamientoPacienteTabla key={`tratamiento-${cuenta.id}`} cuenta={cuenta} />
                     </>
-                  )}
-                  {seccionClinica === "insumos" && (
-<section className="em-panel em-suministracion-panel">
-                        <header className="em-panel-titulo">
-                          <div>
-                          <h3>Administración y uso de insumos</h3>
-                            <small>Registra lo que enfermería prepara y utiliza durante la atención, además de la indicación médica.</small>
-                          </div>
-                          <b>{eventosSuministracion.length} registros</b>
-                        </header>
-                        {!cuenta.fin && <form className="em-suministracion-form" onSubmit={registrarUsoEnfermeria}>
-                          <label>Tipo de registro
-                            <select value={usoTipo} onChange={(evento) => setUsoTipo(evento.target.value as RegistroEnfermeria["tipo"])}>
-                              <option value="insumo">Medicamento, solución o material</option>
-                              <option value="procedimiento">Colocación o procedimiento</option>
-                              <option value="cuidado">Cuidado de enfermería</option>
-                            </select>
-                          </label>
-                          <label>Indicación médica relacionada
-                            <select value={usoOrdenId} onChange={(evento) => setUsoOrdenId(evento.target.value)}>
-                              <option value="">Sin indicación asociada</option>
-                              {[...(cuenta.ordenes || [])].reverse().map((orden) => <option key={orden.id} value={orden.id}>{orden.titulo} · {orden.estado === "pendiente" ? "Pendiente" : orden.estado === "en_curso" ? "En curso" : orden.estado === "aplicada" ? "Aplicada" : "Suspendida"}</option>)}
-                            </select>
-                          </label>
-                          <label className="em-suministracion-detalle">Detalle utilizado
-                            <input required maxLength={500} value={usoDetalle} onChange={(evento) => setUsoDetalle(evento.target.value)} placeholder="Ej. ampolla, jeringa, agua destilada, vía" />
-                          </label>
-                          <label>Cantidad
-                            <input type="number" min="0.001" step="any" value={usoCantidad} onChange={(evento) => setUsoCantidad(evento.target.value)} placeholder="Opcional" />
-                          </label>
-                          <label>Unidad
-                            <input maxLength={80} value={usoUnidad} onChange={(evento) => setUsoUnidad(evento.target.value)} placeholder="Ej. ml, unidad" />
-                          </label>
-                          <label className="em-suministracion-detalle">Observación
-                            <input maxLength={1000} value={usoObservacion} onChange={(evento) => setUsoObservacion(evento.target.value)} placeholder="Nota opcional" />
-                          </label>
-                          <button className="em-primario" type="submit" disabled={ocupado || !usoDetalle.trim()}>Registrar uso de enfermería</button>
-                        </form>}
-                        <div className="em-suministracion-lista" aria-label="Historial de suministración">
-                          {eventosSuministracion.length ? eventosSuministracion.map((evento) => <article key={evento.id}>
-                            <div><small>{evento.tipo} · {fecha(evento.fecha)}{evento.ordenId ? ` · Indicación: ${(cuenta.ordenes || []).find((orden) => orden.id === evento.ordenId)?.titulo || "asociada"}` : ""}</small><strong>{evento.detalle}</strong>{evento.cantidad && <span>Cantidad utilizada: {evento.cantidad}</span>}{evento.observacion && <p>{evento.observacion}</p>}</div>
-                            <span>{evento.cantidad || evento.estado}</span>
-                          </article>) : <p className="em-vacio">Todavía no hay suministraciones registradas.</p>}
-                        </div>
-                      </section>
                   )}
                   {seccionClinica === "examen" && (
                     <section className="em-panel em-examen-regional">
@@ -3022,6 +3003,58 @@ export function TriajeEmergenciasView({
           )}
         </main>
       </div>
+      {trasladoModal && cuenta && (
+        <div className="em-traslado-modal-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget && !ocupado) setTrasladoModal(false); }}>
+          <form className="em-traslado-modal" role="dialog" aria-modal="true" aria-labelledby="em-traslado-titulo" onSubmit={(evento) => { evento.preventDefault(); void trasladarAInternacion(); }}>
+            <header>
+              <span className="em-traslado-modal-icono"><Icon name="bed" size={22} /></span>
+              <div><small>DERIVACIÓN ASISTENCIAL</small><h3 id="em-traslado-titulo">Traslado del paciente</h3></div>
+              <button type="button" aria-label="Cerrar ventana de traslado" disabled={ocupado} onClick={() => setTrasladoModal(false)}><Icon name="close" size={18} /></button>
+            </header>
+            <div className="em-traslado-modal-datos">
+              <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong></article>
+              <article><small>Documento</small><strong>{cuenta.identidad?.documento?.trim() || "Sin documento"}</strong></article>
+              <article><small>{destinoTraslado === "ambulancia" ? "Motivo del traslado" : "Diagnóstico / motivo"}</small><strong>{destinoTraslado === "ambulancia" ? motivoAmbulancia || "Seleccionar motivo" : cuenta.evaluaciones?.map((evaluacion) => evaluacion.campos.diagnostico?.trim()).find(Boolean) || "Traslado desde Emergencias"}</strong></article>
+            </div>
+            <fieldset className="em-traslado-destinos">
+              <legend>¿A dónde se trasladará?</legend>
+              <label className={destinoTraslado === "sala" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="sala" checked={destinoTraslado === "sala"} onChange={() => setDestinoTraslado("sala")} /><Icon name="bed" size={24} /><span><strong>Sala de internación</strong></span></label>
+              <label className={destinoTraslado === "ambulancia" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="ambulancia" checked={destinoTraslado === "ambulancia"} onChange={() => setDestinoTraslado("ambulancia")} /><Icon name="ambulance" size={24} /><span><strong>Traslado en ambulancia</strong></span></label>
+              <label className={destinoTraslado === "uci" ? "seleccionado" : ""}><input type="radio" name="destinoTraslado" value="uci" checked={destinoTraslado === "uci"} onChange={() => setDestinoTraslado("uci")} /><Icon name="heartbeat" size={24} /><span><strong>UCI · Unidad de Cuidados Intensivos</strong></span></label>
+            </fieldset>
+            {(destinoTraslado === "sala" || destinoTraslado === "uci") && <div className="em-traslado-programacion">
+              <label>{destinoTraslado === "uci" ? "Sala UCI" : "Número de sala"}
+                {destinoTraslado === "uci" ? <input value="UCI" readOnly aria-label="Sala UCI" /> : <select value={salaTraslado} onChange={(evento) => setSalaTraslado(evento.target.value)} aria-label="Número de sala"><option value="">Seleccionar sala</option>{[101,102,103,105,106,107,108,109,110,111,112,113].map((numero) => <option key={numero} value={String(numero)}>Sala {numero}</option>)}</select>}
+              </label>
+              <label>Fecha de traslado<input type="date" value={fechaTraslado} min={new Date().toLocaleDateString("en-CA")} onChange={(evento) => setFechaTraslado(evento.target.value)} /></label>
+              <label>Hora de traslado<input type="time" value={horaTraslado} onChange={(evento) => setHoraTraslado(evento.target.value)} /></label>
+            </div>}
+            {destinoTraslado === "ambulancia" && <div className="em-traslado-programacion em-traslado-ambulancia">
+              <label>Motivo del traslado
+                <select value={motivoAmbulancia} onChange={(evento) => setMotivoAmbulancia(evento.target.value)} required>
+                  <option value="">Seleccionar motivo</option>
+                  <option value="Atención especializada">Atención especializada</option>
+                  <option value="Falta de servicio o equipamiento">Falta de servicio o equipamiento</option>
+                  <option value="Mayor capacidad resolutiva">Mayor capacidad resolutiva</option>
+                  <option value="Solicitud del paciente o familiar">Solicitud del paciente o familiar</option>
+                  <option value="Continuidad de tratamiento">Continuidad de tratamiento</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </label>
+              <label>Lugar de destino
+                <input value={destinoAmbulancia} onChange={(evento) => setDestinoAmbulancia(evento.target.value)} placeholder="Nombre del hospital o centro de salud" required />
+              </label>
+              <label>Fecha del traslado<input type="date" value={fechaTraslado} min={new Date().toLocaleDateString("en-CA")} onChange={(evento) => setFechaTraslado(evento.target.value)} required /></label>
+              <label>Hora del traslado<input type="time" value={horaTraslado} onChange={(evento) => setHoraTraslado(evento.target.value)} required /></label>
+            </div>}
+            {!cuenta.identidad?.documento?.trim() && <p className="em-traslado-modal-error" role="alert">Completa el documento del paciente antes de continuar.</p>}
+            <footer>
+              <button type="button" disabled={ocupado} onClick={() => setTrasladoModal(false)}>Cancelar</button>
+              <button type="submit" className="em-traslado-confirmar" disabled={ocupado || !cuenta.identidad?.documento?.trim() || ((destinoTraslado === "sala" || destinoTraslado === "uci") && (!fechaTraslado || !horaTraslado || (destinoTraslado === "sala" && !salaTraslado))) || (destinoTraslado === "ambulancia" && (!motivoAmbulancia || !destinoAmbulancia.trim()))}><Icon name={destinoTraslado === "ambulancia" ? "ambulance" : "bed"} size={16} />{ocupado ? "Procesando traslado…" : "Trasladar paciente"}</button>
+            </footer>
+          </form>
+        </div>
+      )}
     </section>
   );
 }

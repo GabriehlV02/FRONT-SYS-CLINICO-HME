@@ -22,9 +22,9 @@ const salasPrueba = [
   ...[111, 112, 113].map((numero) => ({ numero: String(numero), tipo: "Habitación individual", camas: ["A"] })),
 ];
 
-export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
+export function EnfermeraInternacionView({ subvista, unidad = "internacion", soloPendientes = false }: { subvista: Subvista; unidad?: "internacion" | "uci"; soloPendientes?: boolean }) {
   const registros = useInternacionesVinculadas();
-  const registrosVista = registros.filter((registro) => !esPacienteUci(registro));
+  const registrosVista = registros.filter((registro) => unidad === "uci" ? esPacienteUci(registro) : !esPacienteUci(registro));
   const [seleccionada, setSeleccionada] = useState<RegistroInternacion | null>(
     null,
   );
@@ -37,9 +37,11 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   const [cama, setCama] = useState("");
   const [tipoSala, setTipoSala] = useState("Sala compartida");
   const [busqueda, setBusqueda] = useState("");
-  const salasDisponibles = seleccionada && /uci|terapia intensiva|recuperaci/i.test(`${seleccionada.servicio ?? ""} ${seleccionada.tipoSala ?? ""} ${seleccionada.sala ?? ""}`)
-    ? salasPrueba.filter((item) => item.tipo === "Terapia intensiva" || item.tipo === "Recuperación")
-    : salasPrueba.filter((item) => item.tipo !== "Terapia intensiva" && item.tipo !== "Recuperación");
+  const salasDisponibles = unidad === "uci"
+    ? salasPrueba.filter((item) => item.tipo === "Terapia intensiva")
+    : seleccionada && /uci|terapia intensiva|recuperaci/i.test(`${seleccionada.servicio ?? ""} ${seleccionada.tipoSala ?? ""} ${seleccionada.sala ?? ""}`)
+      ? salasPrueba.filter((item) => item.tipo === "Terapia intensiva" || item.tipo === "Recuperación")
+      : salasPrueba.filter((item) => item.tipo !== "Terapia intensiva" && item.tipo !== "Recuperación");
   const pendientes = registrosVista.filter(
     (item) => item.estado === "preinternacion",
   );
@@ -103,7 +105,7 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
   return (
     <section
       className="internacion-enfermeria"
-      aria-label="Enfermería de internación"
+      aria-label={unidad === "uci" ? "Enfermería de terapia intensiva" : "Enfermería de internación"}
     >
       {subvista === "internados" && pendientes.length > 0 && (
         <section className="internacion-pendientes">
@@ -121,23 +123,24 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
                 <small>
                   CI {item.ci} · Orden de {item.medico}
                 </small>
+                {item.sala && <small>Sala reservada {item.sala} · {item.fechaIngreso || "Fecha pendiente"} · {item.horaIngreso || "Hora pendiente"}</small>}
                 <em>Preinternación</em>
               </div>
               <button
                 type="button"
                 onClick={() => {
                   setSeleccionada(item);
-                  setSala("");
+                  setSala(item.sala ?? "");
                   setCama("");
                 }}
               >
-                Asignar sala y cama
+                {item.origen === "Emergencias" ? "Recibir traslado" : "Asignar sala y cama"}
               </button>
             </article>
           ))}
         </section>
       )}
-      <section className="internacion-listado">
+      <section className={`internacion-listado ${soloPendientes ? "internacion-listado-oculto" : ""}`}>
         <div className="internacion-herramientas">
           <label>
             <Icon name="search" size={18} />
@@ -264,11 +267,12 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
           >
             <header>
               <div>
-                <p>CONFIRMAR INTERNACIÓN</p>
+                <p>{seleccionada.origen === "Emergencias" ? "RECIBIR TRASLADO" : "CONFIRMAR INTERNACIÓN"}</p>
                 <h3 id="asignar-cama-titulo">{seleccionada.paciente}</h3>
                 <small>
-                  CI {seleccionada.ci}. Al confirmar se registrará como
-                  internación y se habilitará su cuenta en Recepción.
+                  {seleccionada.origen === "Emergencias"
+                    ? `CI ${seleccionada.ci}. Revisa la sala y cama asignadas. El paciente ingresará a Internación solo cuando confirmes la recepción del traslado.`
+                    : `CI ${seleccionada.ci}. Al confirmar se registrará como internación y se habilitará su cuenta en Recepción.`}
                 </small>
               </div>
               <button
@@ -293,9 +297,9 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
                       <optgroup label="Terapia intensiva · 3 camas">
                         {salasDisponibles.filter((item) => item.tipo === "Terapia intensiva").map((item) => <option key={item.numero} value={item.numero}>Sala {item.numero}</option>)}
                       </optgroup>
-                      <optgroup label="Recuperación · 2 camas">
+                      {unidad !== "uci" && <optgroup label="Recuperación · 2 camas">
                         {salasDisponibles.filter((item) => item.tipo === "Recuperación").map((item) => <option key={item.numero} value={item.numero}>Sala {item.numero}</option>)}
-                      </optgroup>
+                      </optgroup>}
                     </>
                   ) : (
                     <>
@@ -345,7 +349,7 @@ export function EnfermeraInternacionView({ subvista }: { subvista: Subvista }) {
                 disabled={!sala.trim() || !cama.trim() || !ubicacionDisponible}
                 onClick={confirmar}
               >
-                Confirmar ingreso
+                {seleccionada.origen === "Emergencias" ? "Confirmar recepción e internación" : "Confirmar ingreso"}
               </button>
             </footer>
           </section>

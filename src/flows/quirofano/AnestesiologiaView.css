@@ -1,8 +1,14 @@
 .anestesia-vista {
   display: grid;
-  gap: 16px;
+  gap: 8px;
   padding: 0;
   color: #244765;
+}
+.anestesia-vista > .anestesia-navegacion {
+  margin: 0;
+}
+.anestesia-navegacion > .subvistas-carrusel > .recepcion-subvistas {
+  margin: 0;
 }
 .anestesia-cabecera,
 .anestesia-panel > header {

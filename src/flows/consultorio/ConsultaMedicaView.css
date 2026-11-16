@@ -1171,8 +1171,24 @@
 .consulta-volver-listado-fila {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
   min-height: 48px;
   padding: 4px 18px 6px;
+}
+.consulta-etiqueta-contexto {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #cfe3ef;
+  border-radius: 9px;
+  color: #087fb7;
+  background: #f3faff;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
 }
 .consulta-volver-listado svg {
   display: grid;
@@ -1212,6 +1228,9 @@
   .consulta-volver-listado {
     width: 100%;
     justify-content: center;
+  }
+  .consulta-volver-listado-fila .consulta-volver-listado {
+    width: auto;
   }
 }
 .consulta-atencion-principal {
@@ -1798,6 +1817,24 @@
   font-size: 16px;
   font-weight: 750;
 }
+.consulta-datos-personales .consulta-paciente-identidad {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+.consulta-paciente-nombre {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.consulta-paciente-ci {
+  flex: 0 0 auto;
+  color: #69869b;
+  font-size: 12px;
+  font-weight: 600;
+}
 @media (max-width: 1050px) {
   .consulta-resumen-paciente {
     grid-template-columns: 1fr;
@@ -2298,4 +2335,19 @@ body:has(.consulta-cabecera-fija),
 }
 .sistema-app .consulta-signos .consulta-signos-form .consulta-signo-campo {
   min-width: 0;
+}
+
+.sistema-app .consulta-signos > header button.secundario {
+  color: #16834a;
+  border-color: #a8dfbe;
+  background: #f1fbf5;
+}
+.sistema-app .consulta-signos > header button.secundario:hover:not(:disabled) {
+  color: #126b3d;
+  border-color: #4cbb7a;
+  background: #e5f7ec;
+}
+.sistema-app .consulta-signos > header button.secundario:focus-visible {
+  outline: 3px solid #9addb5;
+  outline-offset: 2px;
 }

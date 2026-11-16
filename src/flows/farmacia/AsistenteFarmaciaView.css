@@ -3295,3 +3295,44 @@
   border-color: #4585a5;
   background: #123a58;
 }
+.farmacia-ia {
+  --fia-linea: #9bbbd0;
+  --fia-linea-fuerte: #729dbb;
+}
+.farmacia-ia .farmacia-ia-chat {
+  border: 1.5px solid var(--fia-linea-fuerte);
+  border-radius: 12px;
+  box-shadow: none;
+}
+.farmacia-ia .farmacia-ia-lateral {
+  border-right: 1.5px solid var(--fia-linea-fuerte);
+}
+.farmacia-ia .farmacia-ia-sala-cabecera {
+  border-bottom: 1.5px solid var(--fia-linea);
+}
+.farmacia-ia .farmacia-ia-lateral-separador {
+  background: var(--fia-linea);
+}
+.farmacia-ia :is(.farmacia-ia-subvistas, .farmacia-ia-estado-modo, .farmacia-ia-panel-nota, .farmacia-ia-sugerencias button, .farmacia-ia-probar-voz) {
+  border: 1px solid var(--fia-linea);
+  border-radius: 9px;
+  box-shadow: none;
+}
+.farmacia-ia .farmacia-ia-burbuja {
+  border: 1px solid var(--fia-linea);
+  border-radius: 12px 12px 12px 4px;
+  box-shadow: none;
+}
+.farmacia-ia .farmacia-ia-compositor {
+  border: 1.5px solid var(--fia-linea-fuerte);
+  border-radius: 11px;
+  box-shadow: 0 2px 6px #1949670a;
+}
+.farmacia-ia .farmacia-ia-compositor:focus-within {
+  border-color: var(--fia-blue);
+  box-shadow: 0 0 0 3px #087fc018;
+}
+.sistema-app[data-theme="dark"] .farmacia-ia {
+  --fia-linea: #4e7390;
+  --fia-linea-fuerte: #6b92ad;
+}

@@ -66,7 +66,6 @@ export function AgendaAmbulatoriaView({
   );
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [busqueda, setBusqueda] = useState("");
-  const [busquedaAtendidas, setBusquedaAtendidas] = useState("");
   const [hoy, setHoy] = useState(fechaHoy);
   const [fechaSeleccionada, setFechaSeleccionada] = useState(fechaHoy);
   const [fechaDesde, setFechaDesde] = useState("");
@@ -166,14 +165,6 @@ export function AgendaAmbulatoriaView({
       estaSinAtender(cita) &&
       coincide(cita, busqueda),
   );
-  const atendidas = visibles.filter((cita) => {
-    const finalizada = cita.atencionFinalizadaEn || obtenerAtencionAmbulatoria(cita)?.finalizadaEn;
-    return (
-      finalizada &&
-      coincideFecha(cita) &&
-      coincide(cita, busquedaAtendidas)
-    );
-  });
   const atender = (cita: CitaConfirmada) => {
     registrarAtencionAmbulatoria(cita, medico);
     onAtender?.(cita);
@@ -276,7 +267,7 @@ export function AgendaAmbulatoriaView({
                   <strong>{cita.especialidad || "Consulta ambulatoria"}</strong>
                 </div>
                 <div className="agenda-motivo">
-                  <strong>
+                  <strong title={cita.motivoOperativo || "Sin motivo registrado"}>
                     {cita.motivoOperativo || "Sin motivo registrado"}
                   </strong>
                 </div>
@@ -303,53 +294,6 @@ export function AgendaAmbulatoriaView({
             </div>
           )}
         </section>
-        <aside className="agenda-lateral agenda-atendidas">
-          <header>
-            <div>
-              <p>{fechaDesde || fechaHasta || fechaSeleccionada !== hoy ? "ATENDIDOS EN EL PERÍODO" : "ATENDIDOS HOY"}</p>
-              <strong>Consultas realizadas</strong>
-            </div>
-            <span>{atendidas.length}</span>
-          </header>
-          <label className="agenda-buscar-atendidas">
-            <Icon name="search" size={15} />
-            <input
-              value={busquedaAtendidas}
-              onChange={(event) => setBusquedaAtendidas(event.target.value)}
-              placeholder="Buscar atendido..."
-            />
-          </label>
-          {atendidas.length ? (
-            <div>
-              {atendidas.map((cita) => (
-                <article key={`${cita.id}-${cita.fecha}-${cita.hora}`}>
-                  <span className="agenda-iniciales">
-                    {cita.paciente
-                      .split(" ")
-                      .map((parte) => parte[0])
-                      .slice(0, 2)
-                      .join("")}
-                  </span>
-                  <div>
-                    <strong>{cita.paciente}</strong>
-                    <small>Consulta {cita.hora}</small>
-                    <small>{cita.fecha.split("-").reverse().join("/")}</small>
-                    <small>{cita.especialidad || "Consulta ambulatoria"}</small>
-                  </div>
-                  {cita.atencionFinalizadaEn || obtenerAtencionAmbulatoria(cita)?.finalizadaEn ? (
-                    <Icon name="check" size={16} />
-                  ) : (
-                    <button type="button" onClick={() => atender(cita)}>
-                      Continuar
-                    </button>
-                  )}
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p>Aún no hay consultas atendidas.</p>
-          )}
-        </aside>
       </div>
     </section>
   );

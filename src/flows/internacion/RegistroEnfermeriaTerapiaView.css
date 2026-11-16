@@ -123,6 +123,33 @@
 .uci-registro-ficha > header {
   margin-top: 12px;
 }
+.uci-paciente-resumen {
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+  margin:12px 20px 0;
+  padding:18px 20px;
+  border:1px solid #d5e5ef;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 5px 16px rgb(28 77 107 / 5%);
+}
+.uci-paciente-resumen-identidad,.uci-paciente-resumen-familiar,.uci-paciente-resumen-ubicacion {
+  display:grid;
+  grid-template-columns:minmax(240px,1.5fr) repeat(2,minmax(130px,1fr));
+  gap:14px;
+  align-items:center;
+}
+.uci-paciente-resumen-identidad { padding-bottom:13px; border-bottom:1px solid #e1ebf2; }
+.uci-paciente-resumen-familiar { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.uci-paciente-resumen-ubicacion { grid-template-columns:repeat(3,minmax(0,1fr)); padding:13px 14px; border:1px solid #d9e8f1; border-radius:10px; background:#f4f9fc; }
+.uci-paciente-resumen small { display:block; margin-bottom:5px; color:#718a9b; font-size:12px; }
+.uci-paciente-resumen h2 { margin:0; color:#123f60; font-size:23px; }
+.uci-paciente-resumen strong { color:#123f60; font-size:15px; }
+@media(max-width:700px) {
+  .uci-paciente-resumen-identidad,.uci-paciente-resumen-familiar,.uci-paciente-resumen-ubicacion { grid-template-columns:1fr 1fr; }
+  .uci-paciente-resumen-identidad > :first-child { grid-column:1/-1; }
+}
 .uci-registro-formulario {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 230px auto;
@@ -158,4 +185,115 @@
   .uci-registro-formulario button {
     width: 100%;
   }
+}
+.uci-atencion-barra { display:flex; align-items:center; justify-content:space-between; gap:14px; min-width:0; }
+.uci-atencion-barra > .recepcion-subvistas { flex:0 1 auto; }
+.uci-atencion-acciones { display:flex; align-items:center; justify-content:flex-end; gap:9px; flex:0 0 auto; }
+.uci-atencion-acciones button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:8px 15px; border:1px solid #83c8e7; border-radius:9px; color:#086e9f; background:#e7f6fc; font:inherit; font-size:13px; font-weight:800; white-space:nowrap; cursor:pointer; transition:background .16s,border-color .16s,transform .16s; }
+.uci-atencion-acciones button:hover { transform:translateY(-1px); border-color:#087fb7; background:#d8f0fa; }
+.uci-atencion-acciones .uci-atencion-iniciar { border-color:#087fb7; color:#fff; background:linear-gradient(110deg,#087fb7,#1096c4); box-shadow:0 5px 13px rgb(8 127 183 / 18%); }
+.uci-atencion-acciones .uci-atencion-iniciar:hover { background:#066d9f; }
+.uci-atencion-contenido { display:grid; gap:14px; min-width:0; }
+@media(max-width:900px) { .uci-atencion-barra { align-items:flex-start; flex-direction:column; } .uci-atencion-acciones { justify-content:flex-start; } }
+@media(max-width:540px) { .uci-atencion-acciones { width:100%; } .uci-atencion-acciones button { flex:1; } }
+.uci-registro-ficha .enfermeria-flujo-nav {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  min-height: 66px;
+  border-bottom: 1px solid #d3e4ef;
+}
+
+.uci-registro-ficha .enfermeria-flujo-nav button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 12px 12px 0 0;
+  color: #52748c;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.uci-registro-ficha .enfermeria-flujo-nav button.activo {
+  border-color: #c6e4f2;
+  color: #fff;
+  background: #087fc0;
+  box-shadow: 0 5px 14px rgb(8 127 192 / 20%);
+}
+
+.uci-registro-ficha .enfermeria-flujo-nav button > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid #cde4f0;
+  border-radius: 9px;
+  color: #087fc0;
+  background: #eaf6fb;
+}
+
+.uci-registro-ficha .enfermeria-flujo-nav button.activo > span {
+  border-color: rgb(255 255 255 / 35%);
+  color: #fff;
+  background: rgb(255 255 255 / 16%);
+}
+
+.uci-registro-ficha .uci-ficha-panel[hidden] { display: none; }
+.uci-registro-ficha .uci-ficha-panel {
+  display: grid;
+  gap: 16px;
+  padding: 22px;
+  border: 1px solid #d2e4ef;
+  border-radius: 14px;
+  background: #fff;
+}
+.uci-ficha-panel > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid #e0ebf2;
+}
+.uci-ficha-panel > header span { color:#0783bb; font-size:12px; font-weight:800; letter-spacing:.08em; }
+.uci-ficha-panel > header h3 { margin:5px 0; color:#173f5d; font-size:20px; }
+.uci-ficha-panel > header p { margin:0; color:#6c8799; }
+.uci-ficha-panel > header > b { padding:9px 13px; border:1px solid #ccebdc; border-radius:999px; color:#078454; background:#edf9f3; }
+.uci-ficha-datos { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); overflow:hidden; border:1px solid #d4e5ef; border-radius:12px; }
+.uci-ficha-datos article { display:grid; gap:8px; min-height:64px; padding:14px 16px; border-right:1px solid #dce9f1; border-bottom:1px solid #dce9f1; }
+.uci-ficha-datos article small,.uci-ficha-motivo small,.uci-ficha-reporte small { color:#718a9b; font-size:12px; font-weight:800; text-transform:uppercase; }
+.uci-ficha-datos article strong,.uci-ficha-reporte strong { color:#204d6c; }
+.uci-ficha-motivo { display:grid; gap:8px; padding:16px; border:1px solid #d4e5ef; border-radius:12px; background:#f8fbfd; }
+.uci-ficha-motivo p,.uci-ficha-reporte p { margin:0; color:#315d79; line-height:1.5; }
+.uci-ficha-continuar { justify-self:end; min-height:42px; padding:0 16px; border:0; border-radius:9px; color:#fff; background:#087fc0; font:inherit; font-weight:700; cursor:pointer; }
+.uci-ficha-reporte { display:grid; gap:12px; }
+.uci-ficha-reporte article { display:grid; gap:8px; padding:15px; border:1px solid #d8e7ef; border-radius:10px; background:#f8fbfd; }
+.uci-atencion-evolucion { display:grid; gap:10px; padding:18px; border:1px solid #d5e5ef; border-radius:12px; background:#fbfdff; }
+.uci-atencion-evolucion header span { color:#0783bb; font-size:11px; font-weight:800; letter-spacing:.08em; }
+.uci-atencion-evolucion h3 { margin:5px 0; color:#173f5d; font-size:18px; }
+.uci-atencion-evolucion p { margin:0; color:#6c8799; }
+.uci-atencion-evolucion-texto { padding:14px; border-radius:9px; color:#315d79; background:#f2f8fb; white-space:pre-wrap; }
+.uci-atencion-registros { overflow:hidden; border:1px solid #d5e5ef; border-radius:12px; background:#fff; }
+.uci-atencion-registros > header { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:16px 18px; border-bottom:1px solid #e0ebf2; }
+.uci-atencion-registros > header span { color:#0783bb; font-size:11px; font-weight:800; letter-spacing:.08em; }
+.uci-atencion-registros > header h3 { margin:5px 0; color:#173f5d; font-size:17px; }
+.uci-atencion-registros > header p { margin:0; color:#6c8799; }
+.uci-atencion-registros > header b { padding:7px 10px; border:1px solid #d7e7f0; border-radius:9px; color:#39718e; background:#f4f9fc; font-size:12px; white-space:nowrap; }
+.uci-atencion-vacio { display:grid; justify-items:center; gap:7px; padding:28px 16px; color:#7290a3; text-align:center; }
+.uci-atencion-vacio strong { color:#315d79; }
+.uci-atencion-tabla-scroll { overflow:auto; }
+.uci-atencion-tabla-scroll table { width:100%; border-collapse:collapse; }
+.uci-atencion-tabla-scroll th { padding:12px; color:#28618b; background:#f1f7fb; font-size:11px; text-align:left; text-transform:uppercase; }
+.uci-atencion-tabla-scroll td { padding:20px 12px; border-top:1px solid #e0ebf2; color:#6c8799; text-align:center; }
+
+@media (max-width: 760px) {
+  .uci-registro-ficha .enfermeria-flujo-nav { overflow-x:auto; }
+  .uci-registro-ficha .enfermeria-flujo-nav button { flex:0 0 auto; padding:0 12px; font-size:13px; }
+  .uci-ficha-datos { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }

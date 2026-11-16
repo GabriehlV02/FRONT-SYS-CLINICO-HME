@@ -2137,18 +2137,14 @@ function AtencionPaciente({
             <Icon name="patient" size={20} />
           </summary>
           <div className="em-signos-contenido">
-            <p className="em-ultima-toma">
-              {ultimoSigno ? (
-                <>
-                  Última toma:{" "}
-                  <time dateTime={ultimoSigno.fecha}>
-                    {fechaEmergencia(ultimoSigno.fecha)}
-                  </time>
-                </>
-              ) : (
-                "Aún no hay tomas de signos vitales registradas."
-              )}
-            </p>
+            {ultimoSigno && (
+              <p className="em-ultima-toma">
+                Última toma:{" "}
+                <time dateTime={ultimoSigno.fecha}>
+                  {fechaEmergencia(ultimoSigno.fecha)}
+                </time>
+              </p>
+            )}
             <dialog
               ref={evolucionDialogo}
               className="em-evolucion-dialogo"

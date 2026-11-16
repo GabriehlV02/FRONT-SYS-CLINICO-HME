@@ -3430,3 +3430,13 @@ button:focus-visible {
   color: currentColor !important;
   font-size: 11px !important;
 }
+.uci-atencion-barra { display:flex; align-items:center; justify-content:space-between; gap:14px; min-width:0; }
+.uci-atencion-barra > .recepcion-subvistas { flex:0 1 auto; }
+.uci-atencion-acciones { display:flex; align-items:center; justify-content:flex-end; gap:9px; flex:0 0 auto; }
+.uci-atencion-acciones button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:8px 15px; border:1px solid #83c8e7; border-radius:9px; color:#086e9f; background:#e7f6fc; font:inherit; font-size:13px; font-weight:800; white-space:nowrap; cursor:pointer; transition:background .16s,border-color .16s,transform .16s; }
+.uci-atencion-acciones button:hover { transform:translateY(-1px); border-color:#087fb7; background:#d8f0fa; }
+.uci-atencion-acciones .uci-atencion-iniciar { border-color:#087fb7; color:#fff; background:linear-gradient(110deg,#087fb7,#1096c4); box-shadow:0 5px 13px rgb(8 127 183 / 18%); }
+.uci-atencion-acciones .uci-atencion-iniciar:hover { background:#066d9f; }
+.uci-atencion-contenido { display:grid; gap:14px; min-width:0; }
+@media(max-width:900px) { .uci-atencion-barra { align-items:flex-start; flex-direction:column; } .uci-atencion-acciones { justify-content:flex-start; } }
+@media(max-width:540px) { .uci-atencion-acciones { width:100%; } .uci-atencion-acciones button { flex:1; } }

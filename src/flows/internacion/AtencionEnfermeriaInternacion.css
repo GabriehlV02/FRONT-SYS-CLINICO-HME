@@ -299,40 +299,61 @@
 .enfermeria-paciente-resumen {
   overflow: hidden;
   border: 1px solid #c9dfed;
-  border-top: 4px solid #0b91d2;
-  border-radius: 14px;
+  border-top: 3px solid #0b91d2;
+  border-radius: 12px;
   background: #fff;
+  box-shadow: 0 4px 14px rgb(25 75 111 / 6%);
 }
 .enfermeria-paciente-resumen > header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 13px 18px;
-  background: linear-gradient(110deg, #fff, #f7fcff);
+  gap: 12px;
+  padding: 11px 16px;
+  background: linear-gradient(110deg, #f7fbfe 0%, #fff 58%, #f8fcff 100%);
 }
 .enfermeria-resumen-identidad {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 8px;
+  column-gap: 10px;
+  row-gap: 4px;
   min-width: 0;
 }
 .enfermeria-resumen-identidad h2 {
-  font-size: 20px;
+  margin: 0;
+  color: #12466d;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
-.enfermeria-resumen-identidad > span {
-  color: #397096;
-  font-size: 11px;
+.enfermeria-resumen-identidad > .enfermeria-resumen-ci {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 3px 10px;
+  border: 1px solid #d0e5f2;
+  border-radius: 999px;
+  color: #205777;
+  background: #edf7fc;
+  font-size: 12px;
   font-weight: 750;
-  white-space: nowrap;
+  line-height: 1.25;
 }
-.enfermeria-resumen-identidad > .enfermeria-resumen-diagnostico { max-width:min(520px,38vw); overflow:hidden; color:#174d72; font-size:11px; font-weight:700; text-overflow:ellipsis; }
+.enfermeria-resumen-identidad > .enfermeria-resumen-diagnostico {
+  flex-basis: 100%;
+  max-width: min(760px, 58vw);
+  color: #496b83;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: normal;
+}
 .enfermeria-resumen-contexto {
   display: flex;
   align-items: stretch;
   border: 1px solid #d5e6f0;
-  border-radius: 10px;
+  border-radius: 9px;
   overflow: hidden;
   background: #fff;
 }
@@ -340,7 +361,8 @@
   display: grid;
   gap: 2px;
   min-width: 132px;
-  padding: 8px 11px;
+  padding: 7px 11px;
+  background: #fff;
 }
 .enfermeria-resumen-contexto > div + div {
   border-left: 1px solid #d5e6f0;
@@ -355,20 +377,20 @@
 }
 .enfermeria-resumen-contexto strong {
   color: #174d72;
-  font-size: 13px;
+  font-size: 12px;
 }
 .enfermeria-resumen-datos {
   display: grid;
   grid-template-columns: minmax(330px, 1.55fr) minmax(240px, 1fr);
   border-top: 1px solid #d5e6f0;
-  background: #fbfdff;
+  background: #f8fbfd;
 }
 .enfermeria-resumen-datos article {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  gap: 9px;
   min-width: 0;
-  padding: 10px 13px;
+  padding: 10px 15px;
 }
 .enfermeria-resumen-datos article + article {
   border-left: 1px solid #d5e6f0;
@@ -377,9 +399,9 @@
   display: grid;
   place-items: center;
   flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
   color: #087fc0;
   background: #eaf7fd;
 }
@@ -391,7 +413,7 @@
 .enfermeria-resumen-datos strong {
   overflow: hidden;
   color: #274b66;
-  font-size: 11px;
+  font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -411,6 +433,9 @@
     gap: 2px;
   }
   .enfermeria-resumen-identidad > .enfermeria-resumen-diagnostico { max-width:100%; white-space:normal; }
+  .enfermeria-resumen-identidad h2 { font-size: 18px; }
+  .enfermeria-resumen-identidad > .enfermeria-resumen-ci,
+  .enfermeria-resumen-identidad > .enfermeria-resumen-diagnostico { font-size: 12px; }
   .enfermeria-resumen-contexto {
     flex-direction: column;
   }
@@ -432,6 +457,76 @@
   border-radius: 12px;
   background: #fff;
 }
+.enfermeria-paciente-flujo {
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 1px solid #cddfea;
+}
+.enfermeria-flujo-nav {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 8px 8px 0;
+  border-bottom: 1px solid #cddfea;
+  background: transparent;
+}
+.enfermeria-flujo-nav button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 54px;
+  gap: 9px;
+  padding: 0 24px 1px;
+  border: 1px solid transparent;
+  border-radius: 12px 12px 0 0;
+  color: #557993;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 650;
+  white-space: nowrap;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+.enfermeria-flujo-nav button:hover { color: #0879b2; background: rgb(255 255 255 / 38%); }
+.enfermeria-flujo-nav button > span { display:grid; place-items:center; width:28px; height:28px; flex:0 0 28px; border:1px solid #cde4f0; border-radius:8px; color:#087fc0; background:#eaf6fb; }
+.enfermeria-flujo-nav button:focus-visible { outline: 3px solid rgb(8 127 192 / 28%); outline-offset: 1px; }
+.enfermeria-flujo-nav button.activo { border-color:#c6e4f2; color: #fff; background: #087fc0; box-shadow:0 5px 14px rgb(8 127 192 / 20%); }
+.enfermeria-flujo-nav button.activo > span { border-color:rgb(255 255 255 / 35%); color:#fff; background:rgb(255 255 255 / 16%); }
+.enfermeria-flujo-nav button.activo::after { position: absolute; right: 12px; bottom: -1px; left: 12px; height: 3px; border-radius: 999px 999px 0 0; background: #20b5e8; content: ""; }
+.enfermeria-ingreso-panel,.enfermeria-reporte-panel { display:grid; gap:16px; padding:20px 8px 8px; }
+.enfermeria-ingreso-panel > header,.enfermeria-reporte-panel > header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:17px 20px; border:1px solid #d5e6f0; border-radius:12px; background:linear-gradient(110deg,#f1f9fd,#fff 70%); }
+.enfermeria-ingreso-panel > header > div,.enfermeria-reporte-panel > header > div { display:grid; gap:4px; }
+.enfermeria-ingreso-panel > header span,.enfermeria-reporte-panel > header span { color:#1684ae; font-size:10px; font-weight:850; letter-spacing:.09em; }
+.enfermeria-ingreso-panel > header h3,.enfermeria-reporte-panel > header h3 { margin:0; color:#173f5d; font-size:18px; }
+.enfermeria-ingreso-panel > header p,.enfermeria-reporte-panel > header p { margin:0; color:#6d8799; font-size:12px; }
+.enfermeria-ingreso-panel > header > b { padding:7px 11px; border:1px solid #cde8d9; border-radius:999px; color:#197450; background:#eaf7ef; font-size:11px; }
+.enfermeria-ingreso-datos { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); overflow:hidden; border:1px solid #d7e7f0; border-radius:11px; background:#fff; }
+.enfermeria-ingreso-datos article { display:grid; align-content:center; gap:6px; min-height:68px; padding:12px 15px; }
+.enfermeria-ingreso-datos article:nth-child(n+5) { border-top:1px solid #e3edf3; }
+.enfermeria-ingreso-datos article:not(:nth-child(4n+1)) { border-left:1px solid #e3edf3; }
+.enfermeria-ingreso-datos small,.enfermeria-ingreso-motivo small { color:#718a9d; font-size:10px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+.enfermeria-ingreso-datos strong { color:#274b66; font-size:13px; overflow-wrap:anywhere; }
+.enfermeria-ingreso-motivo { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.enfermeria-ingreso-motivo > div { padding:15px 17px; border:1px solid #d7e7f0; border-radius:10px; background:#f8fbfd; }
+.enfermeria-ingreso-motivo p { margin:7px 0 0; color:#315875; font-size:13px; line-height:1.55; white-space:pre-wrap; }
+.enfermeria-ingreso-continuar,.enfermeria-reporte-panel > header > button { display:inline-flex; align-items:center; justify-content:center; gap:8px; justify-self:end; min-height:40px; padding:0 15px; border:1px solid #087fc0; border-radius:8px; color:#fff; background:#087fc0; font-size:12px; font-weight:750; }
+.enfermeria-reporte-metricas { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; }
+.enfermeria-reporte-metricas article { display:grid; gap:7px; min-width:0; padding:15px; border:1px solid #d5e6f0; border-radius:10px; background:linear-gradient(145deg,#fff,#f5fafc); }
+.enfermeria-reporte-metricas small { color:#718a9d; font-size:10px; font-weight:800; text-transform:uppercase; }
+.enfermeria-reporte-metricas strong { color:#174d72; font-size:19px; overflow-wrap:anywhere; }
+.enfermeria-reporte-seccion { padding:17px; border:1px solid #d5e6f0; border-radius:11px; background:#fff; }
+.enfermeria-reporte-seccion h4 { margin:0 0 13px; color:#173f5d; font-size:14px; }
+.enfermeria-reporte-seccion ol { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
+.enfermeria-reporte-seccion li { padding:12px 14px; border-left:3px solid #168dbb; border-radius:0 8px 8px 0; background:#f5fafd; }
+.enfermeria-reporte-seccion li time,.enfermeria-reporte-signos time { color:#718a9d; font-size:11px; font-weight:700; }
+.enfermeria-reporte-seccion li p { margin:6px 0 0; color:#315875; font-size:12px; line-height:1.55; white-space:pre-wrap; }
+.enfermeria-reporte-vacio { margin:0; color:#718a9d; font-size:12px; }
+.enfermeria-reporte-signos { display:flex; flex-wrap:wrap; gap:8px; }
+.enfermeria-reporte-signos span { padding:8px 10px; border:1px solid #dce9f1; border-radius:7px; color:#55758b; background:#f7fbfd; font-size:11px; }
+.enfermeria-reporte-signos b { color:#244d69; }
+.enfermeria-reporte-signos time { align-self:center; }
+@media print { .enfermeria-paciente > :not(.enfermeria-paciente-flujo),.enfermeria-flujo-nav,.enfermeria-paciente-flujo > :not(.enfermeria-reporte-panel) { display:none !important; } .enfermeria-paciente-flujo { border:0; } .enfermeria-reporte-panel { padding:0; } }
 .enfermeria-paciente-subvistas > nav {
   display: flex;
   gap: 4px;
@@ -619,6 +714,16 @@
   font-size: 11px;
 }
 @media (max-width: 700px) {
+  .enfermeria-flujo-nav { overflow-x:auto; }
+  .enfermeria-flujo-nav button { min-height:48px; gap:7px; padding:0 12px; font-size:13px; }
+  .enfermeria-flujo-nav button > span { width:25px; height:25px; flex-basis:25px; }
+  .enfermeria-ingreso-datos { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .enfermeria-ingreso-datos article:nth-child(n+3) { border-top:1px solid #e3edf3; }
+  .enfermeria-ingreso-datos article:not(:nth-child(4n+1)) { border-left:0; }
+  .enfermeria-ingreso-datos article:nth-child(even) { border-left:1px solid #e3edf3; }
+  .enfermeria-ingreso-motivo,.enfermeria-reporte-metricas { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .enfermeria-ingreso-panel > header,.enfermeria-reporte-panel > header { align-items:flex-start; flex-direction:column; }
+  .enfermeria-ingreso-continuar,.enfermeria-reporte-panel > header > button { justify-self:stretch; }
   .enfermeria-paciente-subvistas > nav {
     overflow-x: auto;
   }
@@ -712,3 +817,10 @@
 .enfermeria-balance-historial li > time { color:#71899c; font-size:10px; white-space:nowrap; }
 @media(max-width:900px) { .enfermeria-balance-form { grid-template-columns:repeat(2,minmax(0,1fr)); } .enfermeria-balance-form button { justify-self:end; } }
 @media(max-width:620px) { .enfermeria-balance-panel { padding:14px; } .enfermeria-balance-resumen { grid-template-columns:1fr; } .enfermeria-balance-resumen article + article { border-top:1px solid #dce9f1; border-left:0; } .enfermeria-balance-form { grid-template-columns:1fr; } .enfermeria-balance-form button { justify-self:stretch; } .enfermeria-balance-historial li { grid-template-columns:65px minmax(0,1fr) auto; } .enfermeria-balance-historial li > time { grid-column:2/-1; } }
+.enfermeria-paciente-uci .enfermeria-signos-panel {
+  display: none;
+}
+
+.enfermeria-paciente-uci .enfermeria-balance-panel {
+  display: none;
+}

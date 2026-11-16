@@ -1,11 +1,13 @@
 import type { CitaConfirmada } from "./AgendaAmbulatoriaView";
 import type { DocumentoEpisodio } from "./registroHistoria";
+import type { DatosAntecedentesConsulta } from "./AntecedentesConsulta";
 
 export type ConsultaPrevia = {
   citaId: string; fecha: string; hora: string; medico: string; especialidad: string; tipo?: string;
   signosVitales?: { nombre: string; valor: string; unidad?: string }[];
   contenido: {
     motivo: string; enfermedadActual: string; examenFisico: string; antecedentes: string; notas: string;
+    antecedentesEstructurados?: DatosAntecedentesConsulta;
     diagnosticos: { diagnostico: string; planes: string[] }[]; revision: Record<string, string>; ordenes: string[];
     documentos?: { recetas?: DocumentoEpisodio[]; ordenes?: DocumentoEpisodio[]; resultados?: DocumentoEpisodio[]; reconsultas?: DocumentoEpisodio[] };
   };
@@ -17,7 +19,22 @@ export function mostrarConsultaEnContenedor(consulta: ConsultaPrevia, paciente: 
   const doc = raiz.ownerDocument;
   raiz.replaceChildren();
   const style = doc.createElement("style");
-  style.textContent = `*{box-sizing:border-box} :host{display:block;background:#edf6fc;color:#173d5b;font:14px/1.55 system-ui,sans-serif} main{max-width:1050px;margin:auto;padding:16px} header,.tarjeta{background:white;border:1px solid #d3e5ef;border-radius:12px;padding:18px;margin-bottom:12px} header h1{font-size:20px;margin:3px 0;color:#075d94} h2{font-size:15px;color:#0878b6;margin:0 0 12px} p{margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere} .datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px 22px} .linea{padding:8px 0;border-bottom:1px solid #edf3f7} .linea:last-child{border-bottom:0} small{color:#668199} @media(max-width:520px){main{padding:10px}header,.tarjeta{padding:14px}}`;
+  style.textContent = `
+    *{box-sizing:border-box}
+    :host{display:block;container-type:inline-size;background:#f1f8fc;color:#173d5b;font:13px/1.5 system-ui,sans-serif}
+    main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px;align-items:start}
+    header,.tarjeta{min-width:0;background:#fff;border:1px solid #d3e5ef;border-radius:10px;padding:16px}
+    header{grid-column:1/-1}
+    header h1{font-size:18px;margin:2px 0 12px;color:#075d94}
+    h2{font-size:14px;color:#0878b6;margin:0 0 10px}
+    p{margin:6px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+    .datos,.signos-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+    .datos p,.signos-grid p{margin:0;padding:9px 10px;border:1px solid #e1eef5;border-radius:7px;background:#f7fbfd}
+    .datos strong,.signos-grid strong{display:block;margin-bottom:2px;color:#5d7d93;font-size:11px}
+    .linea{padding:8px 0;border-bottom:1px solid #edf3f7}.linea:last-child{border-bottom:0}
+    small{color:#668199;font-size:11px}
+    @container (max-width:700px){main{grid-template-columns:minmax(0,1fr);padding:10px}header{grid-column:auto}.tarjeta,header{padding:14px}}
+  `;
   raiz.append(style);
   const main = doc.createElement("main"); raiz.append(main);
   const crear = (padre: Element, etiqueta: string, texto?: string, clase?: string) => {
@@ -35,11 +52,12 @@ export function mostrarConsultaEnContenedor(consulta: ConsultaPrevia, paciente: 
   const datos = crear(cabecera, "div", undefined, "datos");
   fila(datos, "Paciente", paciente.paciente); fila(datos, "CI", paciente.ci); fila(datos, "Fecha de nacimiento", paciente.fechaNacimiento);
   fila(datos, "Fecha de consulta", consulta.fecha.split("-").reverse().join("/")); fila(datos, "Hora", consulta.hora);
-  fila(datos, "Tipo", consulta.tipo === "reconsulta" ? "Reconsulta" : "Consulta"); fila(datos, "Médico", consulta.medico); fila(datos, "Especialidad", consulta.especialidad);
+  const tipoConsulta = consulta.tipo?.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  fila(datos, "Tipo", tipoConsulta === "reconsulta" ? "Reconsulta" : tipoConsulta === "internacion" ? "Internación" : "Consulta"); fila(datos, "Médico", consulta.medico); fila(datos, "Especialidad", consulta.especialidad);
   const contenido = consulta.contenido;
   const clinica = seccion("Datos de la atención"); fila(clinica, "Motivo de consulta", contenido.motivo); fila(clinica, "Enfermedad actual", contenido.enfermedadActual); fila(clinica, "Antecedentes", contenido.antecedentes); fila(clinica, "Examen físico", contenido.examenFisico); fila(clinica, "Notas", contenido.notas);
   const signos = seccion("Signos vitales");
-  if (consulta.signosVitales?.length) consulta.signosVitales.forEach((item) => fila(signos, item.nombre, `${item.valor}${item.unidad ? ` ${item.unidad}` : ""}`)); else crear(signos, "p", "Sin signos vitales registrados.");
+  if (consulta.signosVitales?.length) { const valores = crear(signos, "div", undefined, "signos-grid"); consulta.signosVitales.forEach((item) => fila(valores, item.nombre, `${item.valor}${item.unidad ? ` ${item.unidad}` : ""}`)); } else crear(signos, "p", "Sin signos vitales registrados.");
   const revision = seccion("Revisión por sistemas");
   const revisiones = Object.entries(contenido.revision || {});
   if (revisiones.length) revisiones.forEach(([id, valor]) => {

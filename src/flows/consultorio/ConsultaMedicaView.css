@@ -1348,10 +1348,29 @@
 .consulta-reconsulta-dialog footer button { min-height: 38px; padding: 0 14px; border: 1px solid #b8d9eb; border-radius: 8px; color: #075d94; background: white; cursor: pointer; }
 .consulta-reconsulta-dialog footer button[type="submit"] { color: white; background: #087db8; border-color: #087db8; }
 .consulta-historial-lista { display: grid; gap: 10px; padding: 18px; }
+.consulta-historial-paneles { display: grid; grid-template-columns: minmax(230px, 300px) minmax(0, 1fr); gap: 14px; padding: 18px; align-items: start; }
+.consulta-historial-paneles .consulta-historial-lista { align-content: start; gap: 8px; padding: 0; min-width: 0; }
+.consulta-historial-lista-titulo { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 2px 8px; color: #075d94; font-size: 13px; }
+.consulta-historial-lista-titulo span { padding: 3px 8px; border-radius: 12px; background: #e8f5fc; color: #0878b6; }
+.consulta-historial-filtro { display: grid; gap: 5px; margin-bottom: 4px; color: #52718a; font-size: 11px; font-weight: 700; }
+.consulta-historial-filtro select { width: 100%; min-height: 38px; padding: 8px 10px; border: 1px solid #c7deeb; border-radius: 7px; background: #fff; color: #17496a; font: inherit; font-size: 12px; }
+.consulta-historial-sin-resultados { margin: 6px 2px; color: #668199; font-size: 12px; line-height: 1.5; }
+.consulta-historial-paneles .consulta-historial-abrir { padding: 12px; }
+.consulta-historial-paneles .consulta-historial-abrir small { line-height: 1.45; }
+.consulta-historial-paneles .consulta-historial-abrir[aria-pressed="true"] { background: #edf8fe; border-color: #64b8e4; box-shadow: inset 3px 0 #087bb9; }
+.consulta-historial-vista { min-width: 0; max-height: 70vh; overflow-y: auto; border: 1px solid #d3e5ef; border-radius: 10px; background: #edf6fc; }
+.consulta-historial-seleccion-vacia { min-height: 260px; display: grid; align-content: center; justify-items: center; gap: 8px; padding: 24px; border: 1px dashed #c6dfed; border-radius: 10px; background: #f8fcfe; color: #376987; text-align: center; }
+.consulta-historial-seleccion-vacia svg { color: #168dc5; }
+.consulta-historial-seleccion-vacia small { color: #69869c; }
+@media (max-width: 760px) { .consulta-historial-paneles { grid-template-columns: minmax(0, 1fr); padding: 12px; } .consulta-historial-vista { max-height: none; } }
 .consulta-historial-item { border: 1px solid #d3e5ef; border-radius: 9px; background: #fff; overflow: hidden; }
 .consulta-historial-abrir { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; color: #075d94; text-align: left; cursor: pointer; font: inherit; }
 .consulta-historial-abrir span { display: grid; gap: 4px; }
 .consulta-historial-abrir small { color: #668199; }
+.consulta-historial-abrir .consulta-historial-datos { min-width: 0; gap: 5px; }
+.consulta-historial-abrir .consulta-historial-tipo { justify-self: start; padding: 2px 7px; border-radius: 5px; background: #e5f4fb; color: #0876b0; font-size: 10px; font-weight: 700; }
+.consulta-historial-abrir .consulta-historial-especialidad { color: #244f6c; font-size: 12px; font-weight: 700; overflow-wrap: anywhere; }
+.consulta-historial-abrir .consulta-historial-medico { color: #688399; font-size: 11px; overflow-wrap: anywhere; }
 .consulta-historial-abrir:hover, .consulta-historial-abrir:focus-visible { background: #f1f9fd; border-color: #8bc8e7; }
 .consulta-historial-item summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px; color: #075d94; cursor: pointer; list-style: none; }
 .consulta-historial-item summary span { display: grid; gap: 4px; }
@@ -1597,6 +1616,8 @@
   cursor: pointer;
 }
 .consulta-resultados-orden button:focus-visible, .consulta-limpiar-busqueda-orden:focus-visible { outline: 2px solid #087fc0; outline-offset: -2px; }
+.consulta-resultados-orden button > span { display: grid; gap: 3px; text-align: left; }
+.consulta-resultados-orden .consulta-resultado-orden-tipo { color: #66869b; font-size: 11px; font-weight: 400; }
 .consulta-resultados-orden button:last-child {
   border-bottom: 0;
 }
@@ -1615,6 +1636,11 @@
   border: 1px solid #d6e7f1;
   border-radius: 9px;
 }
+.consulta-ordenes-guardar { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 12px; }
+.consulta-ordenes-guardar small { flex: 1 1 100%; color: #167349; font-size: 11px; }
+.consulta-ordenes-guardar .consulta-ordenes-error { color: #a32b2b; }
+.consulta-ordenes-guardar button { min-height: 36px; padding: 0 12px; border: 1px solid #087db8; border-radius: 7px; background: #087db8; color: #fff; font-weight: 700; cursor: pointer; }
+.consulta-ordenes-guardar button:disabled { opacity: .6; cursor: not-allowed; }
 .consulta-lista-ordenes > header {
   display: flex;
   justify-content: space-between;
@@ -1800,7 +1826,7 @@
 .consulta-contexto-clinico.consulta-contexto-lateral { padding: 16px; border: 1px solid #d6e8f2; border-radius: 10px; background: #fff; }
 .consulta-contexto-lateral header p { font-size: 12px; }
 .consulta-contexto-lateral dl { gap: 12px 14px; margin-top: 12px; }
-.consulta-contexto-lateral dd { overflow-wrap: anywhere; }
+.consulta-contexto-lateral dd { display: block; overflow: visible; overflow-wrap: anywhere; }
 .sistema-app .area-trabajo .consulta-contexto-clinico dt {
   font-size: 12px;
   font-weight: 400;
@@ -2226,6 +2252,7 @@ body:has(.consulta-cabecera-fija),
   border-radius: 9px;
   background: #fafdff;
 }
+.consulta-diagnostico-item.sin-diagnostico { grid-template-columns: minmax(0, 1fr); }
 .consulta-diagnostico-item label,
 .consulta-planes-diagnostico {
   display: grid;
@@ -2263,6 +2290,8 @@ body:has(.consulta-cabecera-fija),
   padding-left: 12px;
   border-left: 1px solid #d9eaf3;
 }
+.consulta-plan-titulo { line-height: 1.4; overflow-wrap: anywhere; }
+.consulta-plan-titulo span { color: #0878b6; }
 .consulta-plan-campo {
   display: flex;
   align-items: flex-start;

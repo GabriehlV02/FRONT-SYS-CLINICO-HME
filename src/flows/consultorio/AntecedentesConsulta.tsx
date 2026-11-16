@@ -39,12 +39,18 @@ export const antecedentesConsultaVacios: DatosAntecedentesConsulta = {
   familiares: "",
 };
 
-const sociales: { id: keyof DatosAntecedentesConsulta; etiqueta: string; ejemplo: string }[] = [
-  { id: "vivienda", etiqueta: "Vivienda", ejemplo: "Describe las condiciones de vivienda" },
-  { id: "serviciosBasicos", etiqueta: "Acceso a servicios básicos", ejemplo: "Agua, electricidad, saneamiento..." },
-  { id: "alimentacion", etiqueta: "Alimentación", ejemplo: "Describe la alimentación habitual" },
-  { id: "habitos", etiqueta: "Hábitos", ejemplo: "Actividad física, tabaco, alcohol..." },
+const sociales: { id: keyof DatosAntecedentesConsulta; etiqueta: string; opciones: string[] }[] = [
+  { id: "vivienda", etiqueta: "Vivienda", opciones: ["Propia", "Alquilada", "Familiar o compartida", "Otra", "No refiere", "Desconocido"] },
+  { id: "serviciosBasicos", etiqueta: "Acceso a servicios básicos", opciones: ["Cuenta con agua, electricidad y saneamiento", "Acceso parcial", "Sin acceso", "No refiere", "Desconocido"] },
+  { id: "alimentacion", etiqueta: "Alimentación", opciones: ["Sin restricciones referidas", "Con restricciones alimentarias", "Dieta especial", "No refiere", "Desconocido"] },
+  { id: "habitos", etiqueta: "Hábitos", opciones: ["Sin consumo referido", "Tabaco", "Alcohol", "Tabaco y alcohol", "Otros hábitos referidos", "No refiere", "Desconocido"] },
 ];
+
+const gruposAdicionales = [
+  { id: "quirurgicos", titulo: "Antecedentes quirúrgicos", opciones: ["Sin cirugías referidas", "Cirugía previa", "Múltiples cirugías previas", "No refiere", "Desconocido"] },
+  { id: "alergicos", titulo: "Antecedentes alérgicos", opciones: ["Sin alergias referidas", "Alergia a medicamentos", "Alergia a alimentos", "Alergia ambiental", "Múltiples alergias", "Otra alergia", "No refiere", "Desconocido"] },
+  { id: "familiares", titulo: "Antecedentes familiares", opciones: ["Sin antecedentes referidos", "Hipertensión", "Diabetes", "Cardiopatía", "Cáncer", "Múltiples antecedentes", "Otro antecedente", "No refiere", "Desconocido"] },
+] as const;
 
 const patologicos: { id: keyof DatosAntecedentesConsulta; etiqueta: string }[] = [
   { id: "hipertension", etiqueta: "Hipertensión" },
@@ -64,6 +70,7 @@ export function AntecedentesConsulta({
   disabled = false,
   saving = false,
   status = "",
+  error = "",
 }: {
   value: DatosAntecedentesConsulta;
   onChange: (value: DatosAntecedentesConsulta) => void;
@@ -71,11 +78,19 @@ export function AntecedentesConsulta({
   disabled?: boolean;
   saving?: boolean;
   status?: string;
+  error?: string;
 }) {
   const setCampo = (id: keyof DatosAntecedentesConsulta, dato: string) =>
     onChange({ ...value, [id]: dato });
   const resumen = (campos: { id: keyof DatosAntecedentesConsulta; etiqueta: string }[]) =>
     campos.filter((campo) => value[campo.id]?.trim()).map((campo) => `${campo.etiqueta}: ${value[campo.id]}`).join(" · ") || "Sin datos registrados";
+  const selector = (id: keyof DatosAntecedentesConsulta, opciones: readonly string[]) => (
+    <select value={value[id] || ""} disabled={disabled || saving} onChange={(event) => setCampo(id, event.target.value)}>
+      <option value="">Sin registrar</option>
+      {value[id] && !opciones.includes(value[id]) && <option value={value[id]}>{value[id]} (registro anterior)</option>}
+      {opciones.map((opcion) => <option key={opcion} value={opcion}>{opcion}</option>)}
+    </select>
+  );
 
   return (
     <details className="consulta-antecedentes-estructurados consulta-seguimiento-panel">
@@ -88,14 +103,7 @@ export function AntecedentesConsulta({
             {sociales.map((campo) => (
               <label key={campo.id}>
                 {campo.etiqueta}
-                <textarea
-                  rows={2}
-                  maxLength={5000}
-                  placeholder={campo.ejemplo}
-                  value={value[campo.id]}
-                  disabled={disabled || saving}
-                  onChange={(event) => setCampo(campo.id, event.target.value)}
-                />
+                {selector(campo.id, campo.opciones)}
               </label>
             ))}
           </div>
@@ -106,46 +114,22 @@ export function AntecedentesConsulta({
             {patologicos.map((campo) => (
               <label key={campo.id}>
                 {campo.etiqueta}
-                <select
-                  value={value[campo.id]}
-                  disabled={disabled || saving}
-                  onChange={(event) => setCampo(campo.id, event.target.value)}
-                >
-                  <option value="">Seleccionar</option>
-                  <option value="Sí">Sí</option>
-                  <option value="No">No</option>
-                </select>
+                {selector(campo.id, ["Sí", "No", "No refiere", "Desconocido"])}
               </label>
             ))}
             <label>
               Otro antecedente
-              <textarea
-                rows={2}
-                maxLength={5000}
-                value={value.otroPatologico}
-                disabled={disabled || saving}
-                onChange={(event) => setCampo("otroPatologico", event.target.value)}
-              />
+              {selector("otroPatologico", ["Sin otros antecedentes referidos", "Otro antecedente referido", "No refiere", "Desconocido"])}
             </label>
           </div>
         </details>
-        {([
-          ["quirurgicos", "Antecedentes quirúrgicos"],
-          ["alergicos", "Antecedentes alérgicos"],
-          ["familiares", "Antecedentes familiares"],
-        ] as const).map(([id, titulo]) => (
+        {gruposAdicionales.map(({ id, titulo, opciones }) => (
           <details key={id}>
             <summary><strong>{titulo}</strong><span>{value[id]?.trim() || "Sin datos registrados"}</span><Icon name="chevronRight" size={15} /></summary>
             <div className="consulta-antecedentes-campos">
               <label>
                 {titulo}
-                <textarea
-                  rows={2}
-                  maxLength={5000}
-                  value={value[id]}
-                  disabled={disabled || saving}
-                  onChange={(event) => setCampo(id, event.target.value)}
-                />
+                {selector(id, opciones)}
               </label>
             </div>
           </details>
@@ -153,6 +137,7 @@ export function AntecedentesConsulta({
       </div>
       <footer className="consulta-antecedentes-acciones">
         {status && <span role="status">{status}</span>}
+        {error && <span className="consulta-antecedentes-error" role="alert">{error}</span>}
         <button type="button" disabled={disabled || saving} onClick={onSave}>
           {saving ? "Guardando…" : "Guardar antecedentes"}
         </button>

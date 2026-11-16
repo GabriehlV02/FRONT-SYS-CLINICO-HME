@@ -104,6 +104,7 @@
   color: #167349;
   font-size: 12px;
 }
+.consulta-antecedentes-acciones .consulta-antecedentes-error { color: #a32b2b; }
 .consulta-antecedentes-acciones button {
   min-height: 38px;
   padding: 0 14px;

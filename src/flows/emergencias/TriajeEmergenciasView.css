@@ -3562,9 +3562,60 @@
   overflow-x: auto;
   padding: 1px 1px 5px;
 }
-.em-signos-vista-switch { display:flex; width:max-content; gap:4px; margin:12px 0; padding:4px; border:1px solid #b9ded8; border-radius:9px; background:#edf8f6; }
-.em-signos-vista-switch button { padding:7px 14px; border:0; border-radius:6px; color:#256d65; background:transparent; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
-.em-signos-vista-switch button.activo { color:#fff; background:#087f73; }
+
+.em-signos-vista-switch {
+  position: relative;
+  isolation: isolate;
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 230px;
+  max-width: 100%;
+  gap: 0;
+  margin: 14px 0;
+  padding: 5px;
+  border: 1px solid #cce5e8;
+  border-radius: 15px;
+  background: #eef7f8;
+  box-shadow: inset 0 1px 3px #205c6a08;
+  box-sizing: border-box;
+}
+.em-signos-vista-switch::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 5px auto 5px 5px;
+  width: calc((100% - 10px) / 2);
+  border-radius: 10px;
+  background: linear-gradient(125deg, #087f87, #069bb0);
+  box-shadow: 0 3px 8px #078a9a30, inset 0 1px #ffffff30;
+  transition: transform .22s cubic-bezier(.2,.8,.2,1);
+}
+.em-signos-vista-switch[data-vista="tabla"]::before { transform: translateX(100%); }
+.em-signos-vista-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  color: #4c747d;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: color .18s ease;
+}
+.em-signos-vista-switch button svg { flex-shrink: 0; }
+.em-signos-vista-switch button:hover:not(.activo) { color: #087f87; background: #ffffff50; }
+.em-signos-vista-switch button.activo { color: #fff; background: transparent; }
+.em-signos-vista-switch button:focus-visible { outline: 3px solid #60cbdc; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .em-signos-vista-switch::before, .em-signos-vista-switch button { transition: none; }
+}
+
 .em-signos-tabla-contenedor { max-width:100%; overflow:auto; border:1px solid #d7e8f2; border-radius:9px; background:#fff; }
 .em-signos-tabla { width:100%; border-collapse:collapse; color:#294d65; font-size:12px; }
 .em-signos-tabla th,.em-signos-tabla td { padding:11px 12px; border-bottom:1px solid #e4eef4; text-align:left; white-space:nowrap; }

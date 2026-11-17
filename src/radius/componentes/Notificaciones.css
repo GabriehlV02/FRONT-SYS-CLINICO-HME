@@ -193,87 +193,6 @@
   color: #fff;
   background: #425e78;
 }
-.confirmacion-modal.confirmacion-salida {
-  width: min(460px, 100%);
-  border: 1px solid #b9def0;
-  border-radius: 20px;
-  color: #174768;
-  box-shadow: 0 25px 80px #03416b40;
-}
-.confirmacion-salida header {
-  padding: 24px 24px 19px;
-  gap: 14px;
-  border-bottom-color: #deeff7;
-  background: linear-gradient(115deg, #effaff, #fff);
-}
-.confirmacion-salida header > span {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  border: 1px solid #bce7f5;
-  border-radius: 14px;
-  color: #008ac8;
-  background: #e1f5fe;
-}
-.confirmacion-salida header small {
-  color: #008bc3;
-  font-size: 10px;
-  letter-spacing: 0.1em;
-}
-.confirmacion-salida h3 {
-  margin-top: 6px;
-  font-size: 21px;
-  color: #16476a;
-}
-.confirmacion-salida header > button {
-  width: 34px;
-  height: 34px;
-  border-color: #c5e3f2;
-  color: #347292;
-  background: #fff;
-  cursor: pointer;
-}
-.confirmacion-salida .confirmacion-contenido {
-  padding: 23px 24px;
-}
-.confirmacion-salida .confirmacion-contenido > p {
-  color: #4d7088;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.confirmacion-salida footer {
-  padding: 0 24px 24px;
-  gap: 10px;
-  border: 0;
-  background: #fff;
-}
-.confirmacion-salida footer button {
-  min-height: 44px;
-  height: auto;
-  flex: 1;
-  padding: 10px 14px;
-  border-color: #b9daed;
-  border-radius: 10px;
-  color: #076a9d;
-  background: #f6fbff;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.confirmacion-salida footer .confirmar {
-  justify-content: center;
-  border-color: #078bc2;
-  color: #fff;
-  background: linear-gradient(110deg, #087bb9, #0cadd1);
-  box-shadow: 0 7px 16px #008ac526;
-}
-.confirmacion-salida footer button:hover {
-  filter: brightness(0.97);
-}
-.confirmacion-salida button:focus-visible {
-  outline: 3px solid #70d2ef;
-  outline-offset: 3px;
-}
 .confirmacion-modal.peligrosa header > span {
   color: #9a3e3e;
   background: #fae7e7;
@@ -287,157 +206,111 @@
 }
 
 /* Logout confirmation refinements. */
+
 .confirmacion-fondo-salida {
-  padding: 22px;
-  background: rgb(10 35 54 / 56%);
-  backdrop-filter: blur(9px) saturate(1.15);
+  padding: 24px;
+  background: rgb(15 32 48 / 44%);
+  backdrop-filter: blur(6px);
 }
-.confirmacion-salida {
+.confirmacion-modal.confirmacion-salida {
   position: relative;
-  width: min(520px, 100%) !important;
-  border: 1px solid rgb(255 255 255 / 78%) !important;
-  border-radius: 22px !important;
-  box-shadow:
-    0 32px 90px rgb(8 40 62 / 30%),
-    0 8px 24px rgb(8 55 82 / 12%) !important;
-}
-.confirmacion-salida::before {
-  position: absolute;
-  inset: 0 0 auto;
-  height: 4px;
-  content: "";
-  background: linear-gradient(90deg, #087fc0, #11afd0 55%, #6dd5dc);
+  width: min(440px, 100%);
+  overflow: hidden;
+  border: 1px solid #e2eaf0;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 24px 80px rgb(15 35 55 / 22%);
 }
 .confirmacion-salida header {
   position: relative;
-  padding: 26px 28px 22px;
-  gap: 16px;
-  border-bottom: 1px solid #e4f0f6;
-  background:
-    radial-gradient(ellipse at 92% 0%, #e5f8ff 0, transparent 46%),
-    linear-gradient(120deg, #f0faff, #fff 78%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 36px 32px 0;
+  border: 0;
+  text-align: center;
+  background: none;
 }
 .confirmacion-salida header > span {
-  width: 56px;
-  height: 56px;
-  border: 1px solid #bce9f7;
-  border-radius: 17px;
-  color: #078cc4;
-  background: linear-gradient(145deg, #e8f9ff, #d9f2fb);
-  box-shadow:
-    inset 0 1px #fff,
-    0 7px 18px rgb(8 137 190 / 10%);
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 1px solid #d4edf6;
+  border-radius: 20px;
+  background: #eef9fd;
+  color: #0787b7;
 }
+.confirmacion-salida header > span svg { width: 28px; height: 28px; }
 .confirmacion-salida header small {
-  color: #0788bc;
-  font-size: 9px;
-  letter-spacing: 0.14em;
+  color: #648094;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .14em;
 }
 .confirmacion-salida h3 {
-  margin-top: 6px;
-  color: #16476a;
-  font-size: 23px;
-  letter-spacing: -0.025em;
+  margin: 8px 0 0;
+  color: #193c51;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -.035em;
 }
 .confirmacion-salida header > button {
-  width: 38px;
-  height: 38px;
-  border-color: #d5e8f1;
-  color: #648196;
-  background: rgb(255 255 255 / 85%);
-  transition:
-    color 0.16s ease,
-    border-color 0.16s ease,
-    background 0.16s ease,
-    transform 0.16s ease;
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #7b8f9d;
 }
-.confirmacion-salida header > button:hover {
-  transform: translateY(-1px);
-  border-color: #9dcfe3;
-  color: #087db3;
-  background: #fff;
-}
-.confirmacion-salida .confirmacion-contenido {
-  padding: 26px 30px 22px;
-}
-.confirmacion-salida .confirmacion-contenido > p {
-  color: #4c6e85;
-  font-size: 15px;
-  line-height: 1.65;
-}
+.confirmacion-salida header > button:hover { background: #f0f5f8; color: #193c51; }
+.confirmacion-salida .confirmacion-contenido { padding: 18px 32px 28px; text-align: center; }
+.confirmacion-salida .confirmacion-contenido > p { margin: 0; color: #526c7d; font-size: 15px; line-height: 1.65; }
 .confirmacion-salida .confirmacion-contenido > div {
-  align-items: center;
-  margin-top: 18px;
-  padding: 11px 13px;
-  border-color: #deedf4;
-  border-radius: 10px;
-  color: #55758a;
-  background: #f6fbfe;
-  font-size: 11px;
-}
-.confirmacion-salida .confirmacion-contenido > div svg {
-  flex: 0 0 auto;
-  color: #168cbb;
-}
-.confirmacion-salida footer {
-  padding: 2px 30px 28px;
-  gap: 11px;
-}
-.confirmacion-salida footer button {
-  min-height: 48px;
-  border-radius: 11px;
+  display: block;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #7a8d9a;
   font-size: 13px;
-  transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    background 0.16s ease;
+  line-height: 1.6;
 }
-.confirmacion-salida footer button:hover {
-  transform: translateY(-1px);
+.confirmacion-salida .confirmacion-contenido > div svg { display: none; }
+.confirmacion-salida footer { display: flex; gap: 12px; padding: 0 28px 28px; border: 0; background: none; }
+.confirmacion-salida footer button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 10px 14px;
+  border: 1px solid #dce5ec;
+  border-radius: 12px;
+  background: #fff;
+  color: #496475;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, box-shadow .15s ease;
 }
-.confirmacion-salida footer .confirmar {
-  gap: 9px;
-  border-color: #0788bd;
-  background: linear-gradient(115deg, #087bb9, #0b9fc7);
-  box-shadow: 0 8px 18px rgb(0 138 197 / 19%);
+.confirmacion-salida footer button:hover { background: #f4f8fa; }
+.confirmacion-salida footer .confirmar { border-color: #0789b6; background: #0789b6; color: #fff; box-shadow: 0 4px 10px rgb(7 137 182 / 16%); }
+.confirmacion-salida footer .confirmar:hover { background: #06769e; border-color: #06769e; }
+.confirmacion-salida button:focus-visible { outline: 3px solid #7dd3ef; outline-offset: 3px; }
+@media (max-width: 480px) {
+  .confirmacion-fondo-salida { padding: 16px; }
+  .confirmacion-salida header { padding-top: 30px; }
+  .confirmacion-salida h3 { font-size: 24px; }
+  .confirmacion-salida footer { flex-direction: column-reverse; }
 }
-.confirmacion-salida footer .confirmar:hover {
-  background: linear-gradient(115deg, #066fa9, #078db7);
-  box-shadow: 0 10px 22px rgb(0 122 176 / 25%);
-}
-@media (max-width: 520px) {
-  .confirmacion-fondo-salida {
-    padding: 14px;
-  }
-  .confirmacion-salida {
-    border-radius: 18px !important;
-  }
-  .confirmacion-salida header {
-    padding: 22px 19px 18px;
-    gap: 12px;
-  }
-  .confirmacion-salida header > span {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-  }
-  .confirmacion-salida h3 {
-    font-size: 20px;
-  }
-  .confirmacion-salida .confirmacion-contenido {
-    padding: 21px 20px;
-  }
-  .confirmacion-salida .confirmacion-contenido > p {
-    font-size: 14px;
-  }
-  .confirmacion-salida footer {
-    padding: 0 20px 21px;
-  }
-  .confirmacion-salida footer button {
-    min-height: 45px;
-    padding-inline: 9px;
-    font-size: 12px;
-  }
+@media (prefers-reduced-motion: reduce) {
+  .confirmacion-modal.confirmacion-salida { animation: none; }
+  .confirmacion-salida button { transition: none; }
 }
 @keyframes modal-entrada {
   from {

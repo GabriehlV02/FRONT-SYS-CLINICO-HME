@@ -852,9 +852,7 @@
 .enfermeria-paciente-uci .enfermeria-balance-panel {
   display: none;
 }
-.enfermeria-paciente .enfermeria-evolucion-layout {
-  display: none;
-}
+
 
 .enfermeria-paciente .enfermeria-signos-panel {
   display: none;
@@ -876,10 +874,26 @@
 @media (max-width:620px) { .enfermeria-ingreso-controles .em-signos-formulario .em-form-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 .enfermeria-paciente:not(.enfermeria-paciente-uci) .enfermeria-ingreso-controles .enfermeria-signos-panel,
 .enfermeria-paciente:not(.enfermeria-paciente-uci) .enfermeria-ingreso-controles .enfermeria-balance-panel { display:grid; margin:0; }
-.enfermeria-paciente-flujo > .enfermeria-paciente-subvistas {
-  display: none;
-}
+
 
 .enfermeria-paciente-flujo > .enfermeria-reporte-panel {
   display: none;
+}
+
+.enfermeria-paciente-flujo > .enfermeria-paciente-subvistas { display:grid; gap:24px; padding:20px 0; background:#edf6fc; }
+.enfermeria-paciente-subvistas > .enfermeria-evolucion { padding:18px; border:1px solid #d4e5f0; border-radius:14px; background:#fff; }
+.enfermeria-paciente .enfermeria-evolucion-layout { display:grid; grid-template-columns:minmax(0, 1.8fr) minmax(280px, 1fr); gap:20px; }
+.enfermeria-paciente .enfermeria-evolucion-form { grid-template-columns:minmax(0, 1fr) minmax(200px, .43fr); padding:0; border:0; background:#fff; box-shadow:none; }
+.enfermeria-paciente .enfermeria-evolucion-texto { grid-column:1; grid-row:1 / 3; }
+.enfermeria-paciente .enfermeria-evolucion-fecha-hora { grid-column:2; grid-row:1; grid-template-columns:1fr; }
+.enfermeria-paciente .enfermeria-evolucion-acciones { grid-column:2; grid-row:2; }
+.enfermeria-atencion-seguimiento { display:grid; grid-template-columns:minmax(0, 1.8fr) minmax(280px, 1fr); gap:20px; align-items:stretch; }
+.enfermeria-atencion-seguimiento > * { min-width:0; margin:0; padding:18px; border:1px solid #d4e5f0; border-radius:14px; background:#fff; }
+.enfermeria-atencion-seguimiento .enfermeria-indicaciones { display:block; }
+@media(max-width:1000px) {
+  .enfermeria-paciente .enfermeria-evolucion-layout, .enfermeria-atencion-seguimiento { grid-template-columns:minmax(0,1fr); }
+}
+@media(max-width:600px) {
+  .enfermeria-paciente .enfermeria-evolucion-form { grid-template-columns:minmax(0,1fr); }
+  .enfermeria-paciente .enfermeria-evolucion-texto, .enfermeria-paciente .enfermeria-evolucion-fecha-hora, .enfermeria-paciente .enfermeria-evolucion-acciones { grid-column:1; grid-row:auto; }
 }

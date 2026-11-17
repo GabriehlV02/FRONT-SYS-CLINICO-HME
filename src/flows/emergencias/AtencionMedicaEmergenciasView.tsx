@@ -1209,7 +1209,7 @@ function AtencionPaciente({
     <div className="em-medica-atencion">
       <main key={`paneles-atencion-v2-${cuenta.id}`} className="em-trabajo">
         <div className="em-panel em-resumen em-medica-resumen">
-          <div className="em-resumen-identidad">
+          <div className="em-resumen-identidad em-ficha-paciente">
             <div className="em-identidad-fila">
               <div className="em-medica-identidad-paciente">
                 <div className="em-medica-identidad-etiqueta">

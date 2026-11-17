@@ -21,7 +21,7 @@ const unidadesDemo: UnidadMedida[] = [
 function leerUnidadesDemo(): UnidadMedida[] {
   try {
     const guardadas = localStorage.getItem(claveUnidadesDemo);
-    return guardadas ? JSON.parse(guardadas) as UnidadMedida[] : unidadesDemo;
+    const lista: unknown = guardadas ? JSON.parse(guardadas) : null; return Array.isArray(lista) && lista.every(x => x && typeof x.nombre === "string" && typeof x.abreviatura === "string") ? lista : unidadesDemo;
   } catch {
     return unidadesDemo;
   }

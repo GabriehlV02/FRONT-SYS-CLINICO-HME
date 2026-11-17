@@ -38,6 +38,8 @@ export function obtenerCitasAgendaDemo(): CitaAgendaDemo[] {
   } catch {
     guardadas = [];
   }
+  if (!Array.isArray(guardadas)) guardadas = [];
+  guardadas = guardadas.filter(cita => cita && typeof cita.id === "string" && typeof cita.pacienteId === "string");
   const pacientes = new Map(obtenerPacientes().map((paciente) => [paciente.id, paciente]));
   const actualizadas = guardadas
     .filter((cita) => pacientes.has(cita.pacienteId))

@@ -203,9 +203,9 @@ function GraficaEvolucionSignos({
           seleccionado{seleccionados.length === 1 ? "" : "s"}
         </span>
       </header>
-      <div className="em-signos-vista-switch" role="group" aria-label="Vista de las mediciones">
-        <button type="button" className={vistaSignos === "grafica" ? "activo" : ""} aria-pressed={vistaSignos === "grafica"} onClick={() => setVistaSignos("grafica")}>Gráfica</button>
-        <button type="button" className={vistaSignos === "tabla" ? "activo" : ""} aria-pressed={vistaSignos === "tabla"} onClick={() => setVistaSignos("tabla")}>Tabla</button>
+      <div className="em-signos-vista-switch" data-vista={vistaSignos} role="group" aria-label="Vista de las mediciones">
+        <button type="button" className={vistaSignos === "grafica" ? "activo" : ""} aria-pressed={vistaSignos === "grafica"} onClick={() => setVistaSignos("grafica")}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v16h16M7 14l4-5 4 3 5-7" /></svg><span>Gráfica</span></button>
+        <button type="button" className={vistaSignos === "tabla" ? "activo" : ""} aria-pressed={vistaSignos === "tabla"} onClick={() => setVistaSignos("tabla")}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 10h18M3 15h18M10 10v10"/></svg><span>Tabla</span></button>
       </div>
       <nav
         className="em-signos-selector"
@@ -1891,7 +1891,7 @@ export function TriajeEmergenciasView({
           ) : (
             <>
               <div className="em-panel em-resumen">
-                <div className="em-resumen-identidad">
+                <div className="em-resumen-identidad em-ficha-paciente">
                   <div className="em-identidad-fila">
                     <div>
                       <small>Paciente</small>

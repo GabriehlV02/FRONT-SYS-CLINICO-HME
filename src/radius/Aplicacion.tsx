@@ -1,3 +1,4 @@
+import { ErrorAplicacion } from "./componentes/ErrorAplicacion";
 ﻿import { esModoPruebaLocal } from "./datos/modoPrueba";
 import React, {
   Suspense,
@@ -371,10 +372,9 @@ type CirugiaProgramada = {
 const claveUbicacion = "clinico_ubicacion_activa_v1";
 const leerUbicacion = (): Record<string, string> => {
   try {
-    return JSON.parse(localStorage.getItem(claveUbicacion) || "{}") as Record<
-      string,
-      string
-    >;
+    const valor: unknown = JSON.parse(localStorage.getItem(claveUbicacion) || "{}");
+    if (!valor || typeof valor !== "object" || Array.isArray(valor)) return {};
+    return Object.fromEntries(Object.entries(valor).filter(([, dato]) => typeof dato === "string"));
   } catch {
     return {};
   }
@@ -1427,10 +1427,9 @@ export default function Aplicacion() {
   const cerrarSesion = async () => {
     const salir = await confirmar({
       titulo: "Cerrar sesión",
-      mensaje:
-        "¿Estás seguro de que quieres cerrar sesión del sistema clínico?",
-      textoConfirmar: "Sí, cerrar sesión",
-      detalle: "Necesitaras iniciar sesion nuevamente para volver a ingresar.",
+      mensaje: "¿Quieres salir del sistema clínico?",
+      textoConfirmar: "Cerrar sesión",
+      detalle: "Podrás volver a ingresar con tu usuario y contraseña.",
       variante: "salida",
     });
     if (!salir) return;
@@ -1923,6 +1922,7 @@ export default function Aplicacion() {
           onPointerDownCapture={replegarSidebarAlInteractuar}
           onFocusCapture={replegarSidebarAlInteractuar}
         >
+          <ErrorAplicacion local key={JSON.stringify([modulo, subvistaImagenologia, subvistaModalidad, subvistaAlmacenQuirofano, subvistaRecepcion, subvistaPacientes, subvistaConfiguracion, subvistaAtencionAgenda, subvistaTriajeAmbulatorio, subvistaMedicoInternacion, subvistaEnfermeraInternacion, subvistaTerapia])}>
           <Suspense
             fallback={
               <div className="modulo-vacio" role="status">
@@ -2827,6 +2827,7 @@ export default function Aplicacion() {
               </div>
             ) : null}
           </Suspense>
+          </ErrorAplicacion>
         </div>
       </section>
     </main>

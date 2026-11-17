@@ -1382,6 +1382,7 @@ export function CajaRecepcionView({
             <div className="punto-consulta-pagos">
               {pagosConsulta.map((pago, indice) => (
                 <div className="punto-consulta-pago" key={pago.id}>
+                  <div className="punto-consulta-pago-cabecera"><strong>Pago {indice + 1}</strong>{pagosConsulta.length > 1 && <button type="button" aria-label={`Quitar pago ${indice + 1}`} onClick={() => setPagosConsulta((actuales) => actuales.filter((actual) => actual.id !== pago.id))}>Quitar</button>}</div>
                   <label>Método de pago
                     <select value={pago.metodo} onChange={(evento) => setPagosConsulta((actuales) => actuales.map((actual) => actual.id === pago.id ? { ...actual, metodo: evento.target.value } : actual))}>
                       <option>Efectivo</option><option>QR</option><option>Tarjeta</option><option>Transferencia</option>
@@ -1390,12 +1391,11 @@ export function CajaRecepcionView({
                   <label>Monto (Bs)
                     <input type="number" min="0.01" step="0.01" value={pago.monto} placeholder={pagosConsulta.length === 1 ? String(serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId)?.precio || "0.00") : "0.00"} onChange={(evento) => setPagosConsulta((actuales) => actuales.map((actual) => actual.id === pago.id ? { ...actual, monto: evento.target.value } : actual))} />
                   </label>
-                  {pagosConsulta.length > 1 && <button type="button" aria-label={`Quitar pago ${indice + 1}`} onClick={() => setPagosConsulta((actuales) => actuales.filter((actual) => actual.id !== pago.id))}>×</button>}
                 </div>
               ))}
-              {pagosConsulta.length < 10 && <button type="button" className="punto-consulta-agregar-pago" onClick={() => setPagosConsulta((actuales) => [...actuales, { ...pagoNuevo(Date.now()), metodo: "QR" }])}>+ Añadir otro método de pago</button>}
+              {pagosConsulta.length < 10 && <button type="button" className="punto-consulta-agregar-pago" onClick={() => setPagosConsulta((actuales) => [...actuales, { ...pagoNuevo(Date.now()), metodo: "QR" }])}><span aria-hidden="true">+</span> Añadir otro método de pago</button>}
             </div>
-            <p className="punto-consulta-total"><span>Total a cobrar</span><strong>{dinero(serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId)?.precio || 0)}</strong></p>
+            <div className="punto-consulta-total"><div><span>Total a cobrar</span><small>Importe del servicio seleccionado</small></div><strong>{dinero(serviciosConsulta.find((servicio) => servicio.id === servicioConsultaId)?.precio || 0)}</strong></div>
             </fieldset>
             {errorCobroConsulta && <p role="alert">{errorCobroConsulta}{cobroConsultaPendiente && " La cita ya fue registrada. Reintenta el mismo cobro sin volver a agendar."}</p>}
             <footer>

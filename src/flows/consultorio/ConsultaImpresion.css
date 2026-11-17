@@ -54,17 +54,28 @@
 }
 .consulta-hojas {
   display: grid;
-  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
   padding: 20px;
 }
 .consulta-hoja {
+  min-width: 0;
   padding: 20px;
   border: 1px solid #bcddec;
-  border-top: 5px solid #078fc0;
-  border-radius: 9px;
+  border-top: 4px solid #078fc0;
+  border-radius: 0;
   background: #fff;
   color: #244d69;
 }
+.consulta-hoja + .consulta-hoja { border-left: 1px dashed #aac9d9; }
+.consulta-documento-cabecera { display: flex; align-items: center; gap: 12px; min-height: 58px; padding-bottom: 12px; border-bottom: 2px solid #087db8; }
+.consulta-documento-cabecera img { width: 110px; height: 55px; object-fit: contain; }
+.consulta-documento-cabecera div { min-width: 0; }
+.consulta-documento-cabecera span { color: #648398; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.consulta-hoja .consulta-documento-cabecera h2 { margin: 3px 0 0; font-size: 17px; line-height: 1.2; }
+.consulta-documento-paciente { display: grid; grid-template-columns: 1.3fr 1fr; gap: 9px 14px; margin: 12px 0; padding: 10px; background: #f2f8fc; border: 1px solid #dcebf3; border-radius: 6px; }
+.consulta-hoja .consulta-documento-paciente p { min-width: 0; font-size: 11px; line-height: 1.4; overflow-wrap: anywhere; }
+.consulta-documento-paciente strong { display: block; color: #648398; font-size: 9px; letter-spacing: .05em; text-transform: uppercase; }
 .consulta-hoja > span {
   color: #087fc0;
   font-size: 10px;
@@ -76,7 +87,9 @@
   color: #075b91;
 }
 .consulta-hoja h4 {
-  margin: 14px 0 4px;
+  margin: 16px 0 7px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #dcebf3;
   color: #075b91;
   font-size: 12px;
 }
@@ -92,13 +105,42 @@
   overflow: hidden;
 }
 .consulta-hoja-doble > div {
-  padding: 18px;
+  min-width: 0;
+  padding: 0 12px;
 }
+.consulta-hoja-doble > div:first-child { padding-left: 0; }
+.consulta-hoja-doble > div:last-child { padding-right: 0; }
 .consulta-hoja-doble > div + div {
   border-left: 1px solid #d5e8f2;
 }
+.consulta-hoja ul { margin: 6px 0; padding-left: 20px; font-size: 12px; line-height: 1.5; }
+.consulta-hoja li { margin-bottom: 5px; overflow-wrap: anywhere; }
+.consulta-hoja-firma { margin: 35px 0 0 auto; padding-top: 5px; width: min(220px, 70%); border-top: 1px solid #526b7b; text-align: center; font-size: 11px; color: #526b7b; }
+.consulta-hoja-sin-clasificar { padding: 12px 0; border-top: 1px solid #d5e8f2; }
 .consulta-impresion-modal > footer {
   border-top: 1px solid #cfe5f0;
+}
+@media print {
+  body:has(.consulta-impresion-fondo) { margin: 0 !important; padding: 0 !important; }
+  body:has(.consulta-impresion-fondo) #root { display: none !important; }
+  body:has(.consulta-impresion-fondo) .consulta-impresion-fondo { display: block !important; position: static; padding: 0; background: #fff; }
+  body:has(.consulta-impresion-fondo) .consulta-impresion-modal { width: auto; max-height: none; overflow: visible; border-radius: 0; box-shadow: none; background: #fff; }
+  body:has(.consulta-impresion-fondo) .consulta-impresion-modal > header,
+  body:has(.consulta-impresion-fondo) .consulta-impresion-modal > footer { display: none; }
+  body:has(.consulta-impresion-fondo) .consulta-hojas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; padding: 0; align-items: stretch; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja { box-sizing: border-box; display: flex; flex-direction: column; min-height: 190mm; padding: 3mm 6mm; border: 0; border-radius: 0; color: #000; break-after: auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja + .consulta-hoja { border-left: 1px dashed #a8a8a8; }
+  body:has(.consulta-impresion-fondo) .consulta-documento-cabecera img { width: 34mm; height: 17mm; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja .consulta-documento-cabecera h2 { font-size: 16pt; }
+  body:has(.consulta-impresion-fondo) .consulta-documento-paciente { margin: 5mm 0 3mm; padding: 3mm; gap: 3mm; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja .consulta-documento-paciente p,
+  body:has(.consulta-impresion-fondo) .consulta-hoja p,
+  body:has(.consulta-impresion-fondo) .consulta-hoja li { font-size: 10pt; line-height: 1.4; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja h4 { font-size: 11pt; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja-firma { margin-top: auto; padding-top: 2mm; font-size: 9pt; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja-doble { display: grid; grid-template-columns: 1fr 1fr; border: 0; overflow: visible; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja-doble > div { padding: 8px; }
+  body:has(.consulta-impresion-fondo) .consulta-hoja-doble > div + div { border-top: 0; border-left: 1px solid #999; }
 }
 .consulta-impresion-modal > footer button {
   min-height: 38px;
@@ -120,12 +162,7 @@
   }
   .consulta-hojas {
     padding: 12px;
+    grid-template-columns: minmax(0, 1fr);
   }
-  .consulta-hoja-doble {
-    grid-template-columns: 1fr;
-  }
-  .consulta-hoja-doble > div + div {
-    border-top: 1px solid #d5e8f2;
-    border-left: 0;
-  }
+  .consulta-hoja + .consulta-hoja { border-left: 1px solid #bcddec; border-top: 1px dashed #aac9d9; }
 }

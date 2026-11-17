@@ -268,26 +268,36 @@
   color: #668199;
   font-size: 11px;
 }
-.punto-consulta-total {
+.punto-consulta-campos .punto-consulta-total {
+  grid-column: 1 / -1;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 3px;
-  min-height: 44px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 68px;
   margin: 0;
-  padding: 8px 12px;
+  padding: 12px 16px;
   border: 1px solid #cce6f3;
   border-radius: 8px;
   background: #f0f9fd;
   color: #41627b;
   font-size: 12px;
 }
-.punto-consulta-total strong { color: #075d94; font-size: 17px; }
+.punto-consulta-total > div { display: grid; gap: 3px; }
+.punto-consulta-total span { font-weight: 700; color: #315d78; }
+.punto-consulta-total small { color: #6c8a9e; font-size: 11px; font-weight: 400; }
+.punto-consulta-total strong { color: #075d94; font-size: 20px; white-space: nowrap; }
 .punto-consulta-pagos { grid-column: 1 / -1; display: grid; gap: 10px; }
-.punto-consulta-pago { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+.punto-consulta-pago { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; align-items: end; padding: 13px; border: 1px solid #d8e9f2; border-radius: 10px; background: #f8fbfd; }
+.punto-consulta-pago-cabecera { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.punto-consulta-pago-cabecera strong { color: #075d94; font-size: 12px; }
+.punto-consulta-pago-cabecera button { border: 0; padding: 3px 0; background: transparent; color: #a04545; font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; }
 .punto-consulta-pago label { display: grid; gap: 6px; min-width: 0; color: #41627b; font-size: 12px; font-weight: 700; }
 .punto-consulta-pago > button { height: 44px; width: 44px; border: 1px solid #cbdde9; border-radius: 8px; background: #fff; color: #385b75; cursor: pointer; font-size: 20px; }
-.punto-consulta-agregar-pago { justify-self: start; border: 0; padding: 4px 0; background: transparent; color: #0078bb; font-size: 12px; font-weight: 700; cursor: pointer; }
+.punto-consulta-agregar-pago { justify-self: start; display: inline-flex; align-items: center; gap: 8px; border: 1px dashed #a8d2e8; border-radius: 8px; padding: 8px 11px; background: #fff; color: #0078bb; font-size: 12px; font-weight: 700; cursor: pointer; }
+.punto-consulta-agregar-pago span { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; background: #e8f6fc; font-size: 16px; line-height: 1; }
+.punto-consulta-agregar-pago:hover { background: #f1f9fd; border-color: #4aaad6; }
 .punto-consulta-buscador { position: relative; min-width: 0; }
 .punto-consulta-resultados { position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; right: 0; max-height: 200px; overflow-y: auto; border: 1px solid #cbdde9; border-radius: 8px; background: #fff; box-shadow: 0 8px 20px rgba(9, 44, 70, .16); }
 .punto-consulta-resultados button { display: block; width: 100%; padding: 10px 12px; border: 0; border-bottom: 1px solid #edf4f8; background: #fff; color: #173d5b; text-align: left; font: inherit; cursor: pointer; }
@@ -298,4 +308,5 @@
   .punto-consulta-campos { grid-template-columns: minmax(0, 1fr); }
   .punto-consulta-campos > :is(.punto-consulta-ancho, .punto-consulta-fecha, .punto-consulta-ayuda, [role="alert"], h4) { grid-column: auto; }
   .punto-consulta-pagos { grid-column: auto; }
+  .punto-consulta-campos .punto-consulta-total { grid-column: auto; }
 }

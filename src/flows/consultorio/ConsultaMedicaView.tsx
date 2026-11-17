@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import { fechaISOEnBolivia } from "../../utils/fechaBolivia";
 import Icon from "../../radius/componentes/Icono";
 import { HojaLaboratorios } from "./HojaLaboratorios";
 import type { CitaConfirmada } from "./AgendaAmbulatoriaView";
 import "./ConsultaMedicaView.css";
 import "./ConsultaImpresion.css";
+import estilosImpresion from "./ConsultaImpresion.css?inline";
 import {
   guardarSignosVitales,
   obtenerSignosVitales,
@@ -49,7 +51,7 @@ type DatosClinicos = {
   examenFisico: string;
 };
 type DiagnosticoConPlan = { id: string; diagnostico: string; planes: string[] };
-type AtencionGuardada = { version: number; finalizadaEn: string | null; contenido: { motivo: string; enfermedadActual: string; examenFisico: string; antecedentes: string; antecedentesEstructurados?: DatosAntecedentesConsulta; notas: string; diagnosticos: { diagnostico: string; planes: string[] }[]; revision: Record<string, string>; ordenes: string[] } };
+type AtencionGuardada = { version: number; finalizadaEn: string | null; contenido: { motivo: string; enfermedadActual: string; examenFisico: string; antecedentes: string; antecedentesEstructurados?: DatosAntecedentesConsulta; notas: string; diagnosticos: { diagnostico: string; planes: string[] }[]; revision: Record<string, string>; ordenes: string[]; documentos?: { ordenes?: DocumentoEpisodio[]; recetas?: DocumentoEpisodio[] } } };
 const titulosOrden: Record<TipoOrden, string> = {
   laboratorio: "laboratorio",
   imagenologia: "imagenología",
@@ -67,6 +69,37 @@ const seccionesConsulta: {
 ];
 type ItemCatalogoOrden = { id: string; codigo: string; nombre: string; tipo: string; categoria?: string; tipoServicio?: string; generico?: string; presentacion?: string };
 const normalizarBusquedaOrden = (texto: string) => texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
+async function imprimirDocumentosConsulta(contenido: HTMLElement): Promise<void> {
+  const marco = document.createElement("iframe");
+  marco.setAttribute("aria-hidden", "true");
+  Object.assign(marco.style, { position: "fixed", width: "1px", height: "1px", right: "0", bottom: "0", border: "0", opacity: "0" });
+  document.body.appendChild(marco);
+  const documento = marco.contentDocument;
+  const ventana = marco.contentWindow;
+  if (!documento || !ventana) { marco.remove(); throw new Error("No se pudo preparar el documento de impresión."); }
+  documento.open();
+  documento.write("<!doctype html><html lang='es'><head><meta charset='utf-8'><title>Documentos de consulta</title></head><body></body></html>");
+  documento.close();
+  const estilos = documento.createElement("style");
+  estilos.textContent = `@page { size: letter landscape; margin: 8mm; } ${estilosImpresion}`;
+  documento.head.appendChild(estilos);
+  const fondo = documento.createElement("div");
+  fondo.className = "consulta-impresion-fondo";
+  const modal = documento.createElement("section");
+  modal.className = "consulta-impresion-modal";
+  modal.appendChild(documento.importNode(contenido, true));
+  fondo.appendChild(modal);
+  documento.body.appendChild(fondo);
+  await Promise.all(Array.from(documento.images, (imagen) => imagen.complete ? Promise.resolve() : new Promise<void>((resolve) => {
+    imagen.addEventListener("load", () => resolve(), { once: true });
+    imagen.addEventListener("error", () => resolve(), { once: true });
+    window.setTimeout(resolve, 5000);
+  })));
+  ventana.addEventListener("afterprint", () => marco.remove(), { once: true });
+  ventana.focus();
+  ventana.print();
+  window.setTimeout(() => marco.remove(), 120000);
+}
 const coincideBusquedaOrden = (palabra: string, texto: string) => {
   if (texto.includes(palabra)) return true;
   if (palabra.length < 4) return false;
@@ -238,6 +271,8 @@ export function ConsultaMedicaView({
     Record<string, boolean>
   >({});
   const [vistaImpresionAbierta, setVistaImpresionAbierta] = useState(false);
+  const [errorImpresion, setErrorImpresion] = useState("");
+  const hojasImpresionRef = useRef<HTMLDivElement>(null);
   const [atencionServidor, setAtencionServidor] = useState<AtencionGuardada | null>(null);
   const [citaAtencionCargada, setCitaAtencionCargada] = useState("");
   const [errorAtencion, setErrorAtencion] = useState("");
@@ -483,6 +518,26 @@ export function ConsultaMedicaView({
     atencionesCerradas[paciente.ci] || atencionServidor?.finalizadaEn || episodioActual?.finalizadaEn,
   );
   const ordenesPaciente = ordenesMedicas[paciente.ci] ?? [];
+  const clasificarOrden = (detalle: string): string => {
+    const guardada = atencionServidor?.contenido.documentos?.ordenes?.find((orden) => orden.detalle === detalle);
+    if (guardada && ["Medicamento", "Laboratorio", "Imagenología"].includes(guardada.tipo)) return guardada.tipo;
+    if (/ — Cada \d+ horas durante \d+ días$/.test(detalle)) return "Medicamento";
+    const item = catalogoOrdenesMedicas.find((entrada) => entrada.nombre === detalle);
+    if (!item) return "Sin clasificar";
+    if (item.tipo === "producto") return "Medicamento";
+    const categoria = normalizarBusquedaOrden(`${item.categoria || ""} ${item.tipoServicio || ""}`);
+    if (/laboratorio/.test(categoria)) return "Laboratorio";
+    if (/imagen|radiolog|ecograf|tomograf|resonancia/.test(categoria)) return "Imagenología";
+    return "Sin clasificar";
+  };
+  const ordenesImpresion = ordenesPaciente.map((detalle) => ({ tipo: clasificarOrden(detalle), detalle }));
+  const medicamentosImpresion = ordenesImpresion.filter((orden) => orden.tipo === "Medicamento");
+  const laboratoriosImpresion = ordenesImpresion.filter((orden) => orden.tipo === "Laboratorio");
+  const imagenesImpresion = ordenesImpresion.filter((orden) => orden.tipo === "Imagenología");
+  const ordenesSinClasificar = ordenesImpresion.filter((orden) => orden.tipo === "Sin clasificar");
+  const documentosOrdenes = atencionServidor?.contenido.documentos?.ordenes ?? [];
+  const laboratoriosDocumento = [...new Set([laboratoriosElegidos, ...documentosOrdenes.filter((orden) => orden.tipo === "Laboratorio" && !ordenesPaciente.includes(orden.detalle)).map((orden) => orden.detalle)].filter(Boolean))];
+  const recetasDocumento = atencionServidor?.contenido.documentos?.recetas ?? episodioActual?.recetas ?? [];
   const diagnosticosPaciente =
     diagnosticosFinales[paciente.ci] ??
     (episodioActual?.diagnosticos ?? []).map((item, indice) => ({
@@ -642,6 +697,8 @@ export function ConsultaMedicaView({
       recetas: episodioActual?.recetas ?? [],
       ordenes: [
         ...(episodioActual?.ordenes ?? []),
+        ...documentosOrdenes.filter((orden) => orden.tipo === "Laboratorio" && orden.estado === "Solicitado" && orden.detalle !== laboratoriosElegidos),
+        ...ordenesImpresion.map((orden) => ({ ...orden, estado: "Registrado" })),
         ...(laboratoriosElegidos ? [{ tipo: "Laboratorio", detalle: laboratoriosElegidos, estado: "Solicitado" }] : []),
         ...(tipoOrden && tipoOrden !== "laboratorio" && detalleOrden.trim()
           ? [{ tipo: titulosOrden[tipoOrden], detalle: detalleOrden.trim(), estado: "Solicitado" }]
@@ -672,7 +729,7 @@ export function ConsultaMedicaView({
       setAtencionServidor(resultado.data);
       try { guardarEnHistoria(false); } catch (error) { console.error("No se pudo actualizar la copia local de la atención", error); }
       if (seccionGuardar === "antecedentes") setMensajeAntecedentes("Antecedentes guardados.");
-      else setMensajeOrdenes("Órdenes guardadas en la consulta.");
+      else { setMensajeOrdenes("Órdenes guardadas en la consulta."); setVistaImpresionAbierta(true); }
     } catch (error) {
       const mensaje = error instanceof TypeError
         ? "Se interrumpió la conexión. Revisa la conexión y vuelve a guardar."
@@ -1495,6 +1552,9 @@ export function ConsultaMedicaView({
         {seccion === "tratamientos" && (
           <RecetarioMedico
             paciente={paciente}
+            consultas={[...consultasAnteriores, ...(atencionServidor ? [{ citaId: String(paciente.id), fecha: paciente.fecha, hora: paciente.hora, medico: paciente.doctor || medico, especialidad: paciente.especialidad, contenido: atencionServidor.contenido }] : [])]}
+            cargandoHistorial={cargandoHistorial}
+            errorHistorial={errorHistorial}
             medico={
               paciente.doctor && paciente.doctor !== "Agenda ambulatoria"
                 ? paciente.doctor
@@ -1506,20 +1566,21 @@ export function ConsultaMedicaView({
             onGuardar={guardarReceta}
           />
         )}
-        {vistaImpresionAbierta && (
+        {vistaImpresionAbierta && createPortal(
           <div className="consulta-impresion-fondo" role="presentation">
+            <style media="print">{"@page { size: letter landscape; margin: 8mm; }"}</style>
             <section
               className="consulta-impresion-modal"
               role="dialog"
               aria-modal="true"
-              aria-label="Vista previa de historia clínica"
+              aria-label="Vista previa de receta y órdenes"
             >
               <header>
                 <div>
-                  <p>ATENCIÓN FINALIZADA</p>
+                  <p>DOCUMENTOS DE LA CONSULTA</p>
                   <h3>Vista previa de impresión</h3>
                   <small>
-                    Historia clínica y documentos asociados a la consulta.
+                    Carta horizontal, dividida en dos medias cartas: receta y órdenes de estudios.
                   </small>
                 </div>
                 <button
@@ -1530,70 +1591,42 @@ export function ConsultaMedicaView({
                   ×
                 </button>
               </header>
-              <div className="consulta-hojas">
-                <article className="consulta-hoja">
-                  <span>HOJA 1 · HISTORIA CLÍNICA</span>
-                  <h2>{paciente.paciente}</h2>
-                  <small>
-                    CI {paciente.ci} · {paciente.especialidad} ·{" "}
-                    {paciente.fecha} {paciente.hora}
-                  </small>
-                  <h4>Anamnesis</h4>
-                  <p>{antecedentes[paciente.ci] || "Sin registro."}</p>
-                  <h4>Signos vitales</h4>
-                  <p>
-                    {camposConResultado
-                      .map(
-                        ({ id, etiqueta, unidad }) =>
-                          `${etiqueta}: ${datos[id] || "—"}${unidad ? " " + unidad : ""}`,
-                      )
-                      .join(" · ") || "Sin registro."}
-                  </p>
-                  <h4>Diagnósticos y plan médico</h4>
-                  {diagnosticosPaciente
-                    .filter((item) => item.diagnostico)
-                    .map((item) => (
-                      <p key={item.id}>
-                        <strong>{item.diagnostico}.</strong>{" "}
-                        {item.planes.filter(Boolean).join(" · ")}
-                      </p>
-                    ))}
+              <div className="consulta-hojas" ref={hojasImpresionRef}>
+                <article className="consulta-hoja consulta-hoja-receta">
+                  <header className="consulta-documento-cabecera"><img src="/logo-hospital-original.png" alt="Hospital María Esperanza" /><div><span>Consulta médica</span><h2>Receta médica</h2></div></header>
+                  <div className="consulta-documento-paciente"><p><strong>Paciente</strong>{paciente.paciente}</p><p><strong>CI</strong>{paciente.ci}</p><p><strong>Fecha</strong>{paciente.fecha.split("-").reverse().join("/")}</p><p><strong>Médico</strong>{paciente.doctor || medico}</p></div>
+                  <h4>Medicamentos e indicaciones</h4>
+                  {medicamentosImpresion.length || recetasDocumento.length ? <ul>
+                    {medicamentosImpresion.map((orden) => <li key={orden.detalle}>{orden.detalle}</li>)}
+                    {recetasDocumento.flatMap((documento) => documento.receta?.medicamentos ?? []).map((medicamento, indice) => <li key={`${medicamento.id}-${indice}`}><strong>{medicamento.nombre}</strong>{[medicamento.dosis, medicamento.via, medicamento.frecuencia, medicamento.duracion, medicamento.cantidad, medicamento.indicaciones].filter(Boolean).join(" · ") && ` — ${[medicamento.dosis, medicamento.via, medicamento.frecuencia, medicamento.duracion, medicamento.cantidad, medicamento.indicaciones].filter(Boolean).join(" · ")}`}</li>)}
+                  </ul> : <p>Sin medicamentos registrados.</p>}
+                  <div className="consulta-hoja-firma">Firma y sello del médico</div>
                 </article>
-                <article className="consulta-hoja consulta-hoja-doble">
-                  <div>
-                    <span>HOJA 2 · ORDEN DE IMAGENOLOGÍA</span>
-                    <h4>Estudios solicitados</h4>
-                    <p>{detalleOrden || "Sin orden de imagenología."}</p>
+                <article className="consulta-hoja consulta-hoja-estudios">
+                  <header className="consulta-documento-cabecera"><img src="/logo-hospital-original.png" alt="Hospital María Esperanza" /><div><span>Consulta médica</span><h2>Órdenes de estudios</h2></div></header>
+                  <div className="consulta-documento-paciente"><p><strong>Paciente</strong>{paciente.paciente}</p><p><strong>CI</strong>{paciente.ci}</p><p><strong>Fecha</strong>{paciente.fecha.split("-").reverse().join("/")}</p><p><strong>Médico</strong>{paciente.doctor || medico}</p></div>
+                  <div className="consulta-hoja-doble">
+                    <div><h4>Laboratorio</h4>{laboratoriosImpresion.length || laboratoriosDocumento.length ? <ul>{laboratoriosImpresion.map((orden) => <li key={orden.detalle}>{orden.detalle}</li>)}{laboratoriosDocumento.map((detalle) => <li key={detalle}>{detalle}</li>)}</ul> : <p>Sin laboratorios registrados.</p>}</div>
+                    <div><h4>Imagenología</h4>{imagenesImpresion.length ? <ul>{imagenesImpresion.map((orden) => <li key={orden.detalle}>{orden.detalle}</li>)}</ul> : <p>Sin estudios de imagenología registrados.</p>}</div>
                   </div>
-                  <div>
-                    <span>HOJA 2 · RECETARIO</span>
-                    <h4>Indicaciones médicas</h4>
-                    <p>
-                      {ordenesPaciente.length
-                        ? ordenesPaciente.join(" · ")
-                        : "Sin recetas o indicaciones registradas."}
-                    </p>
-                  </div>
-                </article>
-                <article className="consulta-hoja">
-                  <span>REVERSO · ORDEN DE LABORATORIO</span>
-                  <h4>Laboratorio solicitado</h4>
-                  <p>{laboratoriosElegidos || "Sin orden de laboratorio."}</p>
+                  {ordenesSinClasificar.length > 0 && <div className="consulta-hoja-sin-clasificar"><h4>Órdenes por clasificar</h4><p>Verifica el tipo de estas órdenes antes de emitirlas:</p><ul>{ordenesSinClasificar.map((orden) => <li key={orden.detalle}>{orden.detalle}</li>)}</ul></div>}
+                  <div className="consulta-hoja-firma">Firma y sello del médico</div>
                 </article>
               </div>
               <footer>
+                {errorImpresion && <small role="alert">{errorImpresion}</small>}
                 <button
                   type="button"
                   onClick={() => setVistaImpresionAbierta(false)}
                 >
                   Cerrar
                 </button>
-                <button type="button" onClick={() => window.print()}>
+                <button type="button" onClick={() => { setErrorImpresion(""); if (hojasImpresionRef.current) void imprimirDocumentosConsulta(hojasImpresionRef.current).catch(() => setErrorImpresion("No se pudo preparar la impresión. Intenta nuevamente.")); }}>
                   <Icon name="fileText" size={16} /> Imprimir documentos
                 </button>
               </footer>
             </section>
-          </div>
+          </div>, document.body
         )}
       </section>
     </section>

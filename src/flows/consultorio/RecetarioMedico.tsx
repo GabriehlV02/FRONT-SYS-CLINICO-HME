@@ -12,6 +12,7 @@ import type { CitaConfirmada } from "./AgendaAmbulatoriaView";
 import "./RecetarioMedico.css";
 import { abrirImpresionReceta, imprimirReceta } from "./imprimirReceta";
 import { apiFetch } from "../../radius/api";
+import type { ConsultaPrevia } from "./ventanaConsultaPrevia";
 
 const nuevoMedicamento = (): MedicamentoReceta => ({
   id: crypto.randomUUID(),
@@ -31,6 +32,9 @@ export function RecetarioMedico({
   onCerrar,
   onGuardar,
   medicamentosIniciales = [],
+  consultas = [],
+  cargandoHistorial = false,
+  errorHistorial = "",
 }: {
   paciente: CitaConfirmada;
   medico: string;
@@ -39,20 +43,47 @@ export function RecetarioMedico({
   onCerrar: () => void;
   onGuardar: (receta: DocumentoEpisodio) => void;
   medicamentosIniciales?: MedicamentoReceta[];
+  consultas?: ConsultaPrevia[];
+  cargandoHistorial?: boolean;
+  errorHistorial?: string;
 }) {
   const episodios = useSyncExternalStore(suscribirEpisodios, obtenerEpisodios);
-  const recetas = episodios
-    .filter((e) => e.paciente.ci === paciente.ci)
+  const recetasServidor = consultas.flatMap((consulta) => {
+    const documentos = consulta.contenido.documentos;
+    const recetasAtencion = (documentos?.recetas ?? []).map((receta, indice) => ({
+      receta,
+      fecha: receta.receta?.fecha || receta.fecha || consulta.fecha,
+      medico: receta.medico || consulta.medico,
+      id: `consulta-${consulta.citaId}-receta-${receta.receta?.id || indice}`,
+      citaId: consulta.citaId,
+    }));
+    const medicamentos = [...new Set([
+      ...(documentos?.ordenes ?? []).filter((orden) => orden.tipo === "Medicamento").map((orden) => orden.detalle),
+      ...(consulta.contenido.ordenes ?? []).filter((orden) => / — Cada \d+ horas durante \d+ días$/.test(orden)),
+    ])];
+    if (medicamentos.length) recetasAtencion.push({
+      receta: { tipo: "Medicamentos registrados en consulta", detalle: medicamentos.join("\n"), estado: "Registrados" },
+      fecha: consulta.fecha,
+      medico: consulta.medico,
+      id: `consulta-${consulta.citaId}-medicamentos`,
+      citaId: consulta.citaId,
+    });
+    return recetasAtencion;
+  });
+  const recetasLocales = episodios
+    .filter((e) => paciente.pacienteId && e.paciente.pacienteId ? e.paciente.pacienteId === paciente.pacienteId : e.paciente.ci === paciente.ci)
     .flatMap((e) =>
       e.recetas.map((receta, indice) => ({
         receta,
         fecha: receta.receta?.fecha || receta.fecha || e.fecha,
         medico: receta.medico || e.medico,
         id: receta.receta?.id || `${e.episodioId}-${indice}`,
+        citaId: String(e.paciente.id),
       })),
-    )
-    .reverse();
+    );
+  const recetas = [...recetasServidor, ...recetasLocales.filter((local) => !recetasServidor.some((servidor) => servidor.citaId === local.citaId && (local.receta.receta?.id ? servidor.receta.receta?.id === local.receta.receta.id : servidor.receta.detalle === local.receta.detalle)))].sort((a, b) => b.fecha.localeCompare(a.fecha));
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
+  const recetaSeleccionada = recetas.find((item) => item.id === seleccionada);
   const [mensaje, setMensaje] = useState("");
   const [errorImpresion, setErrorImpresion] = useState("");
   const reimprimir = (
@@ -95,55 +126,26 @@ export function RecetarioMedico({
         </p>
       )}
       {mensaje && <AvisoTemporal mensaje={mensaje} />}
+      {errorHistorial && <p className="receta-error" role="alert">{errorHistorial}</p>}
+      {cargandoHistorial && <p role="status">Cargando recetas de consultas anteriores...</p>}
       {recetas.length ? (
-        <div className="recetario-listado">
-          {recetas.map((item) => (
-            <article key={item.id}>
-              <div>
-                <span>{item.receta.estado || "Registrada"}</span>
-                <h4>{item.receta.tipo}</h4>
-                <small>
-                  {item.fecha.includes("T")
-                    ? new Date(item.fecha).toLocaleString("es-BO")
-                    : item.fecha}{" "}
-                  · {item.medico}
-                </small>
-                <p>
-                  {item.receta.receta
-                    ? `${item.receta.receta.medicamentos.length} medicamento(s)`
-                    : item.receta.detalle}
-                </p>
-              </div>
-              <div className="recetario-fila-acciones">
-                <button
-                  type="button"
-                  onClick={() =>
-                    reimprimir(item.receta, item.fecha, item.medico)
-                  }
-                >
-                  <Icon name="print" size={15} /> Reimprimir
-                </button>
-                <button
-                  type="button"
-                  aria-expanded={seleccionada === item.id}
-                  onClick={() =>
-                    setSeleccionada((actual) =>
-                      actual === item.id ? null : item.id,
-                    )
-                  }
-                >
-                  {seleccionada === item.id ? "Ocultar" : "Ver receta"}
-                </button>
-              </div>
-              {seleccionada === item.id && (
-                <div className="recetario-detalle">
-                  <p>{item.receta.detalle}</p>
-                </div>
-              )}
-            </article>
-          ))}
+        <div className="recetario-paneles">
+          <div className="recetario-panel-lista" aria-label="Recetas registradas">
+            <div className="recetario-panel-titulo"><strong>Recetas registradas</strong><span>{recetas.length}</span></div>
+            {recetas.map((item) => <button key={item.id} type="button" className="recetario-seleccion" aria-pressed={seleccionada === item.id} onClick={() => setSeleccionada(item.id)}>
+              <span><strong>{item.fecha.includes("T") ? new Date(item.fecha).toLocaleString("es-BO", { timeZone: "America/La_Paz" }) : item.fecha.split("-").reverse().join("/")}</strong><small>{item.receta.tipo}</small><small>Médico: {item.medico || "Sin registrar"}</small></span>
+              <Icon name="chevronRight" size={16} />
+            </button>)}
+          </div>
+          {recetaSeleccionada ? <section className="recetario-panel-vista" aria-label="Detalle de la receta seleccionada">
+            <header><div><small>RECETARIO MÉDICO · SOLO LECTURA</small><h3>{recetaSeleccionada.receta.tipo}</h3><p>{recetaSeleccionada.fecha.includes("T") ? new Date(recetaSeleccionada.fecha).toLocaleString("es-BO", { timeZone: "America/La_Paz" }) : recetaSeleccionada.fecha.split("-").reverse().join("/")} · {recetaSeleccionada.medico}</p></div><button type="button" onClick={() => reimprimir(recetaSeleccionada.receta, recetaSeleccionada.fecha, recetaSeleccionada.medico)}><Icon name="print" size={15} /> Reimprimir</button></header>
+            <div className="recetario-panel-contenido"><h4>Medicamentos e indicaciones</h4>
+              {recetaSeleccionada.receta.receta?.medicamentos.length ? <ul>{recetaSeleccionada.receta.receta.medicamentos.map((medicamento, indice) => <li key={`${medicamento.id}-${indice}`}><strong>{medicamento.nombre}</strong><p>{[["Dosis", medicamento.dosis], ["Vía", medicamento.via], ["Frecuencia", medicamento.frecuencia], ["Duración", medicamento.duracion], ["Cantidad", medicamento.cantidad], ["Indicaciones", medicamento.indicaciones]].filter(([, valor]) => valor).map(([etiqueta, valor]) => `${etiqueta}: ${valor}`).join(" · ")}</p></li>)}</ul> : <p className="recetario-panel-texto">{recetaSeleccionada.receta.detalle || "Sin indicaciones registradas."}</p>}
+              {recetaSeleccionada.receta.receta?.indicaciones && <p className="recetario-panel-texto"><strong>Indicaciones generales:</strong> {recetaSeleccionada.receta.receta.indicaciones}</p>}
+            </div>
+          </section> : <div className="recetario-panel-vacio"><Icon name="fileText" size={28} /><strong>Selecciona una receta</strong><small>Elige una receta de la lista para ver su contenido.</small></div>}
         </div>
-      ) : (
+      ) : !cargandoHistorial && !errorHistorial ? (
         <div className="recetario-vacio">
           <Icon name="fileText" size={32} />
           <h4>Este paciente aún no tiene recetas</h4>
@@ -154,7 +156,7 @@ export function RecetarioMedico({
             Crear primera receta
           </button>
         </div>
-      )}
+      ) : null}
       {abierto && (
         <NuevaReceta
           key={paciente.ci}

@@ -19,7 +19,7 @@ const serviciosDemo: ServicioSignos[] = [
 function leerServiciosDemo(): ServicioSignos[] {
   try {
     const guardados = localStorage.getItem(claveDemo);
-    return guardados ? JSON.parse(guardados) as ServicioSignos[] : serviciosDemo;
+    const lista: unknown = guardados ? JSON.parse(guardados) : null; return Array.isArray(lista) && lista.every(x => x && typeof x.nombre === "string" && Array.isArray(x.signos)) ? lista : serviciosDemo;
   } catch {
     return serviciosDemo;
   }

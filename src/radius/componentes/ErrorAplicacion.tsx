@@ -1,36 +1,23 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-
-type Estado = { fallo: boolean };
-
-export class ErrorAplicacion extends Component<{ children: ReactNode }, Estado> {
-  state: Estado = { fallo: false };
-
-  static getDerivedStateFromError(): Estado {
-    return { fallo: true };
-  }
-
-  componentDidCatch(error: Error, informacion: ErrorInfo) {
-    console.error("No se pudo mostrar la aplicación clínica.", error, informacion.componentStack);
-  }
-
+import "./ErrorAplicacion.css";
+export class ErrorAplicacion extends Component<{ children: ReactNode; local?: boolean }, { fallo: boolean }> {
+  state = { fallo: false };
+  static getDerivedStateFromError() { return { fallo: true }; }
+  componentDidCatch(error: Error, info: ErrorInfo) { console.error("Error en la vista clínica", error, info.componentStack); }
   render() {
     if (!this.state.fallo) return this.props.children;
-
-    return (
-      <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, background: "#edf6fc", color: "#173d5b", fontFamily: "sans-serif" }}>
-        <section role="alert" style={{ maxWidth: 480, padding: 28, border: "1px solid #c9dfed", borderRadius: 12, background: "white" }}>
-          <h1 style={{ fontSize: 20 }}>No se pudo mostrar el sistema clínico</h1>
-          <p>Intenta recargar la página. Si el problema continúa, vuelve a iniciar sesión.</p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-            <button type="button" onClick={() => window.location.reload()}>Recargar</button>
-            <button type="button" onClick={() => {
-              sessionStorage.removeItem("pulso_session");
-              localStorage.removeItem("pulso_session");
-              window.location.reload();
-            }}>Volver a iniciar sesión</button>
-          </div>
-        </section>
-      </main>
-    );
+    return <div className={`error-clinico ${this.props.local ? "error-clinico-local" : ""}`}>
+      <section className="error-clinico-tarjeta" role="alert">
+        <span className="error-clinico-icono" aria-hidden="true">!</span>
+        <p className="error-clinico-etiqueta">SISTEMA CLÍNICO</p>
+        <h1>Esta vista no pudo cargarse</h1>
+        <p>Puedes intentarlo de nuevo.{this.props.local ? " También puedes abrir otra sección desde el menú." : " Si el problema continúa, recarga la página."}</p>
+        <div className="error-clinico-acciones">
+          <button type="button" className="error-clinico-primario" onClick={() => this.setState({ fallo: false })}>Intentar de nuevo</button>
+          <button type="button" onClick={() => window.location.reload()}>Recargar página</button>
+        </div>
+        <small>Recargar puede descartar los cambios que aún no hayas guardado.</small>
+      </section>
+    </div>;
   }
 }

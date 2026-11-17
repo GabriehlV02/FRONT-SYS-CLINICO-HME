@@ -181,3 +181,81 @@
 }
 .sistema-app .em-trabajo > .em-resumen .em-total-consumido small { color: #617e92; font-weight: 600; }
 .sistema-app .em-trabajo > .em-resumen .em-total-consumido strong { letter-spacing: -.02em; }
+
+/* Patient identity: clear hierarchy shared by triage and medical care. */
+.sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad.em-ficha-paciente {
+  height: auto;
+  align-content: center;
+  gap: 16px;
+  padding-block: 12px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila {
+  gap: 20px;
+  align-items: start;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila small {
+  color: #6a8294;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila strong {
+  color: #284d63;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:first-child {
+  padding-left: 14px;
+  border-left: 3px solid #1096bf;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:first-child strong {
+  font-size: clamp(18px, 1.5vw, 23px);
+  font-weight: 700;
+  color: #153e57;
+  letter-spacing: -.025em;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila-familiar {
+  padding-top: 12px;
+  border-top: 1px solid #eaf0f4;
+  gap: 20px;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores > div {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #deedf4;
+  border-radius: 9px;
+  background: #f3f9fc;
+}
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores strong {
+  color: #087fa8;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.sistema-app .em-trabajo > .em-resumen:has(> .em-ficha-paciente) {
+  height: auto;
+  min-height: 176px;
+}
+@media (max-width: 600px) {
+  .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:first-child { grid-column: 1 / -1; }
+  .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores { gap: 8px; }
+}

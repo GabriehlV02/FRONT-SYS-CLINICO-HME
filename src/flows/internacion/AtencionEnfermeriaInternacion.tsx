@@ -1,3 +1,5 @@
+import { InsumosEnfermeriaPanel } from "../emergencias/InsumosEnfermeriaPanel";
+import "../emergencias/TriajeEmergenciasView.css";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
 import {
@@ -252,9 +254,7 @@ export function AtencionEnfermeriaInternacion({
       hora: `${String(ahora.getHours()).padStart(2, "0")}:${String(ahora.getMinutes()).padStart(2, "0")}`,
     };
   };
-  const [subvista, setSubvista] = useState<"evolucion" | "indicaciones">(
-    "evolucion",
-  );
+
   const [seccionPaciente, setSeccionPaciente] = useState<"ingreso" | "atencion" | "reportes">("ingreso");
   const [evoluciones, setEvoluciones] = useState<EvolucionEnfermeriaInternacion[]>(() => leerEvolucionesEnfermeriaInternacion(paciente.id));
   const [textoEvolucion, setTextoEvolucion] = useState("");
@@ -314,7 +314,7 @@ export function AtencionEnfermeriaInternacion({
   const indicacionesLaboratorio = solicitudesLaboratorio.filter(
     (solicitud) =>
       solicitud.origen === "internacion" &&
-      solicitud.ci.trim() === paciente.ci.trim(),
+      Boolean(paciente.ci?.trim()) && solicitud.ci?.trim() === paciente.ci.trim(),
   );
   useEffect(() => {
     titulo.current?.focus();
@@ -573,8 +573,6 @@ export function AtencionEnfermeriaInternacion({
         </nav>
         {seccionPaciente === "ingreso" && unidad !== "uci" && (
           <section className="enfermeria-ingreso-controles" aria-label="Signos vitales y balance h?drico">
-            {panelSignos}
-            {panelBalance}
           </section>
         )}
         {seccionPaciente === "reportes" && (
@@ -595,24 +593,6 @@ export function AtencionEnfermeriaInternacion({
         )}
         {seccionPaciente === "atencion" && <section className="enfermeria-paciente-subvistas">
         {errorLaboratorio && <p role="alert">{errorLaboratorio}</p>}
-        <nav aria-label="Información clínica del paciente">
-          <button
-            type="button"
-            className={subvista === "evolucion" ? "activa" : ""}
-            onClick={() => setSubvista("evolucion")}
-          >
-            <Icon name="fileText" size={16} /> Evolución del paciente
-          </button>
-          <button
-            type="button"
-            className={subvista === "indicaciones" ? "activa" : ""}
-            onClick={() => setSubvista("indicaciones")}
-          >
-            <Icon name="lab" size={16} /> Indicaciones médicas{" "}
-            <b>{indicacionesLaboratorio.length}</b>
-          </button>
-        </nav>
-        {subvista === "evolucion" && (
           <section className="enfermeria-evolucion">
             <div className="enfermeria-evolucion-layout">
               <form className="enfermeria-evolucion-form" onSubmit={guardarEvolucion}>
@@ -676,8 +656,6 @@ export function AtencionEnfermeriaInternacion({
                 )}
               </aside>
             </div>
-            {panelSignos}
-            {panelBalance}
             {evolucionEnVista && (
               <div className="enfermeria-evolucion-modal-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setEvolucionEnVista(null); }}>
                 <section className="enfermeria-evolucion-modal" role="dialog" aria-modal="true" aria-labelledby="enfermeria-evolucion-modal-titulo">
@@ -688,8 +666,22 @@ export function AtencionEnfermeriaInternacion({
               </div>
             )}
           </section>
-        )}
-        {subvista === "indicaciones" && (
+          <div className="enfermeria-atencion-seguimiento">
+            <InsumosEnfermeriaPanel onUtilizar={async (item, cantidad) => {
+              try {
+                guardarEvolucionEnfermeriaInternacion(paciente.id, {
+                  texto: `Insumo utilizado: ${item.nombre}. Cantidad: ${cantidad} ${item.unidad}.`,
+                  ...fechaHoraActual(),
+                });
+                setEvoluciones(leerEvolucionesEnfermeriaInternacion(paciente.id));
+                setErrorEvolucion("");
+                return true;
+              } catch {
+                setErrorEvolucion("No se pudo registrar el insumo. Intenta nuevamente.");
+                return false;
+              }
+            }} />
+
           <section className="enfermeria-indicaciones">
             <header>
               <div>
@@ -744,7 +736,7 @@ export function AtencionEnfermeriaInternacion({
               </div>
             )}
           </section>
-        )}
+          </div>
       </section>}
       </section>
     </section>

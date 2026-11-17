@@ -1,5 +1,5 @@
 import "./styles.css";
-import { StrictMode } from "react";
+import { StrictMode, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { ErrorAplicacion } from "./radius/componentes/ErrorAplicacion";
 import "./radius/tema/TemaSistema.css";
@@ -14,10 +14,7 @@ import "./styles/ClinicoResponsivePlus.css";
 import "./styles/AdaptacionPantallas.css";
 import "./styles/CabeceraSidebar.css";
 
-async function iniciar() {
-  const { App } = await import("./App.tsx");
-  createRoot(document.getElementById("root")!).render(
-    <StrictMode><ErrorAplicacion><App /></ErrorAplicacion></StrictMode>,
-  );
-}
-void iniciar();
+const App = lazy(() => import("./App.tsx").then(m => ({ default: m.App })));
+createRoot(document.getElementById("root")!).render(
+  <StrictMode><ErrorAplicacion><Suspense fallback={<div className="error-clinico" role="status">Cargando sistema...</div>}><App /></Suspense></ErrorAplicacion></StrictMode>,
+);

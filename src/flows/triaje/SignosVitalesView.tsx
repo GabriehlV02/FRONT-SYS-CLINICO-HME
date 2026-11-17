@@ -41,7 +41,7 @@ const atendidosIniciales: PacienteAtendido[] = [];
 function leerListaDemo<T>(clave: string, inicial: T[]): T[] {
   try {
     const guardada = localStorage.getItem(clave);
-    return guardada ? JSON.parse(guardada) as T[] : inicial;
+    const lista: unknown = guardada ? JSON.parse(guardada) : null; return Array.isArray(lista) && lista.every(x => x && typeof x === "object") ? lista : inicial;
   } catch {
     return inicial;
   }

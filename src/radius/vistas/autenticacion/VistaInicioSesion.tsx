@@ -268,9 +268,6 @@ export default function VistaInicioSesion({ onLogin }: Props) {
               un mejor cuidado del paciente.
             </p>
           </div>
-          <p className="login-presentacion-pie">
-            <span /> Plataforma clínica institucional
-          </p>
           <div className="login-presentacion-onda" aria-hidden="true" />
         </section>
         <section className="login-acceso">

@@ -72,8 +72,8 @@ export const leerCatalogoDietas = (): Dieta[] => {
   return DIETAS_INICIALES;
 };
 
-export function CocinaInternacionView() {
-  const [vista, setVista] = useState<Vista>("pacientes");
+export function CocinaInternacionView({ vistaInicial = "pacientes", soloDietas = false }: { vistaInicial?: Vista; soloDietas?: boolean } = {}) {
+  const [vista, setVista] = useState<Vista>(vistaInicial);
   const [dietas, setDietas] = useState<Dieta[]>(leerCatalogoDietas);
   const [busqueda, setBusqueda] = useState("");
   const [creando, setCreando] = useState(false);
@@ -120,7 +120,7 @@ export function CocinaInternacionView() {
 
   return (
     <section className="cocina-internacion">
-      <HorizontalSubvistaNav
+      {!soloDietas && <HorizontalSubvistaNav
         className="recepcion-subvistas cocina-internacion-subvistas"
         ariaLabel="Subvistas de cocina internación"
       >
@@ -132,7 +132,6 @@ export function CocinaInternacionView() {
               "patient",
               "Dietas y entregas del turno",
             ],
-            ["dietas", "Dietas", "utensils", "Catálogo de dietas disponibles"],
             [
               "reportes",
               "Reportes",
@@ -154,7 +153,7 @@ export function CocinaInternacionView() {
             <small>{descripcion}</small>
           </button>
         ))}
-      </HorizontalSubvistaNav>
+      </HorizontalSubvistaNav>}
 
       {vista === "pacientes" && <PacientesInternados />}
       {vista === "dietas" && (

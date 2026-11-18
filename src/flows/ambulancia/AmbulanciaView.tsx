@@ -8,10 +8,20 @@ import type { PacienteDemo } from "../../radius/datos/almacenDemo";
 import "./AmbulanciaView.css";
 import "./AmbulanciaLayout.css";
 
-type Vista = "traslados" | "historial" | "unidad";
+type Vista = "traslados" | "programar" | "historial" | "unidad";
 type Estado = "Programado" | "En curso" | "Finalizado" | "Cancelado";
+type SolicitudAmbulancia = {
+  cuentaId: string;
+  paciente: string;
+  ci: string;
+  fecha: string;
+  hora: string;
+  motivo: string;
+  destino: string;
+};
 type Traslado = {
   id: number;
+  solicitudId?: string;
   fecha: string;
   paciente: string;
   origen: string;
@@ -47,6 +57,7 @@ type DatosAmbulancia = {
 };
 
 const STORAGE_KEY = "clinico-ambulancia-v1";
+const REQUESTS_KEY = "hme:emergencias:traslados-ambulancia:v1";
 const hoy = () => fechaISOEnBolivia();
 const inicial: DatosAmbulancia = {
   traslados: [],
@@ -94,7 +105,16 @@ function leerDatos(): DatosAmbulancia {
 export function AmbulanciaView() {
   const [vista, setVista] = useState<Vista>("traslados");
   const [datos, setDatos] = useState(leerDatos);
+  const [solicitudes, setSolicitudes] = useState<SolicitudAmbulancia[]>([]);
+  const [solicitudSeleccionada, setSolicitudSeleccionada] =
+    useState<SolicitudAmbulancia | null>(null);
   const [busqueda, setBusqueda] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("Todos");
+  const [filtroTipo, setFiltroTipo] = useState("Todos");
+  const [fechaDesde, setFechaDesde] = useState("");
+  const [fechaHasta, setFechaHasta] = useState("");
+  const [busquedaSolicitudes, setBusquedaSolicitudes] = useState("");
+  const [modalProgramacionAbierto, setModalProgramacionAbierto] = useState(false);
   const [aviso, setAviso] = useState("");
   const [formulario, setFormulario] = useState({
     fecha: hoy(),
@@ -155,19 +175,123 @@ export function AmbulanciaView() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(datos));
   }, [datos]);
+  useEffect(() => {
+    const leerSolicitudes = () => {
+      try {
+        const guardadas = JSON.parse(
+          localStorage.getItem(REQUESTS_KEY) || "{}",
+        ) as Record<string, { fecha?: string; hora?: string; motivo?: string; destino?: string; paciente?: string; ci?: string }>;
+        const idsRegistrados = new Set(
+          leerDatos().traslados.map((traslado) => String(traslado.solicitudId || "")),
+        );
+        const pendientes = Object.entries(guardadas)
+          .filter(([cuentaId]) => !idsRegistrados.has(cuentaId))
+          .map(([cuentaId, solicitud]) => ({
+            cuentaId,
+            paciente: solicitud.paciente || `Paciente de Emergencias · ${cuentaId}`,
+            ci: solicitud.ci || "",
+            fecha: solicitud.fecha || hoy(),
+            hora: solicitud.hora || "",
+            motivo: solicitud.motivo || "Traslado solicitado desde Emergencias",
+            destino: solicitud.destino || "",
+          }));
+        setSolicitudes(pendientes);
+      } catch {
+        setSolicitudes([]);
+      }
+    };
+    leerSolicitudes();
+    window.addEventListener("storage", leerSolicitudes);
+    window.addEventListener("focus", leerSolicitudes);
+    return () => {
+      window.removeEventListener("storage", leerSolicitudes);
+      window.removeEventListener("focus", leerSolicitudes);
+    };
+  }, []);
+  useEffect(() => {
+    const refrescarSolicitudes = () => {
+      try {
+        const guardadas = JSON.parse(
+          localStorage.getItem(REQUESTS_KEY) || "{}",
+        ) as Record<string, { fecha?: string; hora?: string; motivo?: string; destino?: string; paciente?: string; ci?: string }>;
+        const pendientes = Object.entries(guardadas).map(([cuentaId, solicitud]) => ({
+          cuentaId,
+          paciente: solicitud.paciente || `Paciente de Emergencias · ${cuentaId}`,
+          ci: solicitud.ci || "",
+          fecha: solicitud.fecha || hoy(),
+          hora: solicitud.hora || "",
+          motivo: solicitud.motivo || "Traslado solicitado desde Emergencias",
+          destino: solicitud.destino || "",
+        }));
+        setSolicitudes((actuales) => {
+          const actualizadas = pendientes.filter((item) =>
+            !leerDatos().traslados.some((traslado) => String(traslado.solicitudId || "") === item.cuentaId),
+          );
+          return JSON.stringify(actuales) === JSON.stringify(actualizadas) ? actuales : actualizadas;
+        });
+      } catch {
+        setSolicitudes([]);
+      }
+    };
+    const intervalo = window.setInterval(refrescarSolicitudes, 500);
+    return () => window.clearInterval(intervalo);
+  }, []);
   const activos = datos.traslados.filter(
     (item) => item.estado === "Programado" || item.estado === "En curso",
   );
   const bajos = datos.insumos.filter((item) => item.cantidad <= item.minimo);
+  const solicitudesFiltradas = useMemo(() => {
+    const consulta = busquedaSolicitudes.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+    return [...solicitudes]
+      .filter((solicitud) =>
+        !consulta || `${solicitud.paciente} ${solicitud.ci} ${solicitud.destino} ${solicitud.motivo}`
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(consulta),
+      )
+      .sort((a, b) => `${a.fecha} ${a.hora}`.localeCompare(`${b.fecha} ${b.hora}`));
+  }, [solicitudes, busquedaSolicitudes]);
   const historial = useMemo(
     () =>
-      datos.traslados.filter((item) =>
-        `${item.paciente} ${item.origen} ${item.destino} ${item.estado}`
-          .toLowerCase()
-          .includes(busqueda.toLowerCase()),
-      ),
-    [datos.traslados, busqueda],
+      datos.traslados
+        .filter((item) => item.estado === "En curso" || item.estado === "Finalizado")
+        .filter((item) => {
+          const consulta = busqueda.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+          const contenido = `${item.paciente} ${item.origen} ${item.destino} ${item.responsable} ${item.tipo} ${item.estado}`
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+          return (!consulta || contenido.includes(consulta))
+            && (filtroEstado === "Todos" || item.estado === filtroEstado)
+            && (filtroTipo === "Todos" || item.tipo === filtroTipo)
+            && (!fechaDesde || item.fecha >= fechaDesde)
+            && (!fechaHasta || item.fecha <= fechaHasta);
+        })
+        .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha)),
+    [datos.traslados, busqueda, filtroEstado, filtroTipo, fechaDesde, fechaHasta],
   );
+  const exportarHistorialPdf = async () => {
+    if (!historial.length) {
+      setAviso("No hay traslados para exportar con los filtros seleccionados.");
+      return;
+    }
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import("jspdf"),
+      import("jspdf-autotable"),
+    ]);
+    const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    pdf.setFontSize(16);
+    pdf.setTextColor(23, 62, 97);
+    pdf.text("Historial de transporte de pacientes", 14, 17);
+    pdf.setFontSize(9);
+    pdf.setTextColor(90, 116, 137);
+    pdf.text(`Registros: ${historial.length} · Periodo: ${fechaDesde || "inicio"} a ${fechaHasta || "hoy"}`, 14, 24);
+    autoTable(pdf, {
+      startY: 30,
+      head: [["Fecha", "Paciente", "Tipo", "Origen", "Destino", "Responsable", "Estado"]],
+      body: historial.map((item) => [item.fecha, item.paciente, item.tipo, item.origen, item.destino, item.responsable, item.estado]),
+      styles: { fontSize: 8, cellPadding: 3, textColor: [36, 74, 102] },
+      headStyles: { fillColor: [8, 127, 189], textColor: 255 },
+      alternateRowStyles: { fillColor: [242, 249, 253] },
+    });
+    pdf.save(`historial-ambulancia-${hoy()}.pdf`);
+  };
   const cambiarTraslado = (id: number, estado: Estado) =>
     setDatos((actual) => ({
       ...actual,
@@ -187,7 +311,7 @@ export function AmbulanciaView() {
 
   const registrarTraslado = (evento: FormEvent) => {
     evento.preventDefault();
-    if (!pacienteSeleccionado) {
+    if (!pacienteSeleccionado && !solicitudSeleccionada) {
       setAviso(
         "Busca y selecciona un paciente registrado antes de registrar el traslado.",
       );
@@ -205,9 +329,12 @@ export function AmbulanciaView() {
         {
           id: Date.now(),
           ...formulario,
-          paciente: formulario.paciente.trim(),
+          paciente: solicitudSeleccionada?.paciente || formulario.paciente.trim(),
+          solicitudId: solicitudSeleccionada?.cuentaId,
+          fecha: solicitudSeleccionada?.fecha || formulario.fecha,
           origen: formulario.origen.trim(),
-          destino: formulario.destino.trim(),
+          destino: (solicitudSeleccionada?.destino || formulario.destino).trim(),
+          tipo: solicitudSeleccionada ? "Traslado solicitado desde Emergencias" : formulario.tipo,
           responsable: formulario.responsable.trim(),
           kilometrajeInicial: km,
           estado: "Programado",
@@ -215,6 +342,17 @@ export function AmbulanciaView() {
         ...actual.traslados,
       ],
     }));
+    if (solicitudSeleccionada) {
+      try {
+        const guardadas = JSON.parse(localStorage.getItem(REQUESTS_KEY) || "{}") as Record<string, unknown>;
+        delete guardadas[solicitudSeleccionada.cuentaId];
+        localStorage.setItem(REQUESTS_KEY, JSON.stringify(guardadas));
+      } catch {
+        // La salida queda registrada aunque la cola compartida no se pueda leer.
+      }
+      setSolicitudes((actuales) => actuales.filter((item) => item.cuentaId !== solicitudSeleccionada.cuentaId));
+      setSolicitudSeleccionada(null);
+    }
     setFormulario({
       fecha: hoy(),
       paciente: "",
@@ -288,21 +426,6 @@ export function AmbulanciaView() {
 
   return (
     <section className="ambulancia-vista">
-      <header className="ambulancia-cabecera">
-        <div>
-          <span>OPERACION PREHOSPITALARIA</span>
-          <h2>Ambulancia</h2>
-          <p>
-            Coordina el transporte de pacientes y mantén lista la unidad para
-            cada salida.
-          </p>
-        </div>
-        <div className="ambulancia-km">
-          <Icon name="ambulance" size={22} />
-          <span>Kilometraje actual</span>
-          <strong>{datos.kilometrajeActual.toLocaleString("es-BO")} km</strong>
-        </div>
-      </header>
       <nav className="ambulancia-nav" aria-label="Funciones de ambulancia">
         <button
           className={vista === "traslados" ? "activo" : ""}
@@ -336,226 +459,87 @@ export function AmbulanciaView() {
         ))}
 
       {vista === "traslados" && (
-        <div className="ambulancia-grid">
-          <section className="ambulancia-panel">
-            <header>
-              <div>
-                <span>NUEVO TRASLADO</span>
-                <h3>Registrar transporte de paciente</h3>
-              </div>
-              <Icon name="patient" size={23} />
-            </header>
-            <form className="ambulancia-form" onSubmit={registrarTraslado}>
-              <label>
-                Fecha
-                <input
-                  type="date"
-                  value={formulario.fecha}
-                  onChange={(e) =>
-                    setFormulario({ ...formulario, fecha: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Tipo de traslado
-                <select
-                  value={formulario.tipo}
-                  onChange={(e) =>
-                    setFormulario({ ...formulario, tipo: e.target.value })
-                  }
-                >
-                  <option>Traslado asistencial</option>
-                  <option>Emergencia</option>
-                  <option>Alta hospitalaria</option>
-                  <option>Interhospitalario</option>
-                </select>
-              </label>
-              <div className="ambulancia-paciente-buscador">
-                <label>
-                  Paciente registrado
-                  <input
-                    value={formulario.paciente}
-                    onFocus={() => setBuscadorPacienteAbierto(true)}
-                    onChange={(e) => {
-                      setFormulario({
-                        ...formulario,
-                        paciente: e.target.value,
-                      });
-                      setPacienteSeleccionado(null);
-                      setBuscadorPacienteAbierto(true);
-                    }}
-                    placeholder="Buscar por nombre o CI"
-                    autoComplete="off"
-                  />
-                </label>
-                {buscadorPacienteAbierto && formulario.paciente.trim() && (
-                  <div className="ambulancia-paciente-resultados">
-                    {cargandoPacientes ? (
-                      <p>Buscando pacientes registrados...</p>
-                    ) : coincidenciasPacientes.length ? (
-                      coincidenciasPacientes.map((paciente) => {
-                        const nombre = [
-                          paciente.nombres,
-                          paciente.primerApellido,
-                          paciente.segundoApellido,
-                        ]
-                          .filter(Boolean)
-                          .join(" ");
-                        return (
-                          <button
-                            type="button"
-                            key={paciente.id}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => {
-                              setPacienteSeleccionado(paciente);
-                              setFormulario({
-                                ...formulario,
-                                paciente: nombre,
-                              });
-                              setBuscadorPacienteAbierto(false);
-                            }}
-                          >
-                            <span>
-                              <strong>{nombre}</strong>
-                              <small>
-                                CI {paciente.numeroDocumento}{" "}
-                                {paciente.telefono
-                                  ? `· ${paciente.telefono}`
-                                  : ""}
-                              </small>
-                            </span>
-                            <Icon name="chevronRight" size={15} />
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <p>
-                        {errorPacientes ||
-                          "No se encontraron pacientes registrados con esta busqueda."}
-                      </p>
-                    )}
-                  </div>
-                )}
-                <small>
-                  {pacienteSeleccionado
-                    ? `Seleccionado: CI ${pacienteSeleccionado.numeroDocumento}`
-                    : "Selecciona un paciente existente de la lista."}
-                </small>
-              </div>
-              <label>
-                Origen
-                <input
-                  value={formulario.origen}
-                  onChange={(e) =>
-                    setFormulario({ ...formulario, origen: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Destino
-                <input
-                  value={formulario.destino}
-                  onChange={(e) =>
-                    setFormulario({ ...formulario, destino: e.target.value })
-                  }
-                  placeholder="Centro o direccion de destino"
-                />
-              </label>
-              <label>
-                Responsable
-                <input
-                  value={formulario.responsable}
-                  onChange={(e) =>
-                    setFormulario({
-                      ...formulario,
-                      responsable: e.target.value,
-                    })
-                  }
-                  placeholder="Conductor o personal a cargo"
-                />
-              </label>
-              <label>
-                Kilometraje de salida
-                <input
-                  type="number"
-                  min="0"
-                  value={formulario.kilometrajeInicial}
-                  onChange={(e) =>
-                    setFormulario({
-                      ...formulario,
-                      kilometrajeInicial: e.target.value,
-                    })
-                  }
-                  placeholder={String(datos.kilometrajeActual)}
-                />
-              </label>
-              <footer>
-                <button className="ambulancia-primario" type="submit">
-                  <Icon name="plus" size={17} /> Registrar traslado
-                </button>
-              </footer>
-            </form>
-          </section>
-          <aside className="ambulancia-panel ambulancia-salidas">
-            <header>
-              <div>
-                <span>SALIDAS ACTIVAS</span>
-                <h3>Control de despacho</h3>
-              </div>
-              <strong>{activos.length}</strong>
-            </header>
-            {activos.length === 0 ? (
-              <p className="ambulancia-vacio">
-                No hay traslados pendientes. Registra uno para iniciar el
-                control.
-              </p>
-            ) : (
-              activos.map((item) => (
-                <article key={item.id}>
+        <div className="ambulancia-lista-programados">
+        <div className="ambulancia-herramientas">
+          <label><Icon name="search" size={17} /><input value={busquedaSolicitudes} onChange={(e) => setBusquedaSolicitudes(e.target.value)} placeholder="Buscar paciente, CI, destino o motivo" /></label>
+          <button type="button" className="ambulancia-primario" onClick={() => setModalProgramacionAbierto(true)}><Icon name="plus" size={16} /> Programar transporte</button>
+        </div>
+        <section className="ambulancia-cola panel" aria-label="Pacientes con traslado programado">
+          <header>
+            <span>HORARIO</span>
+            <span>PACIENTE</span>
+            <span>DESTINO</span>
+            <span>MOTIVO DEL TRASLADO</span>
+            <span>ESTADO</span>
+            <span>ACCIÓN</span>
+          </header>
+          {solicitudesFiltradas.length ? (
+            solicitudesFiltradas
+              .map((solicitud) => (
+                <article key={solicitud.cuentaId}>
+                  <time>
+                    <strong>{solicitud.hora || "Hora pendiente"}</strong>
+                    <small>{solicitud.fecha}</small>
+                  </time>
                   <div>
-                    <strong>{item.paciente}</strong>
-                    <small>
-                      {item.origen} → {item.destino}
-                    </small>
-                    <em>
-                      {item.tipo} · {item.fecha}
-                    </em>
+                    <strong>{solicitud.paciente}</strong>
+                    {solicitud.ci && <small>CI {solicitud.ci}</small>}
                   </div>
-                  <select
-                    value={item.estado}
-                    onChange={(e) =>
-                      cambiarTraslado(item.id, e.target.value as Estado)
-                    }
-                  >
-                    <option>Programado</option>
-                    <option>En curso</option>
-                    <option>Finalizado</option>
-                    <option>Cancelado</option>
-                  </select>
+                  <div className="ambulancia-cola-destino">
+                    <strong>{solicitud.destino || "Destino no especificado"}</strong>
+                  </div>
+                  <div className="ambulancia-cola-motivo">
+                    <strong>{solicitud.motivo}</strong>
+                  </div>
+                  <span className="ambulancia-programado">Programado</span>
+                  <button type="button" className="ambulancia-programar-fila" onClick={() => { setSolicitudSeleccionada(solicitud); setVista("programar"); }}><Icon name="calendar" size={15} /> Programar</button>
                 </article>
               ))
-            )}
-            <section className="ambulancia-lista-salida">
-              <span>LISTA PREVIA DE SALIDA</span>
-              <p>
-                <i className={bajos.length ? "pendiente" : ""} />
-                {bajos.length
-                  ? `${bajos.length} insumo(s) requieren reposicion`
-                  : "Insumos verificados"}
-              </p>
-              <p>
-                <i />
-                Kilometraje de referencia:{" "}
-                <strong>
-                  {datos.kilometrajeActual.toLocaleString("es-BO")} km
-                </strong>
-              </p>
-              <p>
-                <i />
-                Registra el estado del traslado al despachar y al retorno.
-              </p>
-            </section>
-          </aside>
+          ) : (
+            <div className="ambulancia-cola-vacia" role="status">
+              <Icon name="ambulance" size={25} />
+              <strong>{solicitudes.length ? "No se encontraron pacientes" : "No hay pacientes con traslado programado"}</strong>
+              <small>{solicitudes.length ? "Prueba con otro nombre, CI, destino o motivo." : "Las solicitudes registradas en Emergencias aparecerán en esta lista."}</small>
+            </div>
+          )}
+        </section>
+        </div>
+      )}
+
+      {vista === "programar" && (
+        <section className="ambulancia-detalle-programacion" aria-label="Programar transporte">
+          {solicitudSeleccionada && (
+            <>
+              <header className="ambulancia-detalle-cabecera">
+                <span className="ambulancia-detalle-icono"><Icon name="patient" size={23} /></span>
+                <div><span>PROGRAMACIÓN DE TRANSPORTE</span><h2>Datos del paciente</h2><p>Revisa la solicitud de traslado seleccionada.</p></div>
+                <span className="ambulancia-programado">Traslado solicitado</span>
+              </header>
+              <article className="ambulancia-paciente-resumen">
+                <span className="ambulancia-paciente-avatar"><Icon name="patient" size={24} /></span>
+                <div><small>PACIENTE</small><h3>{solicitudSeleccionada.paciente}</h3>{solicitudSeleccionada.ci && <span>CI {solicitudSeleccionada.ci}</span>}</div>
+              </article>
+              <div className="ambulancia-detalle-datos">
+                <article><span className="ambulancia-dato-icono"><Icon name="calendar" size={18} /></span><div><small>FECHA Y HORA</small><strong>{solicitudSeleccionada.fecha}</strong><span>{solicitudSeleccionada.hora || "Hora pendiente"}</span></div></article>
+                <article><span className="ambulancia-dato-icono"><Icon name="ambulance" size={18} /></span><div><small>DESTINO</small><strong>{solicitudSeleccionada.destino || "No especificado"}</strong></div></article>
+                <article className="ambulancia-dato-motivo"><span className="ambulancia-dato-icono"><Icon name="fileText" size={18} /></span><div><small>MOTIVO DEL TRASLADO</small><strong>{solicitudSeleccionada.motivo}</strong></div></article>
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      {modalProgramacionAbierto && (
+        <div className="ambulancia-modal-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setModalProgramacionAbierto(false); }}>
+          <section className="ambulancia-modal" role="dialog" aria-modal="true" aria-labelledby="ambulancia-modal-titulo">
+            <header><div><span>NUEVO TRASLADO</span><h3 id="ambulancia-modal-titulo">Programar transporte</h3></div><button type="button" aria-label="Cerrar" onClick={() => setModalProgramacionAbierto(false)}>×</button></header>
+            <p>Selecciona un paciente de la lista para abrir la programación con sus datos.</p>
+            <div className="ambulancia-modal-pacientes">
+              {solicitudesFiltradas.length ? solicitudesFiltradas.map((solicitud) => (
+                <article key={solicitud.cuentaId}><div><strong>{solicitud.paciente}</strong><small>{solicitud.ci ? `CI ${solicitud.ci} · ` : ""}{solicitud.fecha} · {solicitud.hora || "Hora pendiente"}</small><small>{solicitud.destino} · {solicitud.motivo}</small></div><button type="button" className="ambulancia-primario" onClick={() => { setSolicitudSeleccionada(solicitud); setModalProgramacionAbierto(false); setVista("programar"); }}>Seleccionar</button></article>
+              )) : <div className="ambulancia-cola-vacia"><strong>No hay pacientes programados para seleccionar</strong></div>}
+            </div>
+          </section>
         </div>
       )}
 
@@ -566,15 +550,15 @@ export function AmbulanciaView() {
               <span>TRASLADOS REGISTRADOS</span>
               <h3>Historial de transporte de pacientes</h3>
             </div>
-            <label>
-              <Icon name="search" size={16} />
-              <input
-                value={busqueda}
-                onChange={(e) => setBusqueda(e.target.value)}
-                placeholder="Buscar paciente, origen o destino"
-              />
-            </label>
           </header>
+          <div className="ambulancia-filtros-historial">
+            <label className="ambulancia-busqueda-historial"><Icon name="search" size={17} /><input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar paciente, origen, destino o responsable" /></label>
+            <label><span>Estado</span><select value={filtroEstado} onChange={(e) => setFiltroEstado(e.target.value)}><option>Todos</option><option>En curso</option><option>Finalizado</option></select></label>
+            <label><span>Tipo de traslado</span><select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}><option>Todos</option>{[...new Set(datos.traslados.filter((item) => item.estado === "En curso" || item.estado === "Finalizado").map((item) => item.tipo))].map((tipo) => <option key={tipo}>{tipo}</option>)}</select></label>
+            <label><span>Desde</span><input type="date" value={fechaDesde} max={fechaHasta || undefined} onChange={(e) => setFechaDesde(e.target.value)} /></label>
+            <label><span>Hasta</span><input type="date" value={fechaHasta} min={fechaDesde || undefined} onChange={(e) => setFechaHasta(e.target.value)} /></label>
+            <button type="button" className="ambulancia-exportar-pdf" onClick={() => void exportarHistorialPdf()}><Icon name="download" size={16} /> Exportar PDF</button>
+          </div>
           <div className="ambulancia-tabla">
             <div className="ambulancia-fila encabezado">
               <span>Fecha</span>
@@ -585,7 +569,9 @@ export function AmbulanciaView() {
             </div>
             {historial.length === 0 ? (
               <p className="ambulancia-vacio">
-                Aun no hay transportes registrados.
+                {datos.traslados.some((item) => item.estado === "Programado")
+                  ? "Los pacientes aparecerán aquí cuando la ambulancia salga."
+                  : "Aún no hay pacientes que hayan utilizado la ambulancia."}
               </p>
             ) : (
               historial.map((item) => (

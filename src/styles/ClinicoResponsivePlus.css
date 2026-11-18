@@ -381,6 +381,41 @@
 }
 
 @media (max-width: 760px) {
+  /* Controles, paneles y grids se ajustan al ancho real del teléfono. */
+  .sistema-app,
+  .sistema-app .sistema-cuerpo,
+  .sistema-app .area-trabajo {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .sistema-app :is(.panel, .tarjeta, .card, [class*="panel"], [class*="tarjeta"]) {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .sistema-app :is(.acciones, [class*="acciones"], [class*="herramientas"], [class*="filtros"]) {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .sistema-app :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
+  }
+
+  .sistema-app :is(button, [role="button"]) {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .sistema-app :is(.form-grid, .filtros-grid, .filtros, .formulario-grid, .campos-grid) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
   .sistema-app {
     overflow-x: clip;
   }
@@ -403,6 +438,10 @@
     .consultorio-vista, .historias-listado, .signos-vista) {
     width: 100%;
     min-width: 0;
+  }
+
+  .sistema-app :is(p, h1, h2, h3, h4, strong, span, small, label, td, th) {
+    overflow-wrap: anywhere;
   }
 
   .sistema-app :is(.em-cabecera, .em-triaje-cabecera, .pagina-cabecera,
@@ -436,6 +475,7 @@
   .sistema-app :is(.em-medica-layout > .em-cubiculos,
     .tabla-scroll, .tabla-contenedor, .tabla-wrapper, .tabla-responsive,
     .fi-tabla-wrap, .historias-tabla-contenedor, .roperia-tabla-scroll) {
+    width: 100%;
     min-width: 0;
     max-width: 100%;
     overflow-x: auto;
@@ -458,6 +498,22 @@
     .consulta-datos-personales, .consulta-signos-grid, .paciente-campos,
     .usuario-campos, .fi-formulario, .config-signos-dos-campos) {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sistema-app :is([class*="tabla-scroll"], [class*="tabla-contenedor"],
+    [class*="tabla-wrapper"], [class*="tabla-responsive"], [class*="table-scroll"]) {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sistema-app :is(.fi-tabla, .clinica-tabla, .recepcion-tabla, .usuarios-tabla,
+    .orthanc-tabla, .estudios-tabla) {
+    width: max(100%, 640px);
+    max-width: none;
   }
 
   .sistema-app :is(.form-grid, .em-form-grid, .em-inicio-datos,

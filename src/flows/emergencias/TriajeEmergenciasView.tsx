@@ -63,7 +63,7 @@ type PagoCobro = {
 };
 type Identidad = Record<string, string>;
 type Cuenta = CuentaEmergencia;
-type TrasladoAmbulanciaProgramado = { fecha: string; hora: string; motivo: string; destino: string };
+type TrasladoAmbulanciaProgramado = { fecha: string; hora: string; motivo: string; destino: string; paciente?: string; ci?: string };
 const CLAVE_TRASLADOS_AMBULANCIA = "hme:emergencias:traslados-ambulancia:v1";
 const dinero = (n: number) =>
   `Bs ${n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -1140,7 +1140,7 @@ export function TriajeEmergenciasView({
         const fechaProgramada = new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO");
         const solicitudesActualizadas = {
           ...trasladosAmbulancia,
-          [cuenta.id]: { fecha: fechaProgramada, hora: horaTraslado, motivo: motivoAmbulancia, destino: destinoAmbulancia.trim() },
+          [cuenta.id]: { fecha: fechaProgramada, hora: horaTraslado, motivo: motivoAmbulancia, destino: destinoAmbulancia.trim(), paciente: nombrePaciente(cuenta), ci: cuenta.identidad.documento.trim() },
         };
         window.localStorage.setItem(CLAVE_TRASLADOS_AMBULANCIA, JSON.stringify(solicitudesActualizadas));
         setTrasladosAmbulancia(solicitudesActualizadas);
@@ -2968,33 +2968,6 @@ export function TriajeEmergenciasView({
                   )}
                 </section>
               </div>
-              {!recepcion && !cuenta.fin && (
-                <div
-                  className="em-cierre"
-                  hidden={seccionClinica === "descargos"}
-                >
-                  <button
-                    disabled={ocupado || !cuenta.signos.length}
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          "¿Finalizar esta atención y liberar el cubículo? La cuenta se conservará en Recepción.",
-                        )
-                      )
-                        void guardar(
-                          `/${cuenta.id}/cierre`,
-                          {
-                            condicionEgreso: "vivo",
-                            causaEgreso: "hospitalaria",
-                          },
-                          "Atención finalizada; cubículo disponible.",
-                        );
-                    }}
-                  >
-                    Finalizar atención
-                  </button>
-                </div>
-              )}
             </>
           )}
         </main>

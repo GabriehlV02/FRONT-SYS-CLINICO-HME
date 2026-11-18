@@ -71,8 +71,21 @@
 .medico-visitante-internacion .mvi-ver-historia:focus-visible { outline:2px solid #087fc0; outline-offset:3px; }
 @media(max-width:600px) { .mvi-detalle > .mvi-paciente-cabecera { flex-wrap:wrap; } .mvi-paciente-acciones { justify-content:flex-start; } }
 .mvi-secciones { display:flex; gap:6px; width:fit-content; max-width:100%; margin:24px 0; padding:5px; border:1px solid #dce9f1; border-radius:12px; background:#f3f8fc; }
+.mvi-subvistas { display:flex; gap:8px; width:max-content; max-width:100%; margin:0 0 16px; padding:6px; border:1px solid #c8deec; border-radius:12px; background:#fff; }
+.mvi-subvistas button { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:42px; padding:0 16px; border:0; border-radius:9px; color:#315c79; background:transparent; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.mvi-subvistas button.activa { color:#fff; background:#087fc0; box-shadow:0 3px 9px #087fc02b; }
+.mvi-visitas-tabla { overflow:auto; margin:0 -22px; border-radius:0 0 13px 13px; }
+.mvi-visitas-cabecera,.mvi-visita-fila { display:grid; grid-template-columns:minmax(145px,.8fr) minmax(190px,1.1fr) minmax(150px,.8fr) minmax(155px,.9fr) minmax(220px,1.5fr); align-items:center; gap:14px; min-width:950px; padding:14px 32px; }
+.mvi-visitas-cabecera { min-height:48px; color:#5481a8; background:#f4faff; font-size:10px; font-weight:900; }
+.mvi-visita-fila { min-height:70px; border-top:1px solid #e5eef4; color:#244a66; font-size:12px; }
+.mvi-visita-fila > strong { color:#173f5d; }
+.mvi-visita-fila > span,.mvi-visita-fila > p { margin:0; color:#54738a; }
+.mvi-visita-fila > p { line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
 .mvi-secciones button { display:inline-flex; align-items:center; gap:8px; min-height:42px; padding:0 15px; border:1px solid transparent; border-radius:8px; color:#55758b; background:transparent; font:inherit; font-size:13px; font-weight:750; cursor:pointer; }
 .mvi-secciones button.activa { border-color:#1395ce; color:#fff; background:#087fc0; box-shadow:0 4px 10px #087fc02b; }
+.mvi-subsubvistas { display:flex; gap:8px; width:max-content; max-width:100%; margin:20px 0 0; padding:6px; border:1px solid #c8deec; border-radius:12px; background:#fff; }
+.mvi-subsubvistas button { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:42px; padding:0 16px; border:0; border-radius:9px; color:#315c79; background:transparent; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.mvi-subsubvistas button.activa { color:#fff; background:#087fc0; box-shadow:0 3px 9px #087fc02b; }
 .mvi-seccion { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; align-items:stretch; }
 .mvi-formulario,.mvi-historial { display:grid; gap:18px; min-width:0; min-height:420px; margin:0; padding:24px; border:1px solid #dce9f1; border-radius:12px; background:#fff; }
 .mvi-formulario { align-content:start; }
@@ -98,9 +111,9 @@
 .mvi-historial > article p { margin:7px 0 0; color:#34566f; font-size:12px; line-height:1.55; white-space:pre-wrap; overflow-wrap:anywhere; }
 .mvi-error { margin:0 0 12px; padding:9px 11px; border:1px solid #f0c2c2; border-radius:8px; color:#9b3434; background:#fff5f5; font-size:12px; }
 @media(max-width:900px) { .mvi-seccion { grid-template-columns:minmax(0,1fr); gap:18px; } .mvi-formulario,.mvi-historial { min-height:0; padding:20px; } .mvi-historial { max-height:440px; } .mvi-historial > .mvi-vacio { min-height:180px; } }
-@media(max-width:480px) { .mvi-secciones { overflow-x:auto; } .mvi-secciones button { flex:0 0 auto; padding-inline:10px; } .mvi-fecha-hora { grid-template-columns:minmax(0,1fr); } .mvi-formulario > button { justify-self:stretch; } }
+@media(max-width:480px) { .mvi-secciones { overflow-x:auto; } .mvi-secciones button { flex:0 0 auto; padding-inline:10px; } .mvi-subvistas { width:100%; } .mvi-subvistas button { flex:1; padding-inline:9px; font-size:12px; } .mvi-fecha-hora { grid-template-columns:minmax(0,1fr); } .mvi-formulario > button { justify-self:stretch; } }
 
-.mvi-visita { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; margin-top:24px; align-items:start; }
+.mvi-visita { display:grid; grid-template-columns:minmax(0,1fr); gap:24px; margin-top:16px; align-items:start; }
 .mvi-visita .mvi-seccion { grid-template-columns:minmax(0,1fr); grid-template-rows:1fr auto; gap:14px; align-self:stretch; }
 .mvi-visita .mvi-formulario { grid-template-rows:auto 1fr auto auto; min-height:460px; }
 .mvi-visita .mvi-formulario-orden { grid-template-rows:auto auto 1fr auto; }
@@ -113,3 +126,4 @@
 .mvi-visita .mvi-historial > .mvi-vacio { min-height:100px; padding:24px; }
 .mvi-visita .mvi-historial > summary:focus-visible { outline:2px solid #087fc0; outline-offset:-3px; }
 @media(max-width:900px) { .mvi-visita { grid-template-columns:minmax(0,1fr); gap:20px; } .mvi-visita .mvi-formulario { min-height:0; } }
+@media(max-width:480px) { .mvi-subsubvistas { width:100%; } .mvi-subsubvistas button { flex:1; padding-inline:9px; font-size:12px; } }

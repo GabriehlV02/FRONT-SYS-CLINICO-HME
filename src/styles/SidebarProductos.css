@@ -415,10 +415,30 @@
 }
 
 .sistema-sidebar .sistema-marca {
-  height: 72px !important;
-  min-height: 72px !important;
-  padding: 0 10px !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 12px !important;
+  display: flex !important;
+  align-items: center !important;
   justify-content: center !important;
+}
+
+.sistema-sidebar .sistema-marca > .marca-icono {
+  display: block;
+  flex: 0 1 310px;
+  width: min(310px, 100%);
+  height: 88px;
+  margin: 0 auto !important;
+}
+
+.sistema-sidebar .sistema-marca > .marca-icono img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
 }
 
 .sistema-sidebar .sistema-marca .marca-logo-completo {

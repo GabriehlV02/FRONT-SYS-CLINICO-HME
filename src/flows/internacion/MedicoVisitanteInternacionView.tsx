@@ -19,6 +19,10 @@ type EvolucionVisitante = {
   fecha: string;
   texto: string;
   medico: string;
+  area?: "internacion" | "uci";
+  pacienteNombre?: string;
+  sala?: string;
+  cama?: string;
 };
 type OrdenVisitante = {
   id: string;
@@ -60,6 +64,8 @@ const tipoOrdenEtiqueta: Record<OrdenVisitante["tipo"], string> = {
 export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?: "internacion" | "uci" }) {
   const [pacientes, setPacientes] = useState<RegistroInternacion[]>(leerInternaciones);
   const [busqueda, setBusqueda] = useState("");
+  const [subvista, setSubvista] = useState<"pacientes" | "historial">("pacientes");
+  const [subsubvista, setSubsubvista] = useState<"indicaciones" | "evolucion">("indicaciones");
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [atendiendo, setAtendiendo] = useState(false);
   const [historiaAbierta, setHistoriaAbierta] = useState(false);
@@ -101,6 +107,18 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
   const ordenesPaciente = ordenes
     .filter((orden) => orden.pacienteId === seleccionado)
     .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+  const visitas = useMemo(() => {
+    const consulta = busqueda.trim().toLocaleLowerCase("es");
+    return evoluciones
+      .map((evolucion) => {
+        const paciente = pacientes.find((item) => item.id === evolucion.pacienteId);
+        const areaVisita = evolucion.area || (paciente && esPacienteUci(paciente) ? "uci" : "internacion");
+        return { ...evolucion, pacienteNombre: evolucion.pacienteNombre || paciente?.paciente || "Paciente", sala: evolucion.sala || paciente?.sala || "—", cama: evolucion.cama || paciente?.cama || "—", areaVisita };
+      })
+      .filter((visita) => visita.areaVisita === area)
+      .filter((visita) => !consulta || [visita.pacienteNombre, visita.medico, visita.texto, visita.sala, visita.cama].some((dato) => dato?.toLocaleLowerCase("es").includes(consulta)))
+      .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+  }, [evoluciones, pacientes, busqueda, area]);
 
   function registrarEvolucion(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
@@ -116,6 +134,10 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
       fecha: momento.toISOString(),
       texto: borrador.texto.trim(),
       medico: leerSesion()?.usuario.nombre?.trim() || "Médico visitante",
+      area,
+      pacienteNombre: pacienteActual?.paciente || "Paciente",
+      sala: pacienteActual?.sala || "—",
+      cama: pacienteActual?.cama || "—",
     };
     try {
       const siguientes = [registro, ...leerRegistros<EvolucionVisitante>(claveEvoluciones)];
@@ -151,8 +173,21 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
   }
 
   return (
-    <section className="medico-visitante-internacion" aria-label="Médico visitante">
-      {!atendiendo && (
+    <section className="medico-visitante-internacion" aria-label={area === "uci" ? "Médico visitante UCI" : "Médico visitante Internación"}>
+      <nav className="mvi-subvistas" aria-label="Subvistas de médico visitante">
+        <button type="button" className={subvista === "pacientes" ? "activa" : ""} onClick={() => { setSubvista("pacientes"); setAtendiendo(false); setBusqueda(""); }}><Icon name="patient" size={17} /> Pacientes internados</button>
+        <button type="button" className={subvista === "historial" ? "activa" : ""} onClick={() => { setSubvista("historial"); setAtendiendo(false); setBusqueda(""); }}><Icon name="calendar" size={17} /> Historial de atención</button>
+      </nav>
+      {!atendiendo && subvista === "historial" && (
+        <section className="mvi-pacientes-vista mvi-historial-visitas" aria-label="Historial de atención">
+          <header><div><span>{area === "uci" ? "UNIDAD DE CUIDADOS INTENSIVOS" : "INTERNACIÓN"}</span><h3>Historial de atención</h3><p>{visitas.length} visitas registradas</p></div><label className="mvi-busqueda"><Icon name="search" size={17} /><input value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} placeholder="Buscar paciente, médico o nota" aria-label="Buscar visitas médicas" /></label></header>
+          <div className="mvi-visitas-tabla"><div className="mvi-visitas-cabecera"><span>FECHA Y HORA</span><span>PACIENTE</span><span>UBICACIÓN</span><span>MÉDICO VISITANTE</span><span>NOTA DE ATENCIÓN</span></div>
+            {visitas.map((visita) => <article className="mvi-visita-fila" key={visita.id}><strong>{new Date(visita.fecha).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" })}</strong><strong>{visita.pacienteNombre}</strong><span>Sala {visita.sala} · Cama {visita.cama}</span><strong>{visita.medico}</strong><p>{visita.texto}</p></article>)}
+            {!visitas.length && <p className="mvi-vacio">{busqueda ? "No hay visitas que coincidan con la búsqueda." : "Aún no hay visitas registradas para esta área."}</p>}
+          </div>
+        </section>
+      )}
+      {!atendiendo && subvista === "pacientes" && (
         <section className="mvi-pacientes-vista" aria-label="Pacientes internados">
           <header>
             <div><span>PACIENTES INTERNADOS</span><h3>Pacientes en sala de internación</h3><p>{internados.length} pacientes internados</p></div>
@@ -171,14 +206,14 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
                 <strong>{paciente.medico || "Sin asignar"}</strong>
                 <strong>{paciente.fechaIngreso || paciente.fecha || "Sin registro"}</strong>
                 <em>Internado</em>
-                <button type="button" onClick={() => { setSeleccionado(paciente.id); setAtendiendo(true); setError(""); }}><Icon name="userMedical" size={16} /> Atender</button>
+                <button type="button" onClick={() => { setSeleccionado(paciente.id); setAtendiendo(true); setSubsubvista("indicaciones"); setError(""); }}><Icon name="userMedical" size={16} /> Atender</button>
               </article>
             ))}
             {!internados.length && <p className="mvi-vacio">No hay pacientes internados que coincidan con la búsqueda.</p>}
           </div>
         </section>
       )}
-      {atendiendo && <div className="mvi-contenido mvi-atendiendo">
+      {atendiendo && subvista === "pacientes" && <div className="mvi-contenido mvi-atendiendo">
 
           <article className="mvi-detalle">
           {pacienteActual ? (
@@ -192,8 +227,12 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
                 </div>
               </header>
               {error && <p className="mvi-error" role="alert">{error}</p>}
-              <div className="mvi-visita">
-                <section className="mvi-seccion" aria-label="Evolución médica">
+              <nav className="mvi-subsubvistas" aria-label="Subvistas de atención del paciente">
+                <button type="button" className={subsubvista === "indicaciones" ? "activa" : ""} onClick={() => setSubsubvista("indicaciones")}><Icon name="fileText" size={17} /> Indicaciones médicas</button>
+                <button type="button" className={subsubvista === "evolucion" ? "activa" : ""} onClick={() => setSubsubvista("evolucion")}><Icon name="heartbeat" size={17} /> Evolución médica</button>
+              </nav>
+              <div className={`mvi-visita ${subsubvista}`}>
+                <section className="mvi-seccion" aria-label="Evolución médica" style={{ display: subsubvista === "evolucion" ? "grid" : "none" }}>
                   <form className="mvi-formulario" onSubmit={registrarEvolucion}>
                     <h4>Registrar evolución médica</h4>
                     <label className="mvi-texto">Evolución
@@ -212,7 +251,7 @@ export function MedicoVisitanteInternacionView({ area = "internacion" }: { area?
                     )) : <p className="mvi-vacio">Aún no hay evoluciones médicas registradas.</p>}
                   </details>
                 </section>
-                <section className="mvi-seccion" aria-label="Órdenes médicas">
+                <section className="mvi-seccion" aria-label="Órdenes médicas" style={{ display: subsubvista === "indicaciones" ? "grid" : "none" }}>
                   <form className="mvi-formulario mvi-formulario-orden" onSubmit={registrarOrden}>
                     <h4>Registrar orden médica</h4>
                     <label>Tipo de orden

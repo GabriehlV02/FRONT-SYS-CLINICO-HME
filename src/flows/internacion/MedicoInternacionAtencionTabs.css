@@ -214,8 +214,17 @@
   background: #7655c5;
 }
 .internacion-ordenes-acciones .orden-dietas {
-  background: #d57b26;
+  background: #d97706;
+  border: 1px solid #c46b05;
   cursor: pointer;
+}
+.internacion-ordenes-acciones .orden-dietas:hover {
+  background: #bd6505;
+  box-shadow: 0 6px 13px rgba(189, 101, 5, 0.22);
+}
+.internacion-ordenes-acciones .orden-dietas:focus-visible {
+  outline: 3px solid rgba(217, 119, 6, 0.28);
+  outline-offset: 2px;
 }
 .internacion-ordenes-listado {
   overflow: hidden;
@@ -640,7 +649,7 @@
 }
 .internacion-evolucion-formulario {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(170px, 230px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 13px;
   margin-top: 17px;
   padding: 15px;
@@ -667,14 +676,19 @@
   resize: vertical;
 }
 .internacion-evolucion-formulario .internacion-evolucion-texto {
-  grid-column: 1;
-  grid-row: span 2;
+  grid-column: 1 / -1;
+  grid-row: auto;
 }
 .internacion-evolucion-formulario .internacion-evolucion-texto textarea {
-  height: 100%;
   min-height: 120px;
   box-sizing: border-box;
 }
+.internacion-evolucion-fecha-hora {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+.internacion-evolucion-fecha-hora label { min-width: 0; }
 .internacion-evolucion-formulario input {
   min-height: 42px;
   box-sizing: border-box;
@@ -716,6 +730,7 @@
 @media (max-width: 620px) {
   .internacion-evolucion-formulario { grid-template-columns: 1fr; }
   .internacion-evolucion-formulario .internacion-evolucion-texto { grid-row: auto; }
+  .internacion-evolucion-fecha-hora { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .internacion-evolucion-lista article { grid-template-columns: 1fr; }
   .internacion-evolucion-lista time { grid-row: auto; }
   .internacion-evolucion-lista p { grid-column: 1; }
@@ -724,7 +739,7 @@
 .internacion-evolucion-vacia { margin: 14px 0 0; color: #66849a; font-size: 12px; }
 .internacion-notas-distribucion {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+  grid-template-columns: minmax(0, 1.08fr) minmax(400px, 0.92fr);
   gap: 16px;
   align-items: start;
   margin-top: 16px;
@@ -761,7 +776,7 @@
 }
 .internacion-notas-filtros {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 9px;
   padding: 12px 14px;
   border-bottom: 1px solid #e1edf4;
@@ -1111,6 +1126,237 @@
 }
 .internacion-evolucion-panel > header p {
   display: none;
+}
+
+/* Composición refinada de la evolución y su historial en una sola vista. */
+.internacion-evolucion-panel:has(.internacion-notas-distribucion) {
+  gap: 14px;
+  padding: clamp(16px, 2vw, 26px);
+  background:
+    radial-gradient(ellipse at 0 0, rgba(8, 127, 192, 0.055), transparent 42%),
+    linear-gradient(145deg, #f9fcff, #f3f9fd);
+}
+
+.internacion-evolucion-panel:has(.internacion-notas-distribucion) > header {
+  padding: 0 2px 2px;
+}
+
+.internacion-evolucion-panel:has(.internacion-notas-distribucion) > header h3 {
+  margin-top: 4px;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+.internacion-evolucion-panel:has(.internacion-notas-distribucion) .internacion-evolucion-medica {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border-color: #d2e4ef;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: 0 8px 24px rgba(22, 73, 109, 0.045);
+}
+
+.internacion-evolucion-panel:has(.internacion-notas-distribucion) .internacion-evolucion-medica > header {
+  padding: 16px 19px 0;
+}
+
+.internacion-evolucion-panel:has(.internacion-notas-distribucion) .internacion-evolucion-medica h4 {
+  font-size: 16px;
+}
+
+.internacion-notas-distribucion {
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  align-items: stretch;
+  gap: 18px;
+  margin: 0;
+  padding: 16px 19px 19px;
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario {
+  align-content: start;
+  gap: 15px;
+  padding: 19px;
+  border-color: #dce9f1;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(18, 62, 95, 0.035);
+}
+
+.internacion-notas-distribucion .internacion-evolucion-fecha-hora {
+  gap: 12px;
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario label {
+  gap: 8px;
+  color: #315b78;
+  font-size: 12px;
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario input {
+  min-height: 46px;
+  padding-inline: 12px;
+  border-color: #c8ddea;
+  background: #fbfdff;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario input:focus,
+.internacion-notas-distribucion .internacion-evolucion-formulario textarea:focus,
+.internacion-notas-filtros :is(input, select):focus {
+  border-color: #188bc3;
+  outline: 0;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(24, 139, 195, 0.12);
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario .internacion-evolucion-texto textarea {
+  min-height: 150px;
+  padding: 13px 14px;
+  border-color: #c8ddea;
+  border-radius: 10px;
+  background: #fbfdff;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario > div {
+  padding-top: 1px;
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario button.primario {
+  min-height: 46px;
+  padding-inline: 20px;
+  border-radius: 9px;
+  background: linear-gradient(135deg, #087fc0, #0873ad);
+  box-shadow: 0 5px 12px rgba(8, 127, 192, 0.17);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+
+.internacion-notas-distribucion .internacion-evolucion-formulario button.primario:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 17px rgba(8, 127, 192, 0.23);
+}
+
+.internacion-notas-historial {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  border-color: #d4e5ef;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(18, 62, 95, 0.035);
+}
+
+.internacion-notas-historial > header {
+  min-height: 58px;
+  padding-inline: 17px;
+  background: linear-gradient(115deg, #f0f8fd, #f8fcff);
+}
+
+.internacion-notas-historial > header strong {
+  font-size: 14px;
+  letter-spacing: -0.01em;
+}
+
+.internacion-notas-filtros {
+  gap: 10px;
+  padding: 14px 16px;
+  background: #fff;
+}
+
+.internacion-notas-filtros label {
+  gap: 6px;
+  color: #446b86;
+  font-size: 11px;
+}
+
+.internacion-notas-filtros :is(input, select) {
+  min-height: 42px;
+  padding-inline: 10px;
+  border-color: #d0e1eb;
+  background: #fbfdff;
+  font-size: 12px;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.internacion-notas-historial .internacion-evolucion-lista {
+  flex: 1;
+  min-height: 190px;
+  height: auto;
+  align-content: start;
+  padding: 13px;
+  background: linear-gradient(180deg, #fbfdff, #fff);
+}
+
+.internacion-notas-historial .internacion-evolucion-lista article {
+  padding: 14px;
+  border-color: #e0ebf2;
+  box-shadow: 0 2px 6px rgba(22, 73, 109, 0.035);
+}
+
+.internacion-notas-historial .internacion-evolucion-vacia {
+  display: grid;
+  min-height: 180px;
+  align-content: center;
+  justify-items: center;
+  margin: 0;
+  color: #748da0;
+  text-align: center;
+}
+
+@media (max-width: 1050px) {
+  .internacion-notas-distribucion {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.9fr);
+    gap: 13px;
+    padding-inline: 14px;
+  }
+
+  .internacion-notas-filtros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .internacion-notas-distribucion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internacion-notas-historial .internacion-evolucion-lista {
+    min-height: 150px;
+    max-height: 340px;
+  }
+}
+
+@media (max-width: 520px) {
+  .internacion-evolucion-panel:has(.internacion-notas-distribucion) {
+    padding: 14px 11px;
+  }
+
+  .internacion-evolucion-panel:has(.internacion-notas-distribucion) .internacion-evolucion-medica > header {
+    padding: 14px 14px 0;
+  }
+
+  .internacion-notas-distribucion {
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .internacion-notas-distribucion .internacion-evolucion-formulario {
+    padding: 14px;
+  }
+
+  .internacion-notas-filtros {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .internacion-notas-distribucion .internacion-evolucion-fecha-hora {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .internacion-notas-distribucion .internacion-evolucion-formulario > div > button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .internacion-resultados-panel {

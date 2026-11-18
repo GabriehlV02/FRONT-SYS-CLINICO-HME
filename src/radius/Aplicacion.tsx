@@ -154,6 +154,11 @@ const AtencionMedicaEmergenciasView = lazy(() =>
     default: m.AtencionMedicaEmergenciasView,
   })),
 );
+const MedicoVisitanteEmergenciasView = lazy(() =>
+  import("../flows/emergencias/MedicoVisitanteEmergenciasView").then((m) => ({
+    default: m.MedicoVisitanteEmergenciasView,
+  })),
+);
 const EnfermeraInternacionView = lazy(() =>
   import("../flows/internacion/EnfermeraInternacionView").then((m) => ({
     default: m.EnfermeraInternacionView,
@@ -348,7 +353,7 @@ type SubvistaConfiguracion = "usuario" | "sistema" | "usuarios";
 type SubvistaAtencionAgenda = "pacientes" | "cronograma";
 type SubvistaTriajeAmbulatorio =
   "signos-vitales" | "agenda" | "registro-uso" | "uso-items" | "configuracion";
-type SubvistaMedicoInternacion = "internados" | "altas";
+type SubvistaMedicoInternacion = "internados" | "altas" | "dietas";
 type SubvistaEnfermeraInternacion = "internados" | "altas";
 type TemaSistema = "light" | "dark";
 type CirugiaProgramada = {
@@ -540,6 +545,12 @@ const modulos: Modulo[] = [
     grupo: "EMERGENCIAS",
   },
   {
+    id: "medico-visitante-emergencias",
+    nombre: "Médico visitante emergencias",
+    icono: "userMedical",
+    grupo: "EMERGENCIAS",
+  },
+  {
     id: "enfermera-internacion",
     nombre: "Enfermera internación",
     icono: "clipboardMedical",
@@ -553,7 +564,7 @@ const modulos: Modulo[] = [
   },
   {
     id: "medico-visitante-internacion",
-    nombre: "Médico visitante",
+    nombre: "Médico visitante internación",
     icono: "userMedical",
     grupo: "INTERNACIÓN",
   },
@@ -571,7 +582,7 @@ const modulos: Modulo[] = [
   },
   {
     id: "medico-visitante-terapia-intensiva",
-    nombre: "Médico visitante",
+    nombre: "Médico visitante UCI",
     icono: "userMedical",
     grupo: "TERAPIA INTENSIVA",
   },
@@ -585,6 +596,12 @@ const modulos: Modulo[] = [
     id: "enfermera-quirofano",
     nombre: "Enfermera quirófano",
     icono: "clipboardMedical",
+    grupo: "QUIRÓFANO",
+  },
+  {
+    id: "enfermera-instrumentista",
+    nombre: "Enfermera instrumentista",
+    icono: "patient",
     grupo: "QUIRÓFANO",
   },
   {
@@ -689,6 +706,12 @@ const modulos: Modulo[] = [
     id: "cocina-administracion",
     nombre: "Control de Cocina",
     icono: "warehouse",
+    grupo: "COCINA",
+  },
+  {
+    id: "nutricion",
+    nombre: "Nutrición",
+    icono: "utensils",
     grupo: "COCINA",
   },
   { id: "almacen", nombre: "Almacén", icono: "warehouse", grupo: "ALMACÉN" },
@@ -812,6 +835,15 @@ export default function Aplicacion() {
   const [cirugiaInstrumentista, setCirugiaInstrumentista] = useState<
     string | null
   >(null);
+  useEffect(() => {
+    if (modulo === "enfermera-instrumentista") {
+      setRolEnfermeriaQuirofano("instrumentista");
+      setCirugiaInstrumentista(null);
+    } else if (modulo === "enfermera-quirofano") {
+      setRolEnfermeriaQuirofano("circulante");
+      setCirugiaInstrumentista(null);
+    }
+  }, [modulo]);
   const [fechaDesdeCirugias, setFechaDesdeCirugias] = useState("");
   const [fechaHastaCirugias, setFechaHastaCirugias] = useState("");
   const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>(
@@ -1206,12 +1238,14 @@ export default function Aplicacion() {
         "enfermera-terapia-intensiva",
         "farmacia-internacion",
         "enfermera-quirofano",
+        "enfermera-instrumentista",
       ].includes(item.id);
     if (perfil === "medico")
       return [
         "pacientes",
         "atencion-medica",
         "atencion-urgencias",
+        "medico-visitante-emergencias",
         "medico-internacion",
         "medico-visitante-internacion",
         "medico-terapia-intensiva",
@@ -1220,6 +1254,7 @@ export default function Aplicacion() {
     if (perfil === "quirofano")
       return [
         "enfermera-quirofano",
+        "enfermera-instrumentista",
         "medico-quirofano",
         "central-esterilizacion",
         "recepcion-material-sucio",
@@ -1522,6 +1557,10 @@ export default function Aplicacion() {
                         className={`nav-modulo nav-${item.id}${modulo === item.id ? " activo" : ""}`}
                         onClick={(evento) => {
                           setModulo(item.id);
+                          if (item.id === "enfermera-instrumentista") {
+                            setRolEnfermeriaQuirofano("instrumentista");
+                            setCirugiaInstrumentista(null);
+                          }
                           if (item.id === "imagenologia")
                             setSubvistaImagenologia("pacientes");
                           if (item.id === "atencion-agenda")
@@ -2104,6 +2143,8 @@ export default function Aplicacion() {
               <CocinaInternacionView />
             ) : modulo === "cocina-administracion" ? (
               <CocinaAdministracionView />
+            ) : modulo === "nutricion" ? (
+              <CocinaInternacionView vistaInicial="dietas" soloDietas />
             ) : modulo === "pacientes" ? (
               subvistaPacientes === "pacientes" ? (
                 <VistaPacientes modoClinico />
@@ -2300,6 +2341,8 @@ export default function Aplicacion() {
                   estadoSignos === "listo" ? signosVitalesConfigurados : undefined
                 }
               />
+            ) : modulo === "medico-visitante-emergencias" ? (
+              <MedicoVisitanteEmergenciasView />
             ) : modulo === "enfermera-terapia-intensiva" ? (
               <section className="triaje-ambulatorio-vista">
                 <div className="uci-atencion-barra">
@@ -2370,6 +2413,18 @@ export default function Aplicacion() {
                     <strong>Pacientes dados de alta</strong>
                     <small>Historial de internaciones finalizadas.</small>
                   </button>
+                  <button
+                    type="button"
+                    aria-current={subvistaMedicoInternacion === "dietas" ? "page" : undefined}
+                    className={subvistaMedicoInternacion === "dietas" ? "activo" : ""}
+                    onClick={() => setSubvistaMedicoInternacion("dietas")}
+                  >
+                    <span>
+                      <Icon name="utensils" size={17} />
+                    </span>
+                    <strong>Dietas</strong>
+                    <small>Catálogo de dietas disponibles para internación.</small>
+                  </button>
                 </HorizontalSubvistaNav>
                 <EnfermeraInternacionView
                   subvista={subvistaEnfermeraInternacion}
@@ -2424,29 +2479,12 @@ export default function Aplicacion() {
               <MedicoVisitanteInternacionView />
             ) : modulo === "medico-visitante-terapia-intensiva" ? (
               <MedicoVisitanteInternacionView area="uci" />
-            ) : modulo === "enfermera-quirofano" ? (
+            ) : modulo === "enfermera-quirofano" || modulo === "enfermera-instrumentista" ? (
               <section className="enfermeria-quirofano-vista">
-                <nav
+                {modulo === "enfermera-quirofano" && <nav
                   className="enfermeria-q-subvistas recepcion-subvistas"
                   aria-label="Funciones de enfermería de quirófano"
                 >
-                  <button
-                    type="button"
-                    className={
-                      rolEnfermeriaQuirofano === "instrumentista"
-                        ? "activo"
-                        : ""
-                    }
-                    onClick={() => {
-                      setRolEnfermeriaQuirofano("instrumentista");
-                      setCirugiaInstrumentista(null);
-                    }}
-                  >
-                    <span>
-                      <Icon name="patient" size={17} />
-                    </span>
-                    <strong>Enfermera instrumentista</strong>
-                  </button>
                   <button
                     type="button"
                     className={
@@ -2474,7 +2512,7 @@ export default function Aplicacion() {
                     </span>
                     <strong>Almacén quirófano</strong>
                   </button>
-                </nav>
+                </nav>}
                 <section className="enfermeria-q-panel">
                   {(
                     ["instrumentista", "circulante"] as RolEnfermeriaQuirofano[]

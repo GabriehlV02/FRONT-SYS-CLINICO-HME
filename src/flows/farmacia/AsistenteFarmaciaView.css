@@ -2143,7 +2143,7 @@
 }
 @media (max-width: 850px) {
   .farmacia-ia-chat {
-    grid-template-columns: 210px minmax(0, 1fr);
+    grid-template-columns: minmax(190px, 220px) minmax(0, 1fr);
   }
   .farmacia-ia-panel-modo {
     padding-inline: 15px;
@@ -2153,6 +2153,23 @@
   }
   .farmacia-ia-mensaje {
     max-width: 90%;
+  }
+
+  .farmacia-ia-sala-cabecera {
+    align-items: flex-start;
+    gap: 10px;
+    padding-block: 10px;
+  }
+
+  .farmacia-ia-sala-cabecera > div {
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  .farmacia-ia-pruebas-voz {
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 }
 @media (max-width: 650px) {
@@ -2213,6 +2230,40 @@
   }
   .farmacia-ia-compositor textarea {
     font-size: 12px;
+  }
+
+  .farmacia-ia-sala-cabecera {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    padding-block: 10px;
+  }
+
+  .farmacia-ia-sala-cabecera > div:first-child {
+    min-height: 24px;
+  }
+
+  .farmacia-ia-pruebas-voz {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .farmacia-ia-pruebas-voz > button {
+    min-width: 0;
+    min-height: 40px;
+    justify-content: center;
+    white-space: normal;
+  }
+
+  .farmacia-ia-compositor {
+    grid-template-columns: minmax(0, 1fr) 38px 38px;
+    gap: 7px;
+  }
+
+  .farmacia-ia-compositor > small {
+    grid-column: 1 / -1;
+    line-height: 1.45;
   }
 }
 

@@ -3088,6 +3088,7 @@ button:focus-visible {
   line-height: 1.4;
 }
 .sistema-app .area-trabajo :is(input, select, textarea) {
+  box-sizing: border-box;
   min-height: 40px;
 }
 .sistema-app

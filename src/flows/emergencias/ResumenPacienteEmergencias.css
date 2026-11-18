@@ -129,6 +129,9 @@
 }
 .sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad {
   gap: 5px;
+  align-content: start;
+  padding-top: 16px;
+  box-sizing: border-box;
 }
 .sistema-app .em-trabajo > .em-resumen .em-identidad-fila-familiar {
   padding-top: 4px;

@@ -212,3 +212,187 @@
   color: #087fc0;
   white-space: nowrap;
 }
+
+.internacion-dietas-dialogo {
+  width: min(680px, calc(100vw - 36px));
+  max-width: 680px;
+  max-height: min(82dvh, 760px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #c9dfeb;
+  border-radius: 16px;
+  color: #174b70;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(11, 48, 74, 0.26);
+}
+.internacion-dietas-dialogo[open] {
+  display: flex;
+  flex-direction: column;
+  animation: internacion-dietas-aparecer 0.18s ease-out;
+}
+.internacion-dietas-dialogo::backdrop {
+  background: rgba(9, 36, 57, 0.5);
+  backdrop-filter: blur(3px);
+}
+.internacion-dietas-dialogo > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px 18px;
+  border-bottom: 1px solid #e1edf4;
+  background: linear-gradient(120deg, #f0f8fd, #fff 85%);
+}
+.internacion-dietas-dialogo > header > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.internacion-dietas-dialogo > header span {
+  color: #087fc0;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+.internacion-dietas-dialogo > header h3 {
+  margin: 0;
+  color: #123f64;
+  font-size: 21px;
+}
+.internacion-dietas-dialogo > header p {
+  margin: 0;
+  color: #69869b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.internacion-dietas-dialogo > header > button {
+  display: grid;
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid #c9dfeb;
+  border-radius: 9px;
+  color: #37627d;
+  background: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+.internacion-dietas-buscador {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 44px;
+  margin: 18px 22px 4px;
+  padding: 0 12px;
+  border: 1px solid #c8dfea;
+  border-radius: 9px;
+  color: #1784b9;
+  background: #fbfdff;
+}
+.internacion-dietas-buscador:focus-within {
+  border-color: #168bc3;
+  box-shadow: 0 0 0 3px rgba(22, 139, 195, 0.12);
+}
+.internacion-dietas-buscador input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  color: #173d60;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+}
+.internacion-dietas-buscador input::placeholder { color: #7891a3; }
+.internacion-dietas-dialogo .internacion-dietas-resultados {
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 10px;
+  max-height: min(48dvh, 430px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 10px 22px 16px;
+  padding: 2px;
+}
+.internacion-dietas-dialogo .internacion-dietas-resultados > button {
+  min-height: 76px;
+  padding: 13px 14px;
+  border-color: #d6e6ef;
+  background: linear-gradient(135deg, #fbfdff, #f5faff);
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+}
+.internacion-dietas-dialogo .internacion-dietas-resultados > button:hover,
+.internacion-dietas-dialogo .internacion-dietas-resultados > button:focus-visible {
+  transform: translateY(-1px);
+  border-color: #7bbddd;
+  outline: 0;
+  background: #f1f9fe;
+  box-shadow: 0 5px 14px rgba(12, 98, 146, 0.1);
+}
+.internacion-dietas-dialogo .internacion-dietas-resultados > button strong {
+  color: #194b6c;
+  font-size: 14px;
+}
+.internacion-dietas-dialogo .internacion-dietas-resultados > button small {
+  color: #69869b;
+  font-size: 11px;
+}
+.internacion-dietas-dialogo .internacion-dietas-resultados > button b {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #087fc0;
+  font-size: 11px;
+}
+.internacion-dietas-sin-resultados {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 28px 12px;
+  border: 1px dashed #cbdfe9;
+  border-radius: 10px;
+  color: #69869b;
+  text-align: center;
+  font-size: 13px;
+}
+.internacion-dietas-dialogo > footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding: 13px 22px;
+  border-top: 1px solid #e2edf3;
+  background: #fbfdff;
+}
+.internacion-dietas-dialogo > footer button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid #c6dce8;
+  border-radius: 8px;
+  color: #315d7d;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+@keyframes internacion-dietas-aparecer {
+  from { opacity: 0; transform: translateY(5px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 600px) {
+  .internacion-dietas-dialogo {
+    width: calc(100vw - 20px);
+    max-width: none;
+    max-height: calc(100dvh - 20px);
+    border-radius: 14px;
+  }
+  .internacion-dietas-dialogo > header { padding: 18px 16px 15px; }
+  .internacion-dietas-dialogo > header h3 { font-size: 19px; }
+  .internacion-dietas-buscador { margin: 14px 16px 2px; }
+  .internacion-dietas-dialogo .internacion-dietas-resultados {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 52dvh;
+    margin: 10px 16px 14px;
+  }
+  .internacion-dietas-dialogo .internacion-dietas-resultados > button { min-height: 68px; }
+  .internacion-dietas-dialogo > footer { padding: 11px 16px; }
+}

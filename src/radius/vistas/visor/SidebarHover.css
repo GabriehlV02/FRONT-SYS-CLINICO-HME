@@ -213,6 +213,41 @@
     object-fit: contain;
   }
 }
+
+/* Mantiene el tamaño del logo al expandir el menú al pasar el cursor. */
+@media (min-width: 761px) {
+  .sistema-app.sidebar-replegado
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-marca,
+  .sistema-app.sidebar-replegado .sistema-sidebar.sidebar-abierto .sistema-marca {
+    height: 96px !important;
+    min-height: 96px !important;
+    justify-content: center !important;
+    padding: 0 12px !important;
+  }
+
+  .sistema-app.sidebar-replegado
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-marca > .marca-icono,
+  .sistema-app.sidebar-replegado
+    .sistema-sidebar.sidebar-abierto
+    .sistema-marca > .marca-icono {
+    flex: 0 1 310px !important;
+    width: min(310px, 100%) !important;
+    height: 88px !important;
+    margin: 0 auto !important;
+  }
+
+  .sistema-app.sidebar-replegado
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-marca > .marca-icono img,
+  .sistema-app.sidebar-replegado
+    .sistema-sidebar.sidebar-abierto
+    .sistema-marca > .marca-icono img {
+    object-fit: contain !important;
+    object-position: center center !important;
+  }
+}
 @media (min-width: 761px) and (prefers-reduced-motion: reduce) {
   .sistema-app.sidebar-replegado .sistema-sidebar {
     transition: none;

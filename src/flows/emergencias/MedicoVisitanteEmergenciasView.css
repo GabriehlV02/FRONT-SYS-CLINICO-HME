@@ -1,0 +1,26 @@
+.mve-emergencias .mvi-pacientes-vista > header { display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.mve-emergencias .mvi-pacientes-vista > header h3 { margin:5px 0; color:#173e61; }
+.mve-emergencias .mvi-pacientes-vista > header p { margin:0; color:#69869b; }
+.mve-emergencias .mvi-pacientes-vista > header.mve-lista-header { justify-content:flex-end; }
+.mve-emergencias .mvi-pacientes-vista > header.mve-lista-header .mvi-busqueda { width:min(420px,100%); margin:0; }
+.mve-tabla { overflow:auto; margin-top:18px; border:1px solid #dce9f1; border-radius:11px; background:#fff; }
+.mve-tabla-cabecera,.mve-fila { display:grid; grid-template-columns:minmax(230px,1.5fr) minmax(145px,1fr) minmax(90px,.55fr) minmax(150px,.9fr) minmax(105px,.65fr) 120px; align-items:center; gap:14px; min-width:900px; padding:13px 16px; }
+.mve-tabla-cabecera { min-height:48px; color:#54738a; background:#f3f9fd; font-size:10px; font-weight:900; }
+.mve-fila { min-height:72px; border-top:1px solid #e5eef4; color:#244a66; font-size:12px; }
+.mve-nombre { display:flex; align-items:center; gap:10px; min-width:0; }
+.mve-nombre > div { min-width:0; }
+.mve-nombre strong,.mve-nombre small { display:block; }
+.mve-nombre strong { color:#173e61; overflow-wrap:anywhere; }
+.mve-nombre small { margin-top:4px; color:#69869b; font-size:10px; }
+.mve-fila > strong { overflow-wrap:anywhere; }
+.mve-fila > em { justify-self:start; padding:6px 9px; border-radius:999px; color:#147348; background:#e9f8ef; font-size:10px; font-style:normal; font-weight:800; }
+.mve-fila > button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:36px; border:0; border-radius:8px; color:#fff; background:#087fbd; font-size:11px; font-weight:800; cursor:pointer; }
+.mve-atencion { padding:20px; border:1px solid #d6e5ef; border-radius:14px; background:#fff; box-shadow:0 6px 18px #2255740b; }
+.mve-atencion > .mvi-volver { margin-bottom:17px; }
+@media(max-width:760px){.mve-subvistas{width:100%}.mve-subvistas button{flex:1;padding:0 9px;font-size:12px}.mve-emergencias .mvi-pacientes-vista>header{align-items:stretch;flex-direction:column}.mve-emergencias .mvi-busqueda{width:100%}.mve-atencion{padding:13px}.mve-atencion .mvi-paciente-cabecera{align-items:flex-start;flex-direction:column;gap:12px}}
+.mve-subvistas { display:flex; gap:8px; margin:0 0 16px; padding:6px; width:max-content; max-width:100%; border:1px solid #c8deec; border-radius:12px; background:#fff; }
+.mve-subvistas button { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:42px; padding:0 16px; border:0; border-radius:9px; color:#315c79; background:transparent; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.mve-subvistas button.activa { color:#fff; background:#0786c4; box-shadow:0 3px 9px #087fbd2b; }
+.mve-fila-visita { grid-template-columns:minmax(145px,.8fr) minmax(190px,1.2fr) minmax(75px,.45fr) minmax(150px,.9fr) minmax(220px,1.5fr); }
+.mve-fila-visita p { margin:0; color:#54738a; line-height:1.5; overflow-wrap:anywhere; }
+.mve-historial-vista .mve-tabla { margin-top:18px; }

@@ -338,7 +338,7 @@
   border-left: 1px solid #d5e6f0;
 }
 .internacion-atencion-info .internacion-atencion-datos {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(230px, .8fr);
   gap: 0;
   border-top: 1px solid #d5e6f0;
   background: #fbfdff;
@@ -355,6 +355,52 @@
 .internacion-atencion-info .internacion-atencion-datos article:first-child {
   padding-right: 18px;
 }
+.internacion-atencion-info .internacion-atencion-datos article.internacion-atencion-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 7px;
+  border-left: 1px solid #d5e6f0;
+}
+.internacion-atencion-acciones button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #c62828;
+  border-radius: 8px;
+  color: #fff;
+  background: #c62828;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  cursor: pointer;
+}
+.internacion-atencion-acciones .internacion-accion-alta { border-color:#c62828; background:#c62828; }
+.internacion-atencion-acciones .internacion-accion-alta:hover { border-color:#a91f1f; background:#a91f1f; }
+.internacion-atencion-acciones .internacion-accion-traslado {
+  border-color: #e97808;
+  color: #fff;
+  background: #e97808;
+}
+.internacion-atencion-acciones .internacion-accion-traslado:hover { border-color:#c85e05; background:#c85e05; }
+.internacion-traslado-fondo { position:fixed; inset:0; z-index:2500; display:grid; place-items:center; padding:18px; background:rgb(11 35 53 / 48%); }
+.internacion-traslado-modal { width:min(500px,100%); padding:22px; border:1px solid #d1e2ec; border-radius:14px; background:#fff; box-shadow:0 22px 65px rgb(12 42 62 / 24%); }
+.internacion-traslado-modal > header { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; }
+.internacion-traslado-modal > header span { color:#087bb6; font-size:10px; font-weight:900; letter-spacing:.1em; }
+.internacion-traslado-modal > header h3 { margin:4px 0 0; color:#173e61; font-size:20px; }
+.internacion-traslado-modal > header button { width:34px; height:34px; border:1px solid #d4e4ed; border-radius:8px; color:#52718a; background:white; font-size:20px; cursor:pointer; }
+.internacion-traslado-modal > p { color:#648095; font-size:12px; }
+.internacion-traslado-campos { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.internacion-traslado-campos label { display:grid; gap:6px; color:#42657c; font-size:11px; font-weight:750; }
+.internacion-traslado-campos input { box-sizing:border-box; width:100%; min-width:0; height:40px; padding:0 10px; border:1px solid #c9dce8; border-radius:8px; color:#254b67; background:#fff; }
+.internacion-traslado-error { color:#a12b2b!important; }
+.internacion-traslado-modal footer { display:flex; justify-content:flex-end; gap:9px; margin-top:18px; }
+.internacion-traslado-modal footer button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:38px; padding:0 12px; border:1px solid #cbdfe9; border-radius:8px; color:#42657c; background:#fff; font-weight:750; cursor:pointer; }
+.internacion-traslado-modal footer button[type="submit"] { border-color:#087fc0; color:#fff; background:#087fc0; }
 @media (max-width: 620px) {
   .internacion-atencion-info .internacion-atencion-contexto {
     flex-direction: column;
@@ -367,6 +413,8 @@
     border-top: 1px solid #d5e6f0;
     border-left: 0;
   }
+  .internacion-atencion-info .internacion-atencion-datos article.internacion-atencion-acciones { border-left:0; }
+  .internacion-traslado-campos { grid-template-columns:1fr; }
 }
 .internacion-medica {
   display: grid;
@@ -893,4 +941,75 @@
     flex: 1;
     justify-content: center;
   }
+}
+.internacion-dietas-catalogo {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding: clamp(17px, 2.4vw, 28px);
+  border: 1px solid #d2e4ef;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #fff, #f7fbfe);
+  box-shadow: 0 8px 24px rgba(22, 73, 109, 0.055);
+}
+.internacion-dietas-catalogo > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0edf4;
+}
+.internacion-dietas-catalogo > header > div { display: grid; gap: 5px; }
+.internacion-dietas-catalogo > header > div > span {
+  color: #087fc0;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .1em;
+}
+.internacion-dietas-catalogo h2 { margin: 0; color: #123f64; font-size: 22px; }
+.internacion-dietas-catalogo > header p { margin: 0; color: #69869b; font-size: 13px; line-height: 1.5; }
+.internacion-dietas-conteo {
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border: 1px solid #cce6f2;
+  border-radius: 999px;
+  color: #0877b2;
+  background: #edf8fd;
+  font-size: 11px;
+  font-weight: 800;
+}
+.internacion-dietas-catalogo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 12px;
+}
+.internacion-dietas-catalogo-grid > article {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #d9e8f0;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #fff, #f9fcfe);
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.internacion-dietas-catalogo-grid > article:hover {
+  transform: translateY(-2px);
+  border-color: #acd3e6;
+  box-shadow: 0 8px 20px rgba(21, 82, 119, .08);
+}
+.internacion-dietas-icono { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 11px; color: #087fc0; background: #eaf7fd; }
+.internacion-dietas-catalogo-grid > article > div { display: grid; justify-items: start; gap: 6px; min-width: 0; }
+.internacion-dietas-catalogo-grid small { color: #1384b7; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+.internacion-dietas-catalogo-grid h3 { margin: 0; color: #174b70; font-size: 15px; }
+.internacion-dietas-catalogo-grid p { margin: 0; color: #627f94; font-size: 12px; line-height: 1.5; }
+.internacion-dietas-restriccion { padding: 5px 8px; border-radius: 7px; color: #55758b; background: #f0f6fa; font-size: 10px; line-height: 1.4; }
+.internacion-dietas-catalogo-vacio { margin: 0; padding: 28px; border: 1px dashed #cbdfe9; border-radius: 10px; color: #69869b; text-align: center; }
+@media (max-width: 520px) {
+  .internacion-dietas-catalogo { padding: 15px; }
+  .internacion-dietas-catalogo > header { flex-direction: column; }
+  .internacion-dietas-catalogo h2 { font-size: 19px; }
 }

@@ -6,6 +6,8 @@ import {
   leerInternaciones,
   esPacienteUci,
   obtenerEjemplosInternacion,
+  actualizarInternacion,
+  camaDisponible,
   registrarAltaInternacion,
   suscribirInternaciones,
   type RegistroInternacion,
@@ -26,7 +28,7 @@ import "./ResumenSignosAcciones.css";
 import "./ResumenBalanceAcciones.css";
 import "./OrdenMedicaDialogo.css";
 
-type Subvista = "internados" | "altas";
+type Subvista = "internados" | "altas" | "dietas";
 type TipoOrdenMedica = "medicamentos" | "laboratorio" | "imagenologia" | "dieta";
 type OrdenMedica = {
   id: number;
@@ -101,6 +103,9 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
     useState<RegistroInternacion | null>(null);
   const [atencionActiva, setAtencionActiva] =
     useState<RegistroInternacion | null>(null);
+  const [trasladoAbierto, setTrasladoAbierto] = useState(false);
+  const [destinoTraslado, setDestinoTraslado] = useState({ sala: "", cama: "" });
+  const [errorTraslado, setErrorTraslado] = useState("");
   const [internandoPaciente, setInternandoPaciente] = useState(false);
   const [historiaClinicaAbierta, setHistoriaClinicaAbierta] = useState(false);
   const [subvistaAtencion, setSubvistaAtencion] = useState<
@@ -121,8 +126,9 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
     EvolucionMedica[]
   >([]);
   const [evolucionSeleccionada, setEvolucionSeleccionada] = useState<EvolucionMedica | null>(null);
-  const [filtrosNotas, setFiltrosNotas] = useState({ medico: "", desde: "", hasta: "", especialidad: "" });
+  const [filtrosNotas, setFiltrosNotas] = useState({ medico: "", desde: "", hasta: "" });
   const detalleEvolucionRef = useRef<HTMLDialogElement>(null);
+  const dietasDialogoRef = useRef<HTMLDialogElement>(null);
   const [borradorEvolucion, setBorradorEvolucion] = useState(() => ({
     texto: "",
     ...fechaHoraActual(),
@@ -131,7 +137,7 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
   useEffect(() => {
     setBorradorEvolucion({ texto: "", ...fechaHoraActual() });
     setErrorEvolucion("");
-    setFiltrosNotas({ medico: "", desde: "", hasta: "", especialidad: "" });
+    setFiltrosNotas({ medico: "", desde: "", hasta: "" });
   }, [atencionActiva?.id]);
   useEffect(() => {
     try {
@@ -152,6 +158,35 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
       registro.estado === "alta" && correspondeAlMesActual(registro.fechaAlta),
   );
   const fuente = subvista === "internados" ? internados : altas;
+  if (subvista === "dietas") {
+    const dietasActivas = leerCatalogoDietas().filter((dieta) => dieta.estado === "Activa");
+    return (
+      <section className="internacion-dietas-catalogo" aria-label="Catálogo de dietas">
+        <header>
+          <div>
+            <span>ALIMENTACIÓN DEL PACIENTE INTERNADO</span>
+            <h2>Dietas disponibles</h2>
+            <p>Consulta las dietas activas del catálogo para la atención nutricional durante la internación.</p>
+          </div>
+          <span className="internacion-dietas-conteo">{dietasActivas.length} activas</span>
+        </header>
+        <div className="internacion-dietas-catalogo-grid">
+          {dietasActivas.map((dieta) => (
+            <article key={dieta.id}>
+              <span className="internacion-dietas-icono"><Icon name="utensils" size={19} /></span>
+              <div>
+                <small>{dieta.tipo} · {dieta.consistencia}</small>
+                <h3>{dieta.nombre}</h3>
+                <p>{dieta.descripcion || "Sin descripción adicional."}</p>
+                <span className="internacion-dietas-restriccion">Restricciones: {dieta.restricciones || "Ninguna"}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+        {!dietasActivas.length && <p className="internacion-dietas-catalogo-vacio">No hay dietas activas en el catálogo.</p>}
+      </section>
+    );
+  }
   useEffect(() => {
     if (subvista === "altas") setAtencionActiva(null);
   }, [subvista]);
@@ -181,8 +216,32 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
         `¿Registrar el alta de ${registro.paciente}? El paciente se moverá al listado de altas.`,
       )
     )
-      return;
+      return false;
     registrarAltaInternacion(registro.id);
+    return true;
+  };
+  const guardarTraslado = (registro: RegistroInternacion) => {
+    const sala = destinoTraslado.sala.trim();
+    const cama = destinoTraslado.cama.trim();
+    if (!sala || !cama) {
+      setErrorTraslado("Indica la sala o unidad de destino y la cama.");
+      return;
+    }
+    if (!camaDisponible(sala, cama, registro.id)) {
+      setErrorTraslado("Esa cama ya está ocupada. Elige otra ubicación.");
+      return;
+    }
+    try {
+      actualizarInternacion(registro.id, {
+        sala,
+        cama,
+        fechaIngreso: registro.fechaIngreso || registro.fecha,
+      });
+      setTrasladoAbierto(false);
+      setErrorTraslado("");
+    } catch (causa) {
+      setErrorTraslado(causa instanceof Error ? causa.message : "No se pudo trasladar al paciente.");
+    }
   };
   const ordenesVisibles = useMemo(() => {
     const termino = busquedaOrden.trim().toLocaleLowerCase("es");
@@ -219,7 +278,11 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
     setDetalleNuevaOrden("");
     setTipoNuevaOrden(null);
   };
-  const ordenarDieta = (nombre: string) => setOrdenesMedicas((ordenes) => [{ id: Date.now(), tipo: "dieta", detalle: nombre, fecha: new Date().toLocaleDateString("es-BO") }, ...ordenes]);
+  const ordenarDieta = (nombre: string) => {
+    setOrdenesMedicas((ordenes) => [{ id: Date.now(), tipo: "dieta", detalle: nombre, fecha: new Date().toLocaleDateString("es-BO") }, ...ordenes]);
+    dietasDialogoRef.current?.close();
+    setBusquedaOrden("");
+  };
   const alternarSignoEnVista = (signo: string) =>
     setSignosEnVista((actual) =>
       actual.includes(signo)
@@ -254,13 +317,11 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
       atencionActiva;
     const notasPaciente = evolucionesMedicas.filter((nota) => nota.pacienteId === pacienteActual.id);
     const medicosNotas = [...new Set(notasPaciente.map((nota) => nota.medico || "Profesional no registrado"))].sort((a, b) => a.localeCompare(b, "es"));
-    const especialidadesNotas = [...new Set(notasPaciente.map((nota) => nota.especialidad || "Sin especialidad registrada"))].sort((a, b) => a.localeCompare(b, "es"));
     const notasFiltradas = notasPaciente.filter((nota) => {
       const fechaNota = new Date(nota.fecha);
       if (Number.isNaN(fechaNota.getTime())) return false;
       const dia = `${fechaNota.getFullYear()}-${String(fechaNota.getMonth() + 1).padStart(2, "0")}-${String(fechaNota.getDate()).padStart(2, "0")}`;
       return (!filtrosNotas.medico || (nota.medico || "Profesional no registrado") === filtrosNotas.medico)
-        && (!filtrosNotas.especialidad || (nota.especialidad || "Sin especialidad registrada") === filtrosNotas.especialidad)
         && (!filtrosNotas.desde || dia >= filtrosNotas.desde)
         && (!filtrosNotas.hasta || dia <= filtrosNotas.hasta);
     }).sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
@@ -328,8 +389,44 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                 <strong>{pacienteActual.medico || "Sin asignar"}</strong>
               </div>
             </article>
+            <article className="internacion-atencion-acciones">
+              <button
+                type="button"
+                className="internacion-accion-alta"
+                onClick={() => {
+                  if (darAlta(pacienteActual)) setAtencionActiva(null);
+                }}
+              >
+                <Icon name="check" size={16} /> Dar de alta al paciente
+              </button>
+              <button
+                type="button"
+                className="internacion-accion-traslado"
+                onClick={() => {
+                  setDestinoTraslado({ sala: pacienteActual.sala || "", cama: pacienteActual.cama || "" });
+                  setErrorTraslado("");
+                  setTrasladoAbierto(true);
+                }}
+              >
+                <Icon name="bed" size={16} /> Traslado del paciente
+              </button>
+            </article>
           </section>
         </section>
+        {trasladoAbierto && (
+          <div className="internacion-traslado-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setTrasladoAbierto(false); }}>
+            <form className="internacion-traslado-modal" role="dialog" aria-modal="true" aria-labelledby="internacion-traslado-titulo" onSubmit={(evento) => { evento.preventDefault(); guardarTraslado(pacienteActual); }}>
+              <header><div><span>CAMBIO DE UBICACIÓN</span><h3 id="internacion-traslado-titulo">Traslado del paciente</h3></div><button type="button" aria-label="Cerrar" onClick={() => setTrasladoAbierto(false)}>×</button></header>
+              <p>{pacienteActual.paciente} · Ubicación actual: Sala {pacienteActual.sala || "—"} · Cama {pacienteActual.cama || "—"}</p>
+              <div className="internacion-traslado-campos">
+                <label>Sala o unidad de destino<input value={destinoTraslado.sala} onChange={(evento) => setDestinoTraslado((actual) => ({ ...actual, sala: evento.target.value }))} placeholder="Ej. Medicina interna o UCI" required /></label>
+                <label>Cama de destino<input value={destinoTraslado.cama} onChange={(evento) => setDestinoTraslado((actual) => ({ ...actual, cama: evento.target.value }))} placeholder="Ej. A" required /></label>
+              </div>
+              {errorTraslado && <p className="internacion-traslado-error" role="alert">{errorTraslado}</p>}
+              <footer><button type="button" onClick={() => setTrasladoAbierto(false)}>Cancelar</button><button type="submit"><Icon name="bed" size={16} /> Confirmar traslado</button></footer>
+            </form>
+          </div>
+        )}
         <section
           className="internacion-subvistas"
           aria-label="Atención del paciente"
@@ -397,6 +494,36 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                       registrarEvolucionMedica();
                     }}
                   >
+                    <div className="internacion-evolucion-fecha-hora">
+                      <label>
+                        Fecha de la anotación *
+                        <input
+                          type="date"
+                          required
+                          value={borradorEvolucion.fecha}
+                          onChange={(evento) =>
+                            setBorradorEvolucion((actual) => ({
+                              ...actual,
+                              fecha: evento.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                      <label>
+                        Hora de la anotación *
+                        <input
+                          type="time"
+                          required
+                          value={borradorEvolucion.hora}
+                          onChange={(evento) =>
+                            setBorradorEvolucion((actual) => ({
+                              ...actual,
+                              hora: evento.target.value,
+                            }))
+                          }
+                        />
+                      </label>
+                    </div>
                     <label className="internacion-evolucion-texto">
                       Anotación médica *
                       <textarea
@@ -409,34 +536,6 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                         }
                         placeholder="Escribe aquí la evolución médica del paciente."
                         required
-                      />
-                    </label>
-                    <label>
-                      Fecha de la anotación *
-                      <input
-                        type="date"
-                        required
-                        value={borradorEvolucion.fecha}
-                        onChange={(evento) =>
-                          setBorradorEvolucion((actual) => ({
-                            ...actual,
-                            fecha: evento.target.value,
-                          }))
-                        }
-                      />
-                    </label>
-                    <label>
-                      Hora de la anotación *
-                      <input
-                        type="time"
-                        required
-                        value={borradorEvolucion.hora}
-                        onChange={(evento) =>
-                          setBorradorEvolucion((actual) => ({
-                            ...actual,
-                            hora: evento.target.value,
-                          }))
-                        }
                       />
                     </label>
                     {errorEvolucion && <p role="alert">{errorEvolucion}</p>}
@@ -458,12 +557,6 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                     <select value={filtrosNotas.medico} onChange={(evento) => setFiltrosNotas((actual) => ({ ...actual, medico: evento.target.value }))}>
                       <option value="">Todos los médicos</option>
                       {medicosNotas.map((medico) => <option key={medico} value={medico}>{medico}</option>)}
-                    </select>
-                  </label>
-                  <label>Especialidad
-                    <select value={filtrosNotas.especialidad} onChange={(evento) => setFiltrosNotas((actual) => ({ ...actual, especialidad: evento.target.value }))}>
-                      <option value="">Todas las especialidades</option>
-                      {especialidadesNotas.map((especialidad) => <option key={especialidad} value={especialidad}>{especialidad}</option>)}
                     </select>
                   </label>
                   <label>Desde
@@ -727,18 +820,48 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                 >
                   <Icon name="lab" size={17} /> Orden de laboratorio
                 </button>
-                <button type="button" className="orden-dietas" onClick={() => { setBusquedaOrden(""); setFiltroOrden("dieta"); }}>Dietas</button>
+                <button type="button" className="orden-dietas" onClick={() => { setBusquedaOrden(""); setFiltroOrden("dieta"); dietasDialogoRef.current?.showModal(); }}>
+                  <Icon name="utensils" size={17} /> Dietas
+                </button>
               </div>
-              {(filtroOrden === "dieta" || busquedaOrden.trim()) && dietasCoincidentes.length > 0 && (
+              <dialog
+                ref={dietasDialogoRef}
+                className="internacion-dietas-dialogo"
+                aria-labelledby="internacion-dietas-titulo"
+                onClick={(evento) => {
+                  if (evento.target === evento.currentTarget) dietasDialogoRef.current?.close();
+                }}
+              >
+                <header>
+                  <div>
+                    <span>INDICACIÓN NUTRICIONAL</span>
+                    <h3 id="internacion-dietas-titulo">Seleccionar dieta</h3>
+                    <p>Elige la dieta que se añadirá a las indicaciones de {pacienteActual.paciente}.</p>
+                  </div>
+                  <button type="button" aria-label="Cerrar dietas" onClick={() => dietasDialogoRef.current?.close()}>×</button>
+                </header>
+                <label className="internacion-dietas-buscador">
+                  <Icon name="search" size={17} />
+                  <input
+                    autoFocus
+                    value={busquedaOrden}
+                    onChange={(evento) => setBusquedaOrden(evento.target.value)}
+                    placeholder="Buscar dieta por nombre o tipo"
+                    aria-label="Buscar dieta"
+                  />
+                </label>
                 <div className="internacion-dietas-resultados" aria-label="Dietas disponibles para ordenar">
-                  {dietasCoincidentes.map((dieta) => (
+                  {dietasCoincidentes.length ? dietasCoincidentes.map((dieta) => (
                     <button type="button" key={dieta.id} onClick={() => ordenarDieta(dieta.nombre)}>
                       <span><strong>{dieta.nombre}</strong><small>{dieta.tipo} · {dieta.consistencia}</small></span>
-                      <b>Ordenar dieta</b>
+                      <b>Ordenar dieta <Icon name="chevronRight" size={15} /></b>
                     </button>
-                  ))}
+                  )) : <p className="internacion-dietas-sin-resultados">No hay dietas que coincidan con la búsqueda.</p>}
                 </div>
-              )}
+                <footer>
+                  <button type="button" onClick={() => dietasDialogoRef.current?.close()}>Cancelar</button>
+                </footer>
+              </dialog>
               <div className="internacion-ordenes-contenido">
                 <div className="internacion-ordenes-listado">
                   <div className="internacion-ordenes-listado-cabecera">

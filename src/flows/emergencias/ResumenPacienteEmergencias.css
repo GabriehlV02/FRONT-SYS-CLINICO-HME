@@ -188,13 +188,13 @@
 /* Patient identity: clear hierarchy shared by triage and medical care. */
 .sistema-app .em-trabajo > .em-resumen > .em-resumen-identidad.em-ficha-paciente {
   height: auto;
-  align-content: center;
-  gap: 16px;
-  padding-block: 12px;
+  align-content: start;
+  gap: 13px;
+  padding-block: 14px;
 }
 .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila {
-  gap: 20px;
-  align-items: start;
+  gap: 18px;
+  align-items: center;
 }
 .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila > div {
   display: flex;
@@ -221,15 +221,24 @@
   border-left: 3px solid #1096bf;
 }
 .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:first-child strong {
-  font-size: clamp(18px, 1.5vw, 23px);
+  font-size: clamp(20px, 1.65vw, 25px);
   font-weight: 700;
   color: #153e57;
   letter-spacing: -.025em;
 }
+.sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:not(:first-child) {
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border: 1px solid #e4edf2;
+  border-radius: 10px;
+  background: #f7fafc;
+}
 .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila-familiar {
-  padding-top: 12px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  padding-top: 11px;
   border-top: 1px solid #eaf0f4;
-  gap: 20px;
+  gap: 24px;
 }
 .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores {
   display: flex;
@@ -255,10 +264,11 @@
 }
 .sistema-app .em-trabajo > .em-resumen:has(> .em-ficha-paciente) {
   height: auto;
-  min-height: 176px;
+  min-height: 184px;
 }
 @media (max-width: 600px) {
   .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:first-child { grid-column: 1 / -1; }
+  .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila-familiar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
   .sistema-app .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores { gap: 8px; }
 }

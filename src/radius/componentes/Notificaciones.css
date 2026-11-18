@@ -299,6 +299,8 @@
   transition: background .15s ease, box-shadow .15s ease;
 }
 .confirmacion-salida footer button:hover { background: #f4f8fa; }
+.confirmacion-salida footer button:first-child { border-color: #dc2626; background: #dc2626; color: #fff; box-shadow: 0 4px 10px rgb(220 38 38 / 16%); }
+.confirmacion-salida footer button:first-child:hover { border-color: #b91c1c; background: #b91c1c; }
 .confirmacion-salida footer .confirmar { border-color: #0789b6; background: #0789b6; color: #fff; box-shadow: 0 4px 10px rgb(7 137 182 / 16%); }
 .confirmacion-salida footer .confirmar:hover { background: #06769e; border-color: #06769e; }
 .confirmacion-salida button:focus-visible { outline: 3px solid #7dd3ef; outline-offset: 3px; }

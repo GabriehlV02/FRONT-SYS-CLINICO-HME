@@ -337,7 +337,7 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
         if (indiceReanudado >= 0) {
           const reanudado = existentes[indiceReanudado];
           if (!reanudado.fin)
-            throw new Error("El servicio ya estÃ¡ en uso.");
+            throw new Error("El servicio ya está en uso.");
           let tiempoAcumuladoMs =
             reanudado.tiempoAcumuladoMs ??
             Math.max(0, Date.parse(reanudado.fin) - Date.parse(reanudado.inicio));

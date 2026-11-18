@@ -57,6 +57,30 @@ type BorradorOrden = Pick<
   | "itemId"
   | "porHora"
 >;
+const CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS = "hme:emergencias:atencion-medica:continuidad:v1";
+const CLAVE_BORRADOR_ATENCION_EMERGENCIAS = "hme:emergencias:atencion-medica:borrador:";
+type BorradorAtencionPaciente = {
+  cierre?: { condicionEgreso: "vivo" | "muerto"; causaEgreso: "hospitalaria" | "solicitada" | "fuga" | "transferencia" | "deceso" | "internacion"; observacionEgreso: string } | null;
+  orden?: BorradorOrden | null;
+  buscarItem?: string;
+  busquedaPrescripcion?: string;
+  estudiosImagen?: EstudioImagen[];
+  tipoImagen?: string;
+  valoresSignos?: Record<string, string>;
+  observacionSignos?: string;
+  registroSignosAbierto?: boolean;
+  horaSignos?: string;
+  identidad?: { revision: number; datos: Record<string, string> } | null;
+  antecedentes?: DatosAntecedentes;
+};
+function leerBorradorAtencionPaciente(cuentaId: string): BorradorAtencionPaciente {
+  try { return JSON.parse(window.sessionStorage.getItem(`${CLAVE_BORRADOR_ATENCION_EMERGENCIAS}${cuentaId}`) || "{}") as BorradorAtencionPaciente; }
+  catch { return {}; }
+}
+function descartarBorradorAtencionPaciente(cuentaId: string) {
+  try { window.sessionStorage.removeItem(`${CLAVE_BORRADOR_ATENCION_EMERGENCIAS}${cuentaId}`); }
+  catch { /* El almacenamiento de sesión puede no estar disponible. */ }
+}
 const nuevaOrden = (tipo = "medicamento"): BorradorOrden => ({
   id: crypto.randomUUID(),
   revision: 0,
@@ -373,11 +397,19 @@ export function AtencionMedicaEmergenciasView({
   cuentaInicialId?: string;
   camposConfigurados?: SignoVitalConfig[];
 }) {
+  const [restauracionAtencion] = useState(() => {
+    try {
+      return {
+        cuentaId: window.sessionStorage.getItem(CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS) || "",
+        subvista: window.sessionStorage.getItem(`${CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS}:subvista`) === "historial" ? "historial" as const : "atencion" as const,
+      };
+    } catch { return { cuentaId: "", subvista: "atencion" as const }; }
+  });
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]),
-    [activa, setActiva] = useState(""),
+    [activa, setActiva] = useState(() => restauracionAtencion.cuentaId),
     [busqueda, setBusqueda] = useState("");
   const [subvista, setSubvista] = useState<"atencion" | "historial">(
-      "atencion",
+      restauracionAtencion.subvista,
     ),
     [cargando, setCargando] = useState(true),
     [error, setError] = useState("");
@@ -462,21 +494,20 @@ export function AtencionMedicaEmergenciasView({
     void actualizar();
     void cargarCatalogo();
     document.addEventListener("visibilitychange", alCambiarVisibilidad);
-    const salir = (e: BeforeUnloadEvent) => {
-      if (formularioSucio.current) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", salir);
     return () => {
       cancelado = true;
       window.clearTimeout(temporizador);
       secuencia.current++;
       document.removeEventListener("visibilitychange", alCambiarVisibilidad);
-      window.removeEventListener("beforeunload", salir);
     };
   }, []);
+  useEffect(() => {
+    try {
+      if (activa) window.sessionStorage.setItem(CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS, activa);
+      else window.sessionStorage.removeItem(CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS);
+      window.sessionStorage.setItem(`${CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS}:subvista`, subvista);
+    } catch { /* Continuidad opcional si el navegador deshabilita el almacenamiento de sesión. */ }
+  }, [activa, subvista]);
   useEffect(() => {
     if (
       cuentaInicialId &&
@@ -507,6 +538,7 @@ export function AtencionMedicaEmergenciasView({
       )
     )
       return;
+    descartarBorradorAtencionPaciente(activa);
     formularioSucio.current = false;
     setActiva("");
   };
@@ -908,6 +940,7 @@ export function AtencionMedicaEmergenciasView({
                     )
                   )
                     return;
+                  descartarBorradorAtencionPaciente(activa);
                   formularioSucio.current = false;
                   setActiva(c.id);
                 }}
@@ -1006,6 +1039,7 @@ function AtencionPaciente({
   ejecutar: (ruta: string, body: object) => Promise<void>;
   alEditar: (valor: boolean) => void;
 }) {
+  const [borradorInicial] = useState(() => leerBorradorAtencionPaciente(cuenta.id));
   const catalogoServicios = useServiciosSignosVitales();
   const catalogoSignos = useCatalogoSignosVitales(
     camposConfigurados,
@@ -1035,37 +1069,24 @@ function AtencionPaciente({
         .map((campo) => [campo.id, campo.etiqueta, campo.unidad] as const),
     [camposEmergencia],
   );
-  const [cierre, setCierre] = useState<{
-    condicionEgreso: "vivo" | "muerto";
-    causaEgreso:
-      | "hospitalaria"
-      | "solicitada"
-      | "fuga"
-      | "transferencia"
-      | "deceso"
-      | "internacion";
-    observacionEgreso: string;
-  } | null>(null);
-  const [orden, setOrden] = useState<BorradorOrden | null>(null),
-    [buscarItem, setBuscarItem] = useState("");
-  const [busquedaPrescripcion, setBusquedaPrescripcion] = useState("");
-  const [estudiosImagen, setEstudiosImagen] = useState<EstudioImagen[]>([]),
-    [tipoImagen, setTipoImagen] = useState("Rayos X");
+  const [cierre, setCierre] = useState<BorradorAtencionPaciente["cierre"]>(() => borradorInicial.cierre || null);
+  const [orden, setOrden] = useState<BorradorOrden | null>(() => borradorInicial.orden || null),
+    [buscarItem, setBuscarItem] = useState(() => borradorInicial.buscarItem || "");
+  const [busquedaPrescripcion, setBusquedaPrescripcion] = useState(() => borradorInicial.busquedaPrescripcion || "");
+  const [estudiosImagen, setEstudiosImagen] = useState<EstudioImagen[]>(() => borradorInicial.estudiosImagen || []),
+    [tipoImagen, setTipoImagen] = useState(() => borradorInicial.tipoImagen || "Rayos X");
   const [valoresSignos, setValoresSignos] = useState<Record<string, string>>(
-      {},
+      () => borradorInicial.valoresSignos || {},
     ),
-    [observacionSignos, setObservacionSignos] = useState("");
+    [observacionSignos, setObservacionSignos] = useState(() => borradorInicial.observacionSignos || "");
   const [signosEvolucion, setSignosEvolucion] = useState<string[]>([]);
-  const [registroSignosAbierto, setRegistroSignosAbierto] = useState(false),
-    [horaSignos, setHoraSignos] = useState(horaActual());
+  const [registroSignosAbierto, setRegistroSignosAbierto] = useState(() => borradorInicial.registroSignosAbierto || false),
+    [horaSignos, setHoraSignos] = useState(() => borradorInicial.horaSignos || horaActual());
   const evolucionDialogo = useRef<HTMLDialogElement>(null);
   const evaluacionActual = cuenta.evaluaciones?.at(-1);
-  const [identidad, setIdentidad] = useState<{
-    revision: number;
-    datos: Record<string, string>;
-  } | null>(null);
+  const [identidad, setIdentidad] = useState<BorradorAtencionPaciente["identidad"]>(() => borradorInicial.identidad || null);
   const [antecedentes, setAntecedentes] = useState<DatosAntecedentes>(() =>
-    leerDatosAntecedentes(evaluacionActual?.campos),
+    borradorInicial.antecedentes || leerDatosAntecedentes(evaluacionActual?.campos),
   );
   const antecedentesPersistidos = leerDatosAntecedentes(
     evaluacionActual?.campos,
@@ -1075,6 +1096,7 @@ function AtencionPaciente({
     evaluacionActual?.id,
     ...Object.values(antecedentesPersistidos),
   ]);
+  const antecedentesKeyInicial = useRef(antecedentesPersistidosKey);
   const [ocupado, setOcupado] = useState(false),
     [error, setError] = useState(""),
     [mensaje, setMensaje] = useState("");
@@ -1083,7 +1105,9 @@ function AtencionPaciente({
     setSignosEvolucion(vitalesGraficables.slice(0, 2).map(([id]) => id));
   }, [vitalesGraficables]);
   useEffect(() => {
-    setAntecedentes(antecedentesPersistidos);
+    if (antecedentesKeyInicial.current === antecedentesPersistidosKey) return;
+    antecedentesKeyInicial.current = antecedentesPersistidosKey;
+    if (!borradorInicial.antecedentes) setAntecedentes(antecedentesPersistidos);
   }, [antecedentesPersistidosKey]);
   const [cobroAbierto, setCobroAbierto] = useState(false),
     [montoRecibido, setMontoRecibido] = useState(""),
@@ -1091,9 +1115,30 @@ function AtencionPaciente({
   const [confirmarLiberacion, setConfirmarLiberacion] = useState(false);
   const bloqueo = useRef(false),
     editorOrden = useRef<HTMLDivElement>(null);
+  const hayBorrador = Boolean(
+    cierre || orden || identidad || Object.values(valoresSignos).some(Boolean) ||
+    observacionSignos.trim() || registroSignosAbierto || buscarItem.trim() ||
+    busquedaPrescripcion.trim() || estudiosImagen.length ||
+    JSON.stringify(antecedentes) !== JSON.stringify(antecedentesPersistidos),
+  );
   useEffect(() => {
-    alEditar(Boolean(orden || cierre || identidad));
-  }, [orden, cierre, identidad]);
+    const clave = `${CLAVE_BORRADOR_ATENCION_EMERGENCIAS}${cuenta.id}`;
+    try {
+      if (!hayBorrador) {
+        window.sessionStorage.removeItem(clave);
+        return;
+      }
+      const borrador: BorradorAtencionPaciente = {
+        cierre, orden, buscarItem, busquedaPrescripcion, estudiosImagen, tipoImagen,
+        valoresSignos, observacionSignos, registroSignosAbierto, horaSignos,
+        identidad, antecedentes,
+      };
+      window.sessionStorage.setItem(clave, JSON.stringify(borrador));
+    } catch { /* Continuidad opcional si el navegador deshabilita el almacenamiento de sesión. */ }
+  }, [cuenta.id, hayBorrador, cierre, orden, buscarItem, busquedaPrescripcion, estudiosImagen, tipoImagen, valoresSignos, observacionSignos, registroSignosAbierto, horaSignos, identidad, antecedentes]);
+  useEffect(() => {
+    alEditar(hayBorrador);
+  }, [hayBorrador]);
   async function guardar(ruta: string, body: object, aviso: string) {
     if (bloqueo.current) return false;
     bloqueo.current = true;

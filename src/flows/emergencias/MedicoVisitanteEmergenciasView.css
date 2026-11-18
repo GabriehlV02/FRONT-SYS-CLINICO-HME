@@ -18,6 +18,25 @@
 .mve-atencion { padding:20px; border:1px solid #d6e5ef; border-radius:14px; background:#fff; box-shadow:0 6px 18px #2255740b; }
 .mve-atencion > .mvi-volver { margin-bottom:17px; }
 @media(max-width:760px){.mve-subvistas{width:100%}.mve-subvistas button{flex:1;padding:0 9px;font-size:12px}.mve-emergencias .mvi-pacientes-vista>header{align-items:stretch;flex-direction:column}.mve-emergencias .mvi-busqueda{width:100%}.mve-atencion{padding:13px}.mve-atencion .mvi-paciente-cabecera{align-items:flex-start;flex-direction:column;gap:12px}}
+@media(max-width:900px){
+  .mve-tabla { display:grid; gap:10px; overflow:visible; border:0; background:transparent; }
+  .mve-tabla-cabecera { display:none; }
+  .mve-tabla .mve-fila { grid-template-columns:minmax(0,1fr) auto; gap:10px 12px; min-width:0; min-height:0; padding:14px; border:1px solid #dce9f1; border-radius:11px; background:#fff; box-shadow:0 3px 10px rgb(23 61 96 / 5%); }
+  .mve-fila > * { min-width:0; overflow-wrap:anywhere; }
+  .mve-fila:not(.mve-fila-visita) > .mve-nombre { grid-column:1/-1; }
+  .mve-fila:not(.mve-fila-visita) > strong::before,.mve-fila-visita > strong::before,.mve-fila-visita > p::before { display:block; margin-bottom:3px; color:#526a7c; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+  .mve-fila:not(.mve-fila-visita) > strong:nth-of-type(1)::before { content:"Historia clínica"; }
+  .mve-fila:not(.mve-fila-visita) > strong:nth-of-type(2)::before { content:"Cubículo"; }
+  .mve-fila:not(.mve-fila-visita) > strong:nth-of-type(3)::before { content:"Fecha de ingreso"; }
+  .mve-fila:not(.mve-fila-visita) > em { grid-column:1; }
+  .mve-fila:not(.mve-fila-visita) > button { grid-column:2; min-height:40px; padding-inline:14px; }
+  .mve-fila-visita { grid-template-columns:minmax(0,1fr); }
+  .mve-fila-visita > strong:first-child::before { content:"Fecha y hora"; }
+  .mve-fila-visita > strong:nth-of-type(2)::before { content:"Cubículo"; }
+  .mve-fila-visita > strong:nth-of-type(3)::before { content:"Médico visitante"; }
+  .mve-fila-visita > p { padding-top:8px; border-top:1px solid #e5eef4; }
+  .mve-fila-visita > p::before { content:"Nota de atención"; }
+}
 .mve-subvistas { display:flex; gap:8px; margin:0 0 16px; padding:6px; width:max-content; max-width:100%; border:1px solid #c8deec; border-radius:12px; background:#fff; }
 .mve-subvistas button { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:42px; padding:0 16px; border:0; border-radius:9px; color:#315c79; background:transparent; font-family:inherit; font-size:13px; font-weight:700; cursor:pointer; }
 .mve-subvistas button.activa { color:#fff; background:#0786c4; box-shadow:0 3px 9px #087fbd2b; }

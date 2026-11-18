@@ -65,6 +65,36 @@ type Identidad = Record<string, string>;
 type Cuenta = CuentaEmergencia;
 type TrasladoAmbulanciaProgramado = { fecha: string; hora: string; motivo: string; destino: string; paciente?: string; ci?: string };
 const CLAVE_TRASLADOS_AMBULANCIA = "hme:emergencias:traslados-ambulancia:v1";
+const CLAVE_CONTINUIDAD_TRIAJE = "hme:emergencias:triaje:continuidad:v1";
+type ContinuidadTriaje = {
+  cuentaId: string;
+  seccion: "paciente" | "ingreso" | "reportes" | "signos" | "examen" | "descargos";
+  subvista: "atencion" | "historial" | "inventario";
+};
+type BorradorTriaje = {
+  valores?: Record<string, string>;
+  observacion?: string;
+  fechaHoraSignos?: { fecha: string; hora: string };
+  formBalance?: { tipo: "ingreso" | "egreso"; volumen: string; detalle: string; anotacion: string; fecha: string; hora: string };
+  evolucion?: string;
+  evolucionEditando?: string | null;
+  fechaHoraEvolucion?: { fecha: string; hora: string };
+  itemId?: string;
+  cantidad?: string;
+  porHora?: boolean;
+  busqueda?: string;
+};
+function leerContinuidadTriaje(): ContinuidadTriaje | null {
+  try {
+    const valor = JSON.parse(window.sessionStorage.getItem(CLAVE_CONTINUIDAD_TRIAJE) || "null") as ContinuidadTriaje | null;
+    return valor && typeof valor.cuentaId === "string" ? valor : null;
+  } catch { return null; }
+}
+function leerBorradorTriaje(cuentaId: string): BorradorTriaje {
+  if (!cuentaId) return {};
+  try { return JSON.parse(window.sessionStorage.getItem(`${CLAVE_CONTINUIDAD_TRIAJE}:borrador:${cuentaId}`) || "{}") as BorradorTriaje; }
+  catch { return {}; }
+}
 const dinero = (n: number) =>
   `Bs ${n.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const fecha = (v: string) => new Date(v).toLocaleString("es-BO");
@@ -129,6 +159,8 @@ function GraficaEvolucionSignos({
 }) {
   const [signosSeleccionados, setSignosSeleccionados] = useState<string[]>([]);
   const [vistaSignos, setVistaSignos] = useState<"grafica" | "tabla">("grafica");
+  const [vistaAmplia, setVistaAmplia] = useState(false);
+  const dialogoRef = useRef<HTMLDivElement>(null);
   const colores = [
     "#087fc0",
     "#f0783b",
@@ -186,6 +218,21 @@ function GraficaEvolucionSignos({
   useEffect(() => {
     setSignosSeleccionados(camposGrafica.slice(0, 2).map(([id]) => id));
   }, [camposGrafica]);
+  useEffect(() => {
+    if (!vistaAmplia) return;
+    const anterior = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const cerrarConEscape = (evento: KeyboardEvent) => {
+      if (evento.key === "Escape") setVistaAmplia(false);
+    };
+    document.addEventListener("keydown", cerrarConEscape);
+    document.body.style.overflow = "hidden";
+    dialogoRef.current?.focus();
+    return () => {
+      document.removeEventListener("keydown", cerrarConEscape);
+      document.body.style.overflow = "";
+      anterior?.focus();
+    };
+  }, [vistaAmplia]);
   const seleccionados = series.filter((serie) =>
     signosSeleccionados.includes(serie.id),
   );
@@ -203,9 +250,15 @@ function GraficaEvolucionSignos({
           seleccionado{seleccionados.length === 1 ? "" : "s"}
         </span>
       </header>
-      <div className="em-signos-vista-switch" data-vista={vistaSignos} role="group" aria-label="Vista de las mediciones">
-        <button type="button" className={vistaSignos === "grafica" ? "activo" : ""} aria-pressed={vistaSignos === "grafica"} onClick={() => setVistaSignos("grafica")}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v16h16M7 14l4-5 4 3 5-7" /></svg><span>Gráfica</span></button>
-        <button type="button" className={vistaSignos === "tabla" ? "activo" : ""} aria-pressed={vistaSignos === "tabla"} onClick={() => setVistaSignos("tabla")}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 10h18M3 15h18M10 10v10"/></svg><span>Tabla</span></button>
+      <div className="em-signos-controles-vista">
+        <div className="em-signos-vista-switch" data-vista={vistaSignos} role="group" aria-label="Vista de las mediciones">
+          <button type="button" className={vistaSignos === "grafica" ? "activo" : ""} aria-pressed={vistaSignos === "grafica"} onClick={() => setVistaSignos("grafica")}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4v16h16M7 14l4-5 4 3 5-7" /></svg><span>Gráfica</span></button>
+          <button type="button" className={vistaSignos === "tabla" ? "activo" : ""} aria-pressed={vistaSignos === "tabla"} onClick={() => setVistaSignos("tabla")}><svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 10h18M3 15h18M10 10v10"/></svg><span>Tabla</span></button>
+        </div>
+        <button type="button" className="em-signos-ver-amplio" onClick={() => setVistaAmplia(true)} aria-haspopup="dialog">
+          <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/></svg>
+          <span>Ver amplio</span>
+        </button>
       </div>
       <nav
         className="em-signos-selector"
@@ -333,6 +386,34 @@ function GraficaEvolucionSignos({
             ))}
           </div>
         </details>
+      )}
+      {vistaAmplia && (
+        <div className="em-signos-modal-fondo" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setVistaAmplia(false); }}>
+          <div className="em-signos-modal" role="dialog" aria-modal="true" aria-labelledby="em-signos-modal-titulo" ref={dialogoRef} tabIndex={-1}>
+            <header>
+              <div><span>VISTA AMPLIADA</span><h2 id="em-signos-modal-titulo">Evolución de signos vitales</h2></div>
+              <button type="button" onClick={() => setVistaAmplia(false)} aria-label="Cerrar vista ampliada"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+            </header>
+            <div className="em-signos-modal-contenido">
+              <div className="em-signos-modal-resumen">
+                <div><span>REGISTROS</span><strong>{mediciones.length}</strong><small>mediciones guardadas</small></div>
+                <div><span>SIGNOS VISIBLES</span><strong>{seleccionados.length}</strong><small>{seleccionados.map((serie) => serie.nombre).join(" · ") || "Sin signos seleccionados"}</small></div>
+                <div><span>RANGO MOSTRADO</span><strong>{medicionesVisibles.length ? `${horaIngreso(medicionesVisibles[0].fecha)} – ${horaIngreso(medicionesVisibles.at(-1)!.fecha)}` : "—"}</strong><small>últimas mediciones registradas</small></div>
+              </div>
+              {vistaSignos === "tabla" ? (
+                <div className="em-signos-tabla-contenedor">
+                  {mediciones.length ? <table className="em-signos-tabla em-signos-tabla-amplia"><thead><tr><th><span>Fecha y hora</span><small>Registro clínico</small></th>{seleccionados.map((serie) => <th key={serie.id}><span>{serie.nombre}</span>{serie.unidad && <small>{serie.unidad}</small>}</th>)}</tr></thead><tbody>{[...mediciones].reverse().map((medicion) => <tr key={medicion.id}><td><time dateTime={medicion.fecha}>{fecha(medicion.fecha)}</time></td>{seleccionados.map((serie) => <td key={serie.id}><strong>{medicion.valores[serie.id] !== undefined && medicion.valores[serie.id] !== "" ? medicion.valores[serie.id] : "—"}</strong><small>{medicion.valores[serie.id] !== undefined && medicion.valores[serie.id] !== "" ? serie.unidad : "Sin dato"}</small></td>)}</tr>)}</tbody></table> : <p>Aún no hay mediciones registradas.</p>}
+                </div>
+              ) : medicionesVisibles.length && seleccionados.some((serie) => serie.coords.length) ? (
+                <svg viewBox="0 0 830 235" role="img" aria-label="Gráfica ampliada de evolución de signos vitales">
+                  <g className="em-signos-grafica-guia"><path d="M55 30H775M55 83H775M55 136H775M55 190H775" /></g>
+                  {seleccionados.map((serie) => serie.coords.length > 0 && <g className="em-signos-serie" key={serie.id} style={{ color: serie.color }}><polyline points={serie.coords.map((punto) => `${punto.x},${punto.y}`).join(" ")} />{serie.coords.map((punto, indice) => <g key={`${serie.id}-${indice}`}><circle cx={punto.x} cy={punto.y} r="5"><title>{serie.nombre}: {punto.valor} {serie.unidad} · {fecha(punto.medicion.fecha)}</title></circle><text className="em-signos-grafica-etiqueta" x={punto.x} y={punto.y - 12} textAnchor="middle">{punto.valor} {serie.unidad}</text></g>)}</g>)}
+                  {medicionesVisibles.length > 0 && <><text className="em-signos-grafica-hora" x="55" y="222" textAnchor="start">{horaIngreso(medicionesVisibles[0].fecha)}</text><text className="em-signos-grafica-hora" x="775" y="222" textAnchor="end">{horaIngreso(medicionesVisibles.at(-1)!.fecha)}</text></>}
+                </svg>
+              ) : <div className="em-signos-grafica-vacia"><Icon name="patient" size={23} /><strong>{mediciones.length ? "No hay datos para los signos seleccionados" : "Aún no hay mediciones"}</strong><span>{mediciones.length ? "Elige otro signo para ver sus mediciones." : "Registra los signos vitales para iniciar la gráfica de evolución."}</span></div>}
+            </div>
+          </div>
+        </div>
       )}
     </section>
   );
@@ -627,11 +708,13 @@ export function TriajeEmergenciasView({
         .map((campo) => [campo.id, campo.etiqueta, campo.unidad] as const),
     [camposEmergencia],
   );
+  const [continuidadInicial] = useState(() => leerContinuidadTriaje());
+  const [borradorInicial] = useState(() => leerBorradorTriaje(continuidadInicial?.cuentaId || ""));
   const [seccionClinica, setSeccionClinica] = useState<
     "paciente" | "ingreso" | "reportes" | "signos" | "examen" | "descargos"
-  >("ingreso");
+  >(() => continuidadInicial?.seccion || "ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
-    [activa, setActiva] = useState("");
+    [activa, setActiva] = useState(() => continuidadInicial?.cuentaId || "");
   const [trasladosAmbulancia, setTrasladosAmbulancia] = useState<Record<string, TrasladoAmbulanciaProgramado>>(() => {
     try { return JSON.parse(window.localStorage.getItem(CLAVE_TRASLADOS_AMBULANCIA) || "{}"); } catch { return {}; }
   });
@@ -653,36 +736,38 @@ export function TriajeEmergenciasView({
   const [datosIniciales, setDatosIniciales] = useState<Identidad>({});
   const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const [busquedaCuenta, setBusquedaCuenta] = useState(""),
-    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario">("atencion");
+    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario">(() => continuidadInicial?.subvista || "atencion");
   const [modalExportarHistorial, setModalExportarHistorial] = useState(false);
   const [fechaDesdeHistorial, setFechaDesdeHistorial] = useState("");
   const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
+  const [desdeReporteTurno, setDesdeReporteTurno] = useState("");
+  const [hastaReporteTurno, setHastaReporteTurno] = useState("");
+  const [vistaPreviaReporte, setVistaPreviaReporte] = useState<{ url: string; titulo: string; hoja: "signos" | "balance" | "tratamiento" | "enfermeria" } | null>(null);
   const [errorExportarHistorial, setErrorExportarHistorial] = useState("");
   const [pagina, setPagina] = useState(1);
   const [catalogo, setCatalogo] = useState<Item[]>([]),
     [errorCatalogo, setErrorCatalogo] = useState(""),
-    [busqueda, setBusqueda] = useState("");
-  const [itemId, setItemId] = useState(""),
-    [cantidad, setCantidad] = useState("1"),
-    [porHora, setPorHora] = useState(false);
-  const [valores, setValores] = useState<Record<string, string>>({}),
-    [observacion, setObservacion] = useState("");
-  const [fechaHoraSignos, setFechaHoraSignos] = useState(fechaHoraIngresoActual);
+    [busqueda, setBusqueda] = useState(() => borradorInicial.busqueda || "");
+  const [itemId, setItemId] = useState(() => borradorInicial.itemId || ""),
+    [cantidad, setCantidad] = useState(() => borradorInicial.cantidad || "1"),
+    [porHora, setPorHora] = useState(() => borradorInicial.porHora || false);
+  const [valores, setValores] = useState<Record<string, string>>(() => borradorInicial.valores || {}),
+    [observacion, setObservacion] = useState(() => borradorInicial.observacion || "");
+  const [fechaHoraSignos, setFechaHoraSignos] = useState(() => borradorInicial.fechaHoraSignos || fechaHoraIngresoActual());
   const [balanceEmergencia, setBalanceEmergencia] = useState<RegistroBalanceEmergencia[]>([]);
-  const [formBalanceEmergencia, setFormBalanceEmergencia] = useState({
+  const [formBalanceEmergencia, setFormBalanceEmergencia] = useState(() => ({
     tipo: "ingreso" as "ingreso" | "egreso",
     volumen: "",
     detalle: "",
     anotacion: "",
     ...fechaHoraIngresoActual(),
-  });
+    ...borradorInicial.formBalance,
+  }));
   const [errorBalanceEmergencia, setErrorBalanceEmergencia] = useState("");
-  const [evolucion, setEvolucion] = useState("");
-  const [evolucionEditando, setEvolucionEditando] = useState<string | null>(null);
+  const [evolucion, setEvolucion] = useState(() => borradorInicial.evolucion || "");
+  const [evolucionEditando, setEvolucionEditando] = useState<string | null>(() => borradorInicial.evolucionEditando || null);
   const [evolucionEnVista, setEvolucionEnVista] = useState<NonNullable<Cuenta["evaluaciones"]>[number] | null>(null);
-  const [fechaHoraEvolucion, setFechaHoraEvolucion] = useState(
-    fechaHoraIngresoActual,
-  );
+  const [fechaHoraEvolucion, setFechaHoraEvolucion] = useState(() => borradorInicial.fechaHoraEvolucion || fechaHoraIngresoActual());
   const [identidad, setIdentidad] = useState<Identidad | null>(null),
     [revisionIdentidad, setRevisionIdentidad] = useState(0);
   const [trasladoModal, setTrasladoModal] = useState(false);
@@ -701,6 +786,22 @@ export function TriajeEmergenciasView({
     intentoConsumo = useRef<{ clave: string; id: string } | null>(null);
   const cuenta = cuentas.find((c) => c.id === activa),
     item = catalogo.find((i) => i.id === itemId);
+  useEffect(() => {
+    if (recepcion) return;
+    try {
+      if (!activa) {
+        window.sessionStorage.removeItem(CLAVE_CONTINUIDAD_TRIAJE);
+        return;
+      }
+      window.sessionStorage.setItem(CLAVE_CONTINUIDAD_TRIAJE, JSON.stringify({ cuentaId: activa, seccion: seccionClinica, subvista } satisfies ContinuidadTriaje));
+    } catch { /* La sesión puede tener el almacenamiento del navegador deshabilitado. */ }
+  }, [activa, seccionClinica, subvista, recepcion]);
+  useEffect(() => {
+    if (recepcion || !activa) return;
+    const borrador: BorradorTriaje = { valores, observacion, fechaHoraSignos, formBalance: formBalanceEmergencia, evolucion, evolucionEditando, fechaHoraEvolucion, itemId, cantidad, porHora, busqueda };
+    try { window.sessionStorage.setItem(`${CLAVE_CONTINUIDAD_TRIAJE}:borrador:${activa}`, JSON.stringify(borrador)); }
+    catch { /* La sesión puede tener el almacenamiento del navegador deshabilitado. */ }
+  }, [activa, valores, observacion, fechaHoraSignos, formBalanceEmergencia, evolucion, evolucionEditando, fechaHoraEvolucion, itemId, cantidad, porHora, busqueda, recepcion]);
   useEffect(() => {
     if (!cuenta?.id) {
       setBalanceEmergencia([]);
@@ -802,7 +903,15 @@ export function TriajeEmergenciasView({
     setIdentidad(null);
     setValores({});
     setObservacion("");
+    setFechaHoraSignos(fechaHoraIngresoActual());
+    setFormBalanceEmergencia({ tipo: "ingreso", volumen: "", detalle: "", anotacion: "", ...fechaHoraIngresoActual() });
+    setEvolucion("");
+    setEvolucionEditando(null);
+    setFechaHoraEvolucion(fechaHoraIngresoActual());
     setItemId("");
+    setCantidad("1");
+    setPorHora(false);
+    setBusqueda("");
     setAviso("");
     setError("");
   }
@@ -812,7 +921,15 @@ export function TriajeEmergenciasView({
     setIdentidad(null);
     setValores({});
     setObservacion("");
+    setFechaHoraSignos(fechaHoraIngresoActual());
+    setFormBalanceEmergencia({ tipo: "ingreso", volumen: "", detalle: "", anotacion: "", ...fechaHoraIngresoActual() });
+    setEvolucion("");
+    setEvolucionEditando(null);
+    setFechaHoraEvolucion(fechaHoraIngresoActual());
     setItemId("");
+    setCantidad("1");
+    setPorHora(false);
+    setBusqueda("");
     setAviso("");
     setError("");
   }
@@ -1113,6 +1230,7 @@ export function TriajeEmergenciasView({
       detalle: registro.detalle,
       cantidad: registro.cantidad ? `${registro.cantidad} ${registro.unidad || ""}`.trim() : "",
       observacion: registro.observacion || "",
+      usuario: registro.usuario,
       ordenId: registro.ordenId,
       estado: "Registrado",
     })),
@@ -1123,10 +1241,297 @@ export function TriajeEmergenciasView({
       detalle: consumo.nombre,
       cantidad: consumo.porHora ? "Por hora" : `${consumo.cantidad} ${consumo.unidad}`,
       observacion: "",
+      usuario: cuenta?.ordenes?.find((orden) => orden.id === consumo.ordenId)?.usuario || "—",
       ordenId: consumo.ordenId,
       estado: consumo.porHora ? (consumo.fin ? "Finalizado" : "En curso") : "Aplicado",
     })),
   ].sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
+  const eventosInsumosEmergencia = eventosSuministracion.filter((evento) =>
+    /insumo|medicamento/i.test(evento.tipo),
+  );
+  useEffect(() => {
+    if (!cuenta) return;
+    const inicio = new Date(cuenta.inicio);
+    const fin = cuenta.fin ? new Date(cuenta.fin) : new Date();
+    const formatoLocal = (valor: Date) => {
+      const local = new Date(valor.getTime() - valor.getTimezoneOffset() * 60000);
+      return local.toISOString().slice(0, 16);
+    };
+    setDesdeReporteTurno(formatoLocal(inicio));
+    setHastaReporteTurno(formatoLocal(fin));
+  }, [cuenta?.id]);
+
+  useEffect(() => {
+    return () => { if (vistaPreviaReporte?.url) URL.revokeObjectURL(vistaPreviaReporte.url); };
+  }, [vistaPreviaReporte?.url]);
+
+  async function exportarReporteTurnoVertical(hojasSolicitadas?: Array<"signos" | "balance" | "tratamiento" | "enfermeria">, abrirPrevisualizacion = false) {
+    if (!cuenta) return;
+    if (!desdeReporteTurno || !hastaReporteTurno || new Date(desdeReporteTurno) > new Date(hastaReporteTurno)) {
+      setAviso("Selecciona un rango válido de fecha y hora para el turno.");
+      return;
+    }
+    const desde = new Date(desdeReporteTurno).getTime();
+    const hasta = new Date(hastaReporteTurno).getTime();
+    const enRango = (valor: string) => {
+      const instante = new Date(valor).getTime();
+      return Number.isFinite(instante) && instante >= desde && instante <= hasta;
+    };
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const ancho = pdf.internal.pageSize.getWidth();
+    const alto = pdf.internal.pageSize.getHeight();
+    const margen = 13;
+    const periodo = `${new Date(desdeReporteTurno).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" })} — ${new Date(hastaReporteTurno).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" })}`;
+    const identidad = cuenta.identidad || {};
+    let logo: string | null = null;
+    try {
+      const respuestaLogo = await fetch("/logo-hospital-original.png");
+      if (respuestaLogo.ok) {
+        const archivoLogo = await respuestaLogo.blob();
+        logo = await new Promise<string>((resolve, reject) => {
+          const lector = new FileReader();
+          lector.onload = () => typeof lector.result === "string" ? resolve(lector.result) : reject(new Error("Logo inválido"));
+          lector.onerror = () => reject(new Error("No se pudo leer el logo"));
+          lector.readAsDataURL(archivoLogo);
+        });
+      }
+    } catch { /* El reporte conserva su encabezado institucional si el logo no está disponible. */ }
+
+    const titulos = { signos: "Hoja de evolución de signos vitales", balance: "Hoja de balance hídrico", tratamiento: "Registro de tratamiento", enfermeria: "Reporte de enfermería" };
+    let paginaIniciada = false;
+    let hojasIncluidas = 0;
+    const fechaHora = (valor: string) => {
+      const instante = new Date(valor);
+      return Number.isNaN(instante.getTime()) ? "—" : instante.toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" });
+    };
+    const dibujarEncabezado = (titulo: string) => {
+      pdf.setFillColor(8, 127, 189);
+      pdf.rect(0, 0, ancho, 2, "F");
+      if (logo) pdf.addImage(logo, "PNG", margen, 7, 43, 16);
+      else {
+        pdf.setTextColor(8, 105, 164); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11);
+        pdf.text("HOSPITAL MARÍA ESPERANZA", margen, 16);
+      }
+      pdf.setTextColor(35, 65, 91); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5);
+      pdf.text(pdf.splitTextToSize(titulo.toLocaleUpperCase("es"), ancho - 72).slice(0, 2), 62, 13);
+      pdf.setDrawColor(190, 216, 232); pdf.setLineWidth(0.35); pdf.line(margen, 27, ancho - margen, 27);
+      const anchoTarjeta = (ancho - margen * 2 - 4) / 2;
+      const tarjetas: [string, string][] = [
+        ["PACIENTE", nombrePaciente(cuenta)],
+        ["N.º HISTORIA CLÍNICA / CI", identidad.historiaClinica || identidad.documento || "No registrado"],
+        ["SERVICIO / SALA / CAMA", `Emergencias · Cubículo ${nombreCubiculo(cuenta.cubiculo)} · Cama no aplica`],
+        ["FECHA / HORA DE INGRESO", fechaHora(cuenta.inicio)],
+      ];
+      tarjetas.forEach(([etiqueta, valor], indice) => {
+        const x = margen + (indice % 2) * (anchoTarjeta + 4);
+        const y = 31 + Math.floor(indice / 2) * 13;
+        pdf.setFillColor(247, 251, 254); pdf.setDrawColor(213, 229, 239); pdf.roundedRect(x, y, anchoTarjeta, 11, 1.2, 1.2, "FD");
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(6); pdf.setTextColor(94, 122, 143); pdf.text(etiqueta, x + 2, y + 3.8);
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(35, 65, 91); pdf.text(pdf.splitTextToSize(valor || "—", anchoTarjeta - 4)[0] || "—", x + 2, y + 8.4);
+      });
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.5); pdf.setTextColor(63, 91, 111); pdf.text("TURNO:", margen, 59);
+      pdf.setFont("helvetica", "normal"); pdf.text(periodo, margen + 13, 59);
+      pdf.setDrawColor(190, 216, 232); pdf.line(margen, 62, ancho - margen, 62);
+    };
+    const comenzarHoja = (titulo: string) => {
+      if (paginaIniciada) pdf.addPage("a4", "portrait");
+      paginaIniciada = true;
+      hojasIncluidas += 1;
+      dibujarEncabezado(titulo);
+    };
+    const comenzarPaginaContinuacion = (titulo: string) => {
+      pdf.addPage("a4", "portrait");
+      dibujarEncabezado(titulo);
+    };
+    const opcionesTabla = (titulo: string) => ({
+      startY: 64,
+      theme: "grid" as const,
+      styles: { font: "helvetica", fontSize: 7.2, cellPadding: 2, textColor: [35, 65, 91] as [number, number, number], lineColor: [205, 225, 239] as [number, number, number], lineWidth: 0.18, valign: "middle" as const, overflow: "linebreak" as const },
+      headStyles: { fillColor: [235, 246, 252] as [number, number, number], textColor: [29, 82, 116] as [number, number, number], fontStyle: "bold" as const },
+      alternateRowStyles: { fillColor: [250, 253, 255] as [number, number, number] },
+      margin: { left: margen, right: margen, bottom: 25 },
+      didDrawPage: () => dibujarEncabezado(titulo),
+    });
+    const elegidas = hojasSolicitadas || ["signos", "balance", "tratamiento", "enfermeria"];
+    const signos = cuenta.signos.filter((registro) => enRango(registro.fecha)).sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha));
+    const balances = balanceEmergencia.filter((registro) => enRango(`${registro.fecha}T${registro.hora || "00:00"}:00`));
+    const tratamientos = eventosSuministracion.filter((evento) => enRango(evento.fecha)).sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha));
+    const registrosEnfermeria = (cuenta.registrosEnfermeria || []).filter((registro) => enRango(registro.hora ? `${registro.fecha}T${registro.hora}:00` : registro.fecha));
+    const evoluciones = (cuenta.evaluaciones || []).filter((registro) => {
+      const fechaRegistro = registro.campos.evolucionFecha ? `${registro.campos.evolucionFecha}T${registro.campos.evolucionHora || "00:00"}:00` : registro.fecha;
+      return Boolean(registro.campos.evolucion?.trim()) && enRango(fechaRegistro);
+    });
+    const normalize = (valor: string) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    const valorSigno = (toma: Cuenta["signos"][number], alias: string[]) => {
+      const campo = Object.keys(toma.valores || {}).find((llave) => alias.some((item) => normalize(llave).includes(normalize(item))));
+      if (campo && toma.valores[campo] !== "") return String(toma.valores[campo]);
+      const medicion = toma.mediciones?.find((item) => alias.some((itemAlias) => normalize(item.id).includes(normalize(itemAlias)) || normalize(item.nombre).includes(normalize(itemAlias))));
+      return medicion?.valor === undefined || medicion.valor === "" ? "—" : String(medicion.valor);
+    };
+    const coreAliases = ["frecuencia cardiaca", "pulso", "frecuencia respiratoria", "respiracion", "saturacion", "spo2", "oxigeno", "temperatura", "presion sistolica", "presion diastolica", "presion arterial"];
+    if (elegidas.includes("signos") && signos.length) {
+      comenzarHoja(titulos.signos);
+      const ultimaToma = signos.at(-1);
+      const datoPaciente = (clave: string, aliases: string[]) => identidad[clave] || (ultimaToma ? valorSigno(ultimaToma, aliases) : "—");
+      const datosVitales = [
+        ["DIETA", identidad.dieta || "No registrada"],
+        ["PESO", datoPaciente("peso", ["peso"]) === "—" ? "No registrado" : `${datoPaciente("peso", ["peso"])} kg`],
+        ["TALLA", datoPaciente("talla", ["estatura", "talla"]) === "—" ? "No registrada" : `${datoPaciente("talla", ["estatura", "talla"])} cm`],
+      ] as const;
+      const anchoDato = (ancho - margen * 2 - 6) / 3;
+      datosVitales.forEach(([etiqueta, valor], indice) => {
+        const x = margen + indice * (anchoDato + 3);
+        pdf.setFillColor(247, 251, 254); pdf.setDrawColor(213, 229, 239); pdf.roundedRect(x, 65, anchoDato, 10, 1, 1, "FD");
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.7); pdf.setTextColor(94, 122, 143); pdf.text(etiqueta, x + 2, 69);
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.setTextColor(35, 65, 91); pdf.text(pdf.splitTextToSize(valor, anchoDato - 4)[0] || "—", x + 2, 73);
+      });
+      const filas = signos.map((toma) => {
+        const extras = Object.entries(toma.valores || {}).filter(([llave, valor]) => valor !== "" && !coreAliases.some((alias) => normalize(llave).includes(normalize(alias)))).map(([llave, valor]) => `${llave}: ${valor}`);
+        (toma.mediciones || []).filter((medicion) => !coreAliases.some((alias) => normalize(medicion.id).includes(normalize(alias)) || normalize(medicion.nombre).includes(normalize(alias)))).forEach((medicion) => extras.push(`${medicion.nombre}: ${medicion.valor}${medicion.unidad ? ` ${medicion.unidad}` : ""}`));
+        const sistolica = valorSigno(toma, ["presion sistolica", "presion arterial sistolica"]);
+        const diastolica = valorSigno(toma, ["presion diastolica", "presion arterial diastolica"]);
+        const oxigenoterapia = valorSigno(toma, ["aire ambiente", "oxigeno suplementario", "oxigenoterapia", "flujo oxigeno"]);
+        const pulso = valorSigno(toma, ["frecuencia cardiaca", "pulso"]);
+        const respiracion = valorSigno(toma, ["frecuencia respiratoria", "respiracion"]);
+        const saturacion = valorSigno(toma, ["saturacion", "spo2", "oxigeno"]);
+        const temperatura = valorSigno(toma, ["temperatura"]);
+        return [fechaHora(toma.fecha), pulso === "—" ? pulso : `${pulso} lat/min`, respiracion === "—" ? respiracion : `${respiracion} resp/min`, saturacion === "—" ? saturacion : `${saturacion}%`, oxigenoterapia, temperatura === "—" ? temperatura : `${temperatura} °C`, sistolica === "—" && diastolica === "—" ? "—" : `${sistolica}/${diastolica} mmHg`, [...extras, toma.observacion].filter(Boolean).join(" · ") || "—"];
+      });
+      autoTable(pdf, { ...opcionesTabla(titulos.signos), startY: 79, head: [["FECHA Y HORA", "PULSO", "RESPIRACIÓN", "SpO₂", "AIRE / O₂", "TEMPERATURA", "PRESIÓN ARTERIAL", "OTROS / OBSERVACIÓN"]], body: filas, columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 17 }, 2: { cellWidth: 19 }, 3: { cellWidth: 16 }, 4: { cellWidth: 17 }, 5: { cellWidth: 18 }, 6: { cellWidth: 24 }, 7: { cellWidth: "auto" } } });
+      let graficaY = (pdf as typeof pdf & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY || 91;
+      const seriesVitales = [
+        { titulo: "Pulso · lat/min", valores: signos.map((toma) => valorSigno(toma, ["frecuencia cardiaca", "pulso"])), color: [8, 127, 189] as [number, number, number] },
+        { titulo: "Respiración · resp/min", valores: signos.map((toma) => valorSigno(toma, ["frecuencia respiratoria", "respiracion"])), color: [0, 135, 145] as [number, number, number] },
+        { titulo: "Saturación · %", valores: signos.map((toma) => valorSigno(toma, ["saturacion", "spo2", "oxigeno"])), color: [76, 143, 95] as [number, number, number] },
+        { titulo: "Temperatura · °C", valores: signos.map((toma) => valorSigno(toma, ["temperatura"])), color: [210, 126, 41] as [number, number, number] },
+        { titulo: "Presión arterial · mmHg", valores: signos.map((toma) => valorSigno(toma, ["presion sistolica", "presion arterial sistolica"])), color: [126, 91, 171] as [number, number, number] },
+      ].filter((serie) => serie.valores.some((valor) => Number.isFinite(Number(valor)) && valor !== "—"));
+      const alturaGraficas = seriesVitales.length * 25 + 11;
+      if (graficaY + alturaGraficas > alto - 28) {
+        comenzarPaginaContinuacion(`${titulos.signos} · Gráfica`);
+        graficaY = 68;
+      } else graficaY += 8;
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(35, 65, 91); pdf.text("EVOLUCIÓN GRÁFICA · ESCALA AJUSTADA A LAS MEDICIONES REGISTRADAS", margen, graficaY);
+      graficaY += 5;
+      seriesVitales.forEach((serie) => {
+        const y = graficaY;
+        const plotX = margen + 39; const plotW = ancho - margen * 2 - 42; const plotH = 16;
+        const pares = serie.valores.map((valor, indice) => ({ valor: Number(String(valor).replace(",", ".")), indice })).filter((dato) => Number.isFinite(dato.valor));
+        const min = Math.min(...pares.map((dato) => dato.valor)); const max = Math.max(...pares.map((dato) => dato.valor));
+        const rango = max === min ? Math.max(Math.abs(max) * 0.15, 1) : (max - min) * 0.15;
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.4); pdf.setTextColor(63, 91, 111); pdf.text(serie.titulo, margen, y + 8);
+        pdf.setDrawColor(224, 234, 241); pdf.setLineWidth(0.2);
+        for (let linea = 0; linea < 3; linea++) pdf.line(plotX, y + linea * (plotH / 2), plotX + plotW, y + linea * (plotH / 2));
+        pdf.setDrawColor(...serie.color); pdf.setFillColor(...serie.color); pdf.setLineWidth(0.7);
+        let anterior: { x: number; y: number } | null = null;
+        pares.forEach((dato) => {
+          const x = plotX + (signos.length <= 1 ? plotW / 2 : plotW * dato.indice / (signos.length - 1));
+          const yPunto = y + plotH - ((dato.valor - (min - rango)) / ((max + rango) - (min - rango))) * plotH;
+          if (anterior) pdf.line(anterior.x, anterior.y, x, yPunto);
+          pdf.circle(x, yPunto, 0.85, "F");
+          anterior = { x, y: yPunto };
+        });
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(5.5); pdf.setTextColor(103, 128, 147);
+        const marcas = signos.length <= 6 ? signos.map((_, indice) => indice) : [0, Math.floor((signos.length - 1) / 2), signos.length - 1];
+        [...new Set(marcas)].forEach((indice) => {
+          const x = plotX + (signos.length <= 1 ? plotW / 2 : plotW * indice / (signos.length - 1));
+          pdf.text(new Date(signos[indice].fecha).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" }), x, y + 22, { align: "center" });
+        });
+        graficaY += 25;
+      });
+    }
+    if (elegidas.includes("balance") && balances.length) {
+      const dias = [...new Set(balances.map((registro) => registro.fecha))].sort();
+      dias.forEach((dia) => {
+        comenzarHoja(`${titulos.balance} · ${new Date(`${dia}T12:00:00`).toLocaleDateString("es-BO")}`);
+        const registrosDia = balances.filter((registro) => registro.fecha === dia);
+        const filas: (string | number)[][] = [];
+        let totalIngreso = 0; let totalEgreso = 0;
+        for (let bloque = 0; bloque < 4; bloque++) {
+          let ingresoBloque = 0; let egresoBloque = 0;
+          for (let hora = bloque * 6; hora < bloque * 6 + 6; hora++) {
+            const movimientos = registrosDia.filter((registro) => Number(registro.hora.slice(0, 2)) === hora);
+            const entradas = movimientos.filter((registro) => registro.tipo === "ingreso");
+            const salidas = movimientos.filter((registro) => registro.tipo === "egreso");
+            const ingreso = entradas.reduce((suma, registro) => suma + registro.volumen, 0);
+            const egreso = salidas.reduce((suma, registro) => suma + registro.volumen, 0);
+            ingresoBloque += ingreso; egresoBloque += egreso; totalIngreso += ingreso; totalEgreso += egreso;
+            filas.push([`${String(hora).padStart(2, "0")}:00`, entradas.map((registro) => `${registro.detalle}${registro.anotacion ? ` · ${registro.anotacion}` : ""}`).join("; ") || "—", ingreso || "—", salidas.map((registro) => `${registro.detalle}${registro.anotacion ? ` · ${registro.anotacion}` : ""}`).join("; ") || "—", egreso || "—", ingreso || egreso ? `${ingreso - egreso > 0 ? "+" : ""}${ingreso - egreso}` : "—"]);
+          }
+          filas.push([`Subtotal ${bloque + 1} · 6 h`, "Ingresos", ingresoBloque, "Egresos", egresoBloque, `${ingresoBloque - egresoBloque > 0 ? "+" : ""}${ingresoBloque - egresoBloque}`]);
+          if (bloque % 2 === 1) filas.push([`Subtotal ${bloque === 1 ? "12 h" : "24 h"}`, "Ingresos", totalIngreso, "Egresos", totalEgreso, `${totalIngreso - totalEgreso > 0 ? "+" : ""}${totalIngreso - totalEgreso}`]);
+        }
+        const movimientosGrafica = registrosDia.slice().sort((a, b) => a.hora.localeCompare(b.hora));
+        const graficaX = margen; const graficaY = 65; const graficaW = ancho - margen * 2; const graficaH = 46;
+        pdf.setFillColor(249, 252, 254); pdf.setDrawColor(213, 229, 239); pdf.roundedRect(graficaX, graficaY, graficaW, graficaH, 1.6, 1.6, "FD");
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(7.4); pdf.setTextColor(35, 65, 91); pdf.text("INGRESOS Y EGRESOS POR MOVIMIENTO", graficaX + 3, graficaY + 5);
+        pdf.setFillColor(21, 157, 132); pdf.circle(graficaX + 4, graficaY + 10, 1.1, "F");
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(6.2); pdf.setTextColor(63, 91, 111); pdf.text("Ingreso", graficaX + 7, graficaY + 10.8);
+        pdf.setFillColor(216, 121, 87); pdf.circle(graficaX + 25, graficaY + 10, 1.1, "F"); pdf.text("Egreso", graficaX + 28, graficaY + 10.8);
+        const balanceNeto = totalIngreso - totalEgreso;
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.2); pdf.setTextColor(103, 128, 147);
+        pdf.text(`${movimientosGrafica.length} movimiento(s) · balance neto ${balanceNeto > 0 ? "+" : ""}${balanceNeto.toLocaleString("es-BO")} ml`, graficaX + graficaW - 3, graficaY + 10.8, { align: "right" });
+        const plotX = graficaX + 12; const plotW = graficaW - 16; const yCero = graficaY + 34; const alturaPositiva = 17; const alturaNegativa = 5;
+        const maxMovimiento = Math.max(1, ...movimientosGrafica.map((registro) => registro.volumen)); const escalaGrafica = maxMovimiento * 1.12;
+        [0, 0.5, 1].forEach((fraccion) => {
+          const yGuia = yCero - fraccion * alturaPositiva;
+          pdf.setDrawColor(224, 234, 241); pdf.setLineWidth(0.18); pdf.line(plotX, yGuia, plotX + plotW, yGuia);
+          pdf.setFont("helvetica", "normal"); pdf.setFontSize(5.2); pdf.setTextColor(103, 128, 147);
+          pdf.text(String(Math.round(maxMovimiento * fraccion)).slice(0, 7), graficaX + 3, yGuia + 1.5);
+        });
+        movimientosGrafica.forEach((registro, indice) => {
+          const grupoW = plotW / Math.max(1, movimientosGrafica.length); const centro = plotX + grupoW * (indice + 0.5);
+          const anchoBarra = Math.min(7, Math.max(1.4, grupoW * 0.58)); const alturaBarra = Math.max(0.8, (registro.volumen / escalaGrafica) * alturaPositiva);
+          const esIngreso = registro.tipo === "ingreso"; const yBarra = esIngreso ? yCero - alturaBarra : yCero;
+          pdf.setFillColor(...(esIngreso ? [21, 157, 132] as [number, number, number] : [216, 121, 87] as [number, number, number]));
+          pdf.roundedRect(centro - anchoBarra / 2, yBarra, anchoBarra, esIngreso ? alturaBarra : Math.min(alturaNegativa, alturaBarra), 0.7, 0.7, "F");
+          if (movimientosGrafica.length <= 12 || indice === 0 || indice === movimientosGrafica.length - 1 || indice === Math.floor(movimientosGrafica.length / 2)) {
+            pdf.setFont("helvetica", "normal"); pdf.setFontSize(5); pdf.setTextColor(103, 128, 147);
+            pdf.text(registro.hora, centro, graficaY + 43, { align: "center" });
+          }
+        });
+        autoTable(pdf, { ...opcionesTabla(`${titulos.balance} · ${new Date(`${dia}T12:00:00`).toLocaleDateString("es-BO")}`), startY: graficaY + graficaH + 3, head: [["HORA", "INGRESOS · DETALLE", "ML", "EGRESOS · DETALLE", "ML", "BALANCE ML"]], body: filas, styles: { ...opcionesTabla(titulos.balance).styles, fontSize: 6.4, cellPadding: 1.35 }, columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 48 }, 2: { cellWidth: 15, halign: "right" }, 3: { cellWidth: 48 }, 4: { cellWidth: 15, halign: "right" }, 5: { cellWidth: 20, halign: "right" } }, didParseCell: (data) => { if (data.row.raw && Array.isArray(data.row.raw) && String(data.row.raw[0]).startsWith("Subtotal")) { data.cell.styles.fillColor = [236, 246, 251]; data.cell.styles.fontStyle = "bold"; } } });
+      });
+    }
+    if (elegidas.includes("tratamiento") && tratamientos.length) {
+      comenzarHoja(titulos.tratamiento);
+      autoTable(pdf, { ...opcionesTabla(titulos.tratamiento), head: [["FECHA Y HORA", "TIPO", "MEDICAMENTO / INSUMO / CUIDADO", "DOSIS / CANTIDAD", "VÍA / INDICACIÓN", "PROFESIONAL", "ESTADO"]], body: tratamientos.map((evento) => {
+        const orden = cuenta.ordenes?.find((item) => item.id === evento.ordenId);
+        return [fechaHora(evento.fecha), evento.tipo, evento.detalle, [orden?.dosis, evento.cantidad].filter(Boolean).join(" · ") || "—", [orden?.via, orden?.frecuencia, orden?.duracion].filter(Boolean).join(" · ") || evento.observacion || "—", evento.usuario || orden?.usuario || "—", evento.estado];
+      }), columnStyles: { 0: { cellWidth: 23 }, 1: { cellWidth: 23 }, 2: { cellWidth: 39 }, 3: { cellWidth: 23 }, 4: { cellWidth: 31 }, 5: { cellWidth: 25 }, 6: { cellWidth: "auto" } } });
+    }
+    if (elegidas.includes("enfermeria") && (registrosEnfermeria.length || evoluciones.length)) {
+      comenzarHoja(titulos.enfermeria);
+      const filas = [
+        ...registrosEnfermeria.map((registro) => [`${new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} ${registro.hora || ""}`, registro.tipo === "cuidado" ? "Cuidado" : registro.tipo === "procedimiento" ? "Procedimiento" : "Medicamento / insumo", registro.detalle, registro.observacion || "—", registro.usuario || "—"]),
+        ...evoluciones.map((registro) => [`${registro.campos.evolucionFecha ? new Date(`${registro.campos.evolucionFecha}T12:00:00`).toLocaleDateString("es-BO") : new Date(registro.fecha).toLocaleDateString("es-BO")} ${registro.campos.evolucionHora || new Date(registro.fecha).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}`, "Evolución de enfermería", registro.campos.evolucion || "—", registro.campos.observaciones || registro.campos.plan || "—", registro.usuario || "—"]),
+      ].sort((a, b) => `${a[0]}`.localeCompare(`${b[0]}`));
+      autoTable(pdf, { ...opcionesTabla(titulos.enfermeria), head: [["FECHA Y HORA", "TIPO DE REGISTRO", "NOTA / CUIDADO REALIZADO", "OBSERVACIÓN", "PROFESIONAL"]], body: filas, columnStyles: { 0: { cellWidth: 27 }, 1: { cellWidth: 32 }, 2: { cellWidth: 57 }, 3: { cellWidth: 39 }, 4: { cellWidth: "auto" } } });
+    }
+    if (!hojasIncluidas) {
+      setAviso("No hay registros en las hojas seleccionadas para el turno indicado.");
+      return;
+    }
+    const paginas = pdf.getNumberOfPages();
+    for (let pagina = 1; pagina <= paginas; pagina++) {
+      pdf.setPage(pagina);
+      pdf.setDrawColor(145, 174, 194); pdf.setLineWidth(0.25); pdf.line(ancho - 78, alto - 12, ancho - margen, alto - 12);
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(6.5); pdf.setTextColor(103, 128, 147);
+      pdf.text("Registro de turno · Emergencias", margen, alto - 8);
+      pdf.text("Firma y sello de enfermería", ancho - 77, alto - 8);
+      pdf.text(`Página ${pagina} de ${paginas}`, ancho - margen, alto - 4, { align: "right" });
+    }
+    if (abrirPrevisualizacion) {
+      const hoja = elegidas[0] || "signos";
+      const url = URL.createObjectURL(pdf.output("blob"));
+      setVistaPreviaReporte({ url, titulo: titulos[hoja], hoja });
+    } else {
+      pdf.save(`reporte-turno-emergencias-${new Date().toISOString().slice(0, 10)}.pdf`);
+      setAviso(`PDF vertical generado con ${hojasIncluidas} hoja(s) del turno seleccionado.`);
+    }
+  }
+
   async function trasladarAInternacion() {
     if (!cuenta || !cuenta.identidad?.documento?.trim()) return;
     let preinternacionId = "";
@@ -2282,33 +2687,39 @@ export function TriajeEmergenciasView({
                     </button>
                   </nav>
                   {seccionClinica === "reportes" && (
-                    <section className="em-panel em-reporte-atencion" aria-labelledby="em-reporte-titulo">
-                      <header className="em-panel-titulo">
-                        <div>
-                          <h3 id="em-reporte-titulo">Reporte de atención de emergencia</h3>
-                          <small>Resumen clínico y operativo de esta cuenta.</small>
+                    <section className="em-panel em-reporte-atencion" aria-label="Reportes de atención e insumos">
+                      <section className="em-reporte-bloque" aria-labelledby="em-reporte-atencion-titulo">
+                        <header className="em-reporte-bloque-cabecera">
+                          <div><span>REPORTE CLÍNICO</span><h3 id="em-reporte-atencion-titulo">Reporte de atención de emergencia</h3></div>
+                        </header>
+                        <div className="em-reporte-turno-rango" aria-label="Rango del turno que se exportará">
+                          <label>Desde<input type="datetime-local" value={desdeReporteTurno} onChange={(event) => setDesdeReporteTurno(event.target.value)} /></label>
+                          <label>Hasta<input type="datetime-local" value={hastaReporteTurno} onChange={(event) => setHastaReporteTurno(event.target.value)} /></label>
                         </div>
-                        <button type="button" className="em-primario" onClick={() => window.print()}>
-                          <Icon name="print" size={15} /> Imprimir reporte
-                        </button>
-                      </header>
-                      <div className="em-reporte-identidad">
-                        <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong><span>CI {cuenta.identidad?.documento || "Sin documento"}</span></article>
-                        <article><small>Cubículo</small><strong>{nombreCubiculo(cuenta.cubiculo)}</strong><span>{cuenta.fin ? "Atención finalizada" : "Atención activa"}</span></article>
-                        <article><small>Ingreso</small><strong>{fecha(cuenta.inicio)}</strong><span>{cuenta.fin ? `Cierre: ${fecha(cuenta.fin)}` : "En curso"}</span></article>
-                        <article><small>Total de cuenta</small><strong>{dinero(total)}</strong><span>{cuenta.consumos.length} consumos registrados</span></article>
-                      </div>
-                      <section className="em-reporte-seccion">
-                        <header><h4>Signos vitales</h4><span>{cuenta.signos.length} mediciones</span></header>
-                        {cuenta.signos.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha y hora</th>{camposEmergencia.filter((campo) => campo.tipo !== "Texto").map((campo) => <th key={campo.id}>{campo.etiqueta}</th>)}<th>Observación</th></tr></thead><tbody>{cuenta.signos.map((toma) => <tr key={toma.id}><td>{fecha(toma.fecha)}</td>{camposEmergencia.filter((campo) => campo.tipo !== "Texto").map((campo) => <td key={campo.id}>{toma.valores[campo.id] ?? "—"} {campo.unidad}</td>)}<td>{toma.observacion || "—"}</td></tr>)}</tbody></table></div> : <p>Aún no hay mediciones registradas.</p>}
+                        <p className="em-reporte-turno-ayuda">El PDF incluirá automáticamente las hojas que tengan registros dentro del turno seleccionado.</p>
+                        <div className="em-reporte-acciones-hojas">
+                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["signos"], true)}><Icon name="monitorVitals" size={17} /> Hoja de evolución de signos vitales</button>
+                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["balance"], true)}><Icon name="asset" size={17} /> Hoja de balance hídrico</button>
+                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["tratamiento"], true)}><Icon name="clipboardMedical" size={17} /> Registro de tratamiento</button>
+                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["enfermeria"], true)}><Icon name="userMedical" size={17} /> Reporte de enfermería</button>
+                          <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical()}><Icon name="download" size={17} /> Exportar reporte de turno</button>
+                        </div>
                       </section>
-                      <section className="em-reporte-seccion">
-                        <header><h4>Balance hídrico</h4><span>{balanceEmergencia.length} movimientos · Ingresos {ingresosBalanceEmergencia} ml · Egresos {egresosBalanceEmergencia} ml · Acumulado {totalBalanceEmergencia} ml</span></header>
-                        {balanceEmergencia.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha y hora</th><th>Tipo</th><th>Detalle</th><th>Volumen</th><th>Anotación</th></tr></thead><tbody>{balanceEmergencia.map((registro) => <tr key={registro.id}><td>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</td><td>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</td><td>{registro.detalle}</td><td>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen} ml</td><td>{registro.anotacion || "—"}</td></tr>)}</tbody></table></div> : <p>Aún no hay movimientos de balance.</p>}
-                      </section>
-                      <section className="em-reporte-seccion">
-                        <header><h4>Insumos y cuidados</h4><span>{eventosSuministracion.length} registros</span></header>
-                        {eventosSuministracion.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Cantidad</th><th>Observación</th><th>Estado</th></tr></thead><tbody>{eventosSuministracion.map((evento) => <tr key={evento.id}><td>{fecha(evento.fecha)}</td><td>{evento.tipo}</td><td>{evento.detalle}</td><td>{evento.cantidad || "—"}</td><td>{evento.observacion || "—"}</td><td>{evento.estado}</td></tr>)}</tbody></table></div> : <p>Aún no hay insumos o cuidados registrados.</p>}
+                      <section className="em-reporte-bloque" aria-labelledby="em-reporte-insumos-titulo">
+                        <header className="em-reporte-bloque-cabecera">
+                          <div><span>REPORTE OPERATIVO</span><h3 id="em-reporte-insumos-titulo">Reporte de uso y dispensación de insumos</h3><small>Detalle de medicamentos e insumos utilizados durante esta atención.</small></div>
+                          <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical(["tratamiento"])}><Icon name="download" size={15} /> Exportar PDF del turno</button>
+                        </header>
+                          <div className="em-reporte-identidad em-reporte-resumen-insumos">
+                            <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong><span>CI {cuenta.identidad?.documento || "Sin documento"}</span></article>
+                            <article><small>Productos registrados</small><strong>{eventosInsumosEmergencia.length}</strong><span>Medicamentos e insumos aplicados</span></article>
+                            <article><small>Consumos de insumos</small><strong>{cuenta.consumos.filter((consumo) => consumo.tipo !== "servicio").length}</strong><span>En esta cuenta de Emergencias</span></article>
+                            <article><small>Atención</small><strong>{nombreCubiculo(cuenta.cubiculo)}</strong><span>{cuenta.fin ? "Finalizada" : "En curso"}</span></article>
+                          </div>
+                          <section className="em-reporte-seccion">
+                            <header><h4>Detalle de uso y dispensación</h4><span>{eventosInsumosEmergencia.length} registros</span></header>
+                            {eventosInsumosEmergencia.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha y hora</th><th>Tipo</th><th>Insumo o medicamento</th><th>Cantidad</th><th>Observación</th><th>Estado</th></tr></thead><tbody>{eventosInsumosEmergencia.map((evento) => <tr key={evento.id}><td>{fecha(evento.fecha)}</td><td>{evento.tipo}</td><td>{evento.detalle}</td><td>{evento.cantidad || "—"}</td><td>{evento.observacion || "—"}</td><td>{evento.estado}</td></tr>)}</tbody></table></div> : <p>Aún no se registraron medicamentos ni insumos para esta atención.</p>}
+                          </section>
                       </section>
                     </section>
                   )}
@@ -3022,6 +3433,21 @@ export function TriajeEmergenciasView({
               <button type="submit" className="em-traslado-confirmar" disabled={ocupado || !cuenta.identidad?.documento?.trim() || ((destinoTraslado === "sala" || destinoTraslado === "uci") && (!fechaTraslado || !horaTraslado || (destinoTraslado === "sala" && !salaTraslado))) || (destinoTraslado === "ambulancia" && (!motivoAmbulancia || !destinoAmbulancia.trim()))}><Icon name={destinoTraslado === "ambulancia" ? "ambulance" : "bed"} size={16} />{ocupado ? "Procesando traslado…" : "Trasladar paciente"}</button>
             </footer>
           </form>
+        </div>
+      )}
+      {vistaPreviaReporte && cuenta && (
+        <div className="em-reporte-preview-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setVistaPreviaReporte(null); }}>
+          <section className="em-reporte-preview" role="dialog" aria-modal="true" aria-labelledby="em-reporte-preview-titulo">
+            <header className="em-reporte-preview-cabecera">
+              <div><span>VISTA PREVIA DEL REPORTE</span><h2 id="em-reporte-preview-titulo">{vistaPreviaReporte.titulo}</h2><p>{nombrePaciente(cuenta)} · Período seleccionado: {desdeReporteTurno.replace("T", " ")} — {hastaReporteTurno.replace("T", " ")}</p></div>
+              <button type="button" aria-label="Cerrar vista previa" onClick={() => setVistaPreviaReporte(null)}><Icon name="close" size={19} /></button>
+            </header>
+            <iframe title={`Vista previa: ${vistaPreviaReporte.titulo}`} src={vistaPreviaReporte.url} />
+            <footer className="em-reporte-preview-acciones">
+              <button type="button" className="em-secundario" onClick={() => setVistaPreviaReporte(null)}>Cerrar</button>
+              <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical([vistaPreviaReporte.hoja])}><Icon name="download" size={16} /> Descargar PDF</button>
+            </footer>
+          </section>
         </div>
       )}
     </section>

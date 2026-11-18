@@ -1225,3 +1225,16 @@
     padding: 15px 18px;
   }
 }
+
+.config-actividad-reciente > header { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+.config-actividad-reciente > header button,.config-actividad-error button { min-height:36px; padding:0 12px; border:1px solid #076da4; border-radius:8px; color:#fff; background:#076da4; font:inherit; font-size:12px; font-weight:750; cursor:pointer; }
+.config-actividad-reciente > header button:disabled { opacity:.55; cursor:wait; }
+.config-actividad-reciente > ul { display:grid; gap:0; margin:0; padding:0; list-style:none; }
+.config-actividad-reciente li { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 0; border-top:1px solid #e2edf3; }
+.config-actividad-reciente li > span { display:grid; gap:4px; min-width:0; }
+.config-actividad-reciente li strong { color:#173f5d; font-size:13px; }
+.config-actividad-reciente li small,.config-actividad-reciente li time { color:#526a7c; font-size:11px; }
+.config-actividad-reciente li time { flex:0 0 auto; }
+.config-actividad-reciente > p { margin:0; color:#526a7c; font-size:13px; }
+.config-actividad-error { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border:1px solid #efcaca; border-radius:9px; color:#853232; background:#fff7f7; font-size:12px; }
+@media(max-width:560px) { .config-actividad-reciente li { align-items:flex-start; flex-direction:column; gap:6px; } .config-actividad-error { align-items:stretch; flex-direction:column; } }

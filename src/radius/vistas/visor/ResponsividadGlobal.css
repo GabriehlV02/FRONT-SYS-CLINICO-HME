@@ -698,7 +698,7 @@ video {
 /* La barra superior conserva el azul institucional aun cuando el sidebar está abierto. */
 .sistema-app .sistema-topbar,
 .sistema-app.sidebar-replegado .sistema-topbar {
-  background: #087fc0 !important;
+  background: #0874ad !important;
   border-color: #056aab !important;
   color: #fff !important;
 }
@@ -733,7 +733,7 @@ video {
   color: #173d60 !important;
 }
 .sistema-app .sistema-topbar .busqueda-global input::placeholder {
-  color: #69869b !important;
+  color: #526a7c !important;
 }
 .sistema-app .sistema-topbar .perfil {
   border-color: #72bfe3 !important;

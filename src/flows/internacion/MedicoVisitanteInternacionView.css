@@ -12,7 +12,7 @@
 .mvi-pacientes-vista > header > div { display:grid; gap:4px; }
 .mvi-pacientes-vista > header span { color:#1684ae; font-size:10px; font-weight:850; letter-spacing:.07em; }
 .mvi-pacientes-vista h3 { margin:0; color:#173f5d; font-size:19px; letter-spacing:-.01em; }
-.mvi-pacientes-vista > header p { margin:2px 0 0; color:#71899c; font-size:12px; }
+.mvi-pacientes-vista > header p { margin:2px 0 0; color:#526a7c; font-size:12px; }
 .mvi-pacientes-vista .mvi-busqueda { width:min(420px,45%); margin:0; }
 .mvi-tabla-scroll { overflow-x:auto; margin:0 -22px; border-radius:0 0 13px 13px; }
 .mvi-tabla-cabecera,.mvi-tabla-fila { display:grid; grid-template-columns:76px 62px minmax(240px,1.45fr) minmax(130px,.8fr) minmax(145px,.9fr) minmax(140px,.9fr) 94px 124px; align-items:center; gap:14px; min-width:1120px; padding:0 32px; }
@@ -41,7 +41,7 @@
 .mvi-listado > button strong { overflow:hidden; font-size:12px; text-overflow:ellipsis; white-space:nowrap; }
 .mvi-listado > button small { overflow:hidden; color:#71899c; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
 .mvi-listado > button > svg { color:#84a3b7; }
-.mvi-vacio { padding:15px 8px; color:#71899c; font-size:12px; text-align:center; }
+.mvi-vacio { padding:15px 8px; color:#526a7c; font-size:12px; text-align:center; }
 .mvi-detalle { padding:clamp(18px,2vw,32px); box-shadow:0 8px 28px #173d6006; }
 .mvi-detalle > header { display:flex; align-items:center; gap:12px; padding-bottom:16px; border-bottom:1px solid #e3edf3; }
 .mvi-detalle > header .mvi-avatar { width:46px; height:46px; }
@@ -101,6 +101,18 @@
 .mvi-fecha-hora { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .mvi-formulario > button { display:inline-flex; align-items:center; justify-content:center; gap:7px; min-height:40px; justify-self:end; padding:0 14px; border:1px solid #087fc0; border-radius:8px; color:#fff; background:#087fc0; font:inherit; font-size:12px; font-weight:750; cursor:pointer; }
 .mvi-formulario > button:disabled { opacity:.5; cursor:not-allowed; }
+.mvi-diagnostico-editor { display:grid; gap:10px; padding:14px; border:1px solid #d9e8f1; border-radius:10px; background:#f7fbfe; }
+.mvi-formulario-diagnostico { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:end; gap:10px; }
+.mvi-formulario-diagnostico label { display:grid; gap:6px; color:#45657e; font-size:12px; font-weight:750; }
+.mvi-formulario-diagnostico input { width:100%; min-width:0; min-height:42px; padding:9px 11px; border:1px solid #cbddea; border-radius:8px; color:#173d60; background:#fff; font:inherit; font-size:12px; }
+.mvi-formulario-diagnostico input:focus-visible { outline:2px solid #087fc0; outline-offset:2px; }
+.mvi-formulario-diagnostico input::placeholder { color:#8a9fae; font-weight:400; }
+.mvi-formulario-diagnostico button { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:42px; padding:0 12px; border:1px solid #087fc0; border-radius:8px; color:#fff; background:#087fc0; font:inherit; font-size:11px; font-weight:750; cursor:pointer; }
+.mvi-formulario-diagnostico button:disabled { opacity:.5; cursor:not-allowed; }
+.mvi-historial-diagnosticos { min-height:0; max-height:220px; }
+.mvi-visita .mvi-historial-diagnosticos > summary { padding:10px 12px; font-size:12px; }
+.mvi-visita .mvi-historial-diagnosticos > article { margin:8px 10px; padding:9px 11px; }
+.mvi-visita .mvi-historial-diagnosticos > .mvi-vacio { min-height:0; padding:10px; }
 .mvi-historial { grid-template-rows:auto; grid-auto-rows:min-content; align-content:start; max-height:640px; overflow:auto; background:#f9fcfe; }
 .mvi-historial:has(> .mvi-vacio) { grid-template-rows:auto 1fr; }
 .mvi-historial > .mvi-vacio { display:flex; align-items:center; justify-content:center; margin:0; padding:32px; line-height:1.7; }
@@ -126,4 +138,17 @@
 .mvi-visita .mvi-historial > .mvi-vacio { min-height:100px; padding:24px; }
 .mvi-visita .mvi-historial > summary:focus-visible { outline:2px solid #087fc0; outline-offset:-3px; }
 @media(max-width:900px) { .mvi-visita { grid-template-columns:minmax(0,1fr); gap:20px; } .mvi-visita .mvi-formulario { min-height:0; } }
-@media(max-width:480px) { .mvi-subsubvistas { width:100%; } .mvi-subsubvistas button { flex:1; padding-inline:9px; font-size:12px; } }
+@media(max-width:480px) { .mvi-subsubvistas { width:100%; } .mvi-subsubvistas button { flex:1; padding-inline:9px; font-size:12px; } .mvi-formulario-diagnostico { grid-template-columns:minmax(0,1fr); } .mvi-formulario-diagnostico button { width:100%; } }
+@media(max-width:760px) {
+  .mvi-tabla-cabecera { display:none; }
+  .mvi-tabla-fila { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; min-width:0; padding:14px; }
+  .mvi-tabla-fila > .mvi-tabla-chip { min-height:34px; justify-self:start; padding-inline:12px; }
+  .mvi-tabla-paciente { grid-column:1/-1; }
+  .mvi-tabla-fila > strong { min-width:0; overflow-wrap:anywhere; font-size:12px; }
+  .mvi-tabla-fila > strong::before { display:block; margin-bottom:3px; color:#526a7c; font-size:9px; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+  .mvi-tabla-fila > strong:nth-of-type(1)::before { content:"Historia clínica"; }
+  .mvi-tabla-fila > strong:nth-of-type(2)::before { content:"Médico"; }
+  .mvi-tabla-fila > strong:nth-of-type(3)::before { content:"Fecha de ingreso"; }
+  .mvi-tabla-fila > em { justify-self:start; }
+  .mvi-tabla-fila > button { width:100%; min-height:42px; grid-column:1/-1; }
+}

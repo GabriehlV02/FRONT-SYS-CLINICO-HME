@@ -648,6 +648,8 @@
   .farmacia-ia-sugerencias button {
     justify-content: space-between;
   }
+  .farmacia-ia-subvistas { width:100%; max-width:100%; overflow-x:auto; overscroll-behavior-inline:contain; }
+  .farmacia-ia-subvistas button { flex:0 0 auto; min-width:max-content; white-space:nowrap; word-break:keep-all; }
 }
 @media (max-width: 650px) {
   .farmacia-ia {
@@ -2010,6 +2012,10 @@
   border-radius: 15px;
   box-shadow: 0 6px 20px #1b537309;
 }
+.farmacia-ia-inventario-error { display:grid; gap:8px; margin:10px 0; padding:10px; border:1px solid #e7c5b3; border-radius:9px; color:#713b1c; background:#fff8f3; }
+.farmacia-ia-inventario-error p { margin:0; color:#713b1c; font-size:11px; line-height:1.5; }
+.farmacia-ia-inventario-error button { min-height:34px; padding:0 10px; border:1px solid #a64b00; border-radius:7px; color:#fff; background:#a64b00; font:inherit; font-size:11px; font-weight:750; cursor:pointer; }
+.farmacia-ia-inventario-error button:hover { background:#813b00; }
 .farmacia-ia-estado-modo-titulo {
   margin-bottom: 15px;
 }

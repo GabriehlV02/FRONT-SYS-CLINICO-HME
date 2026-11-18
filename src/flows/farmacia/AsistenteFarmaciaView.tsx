@@ -646,7 +646,9 @@ function RostroTomi({ clase = "" }: { clase?: string }) {
 
 export function AsistenteFarmaciaView() {
   const [subvista, setSubvista] = useState<SubvistaFarmaciaIa>("chat");
-  const [panelTomiExpandido, setPanelTomiExpandido] = useState(true);
+  const [panelTomiExpandido, setPanelTomiExpandido] = useState(
+    () => typeof window === "undefined" || !window.matchMedia("(max-width: 850px)").matches,
+  );
   const [mensaje, setMensaje] = useState("");
   const [mensajes, setMensajes] = useState<MensajeChat[]>([saludo]);
   const [errorChat, setErrorChat] = useState("");
@@ -687,6 +689,7 @@ export function AsistenteFarmaciaView() {
   const [inventarioActivo, setInventarioActivo] =
     useState<InventarioFisico | null>(null);
   const [cargandoModoInventario, setCargandoModoInventario] = useState(false);
+  const [errorInventarioActivo, setErrorInventarioActivo] = useState("");
   const peticionInventarios = useRef(0);
   const [escuchando, setEscuchando] = useState(false);
   const [vozManosLibres, setVozManosLibres] = useState(false);
@@ -787,6 +790,7 @@ export function AsistenteFarmaciaView() {
   };
   const cargarInventarioActivo = async (): Promise<InventarioFisico | null> => {
     setCargandoModoInventario(true);
+    setErrorInventarioActivo("");
     try {
       const respuesta = await apiFetch("/api/farmacia/tomi/inventario-activo");
       const datos = await respuesta.json().catch(() => ({}));
@@ -796,9 +800,15 @@ export function AsistenteFarmaciaView() {
         setInventarioActivo(activo);
         return activo;
       }
+      setErrorInventarioActivo(
+        respuesta.status === 403
+          ? "No tienes permiso para consultar el inventario activo. Verifica el acceso del usuario y el almacén asignado."
+          : datos.message || `No se pudo consultar el inventario activo (HTTP ${respuesta.status}).`,
+      );
       return null;
     } catch {
-      /* El chat puede seguir disponible aunque el estado no cargue. */ return null;
+      setErrorInventarioActivo("No se pudo conectar con el servicio de inventario. Comprueba la conexión e inténtalo de nuevo.");
+      return null;
     } finally {
       setCargandoModoInventario(false);
     }
@@ -1520,6 +1530,12 @@ export function AsistenteFarmaciaView() {
                 <Icon name="package" size={17} />
                 <h3>MODO INVENTARIO</h3>
               </div>
+              {errorInventarioActivo && (
+                <div className="farmacia-ia-inventario-error" role="alert">
+                  <p>{errorInventarioActivo}</p>
+                  <button type="button" onClick={() => void cargarInventarioActivo()}>Reintentar</button>
+                </div>
+              )}
               {cargandoModoInventario ? (
                 <p>Consultando estado…</p>
               ) : inventarioActivo ? (
@@ -1573,6 +1589,8 @@ export function AsistenteFarmaciaView() {
                     </div>
                   )}
                 </>
+              ) : errorInventarioActivo ? (
+                <strong className="farmacia-ia-modo-chip inactivo"><i /> Estado no disponible</strong>
               ) : (
                 <>
                   <strong className="farmacia-ia-modo-chip inactivo">

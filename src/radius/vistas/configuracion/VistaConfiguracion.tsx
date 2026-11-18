@@ -15,12 +15,8 @@ type Orthanc = {
   apiVersion: string;
 };
 type EventoCuenta = {
-  id: string;
-  tipo:
-    | "inicio_sesion"
-    | "cierre_sesion"
-    | "perfil_actualizado"
-    | "contrasena_actualizada";
+  id: string | number;
+  tipo: string;
   creadoEn: string;
   detalle: string;
   ip?: string;
@@ -45,6 +41,8 @@ export default function VistaConfiguracion({
   const [probando, setProbando] = useState(false);
   const [error, setError] = useState("");
   const [eventos, setEventos] = useState<EventoCuenta[]>([]);
+  const [cargandoEventos, setCargandoEventos] = useState(true);
+  const [errorEventos, setErrorEventos] = useState("");
   const [password, setPassword] = useState({
     actual: "",
     nueva: "",
@@ -94,6 +92,22 @@ export default function VistaConfiguracion({
   const datosRegistrados = datosPerfil.filter((dato) =>
     Boolean(dato.valor?.trim()),
   ).length;
+  const cargarEventos = async () => {
+    setCargandoEventos(true);
+    setErrorEventos("");
+    try {
+      const respuesta = await apiFetch("/api/mi-actividad");
+      const datos = await respuesta.json().catch(() => ({}));
+      if (!respuesta.ok) {
+        throw new Error(datos.message || `No se pudo cargar la actividad (HTTP ${respuesta.status}).`);
+      }
+      setEventos(Array.isArray(datos.eventos) ? datos.eventos : []);
+    } catch (causa) {
+      setErrorEventos(causa instanceof Error ? causa.message : "No se pudo cargar tu actividad.");
+    } finally {
+      setCargandoEventos(false);
+    }
+  };
   const cambiarModoRevision = (activo: boolean) => {
     setModoRevision(activo);
     window.dispatchEvent(
@@ -118,12 +132,7 @@ export default function VistaConfiguracion({
   }, [initialSection]);
 
   useEffect(() => {
-    void apiFetch("/api/mi-actividad")
-      .then(async (respuesta) =>
-        respuesta.ok ? respuesta.json() : { eventos: [] },
-      )
-      .then((datos) => setEventos(datos.eventos || []))
-      .catch(() => undefined);
+    void cargarEventos();
   }, []);
 
   const cambiarPassword = async (event: FormEvent<HTMLFormElement>) => {
@@ -369,6 +378,36 @@ export default function VistaConfiguracion({
                 </article>
               ))}
             </div>
+          </section>
+          <section className="config-tarjeta config-actividad-reciente" aria-labelledby="config-actividad-titulo">
+            <header>
+              <div>
+                <h3 id="config-actividad-titulo">Actividad reciente</h3>
+                <p>Últimos accesos y acciones de tu cuenta.</p>
+              </div>
+              <button type="button" onClick={() => void cargarEventos()} disabled={cargandoEventos}>
+                {cargandoEventos ? "Actualizando…" : "Actualizar"}
+              </button>
+            </header>
+            {errorEventos ? (
+              <div className="config-actividad-error" role="alert">
+                <span>{errorEventos}</span>
+                <button type="button" onClick={() => void cargarEventos()}>Reintentar</button>
+              </div>
+            ) : cargandoEventos ? (
+              <p role="status">Cargando actividad…</p>
+            ) : eventos.length ? (
+              <ul>
+                {eventos.map((evento) => (
+                  <li key={evento.id}>
+                    <span><strong>{evento.detalle}</strong><small>{evento.tipo}</small></span>
+                    <time dateTime={evento.creadoEn}>{new Date(evento.creadoEn).toLocaleString("es-BO", { dateStyle: "medium", timeStyle: "short" })}</time>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Aún no hay actividad registrada para esta cuenta.</p>
+            )}
           </section>
           {seguridadAbierta && (
             <section

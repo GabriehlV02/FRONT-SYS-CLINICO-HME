@@ -39,6 +39,7 @@ export default function VistaUsuariosSistema() {
   const [filtroRol, setFiltroRol] = useState("TODOS");
   const [modal, setModal] = useState(false);
   const [cargando, setCargando] = useState(true);
+  const [errorCarga, setErrorCarga] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
 
@@ -47,10 +48,16 @@ export default function VistaUsuariosSistema() {
     try {
       const respuesta = await apiFetch("/api/v1/usuarios");
       const datos = await respuesta.json();
-      if (!respuesta.ok) throw new Error();
+      if (!respuesta.ok) {
+        throw new Error(respuesta.status === 403
+          ? "Tu usuario no tiene permiso para consultar la lista de usuarios. Solicita acceso a un administrador."
+          : datos.message || `No se pudieron cargar los usuarios (HTTP ${respuesta.status}).`);
+      }
       setUsuarios(datos.data ?? []);
-    } catch {
+      setErrorCarga("");
+    } catch (causa) {
       setUsuarios([]);
+      setErrorCarga(causa instanceof Error ? causa.message : "No se pudieron cargar los usuarios.");
     } finally {
       setCargando(false);
     }
@@ -171,6 +178,12 @@ export default function VistaUsuariosSistema() {
         </div>
         {cargando ? (
           <div className="usuarios-admin-vacio">Cargando usuarios…</div>
+        ) : errorCarga ? (
+          <div className="usuarios-admin-vacio usuarios-admin-error-carga" role="alert">
+            <strong>No se pudo cargar la lista</strong>
+            <small>{errorCarga}</small>
+            <button type="button" onClick={() => void cargar()}>Reintentar</button>
+          </div>
         ) : visibles.length ? (
           visibles.map((item) => (
             <article className="usuarios-admin-fila" role="row" key={item.id}>

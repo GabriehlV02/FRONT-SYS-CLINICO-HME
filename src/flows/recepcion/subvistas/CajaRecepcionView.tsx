@@ -435,9 +435,11 @@ export function CajaRecepcionView({
     const intervalo = window.setInterval(() => { void recuperar(); }, 30000);
     return () => { controller.abort(); window.clearInterval(intervalo); };
   }, []);
-  const [cargandoCatalogo, setCargandoCatalogo] = useState(true);
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(false);
+  const [catalogoSolicitado, setCatalogoSolicitado] = useState(false);
   const [recargaCatalogo, setRecargaCatalogo] = useState(0);
   useEffect(() => {
+    if (!catalogoSolicitado) return;
     const controller = new AbortController();
     setCargandoCatalogo(true);
     apiFetch("/api/catalogo", { signal: controller.signal })
@@ -475,7 +477,8 @@ export function CajaRecepcionView({
         if (!controller.signal.aborted) setCargandoCatalogo(false);
       });
     return () => controller.abort();
-  }, [recargaCatalogo]);
+  }, [catalogoSolicitado, recargaCatalogo]);
+  const solicitarCatalogo = () => setCatalogoSolicitado(true);
   const [imagenParaAgregar, setImagenParaAgregar] = useState<Item | null>(null);
   const [consultaParaAgendar, setConsultaParaAgendar] = useState<Item | null>(
     null,
@@ -758,6 +761,7 @@ export function CajaRecepcionView({
     agregar(item);
   };
   const abrirConsultaExterna = () => {
+    solicitarCatalogo();
     const consulta = catalogo.find(
       (item) =>
         item.tipo === "Servicio" &&
@@ -1817,15 +1821,14 @@ export function CajaRecepcionView({
         <section
           className={`punto-catalogo ${carritoAbierto ? "vista-carrito" : ""}`}
         >
-          {cargandoCatalogo && (
-            <p role="status">Consultando productos y servicios del contable…</p>
-          )}
+          {cargandoCatalogo && <p role="status">Cargando catálogo…</p>}
           <div className="punto-busquedas">
             <label>
               <Icon name="search" size={17} />
               <input
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
+                onFocus={solicitarCatalogo}
                 placeholder="Buscar producto por nombre, código o categoría…"
               />
             </label>
@@ -1935,6 +1938,7 @@ export function CajaRecepcionView({
                   className={!carritoAbierto && tipo === o ? "activo" : ""}
                   key={o}
                   onClick={() => {
+                    solicitarCatalogo();
                     setCarritoAbierto(false);
                     setTipo(o);
                   }}
@@ -1947,7 +1951,7 @@ export function CajaRecepcionView({
               className="punto-actualizar-catalogo"
               type="button"
               disabled={cargandoCatalogo}
-              onClick={() => setRecargaCatalogo((v) => v + 1)}
+              onClick={() => { solicitarCatalogo(); setRecargaCatalogo((v) => v + 1); }}
             >
               <Icon name="refresh" size={15} /> Actualizar
             </button>

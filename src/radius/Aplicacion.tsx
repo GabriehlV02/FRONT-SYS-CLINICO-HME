@@ -1474,6 +1474,11 @@ export default function Aplicacion() {
     }).catch(() => undefined);
     localStorage.removeItem("pulso_session");
     sessionStorage.removeItem("pulso_session");
+    try {
+      Object.keys(sessionStorage)
+        .filter((clave) => clave.startsWith("hme:emergencias:triaje:continuidad") || clave.startsWith("hme:emergencias:atencion-medica:continuidad") || clave.startsWith("hme:emergencias:atencion-medica:borrador:"))
+        .forEach((clave) => sessionStorage.removeItem(clave));
+    } catch { /* La sesión puede no permitir acceso al almacenamiento del navegador. */ }
     setSesion(null);
     setMenuAbierto(false);
     setAvisos([]);
@@ -2852,6 +2857,26 @@ export default function Aplicacion() {
               <VistaAuditorias sesion={sesion} />
             ) : modulo === "medico-terapia-intensiva" ? (
               <MedicoTerapiaIntensivaView />
+            ) : !modulo ? (
+              <section className="inicio-clinico" aria-labelledby="inicio-clinico-titulo">
+                <header>
+                  <span>HOSPITAL MARÍA ESPERANZA</span>
+                  <h1 id="inicio-clinico-titulo">¿Qué necesitas atender hoy?</h1>
+                  <p>Abre un módulo para continuar con tu trabajo.</p>
+                </header>
+                <div className="inicio-clinico-accesos">
+                  {modulosVisibles
+                    .filter((item) => ["triaje-emergencias", "pacientes", "atencion-medica", "medico-internacion", "recepcion", "farmacia"].includes(item.id))
+                    .slice(0, 4)
+                    .map((item) => (
+                      <button key={item.id} type="button" onClick={() => setModulo(item.id)}>
+                        <span><Icon name={item.icono} size={20} /></span>
+                        <strong>{item.nombre}</strong>
+                        <small>{item.grupo}</small>
+                      </button>
+                    ))}
+                </div>
+              </section>
             ) : actual ? (
               <div className="modulo-vacio">
                 <span>

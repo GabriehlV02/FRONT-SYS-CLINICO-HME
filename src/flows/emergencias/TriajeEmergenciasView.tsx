@@ -68,7 +68,7 @@ const CLAVE_TRASLADOS_AMBULANCIA = "hme:emergencias:traslados-ambulancia:v1";
 const CLAVE_CONTINUIDAD_TRIAJE = "hme:emergencias:triaje:continuidad:v1";
 type ContinuidadTriaje = {
   cuentaId: string;
-  seccion: "paciente" | "ingreso" | "reportes" | "signos" | "examen" | "descargos";
+  seccion: "paciente" | "tratamiento" | "ingreso" | "reportes" | "signos" | "examen" | "descargos";
   subvista: "atencion" | "historial" | "inventario";
 };
 type BorradorTriaje = {
@@ -711,7 +711,7 @@ export function TriajeEmergenciasView({
   const [continuidadInicial] = useState(() => leerContinuidadTriaje());
   const [borradorInicial] = useState(() => leerBorradorTriaje(continuidadInicial?.cuentaId || ""));
   const [seccionClinica, setSeccionClinica] = useState<
-    "paciente" | "ingreso" | "reportes" | "signos" | "examen" | "descargos"
+    "paciente" | "tratamiento" | "ingreso" | "reportes" | "signos" | "examen" | "descargos"
   >(() => continuidadInicial?.seccion || "ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
     [activa, setActiva] = useState(() => continuidadInicial?.cuentaId || "");
@@ -1286,7 +1286,7 @@ export function TriajeEmergenciasView({
     const identidad = cuenta.identidad || {};
     let logo: string | null = null;
     try {
-      const respuestaLogo = await fetch("/logo-hospital-original.png");
+      const respuestaLogo = await fetch("/logo-hospital-reportes.png");
       if (respuestaLogo.ok) {
         const archivoLogo = await respuestaLogo.blob();
         logo = await new Promise<string>((resolve, reject) => {
@@ -1298,7 +1298,7 @@ export function TriajeEmergenciasView({
       }
     } catch { /* El reporte conserva su encabezado institucional si el logo no está disponible. */ }
 
-    const titulos = { signos: "Hoja de evolución de signos vitales", balance: "Hoja de balance hídrico", tratamiento: "Registro de tratamiento", enfermeria: "Reporte de enfermería" };
+    const titulos = { signos: "Hoja de evolución de signos vitales", balance: "Hoja de balance hídrico", tratamiento: "Registro de medicación e insumos", enfermeria: "Reporte de enfermería" };
     let paginaIniciada = false;
     let hojasIncluidas = 0;
     const fechaHora = (valor: string) => {
@@ -1306,16 +1306,16 @@ export function TriajeEmergenciasView({
       return Number.isNaN(instante.getTime()) ? "—" : instante.toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" });
     };
     const dibujarEncabezado = (titulo: string) => {
-      pdf.setFillColor(8, 127, 189);
+      pdf.setFillColor(18, 56, 98);
       pdf.rect(0, 0, ancho, 2, "F");
       if (logo) pdf.addImage(logo, "PNG", margen, 7, 43, 16);
       else {
-        pdf.setTextColor(8, 105, 164); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11);
+        pdf.setTextColor(18, 56, 98); pdf.setFont("helvetica", "bold"); pdf.setFontSize(11);
         pdf.text("HOSPITAL MARÍA ESPERANZA", margen, 16);
       }
-      pdf.setTextColor(35, 65, 91); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5);
+      pdf.setTextColor(18, 56, 98); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5);
       pdf.text(pdf.splitTextToSize(titulo.toLocaleUpperCase("es"), ancho - 72).slice(0, 2), 62, 13);
-      pdf.setDrawColor(190, 216, 232); pdf.setLineWidth(0.35); pdf.line(margen, 27, ancho - margen, 27);
+      pdf.setDrawColor(185, 207, 229); pdf.setLineWidth(0.35); pdf.line(margen, 27, ancho - margen, 27);
       const anchoTarjeta = (ancho - margen * 2 - 4) / 2;
       const tarjetas: [string, string][] = [
         ["PACIENTE", nombrePaciente(cuenta)],
@@ -1326,13 +1326,13 @@ export function TriajeEmergenciasView({
       tarjetas.forEach(([etiqueta, valor], indice) => {
         const x = margen + (indice % 2) * (anchoTarjeta + 4);
         const y = 31 + Math.floor(indice / 2) * 13;
-        pdf.setFillColor(247, 251, 254); pdf.setDrawColor(213, 229, 239); pdf.roundedRect(x, y, anchoTarjeta, 11, 1.2, 1.2, "FD");
-        pdf.setFont("helvetica", "bold"); pdf.setFontSize(6); pdf.setTextColor(94, 122, 143); pdf.text(etiqueta, x + 2, y + 3.8);
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(35, 65, 91); pdf.text(pdf.splitTextToSize(valor || "—", anchoTarjeta - 4)[0] || "—", x + 2, y + 8.4);
+        pdf.setFillColor(247, 249, 252); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(x, y, anchoTarjeta, 11, 1.2, 1.2, "FD");
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(6); pdf.setTextColor(83, 109, 136); pdf.text(etiqueta, x + 2, y + 3.8);
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(22, 53, 88); pdf.text(pdf.splitTextToSize(valor || "—", anchoTarjeta - 4)[0] || "—", x + 2, y + 8.4);
       });
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.5); pdf.setTextColor(63, 91, 111); pdf.text("TURNO:", margen, 59);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.5); pdf.setTextColor(22, 53, 88); pdf.text("TURNO:", margen, 59);
       pdf.setFont("helvetica", "normal"); pdf.text(periodo, margen + 13, 59);
-      pdf.setDrawColor(190, 216, 232); pdf.line(margen, 62, ancho - margen, 62);
+      pdf.setDrawColor(185, 207, 229); pdf.line(margen, 62, ancho - margen, 62);
     };
     const comenzarHoja = (titulo: string) => {
       if (paginaIniciada) pdf.addPage("a4", "portrait");
@@ -1348,7 +1348,7 @@ export function TriajeEmergenciasView({
       startY: 64,
       theme: "grid" as const,
       styles: { font: "helvetica", fontSize: 7.2, cellPadding: 2, textColor: [35, 65, 91] as [number, number, number], lineColor: [205, 225, 239] as [number, number, number], lineWidth: 0.18, valign: "middle" as const, overflow: "linebreak" as const },
-      headStyles: { fillColor: [235, 246, 252] as [number, number, number], textColor: [29, 82, 116] as [number, number, number], fontStyle: "bold" as const },
+      headStyles: { fillColor: [18, 56, 98] as [number, number, number], textColor: [255, 255, 255] as [number, number, number], fontStyle: "bold" as const },
       alternateRowStyles: { fillColor: [250, 253, 255] as [number, number, number] },
       margin: { left: margen, right: margen, bottom: 25 },
       didDrawPage: () => dibujarEncabezado(titulo),
@@ -1382,9 +1382,9 @@ export function TriajeEmergenciasView({
       const anchoDato = (ancho - margen * 2 - 6) / 3;
       datosVitales.forEach(([etiqueta, valor], indice) => {
         const x = margen + indice * (anchoDato + 3);
-        pdf.setFillColor(247, 251, 254); pdf.setDrawColor(213, 229, 239); pdf.roundedRect(x, 65, anchoDato, 10, 1, 1, "FD");
-        pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.7); pdf.setTextColor(94, 122, 143); pdf.text(etiqueta, x + 2, 69);
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.setTextColor(35, 65, 91); pdf.text(pdf.splitTextToSize(valor, anchoDato - 4)[0] || "—", x + 2, 73);
+        pdf.setFillColor(247, 249, 252); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(x, 65, anchoDato, 10, 1, 1, "FD");
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.7); pdf.setTextColor(83, 109, 136); pdf.text(etiqueta, x + 2, 69);
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.setTextColor(22, 53, 88); pdf.text(pdf.splitTextToSize(valor, anchoDato - 4)[0] || "—", x + 2, 73);
       });
       const filas = signos.map((toma) => {
         const extras = Object.entries(toma.valores || {}).filter(([llave, valor]) => valor !== "" && !coreAliases.some((alias) => normalize(llave).includes(normalize(alias)))).map(([llave, valor]) => `${llave}: ${valor}`);
@@ -1412,7 +1412,7 @@ export function TriajeEmergenciasView({
         comenzarPaginaContinuacion(`${titulos.signos} · Gráfica`);
         graficaY = 68;
       } else graficaY += 8;
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(35, 65, 91); pdf.text("EVOLUCIÓN GRÁFICA · ESCALA AJUSTADA A LAS MEDICIONES REGISTRADAS", margen, graficaY);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(18, 56, 98); pdf.text("EVOLUCIÓN GRÁFICA · ESCALA AJUSTADA A LAS MEDICIONES REGISTRADAS", margen, graficaY);
       graficaY += 5;
       seriesVitales.forEach((serie) => {
         const y = graficaY;
@@ -1464,8 +1464,8 @@ export function TriajeEmergenciasView({
         }
         const movimientosGrafica = registrosDia.slice().sort((a, b) => a.hora.localeCompare(b.hora));
         const graficaX = margen; const graficaY = 65; const graficaW = ancho - margen * 2; const graficaH = 46;
-        pdf.setFillColor(249, 252, 254); pdf.setDrawColor(213, 229, 239); pdf.roundedRect(graficaX, graficaY, graficaW, graficaH, 1.6, 1.6, "FD");
-        pdf.setFont("helvetica", "bold"); pdf.setFontSize(7.4); pdf.setTextColor(35, 65, 91); pdf.text("INGRESOS Y EGRESOS POR MOVIMIENTO", graficaX + 3, graficaY + 5);
+        pdf.setFillColor(249, 251, 253); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(graficaX, graficaY, graficaW, graficaH, 1.6, 1.6, "FD");
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(7.4); pdf.setTextColor(18, 56, 98); pdf.text("INGRESOS Y EGRESOS POR MOVIMIENTO", graficaX + 3, graficaY + 5);
         pdf.setFillColor(21, 157, 132); pdf.circle(graficaX + 4, graficaY + 10, 1.1, "F");
         pdf.setFont("helvetica", "normal"); pdf.setFontSize(6.2); pdf.setTextColor(63, 91, 111); pdf.text("Ingreso", graficaX + 7, graficaY + 10.8);
         pdf.setFillColor(216, 121, 87); pdf.circle(graficaX + 25, graficaY + 10, 1.1, "F"); pdf.text("Egreso", graficaX + 28, graficaY + 10.8);
@@ -1491,15 +1491,34 @@ export function TriajeEmergenciasView({
             pdf.text(registro.hora, centro, graficaY + 43, { align: "center" });
           }
         });
-        autoTable(pdf, { ...opcionesTabla(`${titulos.balance} · ${new Date(`${dia}T12:00:00`).toLocaleDateString("es-BO")}`), startY: graficaY + graficaH + 3, head: [["HORA", "INGRESOS · DETALLE", "ML", "EGRESOS · DETALLE", "ML", "BALANCE ML"]], body: filas, styles: { ...opcionesTabla(titulos.balance).styles, fontSize: 6.4, cellPadding: 1.35 }, columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 48 }, 2: { cellWidth: 15, halign: "right" }, 3: { cellWidth: 48 }, 4: { cellWidth: 15, halign: "right" }, 5: { cellWidth: 20, halign: "right" } }, didParseCell: (data) => { if (data.row.raw && Array.isArray(data.row.raw) && String(data.row.raw[0]).startsWith("Subtotal")) { data.cell.styles.fillColor = [236, 246, 251]; data.cell.styles.fontStyle = "bold"; } } });
+        autoTable(pdf, { ...opcionesTabla(`${titulos.balance} · ${new Date(`${dia}T12:00:00`).toLocaleDateString("es-BO")}`), startY: graficaY + graficaH + 3, head: [["HORA", "INGRESOS · DETALLE", "ML", "EGRESOS · DETALLE", "ML", "BALANCE ML"]], body: filas, styles: { ...opcionesTabla(titulos.balance).styles, fontSize: 6.4, cellPadding: 1.35 }, columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 48 }, 2: { cellWidth: 15, halign: "right" }, 3: { cellWidth: 48 }, 4: { cellWidth: 15, halign: "right" }, 5: { cellWidth: 20, halign: "right" } }, didParseCell: (data) => { if (data.row.raw && Array.isArray(data.row.raw) && String(data.row.raw[0]).startsWith("Subtotal")) { data.cell.styles.fillColor = [232, 239, 247]; data.cell.styles.textColor = [18, 56, 98]; data.cell.styles.fontStyle = "bold"; } } });
       });
     }
-    if (elegidas.includes("tratamiento") && tratamientos.length) {
+    if (elegidas.includes("tratamiento")) {
       comenzarHoja(titulos.tratamiento);
-      autoTable(pdf, { ...opcionesTabla(titulos.tratamiento), head: [["FECHA Y HORA", "TIPO", "MEDICAMENTO / INSUMO / CUIDADO", "DOSIS / CANTIDAD", "VÍA / INDICACIÓN", "PROFESIONAL", "ESTADO"]], body: tratamientos.map((evento) => {
+      const eventosClinicos = tratamientos.filter((evento) => /insumo|medicamento/i.test(evento.tipo));
+      const filas = eventosClinicos.map((evento) => {
         const orden = cuenta.ordenes?.find((item) => item.id === evento.ordenId);
-        return [fechaHora(evento.fecha), evento.tipo, evento.detalle, [orden?.dosis, evento.cantidad].filter(Boolean).join(" · ") || "—", [orden?.via, orden?.frecuencia, orden?.duracion].filter(Boolean).join(" · ") || evento.observacion || "—", evento.usuario || orden?.usuario || "—", evento.estado];
-      }), columnStyles: { 0: { cellWidth: 23 }, 1: { cellWidth: 23 }, 2: { cellWidth: 39 }, 3: { cellWidth: 23 }, 4: { cellWidth: 31 }, 5: { cellWidth: 25 }, 6: { cellWidth: "auto" } } });
+        const clasificacion = `${evento.tipo} ${orden?.tipo || ""} ${orden?.titulo || ""} ${evento.detalle}`;
+        const esSolucion = /soluci[oó]n|venocl|suero|ringer|fisiol[oó]gic/i.test(clasificacion);
+        const esJeringa = /jeringa/i.test(clasificacion);
+        const esMedicamento = !esSolucion && !esJeringa && (/medicamento/i.test(evento.tipo) || orden?.tipo?.toLocaleLowerCase("es").includes("medicamento"));
+        const detalleCantidad = [evento.detalle, evento.cantidad].filter(Boolean).join(" · ") || "—";
+        const profesional = evento.usuario || orden?.usuario || "No registrado";
+        return [
+          new Date(evento.fecha).toLocaleDateString("es-BO"),
+          new Date(evento.fecha).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" }),
+          esSolucion ? detalleCantidad : "—",
+          esMedicamento ? [orden?.titulo, orden?.dosis, evento.cantidad].filter(Boolean).join(" · ") : "—",
+          orden?.via || "—",
+          evento.observacion || orden?.indicaciones || "—",
+          !esSolucion && !esMedicamento && !esJeringa ? detalleCantidad : "—",
+          esJeringa ? evento.cantidad || "Cantidad no registrada" : "—",
+          profesional,
+        ];
+      });
+      if (!filas.length) filas.push(["—", "—", "—", "—", "—", "No se registraron medicamentos ni insumos en el período seleccionado.", "—", "—", "—"]);
+      autoTable(pdf, { ...opcionesTabla(titulos.tratamiento), head: [["FECHA", "HORA", "SOLUCIONES", "MEDICAMENTOS", "VÍA", "OBSERVACIONES", "INSUMOS", "JERINGAS", "RESPONSABLE / FIRMA"]], body: filas, styles: { ...opcionesTabla(titulos.tratamiento).styles, fontSize: 6.2, cellPadding: 1.6 }, columnStyles: { 0: { cellWidth: 15 }, 1: { cellWidth: 12 }, 2: { cellWidth: 24 }, 3: { cellWidth: 28 }, 4: { cellWidth: 14 }, 5: { cellWidth: 31 }, 6: { cellWidth: 23 }, 7: { cellWidth: 17 }, 8: { cellWidth: "auto" } } });
     }
     if (elegidas.includes("enfermeria") && (registrosEnfermeria.length || evoluciones.length)) {
       comenzarHoja(titulos.enfermeria);
@@ -2678,6 +2697,15 @@ export function TriajeEmergenciasView({
                     </button>
                     <button
                       type="button"
+                      className={seccionClinica === "tratamiento" ? "activo" : ""}
+                      aria-current={seccionClinica === "tratamiento" ? "page" : undefined}
+                      onClick={() => setSeccionClinica("tratamiento")}
+                    >
+                      <span className="em-pestana-icono" aria-hidden="true"><Icon name="clipboardMedical" size={17} /></span>
+                      Tratamiento del paciente
+                    </button>
+                    <button
+                      type="button"
                       className={seccionClinica === "reportes" ? "activo" : ""}
                       aria-current={seccionClinica === "reportes" ? "page" : undefined}
                       onClick={() => setSeccionClinica("reportes")}
@@ -2700,7 +2728,7 @@ export function TriajeEmergenciasView({
                         <div className="em-reporte-acciones-hojas">
                           <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["signos"], true)}><Icon name="monitorVitals" size={17} /> Hoja de evolución de signos vitales</button>
                           <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["balance"], true)}><Icon name="asset" size={17} /> Hoja de balance hídrico</button>
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["tratamiento"], true)}><Icon name="clipboardMedical" size={17} /> Registro de tratamiento</button>
+                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["tratamiento"], true)}><Icon name="clipboardMedical" size={17} /> Registro de medicación e insumos</button>
                           <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["enfermeria"], true)}><Icon name="userMedical" size={17} /> Reporte de enfermería</button>
                           <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical()}><Icon name="download" size={17} /> Exportar reporte de turno</button>
                         </div>
@@ -3072,33 +3100,37 @@ export function TriajeEmergenciasView({
                         </aside>
                       </div>
                     </section>
-                    <div className="em-seguimiento-enfermeria">
-                      <InsumosEnfermeriaPanel
-                        onUtilizar={(item, cantidad) =>
-                          guardar(
-                            `/${cuenta.id}/uso-enfermeria`,
-                            {
-                              tipo: "insumo",
-                              detalle: item.nombre,
-                              cantidad,
-                              unidad: item.unidad,
-                              observacion: item.codigo ? `Código: ${item.codigo}` : undefined,
-                            },
-                            `${item.nombre} registrado como insumo utilizado.`,
-                          )
-                        }
-                      />
-                      <OrdenesEmergencias
-                        key={`indicaciones-${cuenta.id}`}
-                        cuenta={cuenta}
-                        catalogo={catalogo}
-                        guardar={guardar}
-                        ocupado={ocupado}
-                        enfermeria
-                      />
-                    </div>
-                    <TratamientoPacienteTabla key={`tratamiento-${cuenta.id}`} cuenta={cuenta} />
                     </>
+                  )}
+                  {seccionClinica === "tratamiento" && (
+                    <section className="em-seccion-tratamiento-paciente" aria-label="Tratamiento del paciente">
+                      <div className="em-seguimiento-enfermeria">
+                        <InsumosEnfermeriaPanel
+                          onUtilizar={(item, cantidad) =>
+                            guardar(
+                              `/${cuenta.id}/uso-enfermeria`,
+                              {
+                                tipo: "insumo",
+                                detalle: item.nombre,
+                                cantidad,
+                                unidad: item.unidad,
+                                observacion: item.codigo ? `Código: ${item.codigo}` : undefined,
+                              },
+                              `${item.nombre} registrado como insumo utilizado.`,
+                            )
+                          }
+                        />
+                        <OrdenesEmergencias
+                          key={`indicaciones-${cuenta.id}`}
+                          cuenta={cuenta}
+                          catalogo={catalogo}
+                          guardar={guardar}
+                          ocupado={ocupado}
+                          enfermeria
+                        />
+                      </div>
+                      <TratamientoPacienteTabla key={`tratamiento-${cuenta.id}`} cuenta={cuenta} />
+                    </section>
                   )}
                   {seccionClinica === "examen" && (
                     <section className="em-panel em-examen-regional">

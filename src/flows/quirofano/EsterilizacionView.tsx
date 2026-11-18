@@ -315,6 +315,8 @@ export function EsterilizacionView({
 
   const cerrarModal = () => {
     edicionActiva.current = null;
+    setMaterialEditando(null);
+    setQuitarImagen(false);
     detenerCamaraMaterial();
     setErrorCamara("");
     setModal(null);
@@ -1221,6 +1223,9 @@ export function EsterilizacionView({
               type="button"
               onClick={() => {
                 setError("");
+                edicionActiva.current = null;
+                setMaterialEditando(null);
+                setQuitarImagen(false);
                 setFormMaterial(MATERIAL_VACIO);
                 setModal("material");
               }}

@@ -2099,8 +2099,12 @@
 }
 
 .em-antecedentes-panel {
-  border-top: 3px solid #087fb7;
+  min-width: 0;
 }
+.em-antecedentes-panel .consulta-seguimiento-panel .consulta-antecedentes-grupos summary { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 8px; }
+.em-antecedentes-panel .consulta-antecedentes-grupos summary span { grid-column: 1; }
+.em-antecedentes-panel .consulta-antecedentes-grupos summary svg { grid-column: 2; grid-row: 1 / span 2; }
+.em-antecedentes-panel .consulta-antecedentes-campos { grid-template-columns: minmax(0, 1fr); }
 .em-antecedentes-panel .em-panel-titulo {
   margin-bottom: 10px;
 }
@@ -2184,55 +2188,49 @@
   font-size: 11px;
 }
 
-.sistema-app .em-trabajo > .em-medica-resumen:has(.em-resumen-identidad) {
-  padding-block: 5px !important;
+.em-resultados-desplegable > summary {
+  cursor: pointer;
+  list-style: none;
 }
-.sistema-app .em-trabajo > .em-medica-resumen > .em-resumen-identidad {
-  gap: 3px;
+.em-resultados-desplegable > summary::-webkit-details-marker {
+  display: none;
 }
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila > div {
-  gap: 2px;
+.em-resultados-desplegable > summary::after {
+  content: "›";
+  color: #7761bd;
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.2s ease;
 }
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila-familiar {
-  padding-top: 2px;
+.em-resultados-desplegable[open] > summary::after {
+  transform: rotate(90deg);
 }
-.sistema-app .em-trabajo > .em-medica-resumen .em-cuenta-indicadores {
-  padding-block: 1px;
+.em-resultados-desplegable:not([open]) > summary {
+  margin-bottom: 0;
 }
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila > div {
-  min-height: 32px !important;
-  padding-block: 2px !important;
+.em-resultados-desplegable > summary:focus-visible {
+  outline: 2px solid #7761bd;
+  outline-offset: 4px;
+  border-radius: 4px;
 }
-.sistema-app .em-trabajo > .em-medica-resumen .em-cuenta-indicadores > div {
-  min-height: 36px !important;
-  padding-block: 2px !important;
+
+.sistema-app .em-medica-atencion > .em-trabajo:has(> .em-medica-resumen) {
+  gap: 16px !important;
 }
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila > div {
-  flex-direction: row !important;
-  align-items: baseline !important;
-  flex-wrap: wrap;
-  gap: 0 7px !important;
-}
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila small {
-  white-space: nowrap;
-}
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila:first-child > div:first-child strong {
-  font-size: clamp(17px, 1.35vw, 21px);
-}
-.sistema-app .em-trabajo > .em-medica-resumen .em-identidad-fila-familiar {
-  padding-top: 2px !important;
+.sistema-app .em-medica-atencion > .em-trabajo:has(> .em-medica-resumen) > .em-medica-resumen {
+  height: auto;
+  min-height: 176px;
+  border-bottom: 1px solid #d8e5ed !important;
+  border-radius: 15px !important;
 }
 @media (min-width: 1001px) {
-  .sistema-app .em-trabajo > .em-medica-resumen > .em-total-acciones {
-    gap: 4px;
+  .sistema-app .em-medica-atencion > .em-trabajo:has(> .em-medica-resumen) > .em-medica-resumen {
+    grid-template-columns: minmax(0, 1fr) 190px;
+    padding-right: 24px !important;
   }
-  .sistema-app .em-trabajo > .em-medica-resumen .em-total-acciones > button {
-    min-height: 36px;
-    padding: 6px 8px;
-    font-size: 11px !important;
-    line-height: 1.25;
-  }
-  .sistema-app .em-trabajo > .em-medica-resumen .em-total-consumido {
-    padding-block: 11px;
+  .sistema-app .em-medica-atencion > .em-trabajo:has(> .em-medica-resumen) > .em-medica-resumen > .em-total-acciones {
+    position: static;
+    width: auto;
+    padding: 0 0 0 24px;
   }
 }

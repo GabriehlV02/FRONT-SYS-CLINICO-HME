@@ -25,8 +25,9 @@ export function reunirTratamiento(cuenta: CuentaEmergencia): { filas: FilaTratam
   };
   const agregar = (fila: Partial<FilaTratamiento> & Pick<FilaTratamiento, "id" | "fecha" | "categoria" | "tipo" | "detalle" | "estado">) => filas.push({ cantidad: "—", prescripcion: "", responsable: "No registrado", observacion: "", ...fila });
   const consumosAplicados = new Set((cuenta.ordenes || []).flatMap((orden) => (orden.aplicaciones || []).map((aplicacion) => aplicacion.consumoId).filter(Boolean)));
+  const consumosEnfermeria = new Set((cuenta.registrosEnfermeria || []).map((registro) => registro.id));
   for (const consumo of cuenta.consumos) {
-    if (!consumo.porHora && consumosAplicados.has(consumo.registroId)) continue;
+    if (consumosEnfermeria.has(consumo.registroId) || (!consumo.porHora && consumosAplicados.has(consumo.registroId))) continue;
     const orden = cuenta.ordenes?.find((item) => item.id === consumo.ordenId);
     agregar({ id: `consumo-${consumo.registroId}`, fecha: consumo.inicio, categoria: consumo.tipo === "servicio" ? "servicios" : "insumos", tipo: consumo.tipo === "servicio" ? "Servicio utilizado" : "Consumo de insumo",
       detalle: consumo.nombre, cantidad: consumo.porHora ? "Por tiempo de uso" : `${consumo.cantidad} ${consumo.unidad}`,

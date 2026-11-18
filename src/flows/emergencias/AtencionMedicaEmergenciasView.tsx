@@ -2,6 +2,7 @@ import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import AnamnesisEmergencia from "./AnamnesisEmergencia";
 import { RevisionConsulta } from "../consultorio/RevisionConsulta";
+import { AntecedentesConsulta, antecedentesConsultaVacios, type DatosAntecedentesConsulta } from "../consultorio/AntecedentesConsulta";
 import Icon from "../../radius/componentes/Icono";
 import {
   apiEmergencias,
@@ -71,7 +72,7 @@ type BorradorAtencionPaciente = {
   registroSignosAbierto?: boolean;
   horaSignos?: string;
   identidad?: { revision: number; datos: Record<string, string> } | null;
-  antecedentes?: DatosAntecedentes;
+  antecedentes?: DatosAntecedentesConsulta;
 };
 function leerBorradorAtencionPaciente(cuentaId: string): BorradorAtencionPaciente {
   try { return JSON.parse(window.sessionStorage.getItem(`${CLAVE_BORRADOR_ATENCION_EMERGENCIAS}${cuentaId}`) || "{}") as BorradorAtencionPaciente; }
@@ -137,68 +138,24 @@ const regionesImagen = [
   "Miembro superior",
   "Miembro inferior",
 ];
-type DatosAntecedentes = {
-  antecedentesVivienda: string;
-  antecedentesServiciosBasicos: string;
-  antecedentesAlimentacion: string;
-  antecedentesHabitos: string;
-  antecedentesHipertensionRenal: string;
-  antecedentesDiabetesMellitus: string;
-  antecedentesTuberculosis: string;
-  antecedentesChagas: string;
-  antecedentesCardiopatia: string;
-  antecedentesAsma: string;
-  antecedentesEpoc: string;
-  antecedentesEnfermedadRenal: string;
-  antecedentesOtro: string;
+const clavesAntecedentesEmergencia: Record<keyof DatosAntecedentesConsulta, string> = {
+  vivienda: "antecedentesVivienda", serviciosBasicos: "antecedentesServiciosBasicos",
+  alimentacion: "antecedentesAlimentacion", habitos: "antecedentesHabitos",
+  hipertension: "antecedentesHipertensionRenal", diabetes: "antecedentesDiabetesMellitus",
+  tuberculosis: "antecedentesTuberculosis", chagas: "antecedentesChagas",
+  cardiopatia: "antecedentesCardiopatia", asma: "antecedentesAsma", epoc: "antecedentesEpoc",
+  enfermedadRenal: "antecedentesEnfermedadRenal", otroPatologico: "antecedentesOtro",
+  quirurgicos: "antecedentesQuirurgicos", alergicos: "antecedentesAlergicos", familiares: "antecedentesFamiliares",
 };
-const camposAntecedentesSociales: {
-  id: keyof DatosAntecedentes;
-  etiqueta: string;
-}[] = [
-  { id: "antecedentesVivienda", etiqueta: "Vivienda" },
-  {
-    id: "antecedentesServiciosBasicos",
-    etiqueta: "Acceso a los servicios básicos",
-  },
-  { id: "antecedentesAlimentacion", etiqueta: "Alimentación" },
-  { id: "antecedentesHabitos", etiqueta: "Hábitos" },
-];
-const camposAntecedentesPatologicos: {
-  id: keyof DatosAntecedentes;
-  etiqueta: string;
-}[] = [
-  { id: "antecedentesHipertensionRenal", etiqueta: "Hipertensión renal" },
-  { id: "antecedentesDiabetesMellitus", etiqueta: "Diabetes mellitus" },
-  { id: "antecedentesTuberculosis", etiqueta: "Tuberculosis" },
-  { id: "antecedentesChagas", etiqueta: "Chagas" },
-  { id: "antecedentesCardiopatia", etiqueta: "Cardiopatía" },
-  { id: "antecedentesAsma", etiqueta: "Asma" },
-  { id: "antecedentesEpoc", etiqueta: "EPOC" },
-  { id: "antecedentesEnfermedadRenal", etiqueta: "Enfermedad renal" },
-];
-const gruposAntecedentesPendientes = [
-  "Antecedentes quirúrgicos",
-  "Antecedentes alérgicos",
-  "Antecedentes familiares",
-];
-const leerDatosAntecedentes = (
-  campos?: Record<string, string>,
-): DatosAntecedentes => ({
-  antecedentesVivienda: campos?.antecedentesVivienda || "",
-  antecedentesServiciosBasicos: campos?.antecedentesServiciosBasicos || "",
-  antecedentesAlimentacion: campos?.antecedentesAlimentacion || "",
-  antecedentesHabitos: campos?.antecedentesHabitos || "",
-  antecedentesHipertensionRenal: campos?.antecedentesHipertensionRenal || "",
-  antecedentesDiabetesMellitus: campos?.antecedentesDiabetesMellitus || "",
-  antecedentesTuberculosis: campos?.antecedentesTuberculosis || "",
-  antecedentesChagas: campos?.antecedentesChagas || "",
-  antecedentesCardiopatia: campos?.antecedentesCardiopatia || "",
-  antecedentesAsma: campos?.antecedentesAsma || "",
-  antecedentesEpoc: campos?.antecedentesEpoc || "",
-  antecedentesEnfermedadRenal: campos?.antecedentesEnfermedadRenal || "",
-  antecedentesOtro: campos?.antecedentesOtro || "",
-});
+const leerDatosAntecedentes = (campos?: Record<string, string>): DatosAntecedentesConsulta => {
+  const datos = { ...antecedentesConsultaVacios };
+  for (const clave of Object.keys(clavesAntecedentesEmergencia) as (keyof DatosAntecedentesConsulta)[]) {
+    datos[clave] = campos?.[clavesAntecedentesEmergencia[clave]] || "";
+  }
+  return datos;
+};
+const serializarAntecedentes = (datos: DatosAntecedentesConsulta): Record<string, string> =>
+  Object.fromEntries((Object.keys(clavesAntecedentesEmergencia) as (keyof DatosAntecedentesConsulta)[]).map((clave) => [clavesAntecedentesEmergencia[clave], datos[clave]]));
 type EstudioImagen = {
   id: string;
   tipo: string;
@@ -1084,16 +1041,19 @@ function AtencionPaciente({
     [horaSignos, setHoraSignos] = useState(() => borradorInicial.horaSignos || horaActual());
   const evolucionDialogo = useRef<HTMLDialogElement>(null);
   const evaluacionActual = cuenta.evaluaciones?.at(-1);
+  const evaluacionAntecedentes = [...(cuenta.evaluaciones || [])].reverse().find((evaluacion) =>
+    Object.values(clavesAntecedentesEmergencia).some((clave) => Object.prototype.hasOwnProperty.call(evaluacion.campos || {}, clave)),
+  );
   const [identidad, setIdentidad] = useState<BorradorAtencionPaciente["identidad"]>(() => borradorInicial.identidad || null);
-  const [antecedentes, setAntecedentes] = useState<DatosAntecedentes>(() =>
-    borradorInicial.antecedentes || leerDatosAntecedentes(evaluacionActual?.campos),
+  const [antecedentes, setAntecedentes] = useState<DatosAntecedentesConsulta>(() =>
+    borradorInicial.antecedentes || leerDatosAntecedentes(evaluacionAntecedentes?.campos),
   );
   const antecedentesPersistidos = leerDatosAntecedentes(
-    evaluacionActual?.campos,
+    evaluacionAntecedentes?.campos,
   );
   const antecedentesPersistidosKey = JSON.stringify([
     cuenta.id,
-    evaluacionActual?.id,
+    evaluacionAntecedentes?.id,
     ...Object.values(antecedentesPersistidos),
   ]);
   const antecedentesKeyInicial = useRef(antecedentesPersistidosKey);
@@ -1217,14 +1177,13 @@ function AtencionPaciente({
       .includes(consultaPrescripcion),
   );
   const datosPaciente = cuenta.identidad || {};
-  const guardarAntecedentes = async (evento: FormEvent<HTMLFormElement>) => {
-    evento.preventDefault();
+  const guardarAntecedentes = async () => {
     const ruta = evaluacionActual?.id
       ? `/${cuenta.id}/evaluacion/${encodeURIComponent(evaluacionActual.id)}/editar`
       : `/${cuenta.id}/evaluacion`;
     await guardar(
       ruta,
-      { revision: cuenta.revision, campos: antecedentes },
+      { revision: cuenta.revision, campos: serializarAntecedentes(antecedentes) },
       "Antecedentes guardados.",
     );
   };
@@ -2505,101 +2464,17 @@ function AtencionPaciente({
             )}
           </div>
         </details>
-        <section className="em-panel em-antecedentes-panel">
-          <header className="em-panel-titulo">
-            <div>
-              <h3>Antecedentes</h3>
-              <small>Grupos de antecedentes</small>
-            </div>
-            <Icon name="fileText" size={18} />
-          </header>
-          <form
-            className="em-antecedentes-form"
-            onSubmit={(evento) => void guardarAntecedentes(evento)}
-          >
-            <details className="em-antecedentes-seccion">
-              <summary>Antecedentes sociales</summary>
-              <div className="em-antecedentes-campos">
-                {camposAntecedentesSociales.map((campo) => (
-                  <label className="em-antecedentes-campo" key={campo.id}>
-                    {campo.etiqueta}
-                    <textarea
-                      rows={2}
-                      maxLength={5000}
-                      value={antecedentes[campo.id]}
-                      disabled={ocupado || Boolean(cuenta.fin)}
-                      onChange={(evento) =>
-                        setAntecedentes((actuales) => ({
-                          ...actuales,
-                          [campo.id]: evento.target.value,
-                        }))
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
-            </details>
-            <details className="em-antecedentes-seccion">
-              <summary>Antecedentes patológicos</summary>
-              <div className="em-antecedentes-campos">
-                {camposAntecedentesPatologicos.map((campo) => (
-                  <label className="em-antecedentes-campo" key={campo.id}>
-                    {campo.etiqueta}
-                    <select
-                      value={antecedentes[campo.id]}
-                      disabled={ocupado || Boolean(cuenta.fin)}
-                      onChange={(evento) =>
-                        setAntecedentes((actuales) => ({
-                          ...actuales,
-                          [campo.id]: evento.target.value,
-                        }))
-                      }
-                    >
-                      <option value="">Seleccionar</option>
-                      <option value="Sí">Sí</option>
-                      <option value="No">No</option>
-                    </select>
-                  </label>
-                ))}
-                <label className="em-antecedentes-campo">
-                  Otro antecedente
-                  <textarea
-                    rows={2}
-                    maxLength={5000}
-                    value={antecedentes.antecedentesOtro}
-                    disabled={ocupado || Boolean(cuenta.fin)}
-                    onChange={(evento) =>
-                      setAntecedentes((actuales) => ({
-                        ...actuales,
-                        antecedentesOtro: evento.target.value,
-                      }))
-                    }
-                  />
-                </label>
-              </div>
-            </details>
-            {gruposAntecedentesPendientes.map((grupo) => (
-              <div className="em-antecedentes-grupo-pendiente" key={grupo}>
-                {grupo}
-              </div>
-            ))}
-            {!cuenta.fin && (
-              <div className="em-antecedentes-acciones">
-                <button className="em-primario" type="submit" disabled={ocupado}>
-                  {ocupado ? "Guardando..." : "Guardar antecedentes"}
-                </button>
-              </div>
-            )}
-          </form>
-        </section>
-        <section className="em-panel em-resultados-estudios">
-          <header className="em-panel-titulo">
+        <div className="em-antecedentes-panel">
+          <AntecedentesConsulta value={antecedentes} onChange={setAntecedentes} onSave={() => void guardarAntecedentes()} disabled={Boolean(cuenta.fin)} saving={ocupado} />
+        </div>
+        <details className="em-panel em-resultados-estudios em-resultados-desplegable" open>
+          <summary className="em-panel-titulo">
             <div>
               <h3>Resultados de estudios</h3>
               <small>Laboratorio e imagenología solicitados</small>
             </div>
             <span>{estudios.length}</span>
-          </header>
+          </summary>
           {estudios.length ? (
             <ul>
               {estudios.map((estudio) => {
@@ -2632,7 +2507,7 @@ function AtencionPaciente({
               Aún no hay estudios solicitados para este paciente.
             </p>
           )}
-        </section>
+        </details>
         <section
           className="em-panel em-resultados-estudios em-resumen-ordenes"
           aria-label="Órdenes y medicamentos"
@@ -2676,12 +2551,9 @@ function AtencionPaciente({
                     onChange={(evento) =>
                       setBusquedaPrescripcion(evento.target.value)
                     }
-                    placeholder="Medicamento, insumo o servicio"
+                    placeholder="Nombre o código"
                   />
                 </div>
-                <small>
-                  Escribe un nombre o código para añadirlo a la indicación.
-                </small>
               </label>
               {errorCatalogo && (
                 <div className="em-error" role="alert">
@@ -2737,14 +2609,6 @@ function AtencionPaciente({
                   )}
                 </div>
               )}
-              <button
-                className="em-prescribir-manual"
-                type="button"
-                disabled={ocupado}
-                onClick={() => abrirOrden("cuidado")}
-              >
-                <Icon name="plus" size={15} /> Nueva indicación médica
-              </button>
             </div>
           )}
           {(cuenta.ordenes || []).some(
@@ -2781,9 +2645,7 @@ function AtencionPaciente({
                 ))}
             </ul>
           ) : (
-            <p className="em-vacio">
-              Aún no hay órdenes ni medicamentos registrados para este paciente.
-            </p>
+            <div className="em-ordenes-vacio"><span aria-hidden="true"><Icon name="fileText" size={18} /></span><strong>Sin indicaciones registradas</strong><small>Las órdenes y medicamentos del paciente aparecerán aquí.</small></div>
           )}
         </section>
         <section className="em-panel">

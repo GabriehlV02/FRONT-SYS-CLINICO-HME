@@ -77,3 +77,19 @@
   font-size: 10px;
   line-height: 1.35;
 }
+.em-resumen-ordenes { min-width: 0; }
+.em-resumen-ordenes .em-panel-titulo { align-items: flex-start; gap: 8px; margin-bottom: 16px; }
+.em-resumen-ordenes .em-panel-titulo h3 { line-height: 1.3; }
+.em-resumen-ordenes .em-panel-titulo small { display: block; margin-top: 4px; line-height: 1.4; }
+.em-resumen-ordenes .em-accesos-orden-panel { gap: 7px; margin-bottom: 16px; }
+.em-resumen-ordenes .em-accesos-orden-panel button { min-height: 40px; border-radius: 8px; font-weight: 700; }
+.em-resumen-ordenes .em-prescribir-buscador { gap: 10px; margin: 0; padding-top: 14px; border-top: 1px solid #e3eef5; }
+.em-resumen-ordenes .em-prescribir-entrada > span { font-size: 11px; }
+.em-resumen-ordenes .em-prescribir-entrada > div { background: #fff; }
+.em-resumen-ordenes .em-prescribir-manual { width: 100%; min-height: 40px; border-style: dashed; background: #f6fbfe; }
+.em-resumen-ordenes .em-prescribir-manual:hover { border-color: #087fb7; background: #eaf7fd; }
+.em-ordenes-vacio { display: grid; justify-items: center; gap: 6px; margin-top: 16px; padding: 20px 14px; border: 1px dashed #d4e6f0; border-radius: 9px; background: #f8fbfd; text-align: center; }
+.em-ordenes-vacio > span { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: #e9f5fb; color: #1686bb; }
+.em-ordenes-vacio strong { color: #365f7b; font-size: 12px; }
+.em-ordenes-vacio small { max-width: 210px; color: #7890a2; font-size: 11px; line-height: 1.45; }
+.em-resumen-ordenes > ul { margin-top: 14px; padding-top: 4px; border-top: 1px solid #e3eef5; }

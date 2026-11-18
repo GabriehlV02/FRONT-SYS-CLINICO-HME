@@ -1,6 +1,4 @@
-import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { apiFetch } from "../../radius/api";
-import { leerSesion } from "../../radius/types/sesion";
 
 export type ItemEmergencia = {
   id: string;
@@ -81,6 +79,8 @@ export type CuentaEmergencia = {
   }[];
   ordenes?: OrdenEmergencia[];
   registrosEnfermeria?: RegistroEnfermeria[];
+  balanceHidrico?: { id: string; cuentaId: string; tipo: "ingreso" | "egreso"; volumen: number; detalle: string; anotacion?: string | null; fecha: string; hora: string }[];
+  trasladoAmbulancia?: { fecha: string; hora: string; motivo: string; destino: string } | null;
   cierre?: {
     condicionEgreso: "vivo" | "muerto";
     causaEgreso:
@@ -111,68 +111,6 @@ const lecturasEnCurso = new Map<string, Promise<unknown>>();
 const cacheLecturas = new Map<string, { expira: number; valor: unknown }>();
 const ttlLecturaMs = 2_000;
 
-function cuentasEmergenciaDemo(): CuentaEmergencia[] {
-  const ahora = new Date();
-  const haceUnaHora = new Date(ahora.getTime() - 60 * 60 * 1000).toISOString();
-  const haceTreintaMinutos = new Date(
-    ahora.getTime() - 30 * 60 * 1000,
-  ).toISOString();
-  return [
-    {
-      id: "demo-cuenta-luis-morales",
-      cubiculo: "1",
-      inicio: haceUnaHora,
-      fin: null,
-      revision: 2,
-      identidad: {
-        nombres: "Luis Eduardo",
-        apellidos: "Morales Rojas",
-        documento: "6543210",
-        nacimiento: "1986-06-14",
-        sexo: "Masculino",
-        historiaClinica: "HC-DEMO-001",
-        medicoAdmision: "Dra. Andrea Vargas",
-      },
-      signos: [],
-      consumos: [
-        {
-          id: "demo-consumo-consulta",
-          codigo: "DEMO-CONS-01",
-          nombre: "Consulta de emergencia",
-          tipo: "servicio",
-          unidad: "servicio",
-          precio: 80,
-          categoria: "Atención",
-          itemId: "demo-consumo-consulta",
-          registroId: "demo-registro-consulta",
-          cantidad: 1,
-          porHora: false,
-          inicio: haceTreintaMinutos,
-          fin: haceTreintaMinutos,
-        },
-        {
-          id: "demo-consumo-nebulizacion",
-          codigo: "DEMO-NEB-01",
-          nombre: "Nebulización",
-          tipo: "servicio",
-          unidad: "sesión",
-          precio: 35,
-          categoria: "Procedimiento",
-          itemId: "demo-consumo-nebulizacion",
-          registroId: "demo-registro-nebulizacion",
-          cantidad: 1,
-          porHora: false,
-          inicio: haceTreintaMinutos,
-          fin: haceTreintaMinutos,
-        },
-      ],
-      evaluaciones: [],
-      ordenes: [],
-      registrosEnfermeria: [],
-    },
-  ];
-}
-
 function claveLectura(ruta: string) {
   return `emergencias:${ruta || "cuentas"}`;
 }
@@ -182,218 +120,7 @@ export function invalidarCacheEmergencias() {
 }
 
 async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
-  if (esModoPruebaLocal()) {
-    const clave = "clinico-emergencias-demo-v1";
-    const guardadas: CuentaEmergencia[] = JSON.parse(
-      sessionStorage.getItem(clave) || "[]",
-    );
-    const cuentas = [
-      ...cuentasEmergenciaDemo().filter(
-        (demo) => !guardadas.some((cuenta) => cuenta.id === demo.id),
-      ),
-      ...guardadas,
-    ];
-    const datos = (body || {}) as Record<string, any>;
-    const fecha = new Date().toISOString();
-    if (ruta === "/catalogo")
-      return [
-        {
-          id: "demo-cubiculo-hora",
-          codigo: "DEMO-CUB",
-          nombre: "Uso de cubículo",
-          tipo: "servicio",
-          unidad: "hora",
-          precio: 0,
-          categoria: "Demostración",
-        },
-        {
-          id: "demo-oxigeno-hora",
-          codigo: "DEMO-O2",
-          nombre: "Oxígeno",
-          tipo: "servicio",
-          unidad: "hora",
-          precio: 0,
-          categoria: "Demostración",
-        },
-      ] as T;
-    if (!ruta && !body) return { cuentas, ahora: fecha } as T;
-    let cuenta: CuentaEmergencia;
-    if (!ruta) {
-      if (cuentas.some((c) => !c.fin && c.cubiculo === datos.cubiculo))
-        throw new Error("Ese cubículo ya está ocupado.");
-      cuenta = {
-        id: crypto.randomUUID(),
-        cubiculo: datos.cubiculo,
-        inicio: datos.inicio || fecha,
-        fin: null,
-        revision: 1,
-        identidad: datos.identidad || null,
-        signos: [],
-        consumos: [],
-        evaluaciones: [],
-        ordenes: [],
-        registrosEnfermeria: [],
-      };
-      cuentas.push(cuenta);
-    } else {
-      const [id, accion, evaluacionId, subaccion] = ruta.split("/").filter(Boolean);
-      const encontrada = cuentas.find((c) => c.id === id);
-      if (!encontrada) throw new Error("Atención demo no encontrada.");
-      cuenta = encontrada;
-      if (accion === "evaluacion" && subaccion === "editar") {
-        const evaluacion = cuenta.evaluaciones?.find((item) => item.id === evaluacionId);
-        if (!evaluacion) throw new Error("No se encontró la anotación seleccionada.");
-        evaluacion.historialEdiciones ||= [];
-        evaluacion.historialEdiciones.push({ fecha, usuario: "Admin demo", campos: { ...evaluacion.campos } });
-        evaluacion.campos = { ...evaluacion.campos, ...(datos.campos || datos) };
-        evaluacion.editadoEn = fecha;
-        evaluacion.editadoPor = "Admin demo";
-      } else if (accion === "evaluacion")
-        (cuenta.evaluaciones ||= []).push({
-          id: crypto.randomUUID(),
-          revision: 1,
-          fecha,
-          usuario: leerSesion()?.usuario.nombre || "Profesional de turno",
-          autorId: String(leerSesion()?.usuario.id || "local"),
-          autorTipo: leerSesion()?.usuario.perfilAtencion === "medico" || /m[eé]dico/i.test(leerSesion()?.usuario.rol || "") ? "medico" : "otro",
-          campos: datos.campos || datos,
-        });
-      else if (accion === "signos") {
-        const valores = datos.valores || {};
-        if (!Object.keys(valores).length)
-          throw new Error("Registra al menos un signo vital.");
-        const registro = datos.fecha ? new Date(`${datos.fecha}T00:00:00`) : new Date();
-        if (/^\d{2}:\d{2}$/.test(datos.hora || "")) {
-          const [hora, minuto] = datos.hora.split(":").map(Number);
-          registro.setHours(hora, minuto, 0, 0);
-        }
-        cuenta.signos.push({
-          id: crypto.randomUUID(),
-          fecha: registro.toISOString(),
-          valores,
-          observacion: datos.observacion || "",
-        });
-        cuenta.signos.sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha));
-      } else if (accion === "identidad")
-        cuenta.identidad = { ...cuenta.identidad, ...datos };
-      else if (accion === "orden") {
-        const sesion = leerSesion();
-        const rolMedico = sesion?.usuario.perfilAtencion === "medico" || /m[eé]dico/i.test(sesion?.usuario.rol || "");
-        if (datos.tipo === "internacion" && !rolMedico)
-          throw new Error("Solo un médico puede emitir una orden de hospitalización o internación.");
-        const orden = {
-          tipo: "",
-          titulo: "",
-          indicaciones: "",
-          dosis: "",
-          via: "",
-          frecuencia: "",
-          duracion: "",
-          itemId: "",
-          porHora: false,
-          ...datos,
-          id: crypto.randomUUID(),
-          revision: 1,
-          fecha,
-          usuario: sesion?.usuario.nombre || "Profesional de turno",
-          autorTipo: rolMedico ? "medico" : "otro",
-          estado: "pendiente",
-          aplicaciones: [],
-          historial: [],
-        } as OrdenEmergencia;
-        (cuenta.ordenes ||= []).push(orden);
-      } else if (accion === "uso-enfermeria") {
-        const registro = {
-          ...datos,
-          id: crypto.randomUUID(),
-          fecha,
-          usuario: "Enfermería",
-        } as RegistroEnfermeria;
-        (cuenta.registrosEnfermeria ||= []).push(registro);
-      } else if (accion === "consumos") {
-        const item = datos.item as ItemEmergencia | undefined;
-        if (!item?.id)
-          throw new Error("Selecciona un servicio válido del catálogo.");
-        const nuevoConsumo = {
-          ...item,
-          itemId: String(datos.itemId || item.id),
-          registroId: String(datos.registroId || crypto.randomUUID()),
-          cantidad: Number(datos.cantidad || 1),
-          porHora: Boolean(datos.porHora),
-          inicio: fecha,
-          fin: null,
-          ...(datos.porHora ? { tiempoAcumuladoMs: 0 } : {}),
-          ...(datos.ordenId ? { ordenId: String(datos.ordenId) } : {}),
-        };
-        const existentes = cuenta.consumos || [];
-        const indiceReanudado = nuevoConsumo.porHora
-          ? existentes.findIndex(
-              (consumo) =>
-                consumo.registroId === nuevoConsumo.registroId &&
-                consumo.itemId === nuevoConsumo.itemId &&
-                consumo.porHora,
-            )
-          : -1;
-        if (indiceReanudado >= 0) {
-          const reanudado = existentes[indiceReanudado];
-          if (!reanudado.fin)
-            throw new Error("El servicio ya está en uso.");
-          let tiempoAcumuladoMs =
-            reanudado.tiempoAcumuladoMs ??
-            Math.max(0, Date.parse(reanudado.fin) - Date.parse(reanudado.inicio));
-          cuenta.consumos = existentes.filter((consumo, indice) => {
-            if (
-              indice === indiceReanudado ||
-              consumo.itemId !== nuevoConsumo.itemId ||
-              !consumo.porHora ||
-              !consumo.fin
-            )
-              return true;
-            tiempoAcumuladoMs +=
-              consumo.tiempoAcumuladoMs ??
-              Math.max(0, Date.parse(consumo.fin) - Date.parse(consumo.inicio));
-            return false;
-          });
-          cuenta.consumos[indiceReanudado] = {
-            ...reanudado,
-            ...nuevoConsumo,
-            tiempoAcumuladoMs,
-          };
-        } else {
-          existentes.push(nuevoConsumo);
-          cuenta.consumos = existentes;
-        }
-      } else if (accion === "finalizar-consumo") {
-        const consumo = cuenta.consumos.find(
-          (c) => c.registroId === datos.registroId && c.porHora && !c.fin,
-        );
-        if (!consumo)
-          throw new Error("El contador ya está pausado o no existe.");
-        consumo.fin = fecha;
-        consumo.tiempoAcumuladoMs =
-          (consumo.tiempoAcumuladoMs || 0) +
-          Math.max(0, Date.parse(fecha) - Date.parse(consumo.inicio));
-      } else if (accion === "cierre") {
-        cuenta.fin = fecha;
-        cuenta.consumos = cuenta.consumos.map((consumo) =>
-          consumo.porHora && !consumo.fin
-            ? { ...consumo, fin: fecha }
-            : consumo,
-        );
-        cuenta.cierre = {
-          ...datos,
-          fecha,
-          usuario: "Admin demo",
-        } as CuentaEmergencia["cierre"];
-      } else
-        throw new Error(
-          "Esta operación todavía no está disponible en la demo local.",
-        );
-      cuenta.revision++;
-    }
-    sessionStorage.setItem(clave, JSON.stringify(cuentas));
-    return cuenta as T;
-  }
+
   const respuesta = await apiFetch(
     `/api/emergencias${ruta}`,
     body ? { method: "POST", body: JSON.stringify(body) } : {},
@@ -408,11 +135,11 @@ async function solicitarEmergencias<T>(ruta = "", body?: object): Promise<T> {
         "El servicio de emergencias devolvió una respuesta no válida.",
       );
   }
-  if (!respuesta.ok)
-    throw new Error(
-      (datos as { message?: string } | null)?.message ||
-        "El servicio de emergencias no está disponible.",
-    );
+  if (!respuesta.ok) {
+    const error = datos as { message?: string; errors?: Record<string, string[]> } | null;
+    const detalle = error?.errors && Object.values(error.errors).flat().find((mensaje) => typeof mensaje === "string");
+    throw new Error(detalle || error?.message || "El servicio de emergencias no está disponible.");
+  }
   if (datos === null)
     throw new Error("El servicio de emergencias respondió sin información.");
   return datos as T;

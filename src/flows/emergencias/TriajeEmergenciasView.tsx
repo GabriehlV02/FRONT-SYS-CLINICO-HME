@@ -1,6 +1,5 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { sincronizarPaciente } from "../../radius/pacientesCompartidos";
 import {
   PacienteIngresoEmergencia,
   fechaHoraIngresoActual,
@@ -17,7 +16,6 @@ import { OrdenesEmergencias } from "./OrdenesEmergencias";
 import { InsumosEnfermeriaPanel } from "./InsumosEnfermeriaPanel";
 import { TratamientoPacienteTabla } from "./TratamientoPacienteTabla";
 import {
-  guardarBalanceEmergencia,
   leerBalanceEmergencia,
   suscribirBalanceEmergencia,
   type RegistroBalanceEmergencia,
@@ -430,6 +428,8 @@ const mismasCuentas = (actuales: Cuenta[], siguientes: Cuenta[]) =>
     (cuenta, indice) =>
       cuenta.id === siguientes[indice]?.id &&
       cuenta.revision === siguientes[indice]?.revision &&
+      JSON.stringify(cuenta.balanceHidrico || []) === JSON.stringify(siguientes[indice]?.balanceHidrico || []) &&
+      JSON.stringify(cuenta.trasladoAmbulancia || null) === JSON.stringify(siguientes[indice]?.trasladoAmbulancia || null) &&
       cuenta.fin === siguientes[indice]?.fin,
   );
 
@@ -770,6 +770,7 @@ export function TriajeEmergenciasView({
   const [fechaHoraEvolucion, setFechaHoraEvolucion] = useState(() => borradorInicial.fechaHoraEvolucion || fechaHoraIngresoActual());
   const [identidad, setIdentidad] = useState<Identidad | null>(null),
     [revisionIdentidad, setRevisionIdentidad] = useState(0);
+  const pacienteSeleccionadoRef = useRef<{ id: string; datos: Identidad } | null>(null);
   const [trasladoModal, setTrasladoModal] = useState(false);
   const [destinoTraslado, setDestinoTraslado] = useState<"sala" | "ambulancia" | "uci">("sala");
   const [motivoAmbulancia, setMotivoAmbulancia] = useState("");
@@ -786,6 +787,7 @@ export function TriajeEmergenciasView({
     intentoConsumo = useRef<{ clave: string; id: string } | null>(null);
   const cuenta = cuentas.find((c) => c.id === activa),
     item = catalogo.find((i) => i.id === itemId);
+  const importacionesBalance = useRef(new Set<string>());
   useEffect(() => {
     if (recepcion) return;
     try {
@@ -811,6 +813,33 @@ export function TriajeEmergenciasView({
     actualizar();
     return suscribirBalanceEmergencia(cuenta.id, actualizar);
   }, [cuenta?.id]);
+  useEffect(() => {
+    if (!cuenta || cuenta.fin || importacionesBalance.current.has(cuenta.id)) return;
+    const idsGuardados = new Set((cuenta.balanceHidrico || []).map((registro) => registro.id));
+    const pendientes = leerBalanceEmergencia(cuenta.id).filter((registro) => !idsGuardados.has(registro.id));
+    if (!pendientes.length) return;
+    const cuentaId = cuenta.id;
+    importacionesBalance.current.add(cuentaId);
+    void (async () => {
+      try {
+        let actualizada: Cuenta | undefined;
+        for (const registro of pendientes) {
+          actualizada = await pedir<Cuenta>(`/${cuentaId}/balance-hidrico`, registro);
+        }
+        if (actualizada) {
+          const balanceHidrico = actualizada.balanceHidrico;
+          setCuentas((prev) => prev.map((item) => item.id === cuentaId ? { ...item, balanceHidrico } : item));
+        }
+      } catch {
+        importacionesBalance.current.delete(cuentaId);
+        setError("No se pudieron sincronizar los registros anteriores de balance hídrico de este navegador.");
+      }
+    })();
+  }, [cuenta?.id, cuenta?.fin]);
+  const balancePersistido = cuenta?.balanceHidrico || [];
+  const idsBalancePersistido = new Set(balancePersistido.map((registro) => registro.id));
+  const balanceCompleto = [...balanceEmergencia.filter((registro) => !idsBalancePersistido.has(registro.id)), ...balancePersistido]
+    .sort((a, b) => `${a.fecha}T${a.hora}`.localeCompare(`${b.fecha}T${b.hora}`));
   useEffect(() => {
     if (!identidad || recepcion) return;
     const overflowAnterior = document.body.style.overflow;
@@ -840,7 +869,8 @@ export function TriajeEmergenciasView({
   }
   async function cargarCatalogo() {
     try {
-      setCatalogo(await pedir<Item[]>("/catalogo"));
+      const items = await pedir<Item[]>("/catalogo");
+      setCatalogo(items.map((item) => ({ ...item, unidad: item.unidad || "" })));
       setErrorCatalogo("");
     } catch (e) {
       setErrorCatalogo((e as Error).message);
@@ -869,7 +899,9 @@ export function TriajeEmergenciasView({
     const alCambiarVisibilidad = () => {
       if (!document.hidden) void actualizar();
     };
-    void actualizar();
+    void pedir<{ recuperados: number }>("/recuperar-consumos-inventario", {}).catch(() => {
+      if (!cancelado) setError("No se pudieron verificar los consumos de inventario pendientes. Intenta actualizar la vista.");
+    }).finally(() => { if (!cancelado) void actualizar(); });
     if (!recepcion) void cargarCatalogo();
     document.addEventListener("visibilitychange", alCambiarVisibilidad);
     const r = window.setInterval(() => {
@@ -963,7 +995,6 @@ export function TriajeEmergenciasView({
       ]);
       setActiva(actualizada.id);
       setAviso(mensaje);
-      if (ruta.endsWith("/identidad")) void sincronizarFicha(body as Identidad);
       return true;
     } catch (e) {
       setError((e as Error).message);
@@ -971,16 +1002,6 @@ export function TriajeEmergenciasView({
     } finally {
       operacionActiva.current = false;
       setOcupado(false);
-    }
-  }
-  async function sincronizarFicha(datos: Identidad) {
-    if (!datos.nombres?.trim() || !datos.documento?.trim()) return;
-    try {
-      await sincronizarPaciente(datos);
-    } catch (e) {
-      setError(
-        `La atención fue guardada, pero no se pudo sincronizar la ficha general: ${(e as Error).message}`,
-      );
     }
   }
   async function iniciar(e: FormEvent) {
@@ -1049,19 +1070,19 @@ export function TriajeEmergenciasView({
       setFechaHoraSignos(fechaHoraIngresoActual());
     }
   }
-  function registrarBalanceEmergencia(e: FormEvent<HTMLFormElement>) {
+  async function registrarBalanceEmergencia(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!cuenta) return;
     try {
-      guardarBalanceEmergencia(cuenta.id, {
+      const guardado = await guardar(`/${cuenta.id}/balance-hidrico`, {
         tipo: formBalanceEmergencia.tipo,
         volumen: Number(formBalanceEmergencia.volumen),
         detalle: formBalanceEmergencia.detalle.trim(),
         anotacion: formBalanceEmergencia.anotacion.trim(),
         fecha: formBalanceEmergencia.fecha,
         hora: formBalanceEmergencia.hora,
-      });
-      setBalanceEmergencia(leerBalanceEmergencia(cuenta.id));
+      }, "Balance hídrico guardado.");
+      if (!guardado) return;
       setFormBalanceEmergencia((actual) => ({
         ...actual,
         volumen: "",
@@ -1074,22 +1095,22 @@ export function TriajeEmergenciasView({
       setErrorBalanceEmergencia((e as Error).message || "No se pudo guardar el balance hídrico.");
     }
   }
-  const ingresosBalanceEmergencia = balanceEmergencia
+  const ingresosBalanceEmergencia = balanceCompleto
     .filter((registro) => registro.tipo === "ingreso")
     .reduce((total, registro) => total + registro.volumen, 0);
-  const egresosBalanceEmergencia = balanceEmergencia
+  const egresosBalanceEmergencia = balanceCompleto
     .filter((registro) => registro.tipo === "egreso")
     .reduce((total, registro) => total + registro.volumen, 0);
   const totalBalanceEmergencia = ingresosBalanceEmergencia - egresosBalanceEmergencia;
   let acumuladoBalanceEmergencia = 0;
-  const puntosBalanceEmergencia = balanceEmergencia.map((registro, indice) => {
+  const puntosBalanceEmergencia = balanceCompleto.map((registro, indice) => {
     acumuladoBalanceEmergencia += registro.tipo === "ingreso" ? registro.volumen : -registro.volumen;
     return { ...registro, acumulado: acumuladoBalanceEmergencia, indice };
   });
   const serviciosPorHora = catalogo.filter(
     (item) =>
-      /^(hora|horas|hr|hrs)$/i.test(item.unidad.trim()) ||
-      /\bpor hora\b/i.test(item.unidad),
+      /^(hora|horas|hr|hrs)$/i.test((item.unidad || "").trim()) ||
+      /\bpor hora\b/i.test(item.unidad || ""),
   );
   function iniciarServicioHora(item: Item) {
     if (!cuenta) return;
@@ -1122,6 +1143,7 @@ export function TriajeEmergenciasView({
   }
   function abrirDatosPaciente() {
     if (!cuenta) return;
+    pacienteSeleccionadoRef.current = null;
     setSeccionClinica("ingreso");
     const guardada = cuenta.identidad || {};
     const apellidos = (guardada.apellidos || "").trim().split(/\s+/).filter(Boolean);
@@ -1181,7 +1203,7 @@ export function TriajeEmergenciasView({
         const historia = item.identidad?.historiaClinica || "Sin registro";
         const edad = edadPaciente(item.identidad?.nacimiento);
         const sexo = item.identidad?.sexo || "No registrado";
-        const medico = item.identidad?.medicoAdmision || "Médico de turno";
+        const medico = item.identidad?.medicoAdmision || "Sin registrar";
         const cierre = new Date(item.fin!).toLocaleString("es-BO");
         return `<tr><td>${escapar(nombreCubiculo(item.cubiculo))}</td><td><strong>${escapar(paciente)}</strong><small>CI ${escapar(documento)}</small></td><td>${escapar(historia)}</td><td>${escapar(edad)}</td><td>${escapar(sexo)}</td><td>${escapar(fecha(item.inicio))}</td><td>${escapar(cierre)}</td><td>${escapar(medico)}</td></tr>`;
       })
@@ -1234,7 +1256,7 @@ export function TriajeEmergenciasView({
       ordenId: registro.ordenId,
       estado: "Registrado",
     })),
-    ...(cuenta?.consumos || []).map((consumo) => ({
+    ...(cuenta?.consumos || []).filter((consumo) => !(cuenta?.registrosEnfermeria || []).some((registro) => registro.id === consumo.registroId)).map((consumo) => ({
       id: `consumo-${consumo.registroId}`,
       fecha: consumo.inicio,
       tipo: consumo.tipo === "servicio" ? "Servicio" : "Insumo",
@@ -1355,7 +1377,7 @@ export function TriajeEmergenciasView({
     });
     const elegidas = hojasSolicitadas || ["signos", "balance", "tratamiento", "enfermeria"];
     const signos = cuenta.signos.filter((registro) => enRango(registro.fecha)).sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha));
-    const balances = balanceEmergencia.filter((registro) => enRango(`${registro.fecha}T${registro.hora || "00:00"}:00`));
+    const balances = balanceCompleto.filter((registro) => enRango(`${registro.fecha}T${registro.hora || "00:00"}:00`));
     const tratamientos = eventosSuministracion.filter((evento) => enRango(evento.fecha)).sort((a, b) => Date.parse(a.fecha) - Date.parse(b.fecha));
     const registrosEnfermeria = (cuenta.registrosEnfermeria || []).filter((registro) => enRango(registro.hora ? `${registro.fecha}T${registro.hora}:00` : registro.fecha));
     const evoluciones = (cuenta.evaluaciones || []).filter((registro) => {
@@ -1589,6 +1611,10 @@ export function TriajeEmergenciasView({
       const identidadPaciente = cuenta.identidad;
       const nombreDestino = destinoTraslado === "sala" ? "Sala de internación" : destinoTraslado === "uci" ? "UCI · Unidad de Cuidados Intensivos" : `Traslado en ambulancia a ${destinoAmbulancia.trim()}`;
       if (destinoTraslado === "ambulancia") {
+        const actualizada = await pedir<Cuenta>(`/${cuenta.id}/traslado-ambulancia`, {
+          fecha: fechaTraslado, hora: horaTraslado, motivo: motivoAmbulancia.trim(), destino: destinoAmbulancia.trim(),
+        });
+        setCuentas((prev) => [actualizada, ...prev.filter((item) => item.id !== actualizada.id)]);
         const fechaProgramada = new Date(`${fechaTraslado}T00:00:00`).toLocaleDateString("es-BO");
         const solicitudesActualizadas = {
           ...trasladosAmbulancia,
@@ -1842,6 +1868,7 @@ export function TriajeEmergenciasView({
         />
       )}
       {aviso && <AvisoTemporal mensaje={aviso} />}
+      {error && !nueva && !identidad && <p className="em-error" role="alert">{error}</p>}
       {nueva && !recepcion && (
         <div
           className="em-modal-inicio"
@@ -2244,15 +2271,15 @@ export function TriajeEmergenciasView({
             {cuentasPagina.map((c) => (
               <button
                 key={c.id}
-                className={`em-cubiculo ${activa === c.id ? "seleccionado" : ""} ${trasladosAmbulancia[c.id] ? "em-cubiculo-traslado" : ""}`}
+                className={`em-cubiculo ${activa === c.id ? "seleccionado" : ""} ${c.trasladoAmbulancia || trasladosAmbulancia[c.id] ? "em-cubiculo-traslado" : ""}`}
                 onClick={() => seleccionar(c.id)}
               >
-                {trasladosAmbulancia[c.id] ? (
+                {c.trasladoAmbulancia || trasladosAmbulancia[c.id] ? (
                   <>
                     <span className="em-paciente-lista">{nombrePaciente(c)}</span>
-                    <strong className="em-traslado-ambulancia-titulo">Será trasladado en ambulancia a las {trasladosAmbulancia[c.id].hora}</strong>
-                    <span className="em-traslado-ambulancia-destino">{trasladosAmbulancia[c.id].fecha} · Destino: {trasladosAmbulancia[c.id].destino}</span>
-                    <small className="em-traslado-ambulancia-motivo">Motivo: {trasladosAmbulancia[c.id].motivo}</small>
+                    <strong className="em-traslado-ambulancia-titulo">Será trasladado en ambulancia a las {(c.trasladoAmbulancia || trasladosAmbulancia[c.id]).hora}</strong>
+                    <span className="em-traslado-ambulancia-destino">{(c.trasladoAmbulancia || trasladosAmbulancia[c.id]).fecha} · Destino: {(c.trasladoAmbulancia || trasladosAmbulancia[c.id]).destino}</span>
+                    <small className="em-traslado-ambulancia-motivo">Motivo: {(c.trasladoAmbulancia || trasladosAmbulancia[c.id]).motivo}</small>
                   </>
                 ) : (
                   <>
@@ -2267,7 +2294,7 @@ export function TriajeEmergenciasView({
                     <span>{c.identidad?.sexo || "No registrado"}</span>
                     <time>{horaIngreso(c.inicio)}</time>
                     <span>
-                      {c.identidad?.medicoAdmision || "Médico de turno"}
+                      {c.identidad?.medicoAdmision || "Sin registrar"}
                     </span>
                     <span className="em-accion-lista">Atender</span>
                   </>
@@ -2504,10 +2531,21 @@ export function TriajeEmergenciasView({
                           identidad.apellidoPaterno || "",
                           identidad.apellidoMaterno || "",
                         ].filter(Boolean).join(" ");
+                        const seleccionado = pacienteSeleccionadoRef.current;
+                        const camposFicha: Record<string, string> = {
+                          nombres: "nombres", apellidoPaterno: "apellido_paterno", apellidoMaterno: "apellido_materno",
+                          documento: "ci", complemento: "complemento_ci", expedidoEn: "expedido_en", nit: "nit",
+                          razonSocial: "razon_social", nacimiento: "fecha_nacimiento", telefono: "telefono", sexo: "genero",
+                          ciConQr: "ci_con_qr", pais: "pais", departamento: "departamento", ciudad: "ciudad",
+                          zonaBarrio: "zona_barrio", direccion: "direccion_domicilio",
+                        };
+                        const cambiosPaciente = seleccionado ? Object.fromEntries(Object.entries(camposFicha)
+                          .filter(([campo]) => (identidad[campo] || "") !== (seleccionado.datos[campo] || ""))
+                          .map(([campo, destino]) => [destino, campo === "ciConQr" ? identidad[campo] === "true" : identidad[campo] || ""])) : undefined;
                         if (
                           await guardar(
                             `/${cuenta.id}/identidad`,
-                            { ...identidad, apellidos, revision: revisionIdentidad },
+                            { ...identidad, apellidos, revision: revisionIdentidad, ...(seleccionado ? { pacienteId: seleccionado.id, cambiosPaciente } : {}) },
                             "Datos guardados en la cuenta.",
                           )
                         )
@@ -2516,7 +2554,16 @@ export function TriajeEmergenciasView({
                     >
                       <PacienteIngresoEmergencia
                         onSeleccionar={(p) => {
-                          if (p)
+                          if (p) {
+                            const datosSeleccionados: Identidad = {
+                              nombres: p.nombres, apellidoPaterno: p.primerApellido, apellidoMaterno: p.segundoApellido,
+                              documento: p.numeroDocumento, complemento: p.complementoCi || "", expedidoEn: p.expedidoEn || "",
+                              ciConQr: String(Boolean(p.ciConQr)), nit: p.nit || "", razonSocial: p.razonSocial || "",
+                              nacimiento: p.fechaNacimiento, sexo: p.sexo === "femenino" ? "Femenino" : p.sexo === "masculino" ? "Masculino" : p.sexo === "otro" ? "Otro" : p.sexo,
+                              telefono: p.telefono, pais: p.pais || "Bolivia", departamento: p.departamento || "", ciudad: p.ciudad || "",
+                              zonaBarrio: p.zonaBarrio || "", direccion: p.direccion,
+                            };
+                            pacienteSeleccionadoRef.current = { id: p.id, datos: datosSeleccionados };
                             setIdentidad((actual) =>
                               actual
                                 ? {
@@ -2554,6 +2601,7 @@ export function TriajeEmergenciasView({
                                   }
                                 : actual,
                             );
+                          } else pacienteSeleccionadoRef.current = null;
                         }}
                       />
                       {[
@@ -2650,6 +2698,7 @@ export function TriajeEmergenciasView({
                           </div>
                         </fieldset>
                       ))}
+                      {error && <p className="em-error" role="alert">{error}</p>}
                       <div className="em-acciones em-identidad-acciones">
                         <button
                           type="button"
@@ -2776,6 +2825,7 @@ export function TriajeEmergenciasView({
                             <header><h4>Detalle de uso y dispensación</h4><span>{eventosInsumosEmergencia.length} registros</span></header>
                             {eventosInsumosEmergencia.length ? <div className="em-reporte-tabla"><table><thead><tr><th>Fecha y hora</th><th>Tipo</th><th>Insumo o medicamento</th><th>Cantidad</th><th>Observación</th><th>Estado</th></tr></thead><tbody>{eventosInsumosEmergencia.map((evento) => <tr key={evento.id}><td>{fecha(evento.fecha)}</td><td>{evento.tipo}</td><td>{evento.detalle}</td><td>{evento.cantidad || "—"}</td><td>{evento.observacion || "—"}</td><td>{evento.estado}</td></tr>)}</tbody></table></div> : <p>Aún no se registraron medicamentos ni insumos para esta atención.</p>}
                           </section>
+
                       </section>
                     </section>
                   )}
@@ -2900,7 +2950,7 @@ export function TriajeEmergenciasView({
                           <span>CONTROL DE LÍQUIDOS</span>
                           <h3>Balance hídrico</h3>
                         </div>
-                        <b>{balanceEmergencia.length} {balanceEmergencia.length === 1 ? "registro" : "registros"}</b>
+                        <b>{balanceCompleto.length} {balanceCompleto.length === 1 ? "registro" : "registros"}</b>
                       </header>
                       <div className="em-balance-emergencias-resumen">
                         <article><small>Ingresos</small><strong>{ingresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
@@ -2930,8 +2980,8 @@ export function TriajeEmergenciasView({
                           })}</svg></>;
                         })() : <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>Se actualizará con cada movimiento</small></div><svg className="em-balance-emergencias-sin-datos" viewBox="0 0 800 225" role="img" aria-label="Gráfica vacía de ingresos y egresos"><path d="M58 34H780M58 73H780M58 112H780M58 151H780" /><path className="em-balance-emergencias-cero" d="M58 112H780" /><text className="em-balance-emergencias-eje" x="50" y="38">—</text><text className="em-balance-emergencias-eje" x="50" y="77">—</text><text className="em-balance-emergencias-eje" x="50" y="116">0</text><text className="em-balance-emergencias-eje" x="50" y="155">—</text><text x="420" y="111">Registra el primer movimiento para comparar ingresos y egresos</text></svg></>}
                       </section>
-                      {balanceEmergencia.length > 0 && <ol className="em-balance-emergencias-historial">
-                        {balanceEmergencia.slice().reverse().map((registro) => <li key={registro.id} className={registro.tipo}>
+                      {balanceCompleto.length > 0 && <ol className="em-balance-emergencias-historial">
+                        {balanceCompleto.slice().reverse().map((registro) => <li key={registro.id} className={registro.tipo}>
                           <span>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</span>
                           <div><strong>{registro.detalle}</strong>{registro.anotacion && <small>{registro.anotacion}</small>}</div>
                           <b>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen.toLocaleString("es-BO")} ml</b>
@@ -3128,17 +3178,21 @@ export function TriajeEmergenciasView({
                         </aside>
                       </div>
                     </section>
+
                     </>
                   )}
                   {seccionClinica === "tratamiento" && (
                     <section className="em-seccion-tratamiento-paciente" aria-label="Tratamiento del paciente">
                       <div className="em-seguimiento-enfermeria">
                         <InsumosEnfermeriaPanel
-                          onUtilizar={(item, cantidad) =>
+                          onUtilizar={(item, cantidad, almacenId, solicitudId) =>
                             guardar(
                               `/${cuenta.id}/uso-enfermeria`,
                               {
                                 tipo: "insumo",
+                                itemId: `item-${item.id}`,
+                                almacenId,
+                                solicitudId,
                                 detalle: item.nombre,
                                 cantidad,
                                 unidad: item.unidad,
@@ -3242,7 +3296,7 @@ export function TriajeEmergenciasView({
                                 setPorHora(
                                   i.tipo === "servicio" &&
                                     ["TIEMPO", "HORA", "HORAS"].includes(
-                                      i.unidad.toUpperCase(),
+                                      (i.unidad || "").toUpperCase(),
                                     ),
                                 );
                                 setCantidad("1");

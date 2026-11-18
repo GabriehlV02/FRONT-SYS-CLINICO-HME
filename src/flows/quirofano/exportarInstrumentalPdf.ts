@@ -71,6 +71,7 @@ export async function exportarInstrumentalPdf(
       serie: local?.serie || '', cirugiaId: local?.cirugiaId || '', actualizadoEn: item.updated_at,
     } satisfies MaterialEsteril;
   }).sort((a, b) => a.nombre.localeCompare(b.nombre));
+  const totalUnidades = registros.reduce((total, material) => total + Number(material.cantidad ?? 0), 0);
   const imagenes: (string | null)[] = new Array(registros.length).fill(null);
   let siguiente = 0;
   await Promise.all(Array.from({ length: Math.min(4, registros.length) }, async () => {
@@ -107,7 +108,7 @@ export async function exportarInstrumentalPdf(
       pdf.text('Inventario de instrumental quirúrgico', 57, 14);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(9);
-      pdf.text(`Generado: ${fecha}   |   ${registros.length} materiales`, 57, 21);
+      pdf.text(`Generado: ${fecha}   |   ${registros.length} materiales   |   ${totalUnidades.toLocaleString('es-BO')} unidades en total`, 57, 21);
       pdf.setDrawColor(210, 229, 239);
       pdf.line(10, 29, ancho - 10, 29);
       pdf.setTextColor(95, 119, 134);

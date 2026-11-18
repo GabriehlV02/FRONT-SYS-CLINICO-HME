@@ -5,7 +5,7 @@ import { notificar } from "../../radius/componentes/Notificaciones";
 import { opcionesInsumos, stockInsumos, solicitudesInsumos, enviarSolicitudInsumos, type ItemInsumos, type OpcionesInsumos, type StockInsumos, type SolicitudInsumos } from "./insumosEnfermeriaApi";
 
 type InsumosEnfermeriaPanelProps = {
-  onUtilizar?: (item: ItemInsumos, cantidad: number) => Promise<boolean>;
+  onUtilizar?: (item: ItemInsumos, cantidad: number, almacenId: number, solicitudId: string) => Promise<boolean>;
   silenciarAlmacenNoAsignado?: boolean;
 };
 
@@ -17,6 +17,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
   const [buscarStock, setBuscarStock] = useState("");
   const [seleccionados, setSeleccionados] = useState<{ item: ItemInsumos; cantidad: string }[]>([]);
   const [utilizando, setUtilizando] = useState<number | null>(null);
+  const intentosUso = useRef(new Map<number, string>());
   const [stock, setStock] = useState<StockInsumos[]>([]);
   const [solicitudes, setSolicitudes] = useState<SolicitudInsumos[]>([]);
   const [cargando, setCargando] = useState(true), [error, setError] = useState(""), [version, setVersion] = useState(0);
@@ -105,10 +106,18 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
       notificar("advertencia", "Atención no seleccionada", "Abre los insumos desde la atención del paciente para registrar su uso.");
       return;
     }
+    if (!almacen) {
+      notificar("advertencia", "Almacén no seleccionado", "Selecciona un almacén autorizado para descontar el insumo.");
+      return;
+    }
+    const solicitudId = intentosUso.current.get(item.id) || crypto.randomUUID();
+    intentosUso.current.set(item.id, solicitudId);
     setUtilizando(item.id);
     try {
-      if (await onUtilizar(item, cantidadNumerica)) {
+      if (await onUtilizar(item, cantidadNumerica, Number(almacen), solicitudId)) {
+        intentosUso.current.delete(item.id);
         setSeleccionados((actuales) => actuales.filter((seleccionado) => seleccionado.item.id !== item.id));
+        window.dispatchEvent(new Event("enfermeria:stock-actualizado"));
       }
     } finally {
       setUtilizando(null);
@@ -134,6 +143,12 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
         </div>
       </header>
       <div className="em-insumos-enfermeria-herramientas">
+        {opciones.almacenes.length > 1 && <label className="em-insumos-filtro">Almacén
+          <select value={almacen} onChange={(evento) => setAlmacen(evento.target.value)}>
+            <option value="">Seleccionar almacén</option>
+            {opciones.almacenes.map((opcion) => <option key={opcion.id} value={opcion.id}>{opcion.nombre} · {opcion.sucursal}</option>)}
+          </select>
+        </label>}
         <div className="em-insumos-buscar-contenedor">
           <label className="em-insumos-buscar">
             Buscar insumo

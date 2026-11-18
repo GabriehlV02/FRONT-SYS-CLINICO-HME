@@ -854,6 +854,7 @@ export function TriajeEmergenciasView({
     try {
       const datos = await pedir<{ cuentas: Cuenta[]; ahora: string }>();
       if (lectura !== ultimaLectura.current) return true;
+      setError("");
       desfase.current = Date.parse(datos.ahora) - Date.now();
       setAhora(Date.now() + desfase.current);
       setCuentas((actuales) =>

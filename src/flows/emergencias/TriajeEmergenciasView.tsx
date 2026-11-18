@@ -1350,7 +1350,7 @@ export function TriajeEmergenciasView({
       styles: { font: "helvetica", fontSize: 7.2, cellPadding: 2, textColor: [35, 65, 91] as [number, number, number], lineColor: [205, 225, 239] as [number, number, number], lineWidth: 0.18, valign: "middle" as const, overflow: "linebreak" as const },
       headStyles: { fillColor: [18, 56, 98] as [number, number, number], textColor: [255, 255, 255] as [number, number, number], fontStyle: "bold" as const },
       alternateRowStyles: { fillColor: [250, 253, 255] as [number, number, number] },
-      margin: { left: margen, right: margen, bottom: 25 },
+      margin: { top: 64, left: margen, right: margen, bottom: 25 },
       didDrawPage: () => dibujarEncabezado(titulo),
     });
     const elegidas = hojasSolicitadas || ["signos", "balance", "tratamiento", "enfermeria"];

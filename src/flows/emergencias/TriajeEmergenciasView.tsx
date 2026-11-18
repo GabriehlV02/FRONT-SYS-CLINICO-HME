@@ -1522,11 +1522,39 @@ export function TriajeEmergenciasView({
     }
     if (elegidas.includes("enfermeria") && (registrosEnfermeria.length || evoluciones.length)) {
       comenzarHoja(titulos.enfermeria);
+      const unirNotaYObservacion = (nota?: string, observacion?: string) => {
+        const textos = [nota?.trim(), observacion?.trim()].filter(Boolean);
+        return [...new Set(textos)].join("\n\n") || "—";
+      };
       const filas = [
-        ...registrosEnfermeria.map((registro) => [`${new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} ${registro.hora || ""}`, registro.tipo === "cuidado" ? "Cuidado" : registro.tipo === "procedimiento" ? "Procedimiento" : "Medicamento / insumo", registro.detalle, registro.observacion || "—", registro.usuario || "—"]),
-        ...evoluciones.map((registro) => [`${registro.campos.evolucionFecha ? new Date(`${registro.campos.evolucionFecha}T12:00:00`).toLocaleDateString("es-BO") : new Date(registro.fecha).toLocaleDateString("es-BO")} ${registro.campos.evolucionHora || new Date(registro.fecha).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}`, "Evolución de enfermería", registro.campos.evolucion || "—", registro.campos.observaciones || registro.campos.plan || "—", registro.usuario || "—"]),
+        ...registrosEnfermeria.map((registro) => [
+          `${new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} ${registro.hora || ""}`,
+          registro.tipo === "cuidado" ? "Cuidado" : registro.tipo === "procedimiento" ? "Procedimiento" : "Medicamento / insumo",
+          unirNotaYObservacion(registro.detalle, registro.observacion),
+          registro.usuario || "—",
+        ]),
+        ...evoluciones.map(({ fecha, campos, usuario }) => {
+          const fechaRegistro = new Date(campos.evolucionFecha ? `${campos.evolucionFecha}T12:00:00` : fecha);
+          const hora = campos.evolucionHora || new Date(fecha).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" });
+          return [
+            `${fechaRegistro.toLocaleDateString("es-BO")} ${hora}`,
+            "Evolución de enfermería",
+            unirNotaYObservacion(campos.evolucion, campos.observaciones?.trim() || campos.plan),
+            usuario || "—",
+          ];
+        }),
       ].sort((a, b) => `${a[0]}`.localeCompare(`${b[0]}`));
-      autoTable(pdf, { ...opcionesTabla(titulos.enfermeria), head: [["FECHA Y HORA", "TIPO DE REGISTRO", "NOTA / CUIDADO REALIZADO", "OBSERVACIÓN", "PROFESIONAL"]], body: filas, columnStyles: { 0: { cellWidth: 27 }, 1: { cellWidth: 32 }, 2: { cellWidth: 57 }, 3: { cellWidth: 39 }, 4: { cellWidth: "auto" } } });
+      autoTable(pdf, {
+        ...opcionesTabla(titulos.enfermeria),
+        head: [["FECHA Y HORA", "TIPO DE REGISTRO", "NOTA / OBSERVACIÓN", "PROFESIONAL"]],
+        body: filas,
+        columnStyles: {
+          0: { cellWidth: 26 },
+          1: { cellWidth: 27 },
+          2: { cellWidth: "auto", valign: "top" },
+          3: { cellWidth: 26 },
+        },
+      });
     }
     if (!hojasIncluidas) {
       setAviso("No hay registros en las hojas seleccionadas para el turno indicado.");

@@ -1376,6 +1376,10 @@ input:focus-visible {
 .sidebar-replegado .sistema-sidebar {
   width: var(--clinico-sidebar-collapsed);
 }
+.sidebar-replegado .sistema-sidebar:hover,
+.sidebar-replegado .sistema-sidebar:focus-within {
+  width: var(--clinico-sidebar) !important;
+}
 .sidebar-replegado .sistema-cuerpo {
   width: calc(100% - var(--clinico-sidebar-collapsed));
   margin-left: var(--clinico-sidebar-collapsed);

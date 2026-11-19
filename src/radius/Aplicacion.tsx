@@ -1554,11 +1554,13 @@ export default function Aplicacion() {
       )}
       <aside
         className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""}`}
-        onMouseEnter={() => {
+        onPointerEnter={(evento) => {
+          if (evento.pointerType !== "mouse") return;
           if (!sidebarReplegado || sidebarCerradoPorSeleccion) return;
           window.requestAnimationFrame(restaurarScrollSidebar);
         }}
-        onMouseLeave={() => {
+        onPointerLeave={(evento) => {
+          if (evento.pointerType !== "mouse") return;
           if (!sidebarReplegado) guardarScrollSidebar();
           setSidebarCerradoPorSeleccion(false);
         }}

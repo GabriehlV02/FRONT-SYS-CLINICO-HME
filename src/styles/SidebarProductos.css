@@ -597,6 +597,16 @@
   color: #70c9ff !important;
   border-top-color: #315d7d !important;
 }
+
+/* Encabezados de grupo sin separadores de puntos. */
+.sistema-sidebar .sistema-nav section + section {
+  border-top: 0 !important;
+}
+
+.sistema-sidebar .sistema-nav section > p {
+  border: 0 !important;
+  background: none !important;
+}
 .sistema-app[data-theme="dark"] .sistema-nav .nav-modulo,
 .sistema-app[data-theme="dark"] .sistema-sidebar .boton-salir {
   color: #b8d0e3 !important;

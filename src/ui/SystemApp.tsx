@@ -103,6 +103,19 @@ export function SystemApp({ config }: { config: SystemConfig }) {
   const [query, setQuery] = useState("");
   const menuButton = useRef<HTMLButtonElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      document
+        .querySelectorAll<HTMLElement>(".em-distribucion:has(.em-lista-triaje-cabecera) > .em-cubiculos")
+        .forEach((tabla) => {
+          tabla.scrollLeft = 0;
+        });
+    }, 220);
+
+    return () => window.clearTimeout(timer);
+  }, [collapsed]);
+
   const selected =
     modules.find(
       (item) => item.id === active || active.startsWith(`${item.id}-`),

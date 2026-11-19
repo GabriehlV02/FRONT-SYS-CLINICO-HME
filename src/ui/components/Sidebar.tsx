@@ -1,5 +1,6 @@
 import Icon from "./Icon";
 import { Brand } from "./Brand";
+import { useLayoutEffect, useRef } from "react";
 import type { AuthSession, SystemConfig } from "../types";
 type Props = {
   config: SystemConfig;
@@ -23,6 +24,7 @@ export function Sidebar({
   onLogout,
   session,
 }: Props) {
+  const scrollGuardado = useRef(0);
   const modules = config.modules;
   const groups = [
     ...new Set([
@@ -31,6 +33,15 @@ export function Sidebar({
     ]),
   ];
   const isActive = (id: string) => active === id || active.startsWith(`${id}-`);
+  useLayoutEffect(() => {
+    if (collapsed) return;
+    const frame = window.requestAnimationFrame(() => {
+      const contenedor = document.querySelector<HTMLElement>("#system-sidebar .sidebar-scroll");
+      if (!contenedor) return;
+      contenedor.scrollTop = Math.min(scrollGuardado.current, contenedor.scrollHeight - contenedor.clientHeight);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [collapsed]);
   return (
     <>
       <aside
@@ -41,7 +52,12 @@ export function Sidebar({
           <Brand name={config.name} sidebar subtitle={config.subtitle} />
           <button
             className="replegar-menu"
-            onClick={onCollapse}
+            onClick={() => {
+              if (!collapsed) {
+                scrollGuardado.current = document.querySelector<HTMLElement>("#system-sidebar .sidebar-scroll")?.scrollTop ?? 0;
+              }
+              onCollapse();
+            }}
             aria-label={
               collapsed ? "Desplegar menú lateral" : "Replegar menú lateral"
             }

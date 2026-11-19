@@ -3,11 +3,12 @@ import { confirmar, notificar } from "../../radius/componentes/Notificaciones";
 import { opcionesInsumos, solicitudesInsumos, dispensarSolicitudInsumos, type AlmacenInsumos, type SolicitudInsumos } from "../emergencias/insumosEnfermeriaApi";
 import "./SolicitudesEnfermeriaView.css";
 
-export function SolicitudesEnfermeriaView() {
+export function SolicitudesEnfermeriaView({ descargos = false, historial = false }: { descargos?: boolean; historial?: boolean }) {
   const [almacenes, setAlmacenes] = useState<AlmacenInsumos[]>([]);
   const [origen, setOrigen] = useState("");
   const [solicitudes, setSolicitudes] = useState<SolicitudInsumos[]>([]);
   const [estado, setEstado] = useState("pendiente");
+  const estadoVisible = descargos ? historial ? "dispensada" : "pendiente" : estado;
   const [error, setError] = useState(""), [cargando, setCargando] = useState(true), [ocupada, setOcupada] = useState("");
   const [version, setVersion] = useState(0);
   useEffect(() => {
@@ -38,17 +39,17 @@ export function SolicitudesEnfermeriaView() {
     } catch (fallo) { notificar("error", "No se pudo dispensar", fallo instanceof Error ? fallo.message : "Intenta nuevamente."); }
     finally { setOcupada(""); }
   };
-  const visibles = solicitudes.filter((pedido) => pedido.estado === estado);
+  const visibles = solicitudes.filter((pedido) => pedido.estado === estadoVisible);
   return <section className="farmacia-solicitudes-enfermeria" aria-label="Solicitudes de insumos de enfermería">
-    <header><div><h2>Solicitudes de enfermería</h2><p>Dispensa desde tu almacén de Farmacia y transfiere el stock al almacén solicitante.</p></div><span>{visibles.length} solicitudes</span></header>
+    {!descargos && <header><div><h2>Solicitudes de enfermería</h2><p>Dispensa desde tu almacén de Farmacia y transfiere el stock al almacén solicitante.</p></div><span>{visibles.length} solicitudes</span></header>}
     <div className="farmacia-solicitudes-filtros">
-      <label>Almacén de origen<select value={origen} onChange={(evento) => setOrigen(evento.target.value)} disabled={!!ocupada}><option value="">Seleccionar almacén de Farmacia</option>{almacenes.map((almacen) => <option value={almacen.id} key={almacen.id}>{almacen.nombre} · {almacen.sucursal}</option>)}</select></label>
-      <label>Estado<select value={estado} onChange={(evento) => setEstado(evento.target.value)}><option value="pendiente">Pendientes</option><option value="dispensada">Dispensadas</option></select></label>
+      {!historial && <label>Almacén de origen<select value={origen} onChange={(evento) => setOrigen(evento.target.value)} disabled={!!ocupada}><option value="">Seleccionar almacén de Farmacia</option>{almacenes.map((almacen) => <option value={almacen.id} key={almacen.id}>{almacen.nombre} · {almacen.sucursal}</option>)}</select></label>}
+      {!descargos && <label>Estado<select value={estado} onChange={(evento) => setEstado(evento.target.value)}><option value="pendiente">Pendientes</option><option value="dispensada">Dispensadas</option></select></label>}
       <button type="button" onClick={() => setVersion((actual) => actual + 1)}>Actualizar</button>
     </div>
     {error && <p role="alert">{error}</p>}
-    {cargando ? <p role="status">Cargando solicitudes…</p> : !error && !visibles.length ? <p className="farmacia-solicitudes-vacio">No hay solicitudes {estado === "pendiente" ? "pendientes" : "dispensadas"}.</p> : visibles.map((pedido) => <article key={pedido.id}>
-      <header><div><h3>{pedido.almacen}</h3><small>{pedido.solicitante} · {new Date(pedido.created_at).toLocaleString("es-BO")}</small></div><span>{pedido.estado === "pendiente" ? "Pendiente" : "Dispensada"}</span></header>
+    {cargando ? <p role="status">Cargando solicitudes…</p> : !error && !visibles.length ? <p className="farmacia-solicitudes-vacio">{historial ? "Aún no hay descargos en el historial." : descargos || estado === "pendiente" ? "No hay solicitudes pendientes." : "No hay solicitudes dispensadas."}</p> : visibles.map((pedido) => <article key={pedido.id}>
+      <header><div><h3>{pedido.almacen}</h3><small>{pedido.solicitante} · {new Date(pedido.created_at).toLocaleString("es-BO")}</small></div><span>{historial && pedido.dispensado_en ? `Dispensada · ${new Date(pedido.dispensado_en).toLocaleString("es-BO")}` : pedido.estado === "pendiente" ? "Pendiente" : "Dispensada"}</span></header>
       <table><thead><tr><th>Insumo</th><th>Cantidad solicitada</th><th>Unidad</th></tr></thead><tbody>{pedido.detalles.map((detalle) => <tr key={detalle.item_id}><td>{detalle.nombre}</td><td>{detalle.cantidad}</td><td>{detalle.unidad}</td></tr>)}</tbody></table>
       {pedido.observacion && <p>{pedido.observacion}</p>}
       {pedido.estado === "pendiente" && <footer><button type="button" disabled={!origen || Number(origen) === Number(pedido.almacen_destino_id) || !!ocupada || !!error} onClick={() => void dispensar(pedido)}>{ocupada === pedido.id ? "Procesando…" : "Dispensar al almacén solicitante"}</button></footer>}

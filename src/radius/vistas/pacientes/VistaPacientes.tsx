@@ -1142,9 +1142,10 @@ export default function VistaPacientes({
       >
         <div className="pacientes-listado">
           <div
-            className={`usuarios-tabla pacientes-tabla ${modoClinico ? "pacientes-tabla-sin-sucursal" : ""}`}
+            className={`usuarios-tabla pacientes-tabla ${modoClinico ? "pacientes-tabla-sin-sucursal" : "pacientes-tabla-con-estudios"}`}
           >
             <Paginacion tam />
+            <div className="pacientes-tabla-scroll">
             <div className="usuarios-fila usuarios-columnas">
               <span>Paciente</span>
               <span>Fecha de nacimiento</span>
@@ -1277,6 +1278,7 @@ export default function VistaPacientes({
                 <small>{modoClinico ? 'Registra el primer paciente o cambia los filtros.' : 'No hay solicitudes de imagenología pendientes para los filtros seleccionados.'}</small>
               </div>
             )}
+            </div>
           </div>
           <Paginacion tam />
         </div>

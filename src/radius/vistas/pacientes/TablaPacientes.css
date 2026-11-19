@@ -793,3 +793,65 @@
   color: #315b7b;
   font-size: 13px;
 }
+
+/* En estudios, encabezado y filas comparten una pista horizontal; paginación
+   queda fija y las nueve columnas no dependen de que existan resultados. */
+.pacientes-vista .pacientes-tabla.pacientes-tabla-con-estudios {
+  overflow: visible !important;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .pacientes-tabla-scroll {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-color: #75bfe0 #edf8fd;
+  scrollbar-width: thin;
+}
+
+.pacientes-vista .pacientes-tabla.pacientes-tabla-con-estudios .usuarios-fila {
+  width: max(100%, 1800px);
+  min-width: 1800px;
+  grid-template-columns:
+    minmax(210px, 1.2fr) 142px 135px 112px 112px minmax(105px, 0.65fr)
+    minmax(180px, 0.9fr) 112px 148px;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .usuarios-columnas {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-template-rows: minmax(64px, auto) !important;
+  align-items: center;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .usuarios-columnas > span {
+  grid-row: 1 !important;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .usuarios-columnas > span:last-child {
+  grid-column: 9 !important;
+  justify-self: stretch;
+  width: auto;
+  text-align: center;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .pacientes-tabla-scroll > .usuarios-mensaje {
+  width: 1800px;
+  max-width: none;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .pacientes-tabla-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .pacientes-tabla-scroll::-webkit-scrollbar-track {
+  background: #edf8fd;
+}
+
+.pacientes-vista .pacientes-tabla-con-estudios .pacientes-tabla-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid #edf8fd;
+  border-radius: 99px;
+  background: #75bfe0;
+}

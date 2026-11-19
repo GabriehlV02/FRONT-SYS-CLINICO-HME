@@ -5466,6 +5466,7 @@
 .em-insumos-solicitud-modal label { display: grid; gap: 7px; font-size: 12px; font-weight: 700; }
 .em-insumos-solicitud-modal :is(input, select, textarea) { width: 100%; min-width: 0; min-height: 40px; padding: 9px 11px; border: 1px solid #a9c9dd; border-radius: 8px; font: inherit; background: #fff; color: #234c68; }
 .em-insumos-solicitud-modal textarea { min-height: 70px; resize: vertical; }
+.em-insumos-solicitud-contexto { display: grid; grid-template-columns: 1fr 1.4fr; gap: 14px; }
 .em-insumos-solicitud-vacia { min-height: 120px; border: 1px solid #e0edf4; border-radius: 9px; background: #f9fcfe; }
 .em-insumos-solicitud-modal button { min-height: 38px; padding: 8px 12px; border: 1px solid #a9c9dd; border-radius: 8px; cursor: pointer; }
 .em-insumos-solicitud-modal :is(button, input, select, textarea):focus-visible { outline: 3px solid #087fc033; outline-offset: 2px; }
@@ -5516,6 +5517,7 @@
 .sistema-app[data-theme="dark"] .em-insumos-solicitud-modal :is(input, select, textarea) { background: #163b58; color: #d3e4f0; }
 @media (max-width: 520px) {
   .em-insumos-solicitud-modal { padding: 16px; }
+  .em-insumos-solicitud-contexto { grid-template-columns: 1fr; }
   .em-insumos-solicitud-lineas > article { grid-template-columns: minmax(0, 1fr) 92px auto; gap: 7px; padding: 8px; }
   .em-insumos-solicitudes article { align-items: flex-start; flex-direction: column; }
 }

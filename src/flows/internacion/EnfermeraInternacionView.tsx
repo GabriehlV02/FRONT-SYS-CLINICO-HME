@@ -14,6 +14,14 @@ import "./EnfermeraInternacionView.css";
 import "./EnfermeraInternacionTabla.css";
 
 type Subvista = "internados" | "altas";
+const fechaAltaAISO = (fecha?: string) => {
+  if (!fecha) return "";
+  if (/^\d{4}-\d{2}-\d{2}/.test(fecha)) return fecha.slice(0, 10);
+  const partes = fecha.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  return partes
+    ? `${partes[3]}-${partes[2].padStart(2, "0")}-${partes[1].padStart(2, "0")}`
+    : "";
+};
 const salasPrueba = [
   { numero: "UCI", tipo: "Terapia intensiva", camas: ["A", "B", "C"] },
   { numero: "Recuperación", tipo: "Recuperación", camas: ["A", "B"] },
@@ -37,6 +45,11 @@ export function EnfermeraInternacionView({ subvista, unidad = "internacion", sol
   const [cama, setCama] = useState("");
   const [tipoSala, setTipoSala] = useState("Sala compartida");
   const [busqueda, setBusqueda] = useState("");
+  const [fechaAltaDesde, setFechaAltaDesde] = useState("");
+  const [fechaAltaHasta, setFechaAltaHasta] = useState("");
+  const [servicioAlta, setServicioAlta] = useState("");
+  const [paginaAltas, setPaginaAltas] = useState(1);
+  const [tamanoPaginaAltas, setTamanoPaginaAltas] = useState(10);
   const salasDisponibles = unidad === "uci"
     ? salasPrueba.filter((item) => item.tipo === "Terapia intensiva")
     : seleccionada && /uci|terapia intensiva|recuperaci/i.test(`${seleccionada.servicio ?? ""} ${seleccionada.tipoSala ?? ""} ${seleccionada.sala ?? ""}`)
@@ -49,13 +62,31 @@ export function EnfermeraInternacionView({ subvista, unidad = "internacion", sol
   const altas = registrosVista.filter((item) => item.estado === "alta");
   const pacientesVisibles = subvista === "internados" ? internados : altas;
   const termino = busqueda.trim().toLocaleLowerCase("es");
+  const coincideBusqueda = (item: RegistroInternacion) =>
+    !termino ||
+    [item.paciente, item.ci, item.sala, item.cama, item.medico, item.servicio].some(
+      (valor) => valor?.toLocaleLowerCase("es").includes(termino),
+    );
   const pacientesFiltrados = pacientesVisibles.filter(
-    (item) =>
-      !termino ||
-      [item.paciente, item.ci, item.sala, item.cama, item.medico].some(
-        (valor) => valor?.toLocaleLowerCase("es").includes(termino),
-      ),
+    (item) => coincideBusqueda(item),
   );
+  const serviciosAlta = [...new Set(altas.map((item) => item.servicio?.trim()).filter((valor): valor is string => Boolean(valor)))].sort((a, b) => a.localeCompare(b, "es"));
+  const altasFiltradas = altas.filter((item) => {
+    const fecha = fechaAltaAISO(item.fechaAlta);
+    return coincideBusqueda(item) &&
+      (!fechaAltaDesde || (fecha && fecha >= fechaAltaDesde)) &&
+      (!fechaAltaHasta || (fecha && fecha <= fechaAltaHasta)) &&
+      (!servicioAlta || item.servicio === servicioAlta);
+  });
+  const totalPaginasAltas = Math.max(1, Math.ceil(altasFiltradas.length / tamanoPaginaAltas));
+  const paginaAltasActual = Math.min(paginaAltas, totalPaginasAltas);
+  const altasPagina = altasFiltradas.slice(
+    (paginaAltasActual - 1) * tamanoPaginaAltas,
+    paginaAltasActual * tamanoPaginaAltas,
+  );
+  useEffect(() => {
+    setPaginaAltas(1);
+  }, [subvista, busqueda, fechaAltaDesde, fechaAltaHasta, servicioAlta, tamanoPaginaAltas]);
   const ubicacionDisponible =
     !seleccionada ||
     !sala.trim() ||
@@ -147,8 +178,8 @@ export function EnfermeraInternacionView({ subvista, unidad = "internacion", sol
             <input
               value={busqueda}
               onChange={(event) => setBusqueda(event.target.value)}
-              placeholder="Buscar por paciente, CI, sala o cama"
-              aria-label="Buscar paciente internado"
+              placeholder={subvista === "altas" ? "Buscar alta por paciente o CI" : "Buscar por paciente, CI, sala o cama"}
+              aria-label={subvista === "altas" ? "Buscar paciente dado de alta" : "Buscar paciente internado"}
             />
           </label>
           {subvista === "internados" && (
@@ -164,9 +195,33 @@ export function EnfermeraInternacionView({ subvista, unidad = "internacion", sol
           <div className="internacion-listado-titulo">
             <div>
               <p>ALTAS HOSPITALARIAS</p>
-              <h3>Pacientes dados de alta este mes</h3>
+              <h3>Historial de altas hospitalarias</h3>
             </div>
-            <small>Historial cl?nico de altas confirmadas.</small>
+            <small>{altasFiltradas.length} de {altas.length} altas · pacientes fuera de internación</small>
+          </div>
+        )}
+        {subvista === "altas" && (
+          <div className="internacion-altas-filtros" aria-label="Filtros de altas hospitalarias">
+            <label>
+              Desde
+              <input type="date" value={fechaAltaDesde} max={fechaAltaHasta || undefined} onChange={(evento) => setFechaAltaDesde(evento.target.value)} />
+            </label>
+            <label>
+              Hasta
+              <input type="date" value={fechaAltaHasta} min={fechaAltaDesde || undefined} onChange={(evento) => setFechaAltaHasta(evento.target.value)} />
+            </label>
+            <label>
+              Servicio
+              <select value={servicioAlta} onChange={(evento) => setServicioAlta(evento.target.value)}>
+                <option value="">Todos los servicios</option>
+                {serviciosAlta.map((servicio) => <option value={servicio} key={servicio}>{servicio}</option>)}
+              </select>
+            </label>
+            {(fechaAltaDesde || fechaAltaHasta || servicioAlta) && (
+              <button type="button" onClick={() => { setFechaAltaDesde(""); setFechaAltaHasta(""); setServicioAlta(""); }}>
+                Limpiar filtros
+              </button>
+            )}
           </div>
         )}
         {subvista === "internados" && pacientesFiltrados.length > 0 && (
@@ -181,20 +236,47 @@ export function EnfermeraInternacionView({ subvista, unidad = "internacion", sol
             <span>ACCIONES</span>
           </div>
         )}
-        {subvista === "altas" && pacientesFiltrados.length > 0 && (
-          <div className="internacion-altas-cabecera">
-            <span>PACIENTE</span>
-            <span>HISTORIA CLÍNICA</span>
-            <span>MÉDICO RESPONSABLE</span>
-            <span>SALA Y CAMA</span>
-            <span>FECHA DE INGRESO</span>
-            <span>FECHA DE ALTA</span>
-            <span>ESTADO</span>
+        {subvista === "altas" ? (
+          <div className="internacion-altas-tabla-scroll" role="region" aria-label="Tabla de altas hospitalarias" tabIndex={0}>
+            <table className="internacion-altas-tabla">
+              <thead>
+                <tr>
+                  <th>Paciente</th>
+                  <th>Historia clínica</th>
+                  <th>Médico responsable</th>
+                  <th>Servicio</th>
+                  <th>Sala y cama</th>
+                  <th>Fecha de ingreso</th>
+                  <th>Fecha de alta</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {altasPagina.length ? altasPagina.map((item) => (
+                  <tr key={item.id}>
+                    <td><strong>{item.paciente}</strong><small>CI {item.ci}</small></td>
+                    <td>HC-{item.ci}</td>
+                    <td>{item.medico || "Sin asignar"}</td>
+                    <td>{item.servicio || "Sin especificar"}</td>
+                    <td>Sala {item.sala || "—"} · Cama {item.cama || "—"}</td>
+                    <td>{item.fechaIngreso || item.fecha || "—"}</td>
+                    <td>{item.fechaAlta || "Sin registro"}</td>
+                    <td><span className="internacion-alta-estado">Alta confirmada</span></td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={8} className="internacion-altas-tabla-vacia">
+                      <Icon name={altas.length ? "search" : "check"} size={24} />
+                      <strong>{altas.length ? "No hay altas que coincidan con los filtros" : "Todavía no hay pacientes dados de alta"}</strong>
+                      <small>{altas.length ? "Cambia la búsqueda o limpia los filtros para ver otros registros." : "Cuando se registre un alta hospitalaria, aparecerá aquí con su fecha y antecedentes de internación."}</small>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
-        {pacientesFiltrados.length ? (
+        ) : pacientesFiltrados.length ? (
           pacientesFiltrados.map((item) =>
-            subvista === "internados" ? (
               <article className="internacion-fila-tabla" key={item.id}>
                 <b className="internacion-chip">{item.sala || "—"}</b>
                 <b className="internacion-chip">{item.cama || "—"}</b>
@@ -212,48 +294,29 @@ export function EnfermeraInternacionView({ subvista, unidad = "internacion", sol
                   <Icon name="patient" size={16} /> Atender
                 </button>
               </article>
-            ) : (
-              <article className="internacion-alta-fila" key={item.id}>
-                <div className="internacion-paciente">
-                  <span>
-                    <Icon name="patient" size={18} />
-                  </span>
-                  <span>
-                    <strong>{item.paciente}</strong>
-                    <small>CI {item.ci}</small>
-                  </span>
-                </div>
-                <strong>HC-{item.ci}</strong>
-                <strong>{item.medico}</strong>
-                <strong>
-                  Sala {item.sala || "—"} · Cama {item.cama || "—"}
-                </strong>
-                <strong>{item.fechaIngreso || item.fecha}</strong>
-                <strong>{item.fechaAlta || "Sin registro"}</strong>
-                <em className="alta">Alta registrada</em>
-              </article>
-            ),
           )
-        ) : !busqueda && subvista === "internados" ? null : (
+        ) : !busqueda ? null : (
           <div className="internacion-listado-vacio">
-            <Icon
-              name={subvista === "internados" ? "patient" : "check"}
-              size={26}
-            />
-            <strong>
-              {busqueda
-                ? "No se encontraron coincidencias"
-                : subvista === "internados"
-                  ? "No hay pacientes internados"
-                  : "No hay altas registradas"}
-            </strong>
-            <small>
-              {busqueda
-                ? "Prueba con otro nombre, CI, sala o cama."
-                : subvista === "internados"
-                  ? "Los ingresos confirmados aparecerán aquí."
-                  : "Las altas médicas aparecerán aquí."}
-            </small>
+            <Icon name="patient" size={26} />
+            <strong>No se encontraron coincidencias</strong>
+            <small>Prueba con otro nombre, CI, sala o cama.</small>
+          </div>
+        )}
+        {subvista === "altas" && (
+          <div className="internacion-altas-paginacion" aria-label="Paginación de altas">
+            <div>
+              <label>Filas
+                <select value={tamanoPaginaAltas} onChange={(evento) => setTamanoPaginaAltas(Number(evento.target.value))}>
+                  {[10, 25, 50].map((cantidad) => <option value={cantidad} key={cantidad}>{cantidad}</option>)}
+                </select>
+              </label>
+              <span>{altasFiltradas.length ? `${(paginaAltasActual - 1) * tamanoPaginaAltas + 1}–${Math.min(paginaAltasActual * tamanoPaginaAltas, altasFiltradas.length)} de ${altasFiltradas.length}` : "0 resultados"}</span>
+            </div>
+            <div>
+              <button type="button" aria-label="Página anterior" disabled={paginaAltasActual <= 1} onClick={() => setPaginaAltas((pagina) => Math.max(1, pagina - 1))}>‹</button>
+              <span>Página {paginaAltasActual} de {totalPaginasAltas}</span>
+              <button type="button" aria-label="Página siguiente" disabled={paginaAltasActual >= totalPaginasAltas} onClick={() => setPaginaAltas((pagina) => Math.min(totalPaginasAltas, pagina + 1))}>›</button>
+            </div>
           </div>
         )}
       </section>

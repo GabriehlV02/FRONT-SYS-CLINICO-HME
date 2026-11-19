@@ -14,5 +14,22 @@
 .farmacia-solicitudes-enfermeria th { background: #f0f7fc; }
 .farmacia-solicitudes-enfermeria footer { display: flex; justify-content: flex-end; margin-top: 16px; }
 .farmacia-solicitudes-vacio { padding: 32px; text-align: center; }
+.farmacia-solicitudes-tabla-scroll { width: 100%; overflow-x: auto; border: 1px solid #d7e6f0; border-radius: 10px; }
+.farmacia-solicitudes-tabla { width: 100%; min-width: 1080px; margin: 0; border-collapse: collapse; text-align: left; font-size: 13px; }
+.farmacia-solicitudes-tabla th { position: sticky; top: 0; z-index: 1; background: #eef7fc; color: #31546c; white-space: nowrap; }
+.farmacia-solicitudes-tabla td { vertical-align: middle; }
+.farmacia-solicitudes-items { display: grid; gap: 4px; min-width: 180px; }
+.farmacia-solicitudes-items span, .farmacia-solicitudes-fecha-dispensacion { color: #668095; font-size: 12px; }
+.farmacia-solicitudes-estado { display: inline-flex; padding: 5px 9px; border-radius: 999px; background: #fff4df; color: #98600a; font-size: 12px; font-weight: 700; }
+.farmacia-solicitudes-estado.dispensada { background: #e8f6ee; color: #247444; }
+.farmacia-solicitudes-estado.anulada { background: #fde9e8; color: #a9322b; }
+.farmacia-solicitudes-fecha-dispensacion { display: block; margin-top: 5px; white-space: nowrap; }
+.farmacia-solicitudes-sin-dato { color: #8297a6; }
+.farmacia-solicitudes-tabla td:last-child button { white-space: nowrap; font-weight: 700; }
+.farmacia-solicitudes-acciones { display: flex; align-items: center; gap: 8px; }
+.farmacia-solicitudes-tabla td:last-child button.secundario { border-color: #e4b4b2; background: #fff; color: #a9322b; }
+.farmacia-solicitudes-paginacion { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #668095; font-size: 13px; }
+.farmacia-solicitudes-paginacion > div { display: flex; gap: 8px; }
+.farmacia-solicitudes-paginacion button { background: #f4f9fc; color: #31546c; }
 .sistema-app[data-theme="dark"] .farmacia-solicitudes-enfermeria { color: #d3e4f0; background: #102c46; border-color: #42647d; }
 .sistema-app[data-theme="dark"] .farmacia-solicitudes-enfermeria :is(select, th) { color: #d3e4f0; background: #163b58; }

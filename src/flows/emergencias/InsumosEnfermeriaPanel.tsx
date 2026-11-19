@@ -26,6 +26,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
   const idSolicitud = useRef(crypto.randomUUID());
   const [lineas, setLineas] = useState<{ item_id: string; cantidad: string }[]>([]);
   const [observacion, setObservacion] = useState(""), [enviando, setEnviando] = useState(false), [errorSolicitud, setErrorSolicitud] = useState("");
+  const [servicioSolicitud, setServicioSolicitud] = useState(""), [pacientesSolicitud, setPacientesSolicitud] = useState("");
   useEffect(() => {
     let vigente = true;
     setCargando(true);
@@ -78,7 +79,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
     : [];
   const pedidosAlmacen = solicitudes.filter((pedido) => Number(pedido.almacen_destino_id) === Number(almacen));
   const abrir = () => {
-    idSolicitud.current = crypto.randomUUID(); setLineas([]); setObservacion(""); setBusqueda(""); setErrorSolicitud(""); modal.current?.showModal();
+    idSolicitud.current = crypto.randomUUID(); setLineas([]); setObservacion(""); setServicioSolicitud(""); setPacientesSolicitud(""); setBusqueda(""); setErrorSolicitud(""); modal.current?.showModal();
   };
   const agregarSeleccionado = (item: ItemInsumos) => {
     setSeleccionados((actuales) =>
@@ -128,8 +129,9 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
     if (enviando) return;
     setEnviando(true); setErrorSolicitud("");
     try {
-      if (!almacen || !lineas.length || lineas.some((linea) => !linea.item_id || !Number.isFinite(Number(linea.cantidad)) || Number(linea.cantidad) <= 0) || new Set(lineas.map((linea) => linea.item_id)).size !== lineas.length) throw new Error("Agrega al menos un insumo y verifica que todas las cantidades sean mayores que cero.");
-      await enviarSolicitudInsumos({ id: idSolicitud.current, almacen_destino_id: Number(almacen), detalles: lineas.map((linea) => ({ item_id: Number(linea.item_id), cantidad: Number(linea.cantidad) })), observacion });
+      if (!almacen || !servicioSolicitud.trim() || !lineas.length || lineas.some((linea) => !linea.item_id || !Number.isFinite(Number(linea.cantidad)) || Number(linea.cantidad) <= 0) || new Set(lineas.map((linea) => linea.item_id)).size !== lineas.length) throw new Error("Indica el servicio y agrega al menos un insumo con cantidad válida.");
+      const pacientes = pacientesSolicitud.split(/[\n,;]+/).map((paciente) => paciente.trim()).filter(Boolean);
+      await enviarSolicitudInsumos({ id: idSolicitud.current, almacen_destino_id: Number(almacen), servicio: servicioSolicitud.trim(), pacientes, detalles: lineas.map((linea) => ({ item_id: Number(linea.item_id), cantidad: Number(linea.cantidad) })), observacion });
       modal.current?.close(); setVersion((actual) => actual + 1);
       notificar("exito", "Solicitud enviada a Farmacia", "Las cantidades se sumarán a tu almacén cuando Farmacia confirme la dispensación.");
     } catch (fallo) { setErrorSolicitud(fallo instanceof Error ? fallo.message : "No se pudo enviar la solicitud."); }
@@ -224,10 +226,11 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
               </article>;
             })}</div> : <p className="em-insumos-solicitud-lista-vacia">Busca un insumo y elige “Agregar”. Aquí podrás indicar la cantidad antes de enviar.</p>}
           </section>
+          <div className="em-insumos-solicitud-contexto"><label>Servicio solicitante<input required maxLength={120} disabled={enviando} value={servicioSolicitud} onChange={(evento) => setServicioSolicitud(evento.target.value)} placeholder="Ej. Emergencias, Pediatría, UCI" /></label><label>Pacientes para quienes se solicita<textarea maxLength={1000} disabled={enviando} value={pacientesSolicitud} onChange={(evento) => setPacientesSolicitud(evento.target.value)} placeholder="Nombres separados por coma o línea" /></label></div>
           <label>Observación<textarea maxLength={1000} disabled={enviando} value={observacion} onChange={(evento) => setObservacion(evento.target.value)} placeholder="Motivo de la reposición (opcional)" /></label>
           <p>La solicitud quedará pendiente. El stock se actualizará después de que Farmacia dispense los insumos.</p>
           {errorSolicitud && <p role="alert" className="em-error">{errorSolicitud}</p>}
-          <footer><button type="button" disabled={enviando} onClick={() => modal.current?.close()}>Cancelar</button><button type="submit" className="em-primario" disabled={enviando || !almacen || !lineas.length || !opciones.catalogo.length}>{enviando ? "Enviando…" : "Enviar solicitud"}</button></footer>
+          <footer><button type="button" disabled={enviando} onClick={() => modal.current?.close()}>Cancelar</button><button type="submit" className="em-primario" disabled={enviando || !almacen || !servicioSolicitud.trim() || !lineas.length || !opciones.catalogo.length}>{enviando ? "Enviando…" : "Enviar solicitud"}</button></footer>
         </form>
       </dialog>
     </section>

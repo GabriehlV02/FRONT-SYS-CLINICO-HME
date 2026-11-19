@@ -465,6 +465,25 @@
 .sistema-app .sistema-sidebar .replegar-menu:hover {
   transform: scale(1.05);
 }
+
+/* Mantiene estable el alto de la lista mientras el ancho del panel anima.
+   Si el contenido se reacomoda durante la transición, el navegador recorta
+   scrollTop y el usuario pierde su posición al abrir el menú con hover. */
+@media (min-width: 761px) {
+  .sistema-app.sidebar-replegado .sistema-sidebar {
+    overflow-x: clip;
+  }
+  .sistema-app.sidebar-replegado .sistema-sidebar .sistema-nav {
+    width: 270px;
+    min-width: 270px;
+    flex: 1 0 270px;
+    scrollbar-width: none;
+  }
+  .sistema-app.sidebar-replegado .sistema-sidebar .sistema-nav::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @media (min-width: 761px) {
   .sistema-app.sidebar-replegado .sistema-sidebar .sistema-marca {
     display: none !important;

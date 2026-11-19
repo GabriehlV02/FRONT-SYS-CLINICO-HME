@@ -4,6 +4,8 @@ import React, {
   Suspense,
   lazy,
   useEffect,
+  useLayoutEffect,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -715,7 +717,7 @@ const modulos: Modulo[] = [
     grupo: "COCINA",
   },
   { id: "almacen", nombre: "Almacén", icono: "warehouse", grupo: "ALMACÉN" },
-  { id: "dispensar", nombre: "Dispensar", icono: "pill", grupo: "ALMACÉN" },
+  { id: "dispensar", nombre: "Dispensar de almacén", icono: "pill", grupo: "ALMACÉN" },
   {
     id: "configuracion",
     nombre: "Configuración",
@@ -1318,6 +1320,34 @@ export default function Aplicacion() {
   );
   const [sidebarCerradoPorSeleccion, setSidebarCerradoPorSeleccion] =
     useState(false);
+  const sidebarNavRef = useRef<HTMLElement | null>(null);
+  const sidebarScrollGuardado = useRef((() => {
+    try {
+      const guardado = Number(sessionStorage.getItem("clinico_sidebar_scroll"));
+      return Number.isFinite(guardado) && guardado > 0 ? guardado : 0;
+    } catch {
+      return 0;
+    }
+  })());
+  const guardarScrollSidebar = () => {
+    const nav = sidebarNavRef.current;
+    if (!nav) return;
+    sidebarScrollGuardado.current = nav.scrollTop;
+    try {
+      sessionStorage.setItem("clinico_sidebar_scroll", String(nav.scrollTop));
+    } catch {
+      // El scroll sigue conservado en memoria si el almacenamiento está bloqueado.
+    }
+  };
+  const restaurarScrollSidebar = () => {
+    const nav = sidebarNavRef.current;
+    if (nav) nav.scrollTop = sidebarScrollGuardado.current;
+  };
+  useLayoutEffect(() => {
+    if (sidebarReplegado) return;
+    const frame = window.requestAnimationFrame(restaurarScrollSidebar);
+    return () => window.cancelAnimationFrame(frame);
+  }, [sidebarReplegado]);
   const [modoRevision, setModoRevision] = useState(
     () => localStorage.getItem("clinico_modo_revision") === "1",
   );
@@ -1334,6 +1364,7 @@ export default function Aplicacion() {
     const replegar = () =>
       setSidebarReplegado((actual) => {
         if (actual) return actual;
+        guardarScrollSidebar();
         localStorage.setItem("pulso_sidebar_replegado", "1");
         return true;
       });
@@ -1486,12 +1517,14 @@ export default function Aplicacion() {
     setBusqueda("");
     setModulo("");
   };
-  const alternarSidebar = () =>
+  const alternarSidebar = () => {
+    if (!sidebarReplegado) guardarScrollSidebar();
     setSidebarReplegado((valor) => {
       const siguiente = !valor;
       localStorage.setItem("pulso_sidebar_replegado", siguiente ? "1" : "0");
       return siguiente;
     });
+  };
   const replegarSidebarAlInteractuar = () =>
     window.dispatchEvent(new Event("clinico:replegar-sidebar"));
   return (
@@ -1521,7 +1554,14 @@ export default function Aplicacion() {
       )}
       <aside
         className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""}`}
-        onMouseLeave={() => setSidebarCerradoPorSeleccion(false)}
+        onMouseEnter={() => {
+          if (!sidebarReplegado || sidebarCerradoPorSeleccion) return;
+          window.requestAnimationFrame(restaurarScrollSidebar);
+        }}
+        onMouseLeave={() => {
+          if (!sidebarReplegado) guardarScrollSidebar();
+          setSidebarCerradoPorSeleccion(false);
+        }}
         onKeyDown={(evento) => {
           if (evento.key === "Tab") setSidebarCerradoPorSeleccion(false);
         }}
@@ -1545,7 +1585,19 @@ export default function Aplicacion() {
             <Icon name="close" />
           </button>
         </div>
-        <nav className="sistema-nav" aria-label="Módulos del sistema">
+        <nav
+          ref={sidebarNavRef}
+          className="sistema-nav"
+          aria-label="Módulos del sistema"
+          onScroll={(evento) => {
+            const sidebar = evento.currentTarget.closest(".sistema-sidebar");
+            const desplegado = !sidebarReplegado ||
+              (!sidebarCerradoPorSeleccion && Boolean(sidebar?.matches(":hover, :focus-within, .sidebar-abierto")));
+            // Al compactarse desaparecen etiquetas y cambia scrollHeight: no
+            // guardamos el scrollTop que el navegador recorta en esa transición.
+            if (desplegado) guardarScrollSidebar();
+          }}
+        >
           {[...new Set(modulosVisibles.map((item) => item.grupo))].map(
             (grupo) => (
               <section key={grupo}>
@@ -1561,6 +1613,9 @@ export default function Aplicacion() {
                         key={item.id}
                         className={`nav-modulo nav-${item.id}${modulo === item.id ? " activo" : ""}`}
                         onClick={(evento) => {
+                          if (window.matchMedia("(min-width: 761px)").matches) {
+                            guardarScrollSidebar();
+                          }
                           setModulo(item.id);
                           if (item.id === "enfermera-instrumentista") {
                             setRolEnfermeriaQuirofano("instrumentista");
@@ -2417,18 +2472,6 @@ export default function Aplicacion() {
                     </span>
                     <strong>Pacientes dados de alta</strong>
                     <small>Historial de internaciones finalizadas.</small>
-                  </button>
-                  <button
-                    type="button"
-                    aria-current={subvistaMedicoInternacion === "dietas" ? "page" : undefined}
-                    className={subvistaMedicoInternacion === "dietas" ? "activo" : ""}
-                    onClick={() => setSubvistaMedicoInternacion("dietas")}
-                  >
-                    <span>
-                      <Icon name="utensils" size={17} />
-                    </span>
-                    <strong>Dietas</strong>
-                    <small>Catálogo de dietas disponibles para internación.</small>
                   </button>
                 </HorizontalSubvistaNav>
                 <EnfermeraInternacionView

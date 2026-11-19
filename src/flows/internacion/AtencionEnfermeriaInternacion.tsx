@@ -571,10 +571,6 @@ export function AtencionEnfermeriaInternacion({
           <button type="button" className={seccionPaciente === "reportes" ? "activo" : ""} aria-current={seccionPaciente === "reportes" ? "page" : undefined} onClick={() => setSeccionPaciente("reportes")}><span aria-hidden="true"><Icon name="clipboardMedical" size={17} /></span>Reportes</button>
           {unidad !== "uci" && <button type="button" className="enfermeria-resumen-trasladar"><Icon name="bed" size={16} /> Trasladar paciente</button>}
         </nav>
-        {seccionPaciente === "ingreso" && unidad !== "uci" && (
-          <section className="enfermeria-ingreso-controles" aria-label="Signos vitales y balance h?drico">
-          </section>
-        )}
         {seccionPaciente === "reportes" && (
           <section className="enfermeria-reporte-panel" aria-labelledby="enfermeria-reporte-titulo">
             <header><div><span>RESUMEN DE INTERNACIÓN</span><h3 id="enfermeria-reporte-titulo">Reportes de enfermería</h3><p>Registros clínicos asociados a esta internación.</p></div><button type="button" onClick={() => window.print()}><Icon name="fileText" size={16} /> Imprimir reporte</button></header>
@@ -591,8 +587,8 @@ export function AtencionEnfermeriaInternacion({
             {signos.length > 0 && <section className="enfermeria-reporte-seccion"><h4>Última toma de signos vitales</h4>{(() => { const toma = signos.at(-1)!; return <div className="enfermeria-reporte-signos"><span>Temperatura <b>{toma.temperatura} °C</b></span><span>Frecuencia cardíaca <b>{toma.frecuenciaCardiaca} lpm</b></span><span>Frecuencia respiratoria <b>{toma.frecuenciaRespiratoria} rpm</b></span><span>Saturación <b>{toma.saturacion}%</b></span><span>Presión arterial <b>{toma.presionSistolica}/{toma.presionDiastolica} mmHg</b></span><time>{new Date(`${toma.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {toma.hora}</time></div>; })()}</section>}
           </section>
         )}
-        {seccionPaciente === "atencion" && <section className="enfermeria-paciente-subvistas">
-        {errorLaboratorio && <p role="alert">{errorLaboratorio}</p>}
+        {seccionPaciente === "ingreso" && unidad !== "uci" && (
+          <section className="enfermeria-paciente-subvistas">
           <section className="enfermeria-evolucion">
             <div className="enfermeria-evolucion-layout">
               <form className="enfermeria-evolucion-form" onSubmit={guardarEvolucion}>
@@ -666,6 +662,10 @@ export function AtencionEnfermeriaInternacion({
               </div>
             )}
           </section>
+          </section>
+        )}
+        {seccionPaciente === "atencion" && <section className="enfermeria-paciente-subvistas">
+        {errorLaboratorio && <p role="alert">{errorLaboratorio}</p>}
           <div className="enfermeria-atencion-seguimiento">
             <InsumosEnfermeriaPanel onUtilizar={async (item, cantidad) => {
               try {

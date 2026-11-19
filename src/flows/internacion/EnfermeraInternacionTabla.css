@@ -163,6 +163,171 @@
   overflow-x: auto;
 }
 
+.internacion-altas-filtros {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid #dceaf2;
+  background: #fbfdff;
+}
+.internacion-altas-filtros label {
+  display: grid;
+  gap: 6px;
+  color: #315875;
+  font-size: 11px;
+  font-weight: 800;
+}
+.internacion-altas-filtros input,
+.internacion-altas-filtros select,
+.internacion-altas-paginacion select {
+  height: 38px;
+  min-width: 150px;
+  padding: 0 10px;
+  border: 1px solid #c8ddea;
+  border-radius: 8px;
+  color: #214a69;
+  background: #fff;
+  font: inherit;
+}
+.internacion-altas-filtros button {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #c8ddea;
+  border-radius: 8px;
+  color: #087fc0;
+  background: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.internacion-altas-tabla-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+.internacion-altas-tabla {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+  color: #214a69;
+  font-size: 12px;
+}
+.internacion-altas-tabla th {
+  height: 54px;
+  padding: 0 14px;
+  color: #5481a8;
+  background: #f4faff;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.internacion-altas-tabla td {
+  height: 66px;
+  padding: 10px 14px;
+  border-top: 1px solid #e5eef4;
+  white-space: nowrap;
+}
+.internacion-altas-tabla td:first-child {
+  min-width: 205px;
+  white-space: normal;
+}
+.internacion-altas-tabla td:first-child strong,
+.internacion-altas-tabla td:first-child small {
+  display: block;
+}
+.internacion-altas-tabla td:first-child strong {
+  color: #064773;
+  font-size: 13px;
+}
+.internacion-altas-tabla td:first-child small {
+  margin-top: 3px;
+  color: #69869b;
+  font-size: 11px;
+}
+.internacion-alta-estado {
+  display: inline-flex;
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: #17633d;
+  background: #e7f6ec;
+  font-size: 10px;
+  font-weight: 850;
+}
+.internacion-altas-tabla .internacion-altas-tabla-vacia {
+  height: 210px;
+  padding: 28px;
+  color: #69869b;
+  text-align: center;
+  white-space: normal;
+}
+.internacion-altas-tabla-vacia svg,
+.internacion-altas-tabla-vacia strong,
+.internacion-altas-tabla-vacia small {
+  display: block;
+  margin: 0 auto 8px;
+}
+.internacion-altas-tabla-vacia svg {
+  box-sizing: content-box;
+  width: 25px;
+  height: 25px;
+  padding: 12px;
+  border-radius: 50%;
+  color: #087fc0;
+  background: #eaf7fd;
+}
+.internacion-altas-tabla-vacia strong {
+  color: #315875;
+  font-size: 14px;
+}
+.internacion-altas-tabla-vacia small {
+  color: #69869b;
+  font-size: 12px;
+}
+.internacion-altas-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 62px;
+  padding: 10px 18px;
+  border-top: 1px solid #dceaf2;
+  color: #69869b;
+  font-size: 12px;
+}
+.internacion-altas-paginacion > div,
+.internacion-altas-paginacion > div > label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.internacion-altas-paginacion > div > label {
+  color: #315875;
+  font-size: 11px;
+  font-weight: 800;
+}
+.internacion-altas-paginacion select {
+  min-width: 68px;
+  height: 34px;
+}
+.internacion-altas-paginacion button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #c8ddea;
+  border-radius: 8px;
+  color: #087fc0;
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+}
+.internacion-altas-paginacion button:disabled {
+  color: #a7bdcc;
+  background: #f7fafc;
+  cursor: default;
+}
+
 /* Impide que las reglas de tarjetas genéricas desplacen las columnas de la tabla. */
 .internacion-listado .internacion-fila-tabla {
   display: grid;
@@ -211,5 +376,26 @@
   .internacion-herramientas label,
   .internacion-herramientas > button {
     width: 100%;
+  }
+  .internacion-altas-filtros {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+  .internacion-altas-filtros label {
+    flex: 1 1 145px;
+  }
+  .internacion-altas-filtros input,
+  .internacion-altas-filtros select {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+  }
+  .internacion-altas-paginacion {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .internacion-altas-paginacion > div {
+    width: 100%;
+    justify-content: space-between;
   }
 }

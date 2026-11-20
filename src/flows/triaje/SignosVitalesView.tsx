@@ -1,4 +1,3 @@
-import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { useState, useEffect, useRef } from "react";
 import Icon from "../../radius/componentes/Icono";
 import { notificar } from "../../radius/componentes/Notificaciones";
@@ -70,12 +69,12 @@ export function SignosVitalesView({
   camposConfigurados?: SignoVitalConfig[];
 }) {
   const catalogoServicios = useServiciosSignosVitales();
-  const esDemo = esModoPruebaLocal();
-  const [cola, setCola] = useState(() => esDemo ? leerListaDemo(claveColaDemo, colaInicial) : []);
+
+  const [cola, setCola] = useState<PacienteEnEspera[]>([]);
   const citasVistas = useRef(new Set(cola.map((cita) => cita.id)));
   const [errorPacientes, setErrorPacientes] = useState("");
   useEffect(() => {
-    if (esDemo) return;
+
     const controller = new AbortController();
     let cargaInicial = true;
     const actualizarCitas = () => apiFetch("/api/citas", { signal: controller.signal })
@@ -134,14 +133,14 @@ export function SignosVitalesView({
       controller.abort();
       window.clearInterval(intervalo);
     };
-  }, [esDemo]);
+  }, []);
   const [busqueda, setBusqueda] = useState("");
   const [pacienteSeleccionado, setPacienteSeleccionado] =
     useState<PacienteEnEspera | null>(null);
   const [valores, setValores] = useState<Record<string, string>>({});
   const [motivoConsulta, setMotivoConsulta] = useState("");
   const [atendidos, setAtendidos] =
-    useState<PacienteAtendido[]>(() => esDemo ? leerListaDemo(claveAtendidosDemo, atendidosIniciales) : []);
+    useState<PacienteAtendido[]>(() => []);
   const [panelAtendidosAbierto, setPanelAtendidosAbierto] = useState(true);
   const [busquedaAtendidos, setBusquedaAtendidos] = useState("");
   const [editandoAtendido, setEditandoAtendido] = useState(false);
@@ -150,40 +149,8 @@ export function SignosVitalesView({
   const [versionValoracion, setVersionValoracion] = useState<number | null>(
     null,
   );
-  useEffect(() => {
-    if (!esDemo) return;
-    localStorage.setItem(claveColaDemo, JSON.stringify(cola));
-    localStorage.setItem(claveAtendidosDemo, JSON.stringify(atendidos));
-  }, [esDemo, cola, atendidos]);
-  useEffect(() => {
-    if (!esDemo) return;
-    const actualizarAgenda = () => {
-      const anteriores = new Map(cola.map((cita) => [cita.id, cita]));
-      const citas = obtenerCitasAgendaDemo()
-        .filter((cita) => cita.estado === "confirmada" || cita.estado === "por_confirmar");
-      const nuevas = citas.filter((cita) => !citasVistas.current.has(cita.id));
-      citas.forEach((cita) => citasVistas.current.add(cita.id));
-      nuevas.forEach((cita) => notificar(
-        "informacion",
-        "Nueva consulta para triaje",
-        `${cita.paciente} · ${cita.hora}. Enfermería puede registrar sus signos vitales.`,
-      ));
-      setCola(
-        citas
-          .map((cita) => ({
-            ...cita,
-            motivoConsulta: cita.motivoOperativo,
-            signosRegistrados: anteriores.get(cita.id)?.signosRegistrados,
-          })),
-      );
-    };
-    window.addEventListener("citas:actualizadas", actualizarAgenda);
-    window.addEventListener("pacientes:actualizados", actualizarAgenda);
-    return () => {
-      window.removeEventListener("citas:actualizadas", actualizarAgenda);
-      window.removeEventListener("pacientes:actualizados", actualizarAgenda);
-    };
-  }, [esDemo, cola]);
+
+
   const atendidosVisibles = atendidos.filter((paciente) =>
     `${paciente.paciente} ${paciente.ci} ${paciente.doctor}`
       .toLocaleLowerCase()
@@ -241,7 +208,7 @@ export function SignosVitalesView({
     setGuardando(true);
     setErrorRegistro("");
     try {
-      if (!esDemo) {
+      {
         const respuesta = await apiFetch(
           `/api/v1/citas/${encodeURIComponent(pacienteSeleccionado.id)}/signos-vitales`,
           {
@@ -294,15 +261,7 @@ export function SignosVitalesView({
 
   const editar = async (paciente: PacienteAtendido) => {
     setErrorPacientes("");
-    if (esDemo) {
-      setValores(paciente.valores);
-      setMotivoConsulta(paciente.motivoConsulta || "");
-      setVersionValoracion(1);
-      setPacienteSeleccionado(paciente);
-      setEditandoAtendido(true);
-      setErrorRegistro("");
-      return;
-    }
+
     try {
       const respuesta = await apiFetch(
         `/api/v1/citas/${encodeURIComponent(paciente.id)}/signos-vitales`,

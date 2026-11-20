@@ -9,7 +9,6 @@ import "./EquiposRecargas.css";
 import "./UsoPacientesLaboratorio.css";
 import "./UsoPacientesAcciones.css";
 import "./UsoPacientesAccionesLayout.css";
-import { ejemplosLaboratorio } from "./ejemplosLaboratorio";
 import {
   leerSolicitudesLaboratorio,
   suscribirLaboratorio,

@@ -1,4 +1,3 @@
-import { esModoPruebaLocal } from "./datos/modoPrueba";
 import { apiFetch } from "./api";
 import { obtenerPacientes } from "./datos/almacenDemo";
 
@@ -23,18 +22,7 @@ export async function sincronizarPaciente(datos: DatosPacienteCompartido) {
     throw new Error(
       "Selecciona un paciente registrado o completa su registro en Pacientes.",
     );
-  if (
-    esModoPruebaLocal()
-  ) {
-    const paciente = obtenerPacientes().find(
-      (item) => item.numeroDocumento.trim() === ci.trim(),
-    );
-    if (!paciente)
-      throw new Error(
-        "No encontramos esa ficha de demostración. Selecciona un paciente de la lista.",
-      );
-    return { data: { id: paciente.id } };
-  }
+
   const respuesta = await apiFetch(
     `/api/v1/pacientes/buscar?ci=${encodeURIComponent(ci.trim())}`,
     { headers: { Accept: "application/json" } },

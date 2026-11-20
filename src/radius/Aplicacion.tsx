@@ -1,5 +1,4 @@
 import { ErrorAplicacion } from "./componentes/ErrorAplicacion";
-﻿import { esModoPruebaLocal } from "./datos/modoPrueba";
 import React, {
   Suspense,
   lazy,
@@ -16,7 +15,6 @@ import { usePacientes } from "./vistas/pacientes/usePacientes";
 import { obtenerEstudios, obtenerInformes } from "./datos/almacenDemo";
 import { obtenerCitasAgendaDemo } from "./datos/agendaDemo";
 import { leerCronograma } from "../flows/quirofano/cronogramaQuirofano";
-import { obtenerPacientesTerapiaDemo } from "../flows/internacion/terapiaIntensivaDemo";
 import { obtenerSolicitudesImagenologia } from "./datos/solicitudesImagenologiaDemo";
 import {
   apiEmergencias,
@@ -472,43 +470,6 @@ const subvistasPacientes: {
   { id: "estudios", nombre: "Estudios del paciente", icono: "image" },
 ];
 
-const ejemplosInternacionCola = [
-  {
-    id: "COLA-DEMO-I1",
-    paciente: "Luis Esteban Escobar Rocha",
-    sala: "108",
-    cama: "B",
-    horaIngreso: "09:20",
-  },
-  {
-    id: "COLA-DEMO-I2",
-    paciente: "Mariana Flores Cárdenas",
-    sala: "204",
-    cama: "A",
-    horaIngreso: "11:40",
-  },
-];
-const ejemplosEmergenciasCola = [
-  {
-    id: "COLA-DEMO-E1",
-    paciente: "Ana Lucía Pérez Salinas",
-    detalle: "Cubículo 2 · Prioridad II",
-    hora: "08:45",
-  },
-  {
-    id: "COLA-DEMO-E2",
-    paciente: "Jorge Luis Condori",
-    detalle: "Cubículo 4 · Prioridad III",
-    hora: "10:05",
-  },
-];
-const ejemplosTerapiaCola = obtenerPacientesTerapiaDemo().map((paciente) => ({
-  id: paciente.id,
-  paciente: paciente.paciente,
-  detalle: `${paciente.sala} · Cama ${paciente.cama}`,
-  hora: paciente.hora,
-}));
-
 const modulos: Modulo[] = [
   {
     id: "recepcion",
@@ -944,16 +905,7 @@ export default function Aplicacion() {
       .filter(Boolean)
       .join(" "),
   );
-  const cirugiasLocales: CirugiaProgramada[] = import.meta.env.DEV
-    ? leerCronograma().filter((cirugia) => cirugia.id.startsWith("prueba-cirugia-")).map((cirugia) => ({
-        id: cirugia.id, hora: cirugia.hora, sala: cirugia.quirofano, paciente: cirugia.paciente,
-        procedimiento: cirugia.tipo, cirujano: cirugia.medico, estado: "Programada",
-        historia: `HC-${cirugia.ci}`, ci: cirugia.ci, edad: "Paciente de prueba",
-        diagnostico: "Escenario ficticio", anestesiologo: "Personal de prueba",
-        ayudante: "Personal de prueba", instrumentista: "Personal de prueba", circulante: "Personal de prueba",
-      }))
-    : [];
-  const cirugiasVisiblesEnfermeria = [...cirugiasProgramadas, ...cirugiasLocales].filter((cirugia) => {
+  const cirugiasVisiblesEnfermeria = cirugiasProgramadas.filter((cirugia) => {
     if (esAdministrador) return true;
     if (rolEnfermeriaQuirofano === "almacen") return true;
     const asignacion = buscarAsignacionQuirofano(cirugia);
@@ -995,13 +947,7 @@ export default function Aplicacion() {
   const [versionSignos, setVersionSignos] = useState(0);
   useEffect(() => {
     if (!sesion?.token) return;
-    if (
-      esModoPruebaLocal()
-    ) {
-      setSignosVitalesConfigurados(cargarSignos(signosVitalesIniciales));
-      setEstadoSignos("listo");
-      return;
-    }
+
     const controller = new AbortController();
     setEstadoSignos("cargando");
     apiFetch("/api/v1/configuracion/signos-vitales", {
@@ -1022,13 +968,7 @@ export default function Aplicacion() {
     return () => controller.abort();
   }, [sesion?.token, versionSignos]);
   const actualizarSignosVitales = async (siguientes: SignoVitalConfig[]) => {
-    if (
-      esModoPruebaLocal()
-    ) {
-      guardarSignos(siguientes);
-      setSignosVitalesConfigurados(siguientes);
-      return;
-    }
+
     const agregado = siguientes.find(
       (signo) =>
         !signosVitalesConfigurados.some((actual) => actual.id === signo.id),
@@ -1150,13 +1090,8 @@ export default function Aplicacion() {
         esInternacionPruebaLocal(internacion) ||
         normalizarNombre(internacion.medico) === nombreSesion),
   );
-  const esDemoClinico =
-    esModoPruebaLocal();
-  const citasVisiblesColaBase = esDemoClinico
-    ? citasColaAtencion.length
-      ? citasColaAtencion.filter((cita) => cita.estado === "confirmada")
-      : obtenerCitasAgendaDemo().filter((cita) => cita.estado === "confirmada")
-    : errorColaAtencion
+
+  const citasVisiblesColaBase = errorColaAtencion
       ? []
       : citasColaAtencion;
   const citasVisiblesCola = citasVisiblesColaBase.filter(
@@ -1164,17 +1099,11 @@ export default function Aplicacion() {
       cita.fecha === fechaActualCola &&
       esPendienteDeAtencion(cita, fechaActualCola),
   );
-  const internacionesVisiblesCola = internacionesColaAtencion.length
-    ? internacionesColaAtencion
-    : ejemplosInternacionCola;
+  const internacionesVisiblesCola = internacionesColaAtencion;
+  const pacientesTerapiaCola = internacionesActivas.filter((registro) => esPacienteUci(registro) && registro.estado === "confirmada").map((registro) => ({ id: registro.id, paciente: registro.paciente, detalle: [registro.sala, registro.cama].filter(Boolean).join(" · "), hora: registro.horaIngreso || "" }));
   useEffect(() => {
     if (!colaAtencionAbierta) return;
-    if (esDemoClinico) {
-      setErrorColaAtencion("");
-      setCitasColaAtencion(obtenerCitasAgendaDemo());
-      setCargandoColaAtencion(false);
-      return;
-    }
+
     const controller = new AbortController();
     setCargandoColaAtencion(true);
     setErrorColaAtencion("");
@@ -1200,7 +1129,7 @@ export default function Aplicacion() {
         if (!controller.signal.aborted) setCargandoColaAtencion(false);
       });
     return () => controller.abort();
-  }, [colaAtencionAbierta, esDemoClinico]);
+  }, [colaAtencionAbierta]);
   useEffect(() => {
     if (!colaAtencionAbierta) return;
     let cancelado = false;
@@ -1993,7 +1922,7 @@ export default function Aplicacion() {
                       Pacientes que requieren seguimiento prioritario.
                     </small>
                   </header>
-                  {ejemplosTerapiaCola.map((paciente, indice) => (
+                  {pacientesTerapiaCola.map((paciente, indice) => (
                     <article key={paciente.id}>
                       <span className="cola-atencion-numero">{indice + 1}</span>
                       <div className="cola-atencion-datos">

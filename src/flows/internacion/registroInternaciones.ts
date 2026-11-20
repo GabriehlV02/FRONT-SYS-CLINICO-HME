@@ -67,7 +67,7 @@ const evento = "internacion:actualizada";
 let cache: RegistroInternacion[] | null = null;
 const idsPrueba = ["INT-PRUEBA-LOCAL-001", "INT-PRUEBA-LOCAL-002", "INT-PRUEBA-UCI-001"];
 export const esInternacionPruebaLocal = (registro: RegistroInternacion) =>
-  import.meta.env.DEV && (idsPrueba.includes(registro.id) || registro.id.startsWith("prueba-internacion-"));
+  (idsPrueba.includes(registro.id) || registro.id.startsWith("prueba-internacion-"));
 
 export function esPacienteUci(registro: Pick<RegistroInternacion, "sala" | "tipoSala" | "servicio">) {
   const ubicacion = [registro.sala, registro.tipoSala, registro.servicio]
@@ -79,46 +79,6 @@ export function esPacienteUci(registro: Pick<RegistroInternacion, "sala" | "tipo
   return /\buci\b|terapia intensiva|cuidados intensivos|recuperacion/.test(ubicacion);
 }
 
-function agregarPacientesPrueba(registros: RegistroInternacion[]) {
-  if (!import.meta.env.DEV) return registros.filter((registro) => !idsPrueba.includes(registro.id));
-  if (registros.some((registro) => registro.id.startsWith("prueba-internacion-"))) return registros;
-  const ahora = new Date();
-  const fecha = ahora.toLocaleDateString("es-BO");
-  const nuevos = idsPrueba.filter((id) => !registros.some((registro) => registro.id === id)).map((id): RegistroInternacion => {
-    const numero = idsPrueba.indexOf(id) + 1;
-    const esTerapiaIntensiva = numero === 3;
-    return {
-      id,
-      pacienteId: `paciente-prueba-internacion-${numero}`,
-      paciente: esTerapiaIntensiva ? "Paciente de prueba UCI" : `Paciente de prueba Internación ${numero === 1 ? "Uno" : "Dos"}`,
-      ci: `TEST-INT-00${numero}`,
-      medico: esTerapiaIntensiva ? "Dr. Ejemplo UCI" : "Administrador local",
-      motivo: esTerapiaIntensiva ? "Neumonia grave - vigilancia intensiva" : "Paciente ficticio para pruebas de internación",
-      fecha,
-      fechaIngreso: fecha,
-      horaIngreso: esTerapiaIntensiva ? "08:15" : numero === 1 ? "09:20" : "11:40",
-      estado: "confirmada",
-      sala: esTerapiaIntensiva ? "UCI" : numero === 1 ? "105" : "106",
-      cama: esTerapiaIntensiva ? "A" : "A",
-      tipoSala: esTerapiaIntensiva ? "Terapia intensiva" : "Sala compartida",
-      servicio: esTerapiaIntensiva ? "Terapia intensiva" : "Medicina interna",
-      origen: "Prueba local",
-      observaciones: "Datos ficticios para comprobar enfermería, médico y cola de atención.",
-      datosPaciente: {
-        nacimiento: esTerapiaIntensiva ? "1978-04-12" : numero === 1 ? "1990-01-15" : "1985-06-20",
-        sexo: esTerapiaIntensiva || numero === 1 ? "Masculino" : "Femenino",
-        responsableNombre: esTerapiaIntensiva ? "Familiar de prueba" : "Responsable de prueba",
-      },
-    };
-  });
-  return [...registros, ...nuevos].map((registro) => {
-    if (!idsPrueba.includes(registro.id)) return registro;
-    const numero = idsPrueba.indexOf(registro.id) + 1;
-    if (numero === 1) return { ...registro, sala: "105", cama: "A", tipoSala: "Sala compartida" };
-    if (numero === 2) return { ...registro, sala: "106", cama: "A", tipoSala: "Sala compartida" };
-    return { ...registro, sala: "UCI", cama: "A", tipoSala: "Terapia intensiva", servicio: "Terapia intensiva" };
-  });
-}
 export function obtenerEjemplosInternacion(): RegistroInternacion[] { return []; }
 
 function disponible() {
@@ -131,8 +91,8 @@ export function leerInternaciones(): RegistroInternacion[] {
   try {
     const guardadas = JSON.parse(window.localStorage.getItem(clave) ?? "[]");
     const registros = Array.isArray(guardadas) ? guardadas : [];
-    const completos = agregarPacientesPrueba(registros);
-    if (import.meta.env.DEV && JSON.stringify(completos) !== JSON.stringify(registros)) {
+    const completos = registros.filter((registro) => !esInternacionPruebaLocal(registro));
+    if (JSON.stringify(completos) !== JSON.stringify(registros)) {
       window.localStorage.setItem(clave, JSON.stringify(completos));
     }
     return (cache = completos);

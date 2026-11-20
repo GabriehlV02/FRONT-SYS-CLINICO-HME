@@ -97,51 +97,6 @@ const ETIQUETAS_KIT: Record<string, string> = {
 };
 const etiquetaCirugia = (cirugia: CirugiaProgramada) =>
   `${cirugia.fecha} ${cirugia.hora} · ${cirugia.quirofano} · ${cirugia.paciente}`;
-const fechaDemo = (diasDesdeHoy: number) => {
-  const fecha = new Date();
-  fecha.setHours(0, 0, 0, 0);
-  fecha.setDate(fecha.getDate() + diasDesdeHoy);
-  return [
-    fecha.getFullYear(),
-    String(fecha.getMonth() + 1).padStart(2, "0"),
-    String(fecha.getDate()).padStart(2, "0"),
-  ].join("-");
-};
-const CIRUGIAS_DEMO: CirugiaProgramada[] = [
-  {
-    id: "demo-cirugia-cesarea",
-    cuenta: "DEMO-QX-001",
-    paciente: "Paciente de demostración A",
-    ci: "DEMO-001",
-    medico: "Dra. María Salazar",
-    tipo: "Cesárea",
-    quirofano: "Quirófano 1",
-    fecha: fechaDemo(1),
-    hora: "08:00",
-  },
-  {
-    id: "demo-cirugia-general",
-    cuenta: "DEMO-QX-002",
-    paciente: "Paciente de demostración B",
-    ci: "DEMO-002",
-    medico: "Dr. Pablo Rojas",
-    tipo: "Colecistectomía",
-    quirofano: "Quirófano 2",
-    fecha: fechaDemo(2),
-    hora: "10:30",
-  },
-  {
-    id: "demo-cirugia-actual",
-    cuenta: "DEMO-QX-003",
-    paciente: "Paciente de demostración C",
-    ci: "DEMO-003",
-    medico: "Dr. Ever Luizaga",
-    tipo: "Hernioplastia",
-    quirofano: "Quirófano 1",
-    fecha: fechaDemo(0),
-    hora: "11:00",
-  },
-];
 const leerCirugiasEsterilizacion = () => {
   const programadas = leerCronograma();
   return programadas;

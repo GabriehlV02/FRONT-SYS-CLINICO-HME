@@ -2804,7 +2804,7 @@ export function TriajeEmergenciasView({
                           <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(["balance"])}><Icon name="asset" size={17} /> Hoja de balance hídrico</button>
                           <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(["tratamiento"])}><Icon name="clipboardMedical" size={17} /> Registro de medicación e insumos</button>
                           <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(["enfermeria"])}><Icon name="userMedical" size={17} /> Reporte de enfermería</button>
-                          <button type="button" className="em-primario" onClick={() => setHojasReportePendientes(null)}><Icon name="download" size={17} /> Exportar reporte de turno</button>
+                          <button type="button" className="em-primario" onClick={() => setHojasReportePendientes(["signos", "balance", "tratamiento", "enfermeria"])}><Icon name="download" size={17} /> Exportar reporte de turno</button>
                         </div>
                       </section>
                       <section className="em-reporte-bloque" aria-labelledby="em-reporte-insumos-titulo">

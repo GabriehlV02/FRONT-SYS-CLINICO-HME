@@ -3471,6 +3471,10 @@
 .em-reporte-turno-rango input { min-height:44px; padding:0 11px; border:1px solid #bdd6e6; border-radius:8px; color:#244a65; background:#fff; font:500 14px inherit; }
 .em-reporte-turno-rango input:focus { outline:3px solid rgb(8 127 192 / 15%); border-color:#087fc0; }
 .em-reporte-turno-ayuda { margin:-5px 0 0; color:#71899c; font-size:12px; }
+.em-reporte-rango-modal { display:grid; gap:16px; width:min(560px,calc(100vw - 32px)); padding:22px; border:1px solid #d7e6f0; border-radius:16px; background:#fff; box-shadow:0 24px 70px rgb(17 44 66 / 28%); }
+.em-reporte-rango-modal .em-reporte-turno-rango { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.em-reporte-rango-modal .em-reporte-preview-acciones { padding-top:4px; }
+@media(max-width:620px) { .em-reporte-rango-modal { padding:17px; } .em-reporte-rango-modal .em-reporte-turno-rango { grid-template-columns:minmax(0,1fr); } }
 .em-reporte-bloque { display:grid; gap:14px; padding:4px 0 20px; }
 .em-reporte-bloque + .em-reporte-bloque { padding-top:20px; border-top:1px solid #dce9f1; }
 .em-reporte-bloque-cabecera { display:flex; align-items:center; justify-content:space-between; gap:14px; }

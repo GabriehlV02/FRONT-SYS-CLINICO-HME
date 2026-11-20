@@ -742,6 +742,7 @@ export function TriajeEmergenciasView({
   const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
   const [desdeReporteTurno, setDesdeReporteTurno] = useState("");
   const [hastaReporteTurno, setHastaReporteTurno] = useState("");
+  const [hojasReportePendientes, setHojasReportePendientes] = useState<Array<"signos" | "balance" | "tratamiento" | "enfermeria"> | null>(null);
   const [vistaPreviaReporte, setVistaPreviaReporte] = useState<{ url: string; titulo: string; hoja: "signos" | "balance" | "tratamiento" | "enfermeria" } | null>(null);
   const [errorExportarHistorial, setErrorExportarHistorial] = useState("");
   const [pagina, setPagina] = useState(1);
@@ -2798,17 +2799,12 @@ export function TriajeEmergenciasView({
                         <header className="em-reporte-bloque-cabecera">
                           <div><span>REPORTE CLÍNICO</span><h3 id="em-reporte-atencion-titulo">Reporte de atención de emergencia</h3></div>
                         </header>
-                        <div className="em-reporte-turno-rango" aria-label="Rango del turno que se exportará">
-                          <label>Desde<input type="datetime-local" value={desdeReporteTurno} onChange={(event) => setDesdeReporteTurno(event.target.value)} /></label>
-                          <label>Hasta<input type="datetime-local" value={hastaReporteTurno} onChange={(event) => setHastaReporteTurno(event.target.value)} /></label>
-                        </div>
-                        <p className="em-reporte-turno-ayuda">El PDF incluirá automáticamente las hojas que tengan registros dentro del turno seleccionado.</p>
                         <div className="em-reporte-acciones-hojas">
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["signos"], true)}><Icon name="monitorVitals" size={17} /> Hoja de evolución de signos vitales</button>
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["balance"], true)}><Icon name="asset" size={17} /> Hoja de balance hídrico</button>
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["tratamiento"], true)}><Icon name="clipboardMedical" size={17} /> Registro de medicación e insumos</button>
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["enfermeria"], true)}><Icon name="userMedical" size={17} /> Reporte de enfermería</button>
-                          <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical()}><Icon name="download" size={17} /> Exportar reporte de turno</button>
+                          <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(["signos"])}><Icon name="monitorVitals" size={17} /> Hoja de evolución de signos vitales</button>
+                          <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(["balance"])}><Icon name="asset" size={17} /> Hoja de balance hídrico</button>
+                          <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(["tratamiento"])}><Icon name="clipboardMedical" size={17} /> Registro de medicación e insumos</button>
+                          <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(["enfermeria"])}><Icon name="userMedical" size={17} /> Reporte de enfermería</button>
+                          <button type="button" className="em-primario" onClick={() => setHojasReportePendientes(null)}><Icon name="download" size={17} /> Exportar reporte de turno</button>
                         </div>
                       </section>
                       <section className="em-reporte-bloque" aria-labelledby="em-reporte-insumos-titulo">
@@ -3561,6 +3557,25 @@ export function TriajeEmergenciasView({
             <footer className="em-reporte-preview-acciones">
               <button type="button" className="em-secundario" onClick={() => setVistaPreviaReporte(null)}>Cerrar</button>
               <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical([vistaPreviaReporte.hoja])}><Icon name="download" size={16} /> Descargar PDF</button>
+            </footer>
+          </section>
+        </div>
+      )}
+      {hojasReportePendientes !== null && cuenta && (
+        <div className="em-reporte-preview-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setHojasReportePendientes(null); }}>
+          <section className="em-reporte-rango-modal" role="dialog" aria-modal="true" aria-labelledby="em-reporte-rango-titulo">
+            <header className="em-reporte-preview-cabecera">
+              <div><span>EXPORTAR REPORTE</span><h2 id="em-reporte-rango-titulo">Seleccionar período</h2><p>Elige el rango de fecha y hora que se incluirá en el PDF.</p></div>
+              <button type="button" aria-label="Cerrar selección de período" onClick={() => setHojasReportePendientes(null)}><Icon name="close" size={19} /></button>
+            </header>
+            <div className="em-reporte-turno-rango" aria-label="Rango del turno que se exportará">
+              <label>Desde<input type="datetime-local" value={desdeReporteTurno} max={hastaReporteTurno || undefined} onChange={(event) => setDesdeReporteTurno(event.target.value)} /></label>
+              <label>Hasta<input type="datetime-local" value={hastaReporteTurno} min={desdeReporteTurno || undefined} onChange={(event) => setHastaReporteTurno(event.target.value)} /></label>
+            </div>
+            <p className="em-reporte-turno-ayuda">El PDF incluirá los registros dentro del período seleccionado.</p>
+            <footer className="em-reporte-preview-acciones">
+              <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(null)}>Cancelar</button>
+              <button type="button" className="em-primario" onClick={() => { const hojas = hojasReportePendientes || undefined; setHojasReportePendientes(null); void exportarReporteTurnoVertical(hojas); }}><Icon name="download" size={16} /> Exportar</button>
             </footer>
           </section>
         </div>

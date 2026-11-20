@@ -217,7 +217,7 @@
 /* Mantiene el tamaño del logo al expandir el menú al pasar el cursor. */
 @media (min-width: 761px) {
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :focus-within)
     .sistema-marca,
   .sistema-app.sidebar-replegado .sistema-sidebar.sidebar-abierto .sistema-marca {
     height: 96px !important;
@@ -227,7 +227,7 @@
   }
 
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :focus-within)
     .sistema-marca > .marca-icono,
   .sistema-app.sidebar-replegado
     .sistema-sidebar.sidebar-abierto
@@ -239,7 +239,7 @@
   }
 
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :focus-within)
     .sistema-marca > .marca-icono img,
   .sistema-app.sidebar-replegado
     .sistema-sidebar.sidebar-abierto
@@ -489,12 +489,12 @@
     display: none !important;
   }
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :focus-within)
     .sistema-marca {
     display: flex !important;
   }
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :focus-within)
     .sistema-marca
     .marca-texto {
     display: block !important;

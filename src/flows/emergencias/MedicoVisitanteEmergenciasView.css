@@ -43,3 +43,10 @@
 .mve-fila-visita { grid-template-columns:minmax(145px,.8fr) minmax(190px,1.2fr) minmax(75px,.45fr) minmax(150px,.9fr) minmax(220px,1.5fr); }
 .mve-fila-visita p { margin:0; color:#54738a; line-height:1.5; overflow-wrap:anywhere; }
 .mve-historial-vista .mve-tabla { margin-top:18px; }
+
+.mve-atencion .mve-subsubvistas {
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.mve-atencion .mvi-visita { grid-template-columns: minmax(0, 1fr); }
+.mve-atencion .mvi-seccion[hidden] { display: none; }

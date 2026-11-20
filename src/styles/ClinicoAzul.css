@@ -1376,11 +1376,11 @@ input:focus-visible {
 .sidebar-replegado .sistema-sidebar {
   width: var(--clinico-sidebar-collapsed);
 }
-.sidebar-replegado .sistema-sidebar:hover,
+.sidebar-replegado .sistema-sidebar.sidebar-hover-activo,
 .sidebar-replegado .sistema-sidebar:focus-within {
   width: var(--clinico-sidebar) !important;
 }
-.sidebar-replegado .sistema-sidebar:not(:hover):not(:focus-within) {
+.sidebar-replegado .sistema-sidebar:not(.sidebar-hover-activo):not(:focus-within) {
   width: var(--clinico-sidebar-collapsed) !important;
 }
 .sidebar-replegado .sistema-cuerpo {
@@ -1623,7 +1623,7 @@ button:focus-visible {
     transform: translateX(0);
     visibility: visible;
   }
-  .sidebar-replegado .sistema-sidebar:hover,
+  .sidebar-replegado .sistema-sidebar.sidebar-hover-activo,
   .sidebar-replegado .sistema-sidebar:focus-within {
     width: var(--clinico-sidebar) !important;
   }

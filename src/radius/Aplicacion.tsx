@@ -1249,6 +1249,17 @@ export default function Aplicacion() {
   );
   const [sidebarCerradoPorSeleccion, setSidebarCerradoPorSeleccion] =
     useState(false);
+  const [sidebarHoverActivo, setSidebarHoverActivo] = useState(false);
+  const temporizadorSidebar = useRef<number | undefined>(undefined);
+  const cancelarDespliegueSidebar = () => {
+    window.clearTimeout(temporizadorSidebar.current);
+    temporizadorSidebar.current = undefined;
+  };
+  useEffect(() => {
+    cancelarDespliegueSidebar();
+    setSidebarHoverActivo(false);
+    return cancelarDespliegueSidebar;
+  }, [sidebarReplegado, sidebarCerradoPorSeleccion]);
   const sidebarNavRef = useRef<HTMLElement | null>(null);
   const sidebarScrollGuardado = useRef((() => {
     try {
@@ -1482,15 +1493,21 @@ export default function Aplicacion() {
         </aside>
       )}
       <aside
-        className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""}`}
+        className={`sistema-sidebar ${sidebarHoverActivo ? "sidebar-hover-activo" : ""} ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""}`}
         onPointerEnter={(evento) => {
           if (evento.pointerType !== "mouse") return;
           if (!sidebarReplegado || sidebarCerradoPorSeleccion) return;
-          window.requestAnimationFrame(restaurarScrollSidebar);
+          cancelarDespliegueSidebar();
+          temporizadorSidebar.current = window.setTimeout(() => {
+            setSidebarHoverActivo(true);
+            window.requestAnimationFrame(restaurarScrollSidebar);
+          }, 650);
         }}
         onPointerLeave={(evento) => {
           if (evento.pointerType !== "mouse") return;
-          if (!sidebarReplegado) guardarScrollSidebar();
+          cancelarDespliegueSidebar();
+          if (!sidebarReplegado || sidebarHoverActivo) guardarScrollSidebar();
+          setSidebarHoverActivo(false);
           setSidebarCerradoPorSeleccion(false);
         }}
         onKeyDown={(evento) => {
@@ -1523,7 +1540,7 @@ export default function Aplicacion() {
           onScroll={(evento) => {
             const sidebar = evento.currentTarget.closest(".sistema-sidebar");
             const desplegado = !sidebarReplegado ||
-              (!sidebarCerradoPorSeleccion && Boolean(sidebar?.matches(":hover, :focus-within, .sidebar-abierto")));
+              (!sidebarCerradoPorSeleccion && Boolean(sidebar?.matches(".sidebar-hover-activo, :focus-within, .sidebar-abierto")));
             // Al compactarse desaparecen etiquetas y cambia scrollHeight: no
             // guardamos el scrollTop que el navegador recorta en esa transición.
             if (desplegado) guardarScrollSidebar();

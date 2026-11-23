@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Icon from "./components/Icon";
 import { Login } from "./components/Login";
 import { Sidebar } from "./components/Sidebar";
@@ -408,11 +408,7 @@ export function SystemApp({ config }: { config: SystemConfig }) {
                   </h2>
                   <small>{selected.description}</small>
                 </div>
-                {config.id !== "clinico" && (
-                  <span className="demo-badge">
-                    <span /> Modo demostración
-                  </span>
-                )}
+
               </div>
             )}
             {moduleContent ? (

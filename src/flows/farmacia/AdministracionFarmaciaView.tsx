@@ -151,15 +151,7 @@ function ItemsVenta() {
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    if (
-      import.meta.env.DEV &&
-      leerSesion()?.token === "frontend-demo-local"
-    ) {
-      setProductos([]);
-      setError("");
-      setCargando(false);
-      return;
-    }
+
     const controlador = new AbortController();
     setCargando(true);
     void apiFetch("/api/farmacia/productos", { signal: controlador.signal })

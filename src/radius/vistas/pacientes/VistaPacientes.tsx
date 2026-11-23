@@ -1,4 +1,3 @@
-import { esModoPruebaLocal } from "../../datos/modoPrueba";
 import { fechaISOEnBolivia } from "../../../utils/fechaBolivia";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../componentes/Icono";
@@ -349,8 +348,7 @@ function FichaPacienteCompleta({
   onEditar: () => void;
   onVerFamiliar: (familiar: Paciente) => void;
 }) {
-  const demoLocal =
-    esModoPruebaLocal();
+
   const [vincularAbierto, setVincularAbierto] = useState(false);
   const [busquedaFamiliar, setBusquedaFamiliar] = useState("");
   const [parentesco, setParentesco] = useState("Familiar");
@@ -509,18 +507,7 @@ function FichaPacienteCompleta({
           <button type="button" className="ficha-accion-editar" onClick={onEditar}>
             <Icon name="edit" size={17} /> Editar datos
           </button>
-          {demoLocal && (
-            <button
-              type="button"
-              className="ficha-accion-familiar"
-              onClick={() => {
-                setVincularAbierto(true);
-                setErrorVinculo("");
-              }}
-            >
-              <Icon name="users" size={17} /> Vincular familiar
-            </button>
-          )}
+
         </div>
       </div>
       <div className="ficha-paciente-completa-cuerpo">
@@ -683,7 +670,7 @@ function FichaPacienteCompleta({
           </section>
         </div>
       )}
-      {vincularAbierto && demoLocal && (
+      {vincularAbierto && false && (
         <div className="familiar-vinculo-fondo" onMouseDown={(event) => { if (event.target === event.currentTarget) setVincularAbierto(false); }}>
           <section className="familiar-vinculo-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-vincular-familiar">
             <header>
@@ -920,15 +907,8 @@ export default function VistaPacientes({
           "Utiliza Registrar paciente para crear una ficha completa.",
         );
       const volverAFicha = volverAFichaTrasEditar;
-      const persistirDemo = esModoPruebaLocal();
-      if (persistirDemo) {
-        const nuevos = pacientes.map((p) => p.id === editando.id ? d : p);
-        guardarPacientes(nuevos);
-        setPacientes(nuevos);
-        cerrar(true);
-        if (volverAFicha) setPacienteSeleccionado(d);
-        return;
-      }
+
+
       const respuesta = await apiFetch(`/api/v1/pacientes/${editando.id}`, {
         method: "PUT",
         headers: { Accept: "application/json" },

@@ -43,3 +43,50 @@
 .mve-fila-visita { grid-template-columns:minmax(145px,.8fr) minmax(190px,1.2fr) minmax(75px,.45fr) minmax(150px,.9fr) minmax(220px,1.5fr); }
 .mve-fila-visita p { margin:0; color:#54738a; line-height:1.5; overflow-wrap:anywhere; }
 .mve-historial-vista .mve-tabla { margin-top:18px; }
+
+.mve-atencion .mve-subsubvistas {
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.mve-atencion .mvi-visita { grid-template-columns: minmax(0, 1fr); }
+.mve-atencion .mvi-seccion[hidden] { display: none; }
+
+.mve-resumen-paciente {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 210px;
+  gap: 30px;
+  padding: 24px;
+  border: 1px solid #d8e5ed;
+  border-radius: 16px;
+  background: #fff;
+  color: #124466;
+}
+.mve-resumen-datos { display: grid; gap: 16px; min-width: 0; }
+.mve-resumen-principal { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); gap: 20px; align-items: center; }
+.mve-resumen-paciente small { color: #6b8192; font-size: 12px; }
+.mve-resumen-nombre { display: flex; align-items: baseline; gap: 10px; padding-left: 16px; border-left: 3px solid #08a3ce; }
+.mve-resumen-nombre h3 { margin: 0; font-size: 27px; line-height: 1.25; overflow-wrap: anywhere; }
+.mve-resumen-campo { display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 12px; border: 1px solid #e0ecf4; border-radius: 11px; background: #f6f9fc; }
+.mve-resumen-familia { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding-top: 15px; border-top: 1px solid #e5edf3; }
+.mve-resumen-familia > div, .mve-resumen-indicadores > div { display: flex; align-items: baseline; flex-wrap: wrap; gap: 9px; }
+.mve-resumen-indicadores { display: flex; flex-wrap: wrap; gap: 12px; }
+.mve-resumen-indicadores > div { padding: 10px 13px; border: 1px solid #d9ebf5; border-radius: 10px; background: #f3f9fd; }
+.mve-resumen-indicadores strong { color: #0089b8; }
+.mve-resumen-acciones { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding-left: 26px; border-left: 1px solid #e5edf3; }
+.mve-resumen-total { display: grid; gap: 4px; padding: 8px 12px; border-radius: 10px; background: #f3f8fc; }
+.mve-resumen-total strong { color: #0089bd; font-size: 23px; }
+.mve-resumen-historia { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 10px; border: 0; border-radius: 10px; background: #7952c7; color: #fff; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+.mve-resumen-historia:focus-visible { outline: 3px solid #bba3ec; outline-offset: 3px; }
+.mve-resumen-acciones .mvi-estado { align-self: center; }
+@media (max-width: 1100px) {
+  .mve-resumen-principal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mve-resumen-nombre { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .mve-resumen-paciente { grid-template-columns: minmax(0, 1fr); padding: 16px; gap: 18px; }
+  .mve-resumen-familia { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .mve-resumen-nombre { flex-wrap: wrap; }
+  .mve-resumen-nombre h3 { font-size: 22px; }
+  .mve-resumen-campo { flex-wrap: wrap; gap: 5px; }
+  .mve-resumen-acciones { border-left: 0; border-top: 1px solid #e5edf3; padding: 14px 0 0; }
+}

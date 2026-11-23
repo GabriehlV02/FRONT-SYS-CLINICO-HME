@@ -24,6 +24,7 @@ export function MedicoVisitanteEmergenciasView() {
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]);
   const [busqueda, setBusqueda] = useState("");
   const [subvista, setSubvista] = useState<"pacientes" | "historial">("pacientes");
+  const [seccionPaciente, setSeccionPaciente] = useState<"evolucion" | "ordenes">("evolucion");
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [evoluciones, setEvoluciones] = useState(() => leer<Evolucion>(KEY_EVOLUCIONES));
   const [ordenes, setOrdenes] = useState(() => leer<Orden>(KEY_ORDENES));
@@ -64,6 +65,8 @@ export function MedicoVisitanteEmergenciasView() {
     return () => window.removeEventListener("storage", actualizar);
   }, []);
 
+  useEffect(() => { setSeccionPaciente("evolucion"); }, [seleccionado]);
+
   const visibles = useMemo(() => {
     const q = busqueda.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
     return cuentas.filter((c) => !c.fin && (!q || `${nombrePaciente(c)} ${c.identidad?.documento || ""} ${c.cubiculo}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(q)))
@@ -72,6 +75,12 @@ export function MedicoVisitanteEmergenciasView() {
   const paciente = cuentas.find((c) => c.id === seleccionado);
   const ciActual = paciente?.identidad?.documento || "";
   const ficha = fichas.find((p) => p.ci === ciActual);
+  const identidad = paciente?.identidad || {};
+  const nacimiento = identidad.nacimiento || ficha?.fecha_nacimiento;
+  const edad = nacimiento ? edadPaciente(nacimiento) : Number.NaN;
+  const totalConsumido = (paciente?.consumos || []).reduce(
+    (total, consumo) => total + consumo.precio * consumo.cantidad, 0,
+  );
   const evolucionesActuales = evoluciones.filter((r) => r.pacienteId === seleccionado).sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
   const ordenesActuales = ordenes.filter((r) => r.pacienteId === seleccionado).sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
   const visitas = useMemo(() => {
@@ -130,11 +139,36 @@ export function MedicoVisitanteEmergenciasView() {
       </div>
     </section> : <section className="mve-atencion">
       <button type="button" className="mvi-volver" onClick={() => { setSeleccionado(null); setHistoriaAbierta(false); }}><Icon name="chevronLeft" size={16}/> Volver a pacientes de Emergencias</button>
-      <header className="mvi-paciente-cabecera"><div><small>PACIENTE DE EMERGENCIAS</small><h3>{nombrePaciente(paciente)}</h3><p>HC-{paciente.identidad?.historiaClinica || ciActual || "S/R"} · Cubículo {paciente.cubiculo}</p></div><div className="mvi-paciente-acciones"><button type="button" className="mvi-ver-historia" onClick={() => setHistoriaAbierta(true)}><Icon name="fileText" size={17}/> Ver historia clínica</button><span className="mvi-estado">En atención</span></div></header>
+      <header className="mve-resumen-paciente">
+        <div className="mve-resumen-datos">
+          <div className="mve-resumen-principal">
+            <div className="mve-resumen-nombre"><small>Paciente</small><h3>{nombrePaciente(paciente)}</h3></div>
+            <div className="mve-resumen-campo"><small>Edad</small><strong>{Number.isFinite(edad) ? `${edad} años` : "No registrada"}</strong></div>
+            <div className="mve-resumen-campo"><small>Sexo</small><strong>{identidad.sexo || "No registrado"}</strong></div>
+          </div>
+          <div className="mve-resumen-familia">
+            <div><small>Familiar o responsable</small><strong>{identidad.familiar || "Sin registro"}</strong></div>
+            <div><small>Número de referencia</small><strong>{identidad.referenciaFamiliar || "Sin registro"}</strong></div>
+          </div>
+          <div className="mve-resumen-indicadores">
+            <div><small>Cubículo</small><strong>Cubículo {paciente.cubiculo}</strong></div>
+            <div><small>Hora de ingreso</small><strong>{new Date(paciente.inicio).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}</strong></div>
+          </div>
+        </div>
+        <div className="mve-resumen-acciones">
+          <div className="mve-resumen-total"><small>Total consumido</small><strong>Bs {totalConsumido.toFixed(2)}</strong></div>
+          <button type="button" className="mve-resumen-historia" onClick={() => setHistoriaAbierta(true)}><Icon name="fileText" size={16}/> Historia clínica</button>
+          <span className="mvi-estado">En atención</span>
+        </div>
+      </header>
       {error && <p className="mvi-error" role="alert">{error}</p>}
+      <nav className="mve-subvistas mve-subsubvistas" aria-label="Secciones de la atención del paciente">
+        <button type="button" className={seccionPaciente === "evolucion" ? "activa" : ""} aria-pressed={seccionPaciente === "evolucion"} aria-controls="mve-evolucion" onClick={() => setSeccionPaciente("evolucion")}><Icon name="fileText" size={17}/> Evolución</button>
+        <button type="button" className={seccionPaciente === "ordenes" ? "activa" : ""} aria-pressed={seccionPaciente === "ordenes"} aria-controls="mve-ordenes" onClick={() => setSeccionPaciente("ordenes")}><Icon name="clipboardMedical" size={17}/> Orden médica</button>
+      </nav>
       <div className="mvi-visita">
-        <section className="mvi-seccion"><form className="mvi-formulario" onSubmit={guardarEvolucion}><h4>Registrar evolución médica</h4><label className="mvi-texto">Evolución<textarea value={borrador.texto} onChange={(e) => setBorrador((a) => ({ ...a, texto: e.target.value }))} placeholder="Escribe la evolución médica del paciente." maxLength={5000} required/></label><div className="mvi-fecha-hora"><label>Fecha<input type="date" value={borrador.fecha} onChange={(e) => setBorrador((a) => ({ ...a, fecha: e.target.value }))} required/></label><label>Hora<input type="time" value={borrador.hora} onChange={(e) => setBorrador((a) => ({ ...a, hora: e.target.value }))} required/></label></div><button type="submit" disabled={!borrador.texto.trim()}><Icon name="plus" size={16}/> Guardar evolución</button></form><details className="mvi-historial"><summary>Historial de evoluciones <span>{evolucionesActuales.length}</span></summary>{evolucionesActuales.length ? evolucionesActuales.map((r) => <article key={r.id}><small>{new Date(r.fecha).toLocaleString("es-BO", { dateStyle: "medium", timeStyle: "short" })} · {r.medico}</small><p>{r.texto}</p></article>) : <p className="mvi-vacio">Aún no hay evoluciones médicas registradas.</p>}</details></section>
-        <section className="mvi-seccion"><form className="mvi-formulario mvi-formulario-orden" onSubmit={guardarOrden}><h4>Registrar orden médica</h4><label>Tipo de orden<select value={tipoOrden} onChange={(e) => setTipoOrden(e.target.value)}><option value="medicamentos">Medicamentos</option><option value="laboratorio">Laboratorio</option><option value="imagenologia">Imagenología</option><option value="indicacion">Indicación médica</option></select></label><label className="mvi-texto">Detalle de la orden<textarea value={detalleOrden} onChange={(e) => setDetalleOrden(e.target.value)} placeholder="Indicación, medicamento, estudio o procedimiento." maxLength={3000} required/></label><button type="submit" disabled={!detalleOrden.trim()}><Icon name="plus" size={16}/> Registrar orden</button></form><details className="mvi-historial"><summary>Órdenes registradas <span>{ordenesActuales.length}</span></summary>{ordenesActuales.length ? ordenesActuales.map((r) => <article key={r.id}><small>{r.tipo} · {new Date(r.fecha).toLocaleString("es-BO", { dateStyle: "medium", timeStyle: "short" })} · {r.medico}</small><p>{r.detalle}</p></article>) : <p className="mvi-vacio">Aún no hay órdenes médicas registradas.</p>}</details></section>
+        <section id="mve-evolucion" className="mvi-seccion" aria-label="Evolución" hidden={seccionPaciente !== "evolucion"}><form className="mvi-formulario" onSubmit={guardarEvolucion}><h4>Registrar evolución médica</h4><label className="mvi-texto">Evolución<textarea value={borrador.texto} onChange={(e) => setBorrador((a) => ({ ...a, texto: e.target.value }))} placeholder="Escribe la evolución médica del paciente." maxLength={5000} required/></label><div className="mvi-fecha-hora"><label>Fecha<input type="date" value={borrador.fecha} onChange={(e) => setBorrador((a) => ({ ...a, fecha: e.target.value }))} required/></label><label>Hora<input type="time" value={borrador.hora} onChange={(e) => setBorrador((a) => ({ ...a, hora: e.target.value }))} required/></label></div><button type="submit" disabled={!borrador.texto.trim()}><Icon name="plus" size={16}/> Guardar evolución</button></form><details className="mvi-historial"><summary>Historial de evoluciones <span>{evolucionesActuales.length}</span></summary>{evolucionesActuales.length ? evolucionesActuales.map((r) => <article key={r.id}><small>{new Date(r.fecha).toLocaleString("es-BO", { dateStyle: "medium", timeStyle: "short" })} · {r.medico}</small><p>{r.texto}</p></article>) : <p className="mvi-vacio">Aún no hay evoluciones médicas registradas.</p>}</details></section>
+        <section id="mve-ordenes" className="mvi-seccion" aria-label="Orden médica" hidden={seccionPaciente !== "ordenes"}><form className="mvi-formulario mvi-formulario-orden" onSubmit={guardarOrden}><h4>Registrar orden médica</h4><label>Tipo de orden<select value={tipoOrden} onChange={(e) => setTipoOrden(e.target.value)}><option value="medicamentos">Medicamentos</option><option value="laboratorio">Laboratorio</option><option value="imagenologia">Imagenología</option><option value="indicacion">Indicación médica</option></select></label><label className="mvi-texto">Detalle de la orden<textarea value={detalleOrden} onChange={(e) => setDetalleOrden(e.target.value)} placeholder="Indicación, medicamento, estudio o procedimiento." maxLength={3000} required/></label><button type="submit" disabled={!detalleOrden.trim()}><Icon name="plus" size={16}/> Registrar orden</button></form><details className="mvi-historial"><summary>Órdenes registradas <span>{ordenesActuales.length}</span></summary>{ordenesActuales.length ? ordenesActuales.map((r) => <article key={r.id}><small>{r.tipo} · {new Date(r.fecha).toLocaleString("es-BO", { dateStyle: "medium", timeStyle: "short" })} · {r.medico}</small><p>{r.detalle}</p></article>) : <p className="mvi-vacio">Aún no hay órdenes médicas registradas.</p>}</details></section>
       </div>
       {historiaAbierta && <HistoriaHojeable paciente={{ nombre: nombrePaciente(paciente), ci: ciActual, edad: ficha?.fecha_nacimiento ? edadPaciente(ficha.fecha_nacimiento) : Number.NaN, fechaNacimiento: ficha?.fecha_nacimiento?.slice(0, 10) || "No registrada", numeroHistoria: `HC-${paciente.identidad?.historiaClinica || ciActual || "S/R"}`, datoRelevante: "Consulta los antecedentes registrados en la historia.", estado: "Al día", episodios: obtenerEpisodios().filter((e) => e.paciente.ci === ciActual).sort((a, b) => a.correlativo - b.correlativo).map((e) => ({ ...e, id: e.episodioId, hora: e.paciente.hora, especialidad: e.paciente.especialidad })) }} onCerrar={() => setHistoriaAbierta(false)}/>}
     </section>}

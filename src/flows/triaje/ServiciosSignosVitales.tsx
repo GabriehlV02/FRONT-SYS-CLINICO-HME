@@ -1,4 +1,3 @@
-import { esModoPruebaLocal } from "../../radius/datos/modoPrueba";
 import { useEffect, useState } from 'react';
 import { apiFetch } from '../../radius/api';
 import Icon from '../../radius/componentes/Icono';
@@ -30,11 +29,7 @@ export function useServiciosSignosVitales() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   useEffect(() => {
-    if (esModoPruebaLocal()) {
-      setServicios(leerServiciosDemo());
-      setCargando(false);
-      return;
-    }
+
     const controller = new AbortController();
     apiFetch(url, { signal: controller.signal }).then(async (respuesta) => {
       if (!respuesta.ok) throw new Error('No se pudieron cargar las asignaciones de signos vitales.');
@@ -45,12 +40,7 @@ export function useServiciosSignosVitales() {
     return () => controller.abort();
   }, []);
   async function guardar(id: string, signos: string[]) {
-    if (esModoPruebaLocal()) {
-      const siguientes = servicios.map(servicio => servicio.id === id ? { ...servicio, signos } : servicio);
-      localStorage.setItem(claveDemo, JSON.stringify(siguientes));
-      setServicios(siguientes);
-      return;
-    }
+
     const respuesta = await apiFetch(`${url}/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ signos }) });
     if (!respuesta.ok) {
       const resultado = await respuesta.json().catch(() => ({}));
@@ -76,12 +66,7 @@ export function useCatalogoSignosVitales(
       setError("");
       return;
     }
-    if (esModoPruebaLocal()) {
-      setSignos(iniciales);
-      setCargando(false);
-      setError("");
-      return;
-    }
+
     const controller = new AbortController();
     setCargando(true);
     setError("");

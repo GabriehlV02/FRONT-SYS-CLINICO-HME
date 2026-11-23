@@ -742,6 +742,7 @@ export function TriajeEmergenciasView({
   const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
   const [desdeReporteTurno, setDesdeReporteTurno] = useState("");
   const [hastaReporteTurno, setHastaReporteTurno] = useState("");
+  const [hojasReportePendientes, setHojasReportePendientes] = useState<Array<"signos" | "balance" | "tratamiento" | "enfermeria"> | null>(null);
   const [vistaPreviaReporte, setVistaPreviaReporte] = useState<{ url: string; titulo: string; hoja: "signos" | "balance" | "tratamiento" | "enfermeria" } | null>(null);
   const [errorExportarHistorial, setErrorExportarHistorial] = useState("");
   const [pagina, setPagina] = useState(1);
@@ -1328,6 +1329,13 @@ export function TriajeEmergenciasView({
       const instante = new Date(valor);
       return Number.isNaN(instante.getTime()) ? "—" : instante.toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" });
     };
+    const dibujarDatoEncabezado = (etiqueta: string, valor: string, x: number, y: number, anchoMaximo: number) => {
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(7); pdf.setTextColor(83, 109, 136);
+      pdf.text(etiqueta, x, y);
+      const xValor = x + pdf.getTextWidth(`${etiqueta} `);
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(22, 53, 88);
+      pdf.text(pdf.splitTextToSize(valor || "—", Math.max(8, anchoMaximo - (xValor - x)))[0] || "—", xValor, y);
+    };
     const dibujarEncabezado = (titulo: string) => {
       pdf.setFillColor(18, 56, 98);
       pdf.rect(0, 0, ancho, 2, "F");
@@ -1337,25 +1345,17 @@ export function TriajeEmergenciasView({
         pdf.text("HOSPITAL MARÍA ESPERANZA", margen, 16);
       }
       pdf.setTextColor(18, 56, 98); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5);
-      pdf.text(pdf.splitTextToSize(titulo.toLocaleUpperCase("es"), ancho - 72).slice(0, 2), 62, 13);
+      pdf.text(pdf.splitTextToSize(titulo.toLocaleUpperCase("es"), 87).slice(0, 2), 62, 13);
+      pdf.setFontSize(5.8); pdf.setTextColor(83, 109, 136);
+      pdf.text("N.º HISTORIA CLÍNICA / CI", 153, 10);
+      pdf.setFontSize(8.5); pdf.setTextColor(22, 53, 88);
+      pdf.text(pdf.splitTextToSize(identidad.historiaClinica || identidad.documento || "No registrado", ancho - margen - 153).slice(0, 2), 153, 17);
       pdf.setDrawColor(185, 207, 229); pdf.setLineWidth(0.35); pdf.line(margen, 27, ancho - margen, 27);
-      const anchoTarjeta = (ancho - margen * 2 - 4) / 2;
-      const tarjetas: [string, string][] = [
-        ["PACIENTE", nombrePaciente(cuenta)],
-        ["N.º HISTORIA CLÍNICA / CI", identidad.historiaClinica || identidad.documento || "No registrado"],
-        ["SERVICIO / SALA / CAMA", `Emergencias · Cubículo ${nombreCubiculo(cuenta.cubiculo)} · Cama no aplica`],
-        ["FECHA / HORA DE INGRESO", fechaHora(cuenta.inicio)],
-      ];
-      tarjetas.forEach(([etiqueta, valor], indice) => {
-        const x = margen + (indice % 2) * (anchoTarjeta + 4);
-        const y = 31 + Math.floor(indice / 2) * 13;
-        pdf.setFillColor(247, 249, 252); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(x, y, anchoTarjeta, 11, 1.2, 1.2, "FD");
-        pdf.setFont("helvetica", "bold"); pdf.setFontSize(6); pdf.setTextColor(83, 109, 136); pdf.text(etiqueta, x + 2, y + 3.8);
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(22, 53, 88); pdf.text(pdf.splitTextToSize(valor || "—", anchoTarjeta - 4)[0] || "—", x + 2, y + 8.4);
-      });
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.5); pdf.setTextColor(22, 53, 88); pdf.text("TURNO:", margen, 59);
-      pdf.setFont("helvetica", "normal"); pdf.text(periodo, margen + 13, 59);
-      pdf.setDrawColor(185, 207, 229); pdf.line(margen, 62, ancho - margen, 62);
+      dibujarDatoEncabezado("SERVICIO:", "Emergencias", margen, 34, 55);
+      dibujarDatoEncabezado("SALA / CUBÍCULO:", nombreCubiculo(cuenta.cubiculo), 78, 34, ancho - margen - 78);
+      dibujarDatoEncabezado("FECHA Y HORA DE INGRESO:", fechaHora(cuenta.inicio), margen, 42, ancho - margen - margen);
+      dibujarDatoEncabezado("PERÍODO DEL TURNO:", periodo, margen, 52, ancho - margen - margen);
+      pdf.setDrawColor(185, 207, 229); pdf.setLineWidth(0.35); pdf.line(margen, 56, ancho - margen, 56);
     };
     const comenzarHoja = (titulo: string) => {
       if (paginaIniciada) pdf.addPage("a4", "portrait");
@@ -1578,6 +1578,21 @@ export function TriajeEmergenciasView({
           3: { cellWidth: 26 },
         },
       });
+    }
+    const hojasSinRegistros = [
+      { hoja: "signos", cantidad: signos.length },
+      { hoja: "balance", cantidad: balances.length },
+      { hoja: "enfermeria", cantidad: registrosEnfermeria.length + evoluciones.length },
+    ] as const;
+    for (const { hoja, cantidad } of hojasSinRegistros) {
+      if (elegidas.includes(hoja) && cantidad === 0) {
+        comenzarHoja(titulos[hoja]);
+        autoTable(pdf, {
+          ...opcionesTabla(titulos[hoja]),
+          head: [["REGISTROS DEL TURNO"]],
+          body: [["Sin registros en el turno seleccionado."]],
+        });
+      }
     }
     if (!hojasIncluidas) {
       setAviso("No hay registros en las hojas seleccionadas para el turno indicado.");
@@ -2798,17 +2813,8 @@ export function TriajeEmergenciasView({
                         <header className="em-reporte-bloque-cabecera">
                           <div><span>REPORTE CLÍNICO</span><h3 id="em-reporte-atencion-titulo">Reporte de atención de emergencia</h3></div>
                         </header>
-                        <div className="em-reporte-turno-rango" aria-label="Rango del turno que se exportará">
-                          <label>Desde<input type="datetime-local" value={desdeReporteTurno} onChange={(event) => setDesdeReporteTurno(event.target.value)} /></label>
-                          <label>Hasta<input type="datetime-local" value={hastaReporteTurno} onChange={(event) => setHastaReporteTurno(event.target.value)} /></label>
-                        </div>
-                        <p className="em-reporte-turno-ayuda">El PDF incluirá automáticamente las hojas que tengan registros dentro del turno seleccionado.</p>
                         <div className="em-reporte-acciones-hojas">
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["signos"], true)}><Icon name="monitorVitals" size={17} /> Hoja de evolución de signos vitales</button>
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["balance"], true)}><Icon name="asset" size={17} /> Hoja de balance hídrico</button>
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["tratamiento"], true)}><Icon name="clipboardMedical" size={17} /> Registro de medicación e insumos</button>
-                          <button type="button" className="em-secundario" onClick={() => void exportarReporteTurnoVertical(["enfermeria"], true)}><Icon name="userMedical" size={17} /> Reporte de enfermería</button>
-                          <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical()}><Icon name="download" size={17} /> Exportar reporte de turno</button>
+                          <button type="button" className="em-primario" onClick={() => setHojasReportePendientes(["signos", "balance", "tratamiento", "enfermeria"])}><Icon name="download" size={17} /> Exportar reporte de turno</button>
                         </div>
                       </section>
                       <section className="em-reporte-bloque" aria-labelledby="em-reporte-insumos-titulo">
@@ -3561,6 +3567,25 @@ export function TriajeEmergenciasView({
             <footer className="em-reporte-preview-acciones">
               <button type="button" className="em-secundario" onClick={() => setVistaPreviaReporte(null)}>Cerrar</button>
               <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical([vistaPreviaReporte.hoja])}><Icon name="download" size={16} /> Descargar PDF</button>
+            </footer>
+          </section>
+        </div>
+      )}
+      {hojasReportePendientes !== null && cuenta && (
+        <div className="em-reporte-preview-fondo" role="presentation" onMouseDown={(evento) => { if (evento.target === evento.currentTarget) setHojasReportePendientes(null); }}>
+          <section className="em-reporte-rango-modal" role="dialog" aria-modal="true" aria-labelledby="em-reporte-rango-titulo">
+            <header className="em-reporte-preview-cabecera">
+              <div><span>EXPORTAR REPORTE</span><h2 id="em-reporte-rango-titulo">Seleccionar período</h2><p>Elige el rango de fecha y hora que se incluirá en el PDF.</p></div>
+              <button type="button" aria-label="Cerrar selección de período" onClick={() => setHojasReportePendientes(null)}><Icon name="close" size={19} /></button>
+            </header>
+            <div className="em-reporte-turno-rango" aria-label="Rango del turno que se exportará">
+              <label>Desde<input type="datetime-local" value={desdeReporteTurno} max={hastaReporteTurno || undefined} onChange={(event) => setDesdeReporteTurno(event.target.value)} /></label>
+              <label>Hasta<input type="datetime-local" value={hastaReporteTurno} min={desdeReporteTurno || undefined} onChange={(event) => setHastaReporteTurno(event.target.value)} /></label>
+            </div>
+            <p className="em-reporte-turno-ayuda">El PDF incluirá los registros dentro del período seleccionado.</p>
+            <footer className="em-reporte-preview-acciones">
+              <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(null)}>Cancelar</button>
+              <button type="button" className="em-primario" onClick={() => { const hojas = hojasReportePendientes || undefined; setHojasReportePendientes(null); void exportarReporteTurnoVertical(hojas); }}><Icon name="download" size={16} /> Exportar</button>
             </footer>
           </section>
         </div>

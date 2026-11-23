@@ -17,7 +17,6 @@ import "./FilasResultados.css";
 import "./EstadoAnulado.css";
 import { EstadoReferenciaLaboratorio } from "./EstadoReferenciaLaboratorio";
 import { leerSesion } from "../../radius/types/sesion";
-import { ejemplosLaboratorio } from "./ejemplosLaboratorio";
 import { ModalResultadosLaboratorio } from "./ModalResultadosLaboratorio";
 
 const etiquetas: Record<EstadoLaboratorio, string> = {
@@ -45,15 +44,12 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
   const [seleccionado, setSeleccionado] = useState<string | null>(null);
   const [ordenCargaId, setOrdenCargaId] = useState<string | null>(null);
   const [modificado, setModificado] = useState(false);
-  const [modoEjemplo, setModoEjemplo] = useState(false);
-  const [ejemplos, setEjemplos] = useState(() => ejemplosLaboratorio(origen));
 
   useEffect(() => {
     const cargar = () => {
       try {
         const datos = leerSolicitudesLaboratorio();
         setSolicitudes(datos);
-        if (datos.some((s) => s.origen === origen)) setModoEjemplo(false);
         setError("");
       } catch {
         setError(
@@ -67,8 +63,8 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
 
   const delOrigen = useMemo(
     () =>
-      modoEjemplo ? ejemplos : solicitudes.filter((s) => s.origen === origen),
-    [solicitudes, origen, modoEjemplo, ejemplos],
+      solicitudes.filter((s) => s.origen === origen),
+    [solicitudes, origen],
   );
   const visibles = delOrigen.filter((s) => {
     const dia = new Date(s.fecha).toLocaleDateString("en-CA");
@@ -84,7 +80,7 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
       (!hasta || dia <= hasta)
     );
   });
-  const todas = modoEjemplo ? ejemplos : solicitudes;
+  const todas = solicitudes;
   const solicitud = todas.find((s) => s.id === seleccionado);
   const ordenCarga = todas.find((s) => s.id === ordenCargaId);
   const elegir = (id: string | null) => {
@@ -300,12 +296,6 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
               <EditorResultados
                 key={ordenCarga.id}
                 solicitud={ordenCarga}
-                modoEjemplo={modoEjemplo}
-                guardarEjemplo={(nuevo) =>
-                  setEjemplos((actuales) =>
-                    actuales.map((s) => (s.id === nuevo.id ? nuevo : s)),
-                  )
-                }
                 onCerrar={() => elegir(null)}
                 onModificado={setModificado}
                 onGuardado={(texto) => {
@@ -319,10 +309,7 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
                 <EditorResultados
                   key={`${solicitud.id}-${solicitud.actualizadoEn}`}
                   solicitud={solicitud}
-                  soloLectura
-                  modoEjemplo={modoEjemplo}
-                  guardarEjemplo={() => {}}
-                  onCerrar={() => elegir(null)}
+                  soloLectura                  onCerrar={() => elegir(null)}
                   onModificado={() => {}}
                   onGuardado={() => {}}
                 />
@@ -338,10 +325,7 @@ export function LaboratorioView({ origen }: { origen: OrigenLaboratorio }) {
 // Captura de resultados por parámetros, con referencia y cálculo automático.
 function EditorResultados({
   solicitud,
-  soloLectura = false,
-  modoEjemplo,
-  guardarEjemplo,
-  onCerrar,
+  soloLectura = false,  onCerrar,
   onModificado,
   onGuardado,
 }: {
@@ -349,10 +333,7 @@ function EditorResultados({
   soloLectura?: boolean;
   onCerrar: () => void;
   onModificado: (valor: boolean) => void;
-  onGuardado: (mensaje: string) => void;
-  modoEjemplo: boolean;
-  guardarEjemplo: (solicitud: SolicitudLaboratorio) => void;
-}) {
+  onGuardado: (mensaje: string) => void;}) {
   const [borrador, setBorrador] = useState(() => structuredClone(solicitud));
   const calculos = useMemo(
     () => calcularResultadosLaboratorio(borrador),
@@ -415,32 +396,16 @@ function EditorResultados({
         throw new Error(
           "Completa el nombre y el resultado de todos los parámetros antes de finalizar.",
         );
-      const nuevo: SolicitudLaboratorio = modoEjemplo
-        ? {
-            ...vigente,
-            estado: finalizar ? "completado" : "en_proceso",
-            actualizadoEn: new Date().toISOString(),
-            ...(finalizar
-              ? {
-                  finalizadoEn: new Date().toISOString(),
-                  registradoPor: "Laboratorio · Ejemplo",
-                }
-              : {}),
-          }
-        : guardarResultadosLaboratorio(
+      const nuevo: SolicitudLaboratorio = guardarResultadosLaboratorio(
             vigente,
             finalizar,
             leerSesion()?.usuario.nombre || "Usuario local",
           );
-      if (modoEjemplo) guardarEjemplo(nuevo);
+
       setBorrador(nuevo);
       setError("");
       onGuardado(
-        modoEjemplo
-          ? finalizar
-            ? "Ejemplo finalizado. Puedes verlo en la pestaña Finalizado."
-            : "Borrador de ejemplo guardado en esta vista."
-          : finalizar
+        finalizar
             ? "Resultados finalizados. Ya están disponibles en el consultorio."
             : "Borrador guardado. La solicitud sigue en proceso.",
       );

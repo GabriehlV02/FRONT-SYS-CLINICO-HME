@@ -1,4 +1,3 @@
-import { esModoPruebaLocal } from "../../../radius/datos/modoPrueba";
 import {
   useProfesionales,
   etiquetaProfesional,
@@ -106,8 +105,7 @@ export function CitasRecepcionView({
   medicoInicial,
   agendarInicial = false,
 }: { medicoInicial?: string; agendarInicial?: boolean } = {}) {
-  const esDemoLocal =
-    esModoPruebaLocal();
+
   const { medicos, resolver, errorProfesionales } = useProfesionales();
   const doctores = [
     "Todos los doctores",
@@ -150,16 +148,7 @@ export function CitasRecepcionView({
   const selectorDoctorRef = useRef<HTMLDivElement>(null);
   const selectorConsultorioRef = useRef<HTMLDivElement>(null);
   const calendarioRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!esDemoLocal) return;
-    const actualizar = () => setCitasProgramadas(crearCitasEjemplo());
-    window.addEventListener("citas:actualizadas", actualizar);
-    window.addEventListener("pacientes:actualizados", actualizar);
-    return () => {
-      window.removeEventListener("citas:actualizadas", actualizar);
-      window.removeEventListener("pacientes:actualizados", actualizar);
-    };
-  }, [esDemoLocal]);
+
   const citasVisibles = useMemo(
     () =>
       citasProgramadas.filter(
@@ -214,10 +203,7 @@ export function CitasRecepcionView({
   }, []);
 
   useEffect(() => {
-    if (esDemoLocal) {
-      setCitasProgramadas(crearCitasEjemplo());
-      return;
-    }
+
     const controller = new AbortController();
     void apiFetch("/api/citas", { signal: controller.signal })
       .then(async (response) => {
@@ -270,21 +256,14 @@ export function CitasRecepcionView({
         }
       });
     return () => controller.abort();
-  }, [esDemoLocal]);
+  }, []);
 
   const persistirEstado = async (
     cita: Cita,
     estado: "confirmada" | "cancelada",
   ) => {
     if (!cita.id) return false;
-    if (esDemoLocal && cita.id.startsWith("demo-agenda-")) {
-      guardarCitasAgendaDemo(
-        obtenerCitasAgendaDemo().map((actual) =>
-          actual.id === cita.id ? { ...actual, estado } : actual,
-        ),
-      );
-      return true;
-    }
+
     try {
       const respuesta = await apiFetch(`/api/citas/${cita.id}/estado`, {
         method: "PATCH",
@@ -338,48 +317,7 @@ export function CitasRecepcionView({
       const fecha = fechaParaInput(
         sumarDias(inicioSemana(semana), nuevaCita.dia),
       );
-      if (esDemoLocal) {
-        const guardada: Cita = {
-          ...nuevaCita,
-          id: `demo-agenda-${crypto.randomUUID()}`,
-          pacienteId: ficha.id,
-          fecha,
-          doctor: resolver(doctor)?.nombre || doctor,
-          especialidad: "Consulta",
-          motivo: "Consulta ambulatoria",
-        };
-        guardarCitasAgendaDemo([
-          ...obtenerCitasAgendaDemo(),
-          {
-            id: guardada.id!,
-            pacienteId: ficha.id,
-            paciente: guardada.paciente,
-            ci: guardada.ci,
-            doctor: guardada.doctor,
-            profesionalId: resolver(doctor)?.id,
-            especialidad: guardada.especialidad || "Consulta",
-            fecha,
-            hora: guardada.hora,
-            estado:
-              guardada.estado === "Confirmada" ? "confirmada" : "por_confirmar",
-            consultorio: guardada.consultorio || "Consultorio 1",
-            motivoOperativo: guardada.motivo,
-            edad: 0,
-          },
-        ]);
-        setCitasProgramadas((actuales) => [...actuales, guardada]);
-        setNuevaCita({
-          paciente: "",
-          ci: "",
-          dia: 0,
-          hora: "07:00",
-          consultorio: "Consultorio 1",
-          estado: "Por confirmar",
-        });
-        setErrorAgenda("");
-        setAgendarAbierto(false);
-        return;
-      }
+
       const respuesta = await apiFetch("/api/citas", {
         method: "POST",
         headers: { Accept: "application/json" },

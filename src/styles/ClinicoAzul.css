@@ -1376,6 +1376,13 @@ input:focus-visible {
 .sidebar-replegado .sistema-sidebar {
   width: var(--clinico-sidebar-collapsed);
 }
+.sidebar-replegado .sistema-sidebar.sidebar-hover-activo,
+.sidebar-replegado .sistema-sidebar:focus-within {
+  width: var(--clinico-sidebar) !important;
+}
+.sidebar-replegado .sistema-sidebar:not(.sidebar-hover-activo):not(:focus-within) {
+  width: var(--clinico-sidebar-collapsed) !important;
+}
 .sidebar-replegado .sistema-cuerpo {
   width: calc(100% - var(--clinico-sidebar-collapsed));
   margin-left: var(--clinico-sidebar-collapsed);
@@ -1612,9 +1619,13 @@ button:focus-visible {
 /* Al ocultar el menú en escritorio, la cabecera y el contenido ocupan todo el ancho. */
 @media (min-width: 761px) {
   .sidebar-replegado .sistema-sidebar {
-    width: var(--clinico-sidebar);
-    transform: translateX(-105%);
-    visibility: hidden;
+    width: var(--clinico-sidebar-collapsed) !important;
+    transform: translateX(0);
+    visibility: visible;
+  }
+  .sidebar-replegado .sistema-sidebar.sidebar-hover-activo,
+  .sidebar-replegado .sistema-sidebar:focus-within {
+    width: var(--clinico-sidebar) !important;
   }
   .sidebar-replegado .sistema-cuerpo {
     width: 100%;

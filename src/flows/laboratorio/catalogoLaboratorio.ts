@@ -6,10 +6,6 @@ export type CategoriaLaboratorio = {
 };
 import { validarFormula, type FormulaLaboratorio } from "./formulasLaboratorio";
 import {
-  categoriaEjemploFormula,
-  estudioEjemploFormula,
-} from "./ejemploFormulaLaboratorio";
-import {
   validarRangoReferencia,
   type RangoReferencia,
 } from "./rangosLaboratorio";
@@ -251,7 +247,6 @@ const inicial: ConfiguracionLaboratorio = {
       activa: true,
     },
     ...gruposAdicionales,
-    categoriaEjemploFormula,
   ],
   tipos: [
     {
@@ -330,7 +325,6 @@ const inicial: ConfiguracionLaboratorio = {
       ],
     },
     ...tiposAdicionales,
-    estudioEjemploFormula,
   ],
 };
 

@@ -29,6 +29,7 @@ export type IconName =
   | "chevronRight"
   | "chevronLeft"
   | "plus"
+  | "minus"
   | "refresh"
   | "check"
   | "arrowRight"
@@ -261,6 +262,7 @@ const paths: Record<IconName, ReactNode> = {
   chevronRight: <path d="m9 18 6-6-6-6" />,
   chevronLeft: <path d="m15 18-6-6 6-6" />,
   plus: <path d="M12 5v14M5 12h14" />,
+  minus: <path d="M5 12h14" />,
   refresh: (
     <>
       <path d="M20 7v5h-5" />

@@ -3191,8 +3191,8 @@
 .em-signos-panel > .em-panel-titulo small { display:block; margin-top:4px; color:#718a9d; font-size:11px; font-weight:500; }
 .em-signos-columnas {
   display: grid;
-  grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
   align-items: start;
 }
 .em-signos-grafica,
@@ -3331,7 +3331,7 @@
   font: inherit;
 }
 .em-signos-formulario .em-signos {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -3394,9 +3394,104 @@
   }
 }
 .em-signos-formulario {
-  width: min(100%, 760px);
+  width: 100%;
   box-sizing: border-box;
   justify-self: start;
+}
+.em-signos-evolucion-tabla {
+  margin-top: 14px;
+}
+.em-signos-evolucion-tabla > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+.em-signos-evolucion-tabla h4 {
+  margin: 0;
+  color: #17466c;
+  font-size: 14px;
+}
+.em-signos-evolucion-tabla > header > span {
+  color: #71899c;
+  font-size: 11px;
+}
+.em-signos-evolucion-matriz {
+  min-width: max-content;
+}
+.em-signos-evolucion-matriz th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  min-width: 220px;
+  width: 220px;
+  max-width: 240px;
+  text-align: left;
+  background: #f2f8fb;
+}
+.em-signos-evolucion-matriz thead th:not(:first-child) {
+  min-width: 105px;
+  padding: 10px 12px;
+  text-align: center;
+  vertical-align: middle;
+  border-left: 1px solid #c8dce9;
+}
+.em-signos-evolucion-matriz tbody td {
+  border-left: 1px solid #d8e7f0;
+}
+.em-signos-evolucion-matriz thead th:first-child,
+.em-signos-evolucion-matriz tbody th:first-child {
+  border-right: 1px solid #aac6d9;
+}
+.em-signos-evolucion-matriz thead th:not(:first-child) span,
+.em-signos-evolucion-matriz thead th:not(:first-child) small {
+  display: block;
+  white-space: nowrap;
+}
+.em-signos-evolucion-matriz thead th:not(:first-child) span {
+  color: #087fc0;
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.em-signos-evolucion-matriz thead th:not(:first-child) small {
+  margin-top: 4px;
+  color: #263f52;
+  font-size: 12px;
+  font-weight: 650;
+  text-transform: none;
+}
+.em-signos-evolucion-matriz tbody th span,
+.em-signos-evolucion-matriz tbody th small {
+  display: block;
+}
+.em-signos-evolucion-matriz tbody th small {
+  margin-top: 3px;
+  color: #e5f2fb;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: none;
+}
+.em-signos-evolucion-matriz tbody th:first-child {
+  color: #fff;
+  background: #244f6d;
+}
+.em-signos-evolucion-matriz thead th:first-child {
+  color: #fff;
+  background: #244f6d;
+}
+.em-signos-evolucion-matriz td strong {
+  font-size: 13px;
+}
+.em-signos-evolucion-vacia {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed #c9dfea;
+  border-radius: 8px;
+  color: #71899c;
+  text-align: center;
+  font-size: 12px;
 }
 .em-signos-grafica > header > span {
   align-self: center;

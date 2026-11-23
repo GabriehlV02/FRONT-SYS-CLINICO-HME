@@ -701,13 +701,6 @@ export function TriajeEmergenciasView({
         : [],
     [catalogoSignos.signos, idsEmergencias],
   );
-  const vitalesEmergencia = useMemo(
-    () =>
-      camposEmergencia
-        .filter((campo) => campo.tipo !== "Texto")
-        .map((campo) => [campo.id, campo.etiqueta, campo.unidad] as const),
-    [camposEmergencia],
-  );
   const [borradorInicial] = useState<BorradorTriaje>(() => ({}));
   const [seccionClinica, setSeccionClinica] = useState<
     "paciente" | "tratamiento" | "ingreso" | "reportes" | "signos" | "examen" | "descargos"
@@ -1323,10 +1316,6 @@ export function TriajeEmergenciasView({
     const titulos = { signos: "Hoja de evolución de signos vitales", balance: "Hoja de balance hídrico", tratamiento: "Registro de medicación e insumos", enfermeria: "Reporte de enfermería" };
     let paginaIniciada = false;
     let hojasIncluidas = 0;
-    const fechaHora = (valor: string) => {
-      const instante = new Date(valor);
-      return Number.isNaN(instante.getTime()) ? "—" : instante.toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" });
-    };
     const dibujarDatoEncabezado = (etiqueta: string, valor: string, x: number, y: number, anchoMaximo: number) => {
       pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(83, 109, 136);
       pdf.text(etiqueta, x, y);
@@ -1384,83 +1373,43 @@ export function TriajeEmergenciasView({
       const fechaRegistro = registro.campos.evolucionFecha ? `${registro.campos.evolucionFecha}T${registro.campos.evolucionHora || "00:00"}:00` : registro.fecha;
       return Boolean(registro.campos.evolucion?.trim()) && enRango(fechaRegistro);
     });
-    const normalize = (valor: string) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const valorSigno = (toma: Cuenta["signos"][number], alias: string[]) => {
-      const campo = Object.keys(toma.valores || {}).find((llave) => alias.some((item) => normalize(llave).includes(normalize(item))));
-      if (campo && toma.valores[campo] !== "") return String(toma.valores[campo]);
-      const medicion = toma.mediciones?.find((item) => alias.some((itemAlias) => normalize(item.id).includes(normalize(itemAlias)) || normalize(item.nombre).includes(normalize(itemAlias))));
-      return medicion?.valor === undefined || medicion.valor === "" ? "—" : String(medicion.valor);
-    };
-    const coreAliases = ["frecuencia cardiaca", "pulso", "frecuencia respiratoria", "respiracion", "saturacion", "spo2", "oxigeno", "temperatura", "presion sistolica", "presion diastolica", "presion arterial"];
     if (elegidas.includes("signos") && signos.length) {
       comenzarHoja(titulos.signos);
-      const ultimaToma = signos.at(-1);
-      const datoPaciente = (clave: string, aliases: string[]) => identidad[clave] || (ultimaToma ? valorSigno(ultimaToma, aliases) : "—");
-      const datosVitales = [
-        ["DIETA", identidad.dieta || "No registrada"],
-        ["PESO", datoPaciente("peso", ["peso"]) === "—" ? "No registrado" : `${datoPaciente("peso", ["peso"])} kg`],
-        ["TALLA", datoPaciente("talla", ["estatura", "talla"]) === "—" ? "No registrada" : `${datoPaciente("talla", ["estatura", "talla"])} cm`],
-      ] as const;
-      const anchoDato = (ancho - margen * 2 - 6) / 3;
-      datosVitales.forEach(([etiqueta, valor], indice) => {
-        const x = margen + indice * (anchoDato + 3);
-        pdf.setFillColor(247, 249, 252); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(x, 47, anchoDato, 10, 1, 1, "FD");
-        pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.7); pdf.setTextColor(83, 109, 136); pdf.text(etiqueta, x + 2, 51);
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.setTextColor(22, 53, 88); pdf.text(pdf.splitTextToSize(valor, anchoDato - 4)[0] || "—", x + 2, 55);
-      });
-      const filas = signos.map((toma) => {
-        const extras = Object.entries(toma.valores || {}).filter(([llave, valor]) => valor !== "" && !coreAliases.some((alias) => normalize(llave).includes(normalize(alias)))).map(([llave, valor]) => `${llave}: ${valor}`);
-        (toma.mediciones || []).filter((medicion) => !coreAliases.some((alias) => normalize(medicion.id).includes(normalize(alias)) || normalize(medicion.nombre).includes(normalize(alias)))).forEach((medicion) => extras.push(`${medicion.nombre}: ${medicion.valor}${medicion.unidad ? ` ${medicion.unidad}` : ""}`));
-        const sistolica = valorSigno(toma, ["presion sistolica", "presion arterial sistolica"]);
-        const diastolica = valorSigno(toma, ["presion diastolica", "presion arterial diastolica"]);
-        const oxigenoterapia = valorSigno(toma, ["aire ambiente", "oxigeno suplementario", "oxigenoterapia", "flujo oxigeno"]);
-        const pulso = valorSigno(toma, ["frecuencia cardiaca", "pulso"]);
-        const respiracion = valorSigno(toma, ["frecuencia respiratoria", "respiracion"]);
-        const saturacion = valorSigno(toma, ["saturacion", "spo2", "oxigeno"]);
-        const temperatura = valorSigno(toma, ["temperatura"]);
-        return [fechaHora(toma.fecha), pulso === "—" ? pulso : `${pulso} lat/min`, respiracion === "—" ? respiracion : `${respiracion} resp/min`, saturacion === "—" ? saturacion : `${saturacion}%`, oxigenoterapia, temperatura === "—" ? temperatura : `${temperatura} °C`, sistolica === "—" && diastolica === "—" ? "—" : `${sistolica}/${diastolica} mmHg`, [...extras, toma.observacion].filter(Boolean).join(" · ") || "—"];
-      });
-      autoTable(pdf, { ...opcionesTabla(titulos.signos), startY: 60, head: [["FECHA Y HORA", "PULSO", "RESPIRACIÓN", "SpO₂", "AIRE / O₂", "TEMPERATURA", "PRESIÓN ARTERIAL", "OTROS / OBSERVACIÓN"]], body: filas, columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 17 }, 2: { cellWidth: 19 }, 3: { cellWidth: 16 }, 4: { cellWidth: 17 }, 5: { cellWidth: 18 }, 6: { cellWidth: 24 }, 7: { cellWidth: "auto" } } });
-      let graficaY = (pdf as typeof pdf & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY || 91;
-      const seriesVitales = [
-        { titulo: "Pulso · lat/min", valores: signos.map((toma) => valorSigno(toma, ["frecuencia cardiaca", "pulso"])), color: [8, 127, 189] as [number, number, number] },
-        { titulo: "Respiración · resp/min", valores: signos.map((toma) => valorSigno(toma, ["frecuencia respiratoria", "respiracion"])), color: [0, 135, 145] as [number, number, number] },
-        { titulo: "Saturación · %", valores: signos.map((toma) => valorSigno(toma, ["saturacion", "spo2", "oxigeno"])), color: [76, 143, 95] as [number, number, number] },
-        { titulo: "Temperatura · °C", valores: signos.map((toma) => valorSigno(toma, ["temperatura"])), color: [210, 126, 41] as [number, number, number] },
-        { titulo: "Presión arterial · mmHg", valores: signos.map((toma) => valorSigno(toma, ["presion sistolica", "presion arterial sistolica"])), color: [126, 91, 171] as [number, number, number] },
-      ].filter((serie) => serie.valores.some((valor) => Number.isFinite(Number(valor)) && valor !== "—"));
-      const alturaGraficas = seriesVitales.length * 25 + 11;
-      if (graficaY + alturaGraficas > alto - 28) {
-        comenzarPaginaContinuacion(`${titulos.signos} · Gráfica`);
-        graficaY = 68;
-      } else graficaY += 8;
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(18, 56, 98); pdf.text("EVOLUCIÓN GRÁFICA · ESCALA AJUSTADA A LAS MEDICIONES REGISTRADAS", margen, graficaY);
-      graficaY += 5;
-      seriesVitales.forEach((serie) => {
-        const y = graficaY;
-        const plotX = margen + 39; const plotW = ancho - margen * 2 - 42; const plotH = 16;
-        const pares = serie.valores.map((valor, indice) => ({ valor: Number(String(valor).replace(",", ".")), indice })).filter((dato) => Number.isFinite(dato.valor));
-        const min = Math.min(...pares.map((dato) => dato.valor)); const max = Math.max(...pares.map((dato) => dato.valor));
-        const rango = max === min ? Math.max(Math.abs(max) * 0.15, 1) : (max - min) * 0.15;
-        pdf.setFont("helvetica", "bold"); pdf.setFontSize(6.4); pdf.setTextColor(63, 91, 111); pdf.text(serie.titulo, margen, y + 8);
-        pdf.setDrawColor(224, 234, 241); pdf.setLineWidth(0.2);
-        for (let linea = 0; linea < 3; linea++) pdf.line(plotX, y + linea * (plotH / 2), plotX + plotW, y + linea * (plotH / 2));
-        pdf.setDrawColor(...serie.color); pdf.setFillColor(...serie.color); pdf.setLineWidth(0.7);
-        let anterior: { x: number; y: number } | null = null;
-        pares.forEach((dato) => {
-          const x = plotX + (signos.length <= 1 ? plotW / 2 : plotW * dato.indice / (signos.length - 1));
-          const yPunto = y + plotH - ((dato.valor - (min - rango)) / ((max + rango) - (min - rango))) * plotH;
-          if (anterior) pdf.line(anterior.x, anterior.y, x, yPunto);
-          pdf.circle(x, yPunto, 0.85, "F");
-          anterior = { x, y: yPunto };
-        });
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(5.5); pdf.setTextColor(103, 128, 147);
-        const marcas = signos.length <= 6 ? signos.map((_, indice) => indice) : [0, Math.floor((signos.length - 1) / 2), signos.length - 1];
-        [...new Set(marcas)].forEach((indice) => {
-          const x = plotX + (signos.length <= 1 ? plotW / 2 : plotW * indice / (signos.length - 1));
-          pdf.text(new Date(signos[indice].fecha).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" }), x, y + 22, { align: "center" });
-        });
-        graficaY += 25;
+      const camposInforme = camposEmergencia.length
+        ? camposEmergencia
+        : campos.map(([id, etiqueta, unidad]) => ({ id, etiqueta, unidad }));
+      const encabezados = signos.map((toma) => `${horaIngreso(toma.fecha)}\n${new Date(toma.fecha).toLocaleDateString("es-BO")}`);
+      const filasMatriz = camposInforme.map((campo) => [
+        `${campo.etiqueta}\n${campo.unidad || ""}`,
+        ...signos.map((toma) => {
+          const valorDirecto = toma.valores?.[campo.id];
+          const registro = toma.mediciones?.find((medicion) => medicion.id === campo.id || medicion.nombre === campo.etiqueta);
+          const valor = valorDirecto !== undefined && valorDirecto !== "" ? valorDirecto : registro?.valor;
+          return valor === undefined || valor === "" ? "—" : String(valor);
+        }),
+      ]);
+      if (signos.some((toma) => toma.observacion?.trim())) {
+        filasMatriz.push(["Observación", ...signos.map((toma) => toma.observacion?.trim() || "—")]);
+      }
+      autoTable(pdf, {
+        ...opcionesTabla(titulos.signos),
+        startY: 47,
+        head: [["SIGNO VITAL", ...encabezados]],
+        body: filasMatriz,
+        horizontalPageBreak: true,
+        horizontalPageBreakRepeat: 0,
+        styles: { font: "helvetica", fontSize: 7, cellPadding: 3, textColor: [21, 81, 122], lineColor: [206, 225, 238], lineWidth: 0.22, valign: "middle", overflow: "linebreak" },
+        headStyles: { fillColor: [239, 247, 251], textColor: [8, 127, 192], fontStyle: "bold", halign: "center", lineColor: [198, 220, 234] },
+        alternateRowStyles: { fillColor: [245, 250, 253] },
+        columnStyles: { 0: { cellWidth: 42, fillColor: [36, 79, 109], textColor: [255, 255, 255], fontStyle: "bold", halign: "left" } },
+        didParseCell: (datos) => {
+          if (datos.section === "head" && datos.column.index === 0) {
+            datos.cell.styles.fillColor = [36, 79, 109];
+            datos.cell.styles.textColor = [255, 255, 255];
+            datos.cell.styles.halign = "left";
+          }
+          if (datos.section === "body" && datos.column.index > 0) datos.cell.styles.halign = "center";
+        },
       });
     }
     if (elegidas.includes("balance") && balances.length) {
@@ -2803,7 +2752,7 @@ export function TriajeEmergenciasView({
                       onClick={() => setSeccionClinica("ingreso")}
                     >
                       <span className="em-pestana-icono" aria-hidden="true"><Icon name="home" size={17} /></span>
-                      Ingreso del paciente
+                      Evolución del paciente
                     </button>
                     <button
                       type="button"
@@ -2870,10 +2819,6 @@ export function TriajeEmergenciasView({
                         </div>
                       </header>
                       <div className="em-signos-columnas">
-                        <GraficaEvolucionSignos
-                          mediciones={cuenta.signos}
-                          camposGrafica={vitalesEmergencia}
-                        />
                         {!cuenta.fin && (
                             <form
                               className="em-signos-formulario"
@@ -2975,6 +2920,24 @@ export function TriajeEmergenciasView({
                             </form>
                           )}
                       </div>
+                      <section className="em-signos-evolucion-tabla" aria-label="Tabla de evolución de signos vitales">
+                        <header>
+                          <h4>Evolución por hora</h4>
+                          <span>{cuenta.signos.length} {cuenta.signos.length === 1 ? "medición registrada" : "mediciones registradas"}</span>
+                        </header>
+                        {cuenta.signos.length > 0 && camposEmergencia.length > 0 ? (
+                          <div className="em-signos-tabla-contenedor">
+                            <table className="em-signos-tabla em-signos-evolucion-matriz">
+                              <thead><tr><th scope="col">Signo vital</th>{cuenta.signos.map((medicion) => <th scope="col" key={medicion.id}><span>{horaIngreso(medicion.fecha)}</span><small>{new Date(medicion.fecha).toLocaleDateString("es-BO")}</small></th>)}</tr></thead>
+                              <tbody>{camposEmergencia.map((campo) => <tr key={campo.id}><th scope="row"><span>{campo.etiqueta}</span>{campo.unidad && <small>{campo.unidad}</small>}</th>{cuenta.signos.map((medicion) => {
+                                const valorDetalle = medicion.mediciones?.find((registro) => registro.id === campo.id || registro.nombre === campo.etiqueta)?.valor;
+                                const valor = valorDetalle ?? medicion.valores[campo.id];
+                                return <td key={medicion.id}><strong>{valor !== undefined && valor !== "" ? valor : "—"}</strong></td>;
+                              })}</tr>)}</tbody>
+                            </table>
+                          </div>
+                        ) : <p className="em-signos-evolucion-vacia">Aún no hay mediciones de signos vitales para mostrar.</p>}
+                      </section>
                     </section>
                     <section className="em-panel em-balance-emergencias" aria-label="Balance hídrico">
                       <header className="em-balance-emergencias-cabecera">
@@ -3025,8 +2988,8 @@ export function TriajeEmergenciasView({
                         <fieldset className="em-balance-tipo-switch">
                           <legend>Tipo de registro</legend>
                           <div className="em-balance-tipo-pista" role="group" aria-label="Tipo de movimiento">
-                            <button type="button" className={formBalanceEmergencia.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalanceEmergencia.tipo === "ingreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true">ï¼‹</span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
-                            <button type="button" className={formBalanceEmergencia.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalanceEmergencia.tipo === "egreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true">âˆ’</span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
+                            <button type="button" className={formBalanceEmergencia.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalanceEmergencia.tipo === "ingreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true"><Icon name="plus" size={14} /></span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
+                            <button type="button" className={formBalanceEmergencia.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalanceEmergencia.tipo === "egreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true"><Icon name="minus" size={14} /></span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
                           </div>
                         </fieldset>
                         <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalanceEmergencia.volumen} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>

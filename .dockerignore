@@ -1,0 +1,11 @@
+**
+!package.json
+!package-lock.json
+!src/
+!src/**
+!public/
+!public/**
+public/estudios-demo/
+!index.html
+!tsconfig.json
+!vite.config.ts

@@ -1236,9 +1236,16 @@ export default function Aplicacion() {
   const [sidebarCerradoPorSeleccion, setSidebarCerradoPorSeleccion] =
     useState(false);
   const [sidebarHoverActivo, setSidebarHoverActivo] = useState(false);
-  const abrirSidebarDesdeIcono = () => {
-    if (!sidebarReplegado || sidebarCerradoPorSeleccion ||
-        !window.matchMedia("(min-width: 761px) and (hover: hover)").matches) return;
+  const abrirSidebarDesdeIcono = (evento: React.PointerEvent<HTMLButtonElement>) => {
+    if (
+      evento.pointerType !== "mouse" ||
+      !sidebarReplegado ||
+      sidebarHoverActivo ||
+      !window.matchMedia("(min-width: 761px)").matches
+    ) {
+      return;
+    }
+    setSidebarCerradoPorSeleccion(false);
     setSidebarHoverActivo(true);
     window.requestAnimationFrame(restaurarScrollSidebar);
   };
@@ -1477,8 +1484,9 @@ export default function Aplicacion() {
       )}
       <aside
         className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""} ${sidebarHoverActivo ? "sidebar-hover-activo" : ""}`}
-        onMouseLeave={() => {
-          if (!sidebarReplegado) guardarScrollSidebar();
+        onPointerLeave={(evento) => {
+          if (evento.pointerType !== "mouse") return;
+          if (!sidebarReplegado || sidebarHoverActivo) guardarScrollSidebar();
           setSidebarHoverActivo(false);
           setSidebarCerradoPorSeleccion(false);
         }}
@@ -1532,6 +1540,7 @@ export default function Aplicacion() {
                         aria-current={modulo === item.id ? "page" : undefined}
                         key={item.id}
                         className={`nav-modulo nav-${item.id}${modulo === item.id ? " activo" : ""}`}
+                        onPointerEnter={abrirSidebarDesdeIcono}
                         onClick={(evento) => {
                           if (window.matchMedia("(min-width: 761px)").matches) {
                             guardarScrollSidebar();
@@ -1566,7 +1575,7 @@ export default function Aplicacion() {
                           }
                         }}
                       >
-                        <span className="nav-icono line-nav-icono" onMouseEnter={abrirSidebarDesdeIcono}>
+                        <span className="nav-icono line-nav-icono">
                           <Icon
                             name={item.icono}
                             size={20}
@@ -1589,9 +1598,10 @@ export default function Aplicacion() {
         <button
           className="boton-salir"
           title={sidebarReplegado ? "Cerrar sesión" : undefined}
+          onPointerEnter={abrirSidebarDesdeIcono}
           onClick={cerrarSesion}
         >
-          <span className="nav-icono" onMouseEnter={abrirSidebarDesdeIcono}>
+          <span className="nav-icono">
             <Icon name="logout" size={19} />
           </span>
           <span className="nav-texto">Cerrar sesión</span>

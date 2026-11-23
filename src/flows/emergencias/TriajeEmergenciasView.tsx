@@ -1,5 +1,6 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { apiFetch } from "../../radius/api";
 import {
   PacienteIngresoEmergencia,
   fechaHoraIngresoActual,
@@ -678,7 +679,6 @@ function ModalCobro({
     </div>
   );
 }
-
 export function TriajeEmergenciasView({
   recepcion = false,
   camposConfigurados,
@@ -708,13 +708,12 @@ export function TriajeEmergenciasView({
         .map((campo) => [campo.id, campo.etiqueta, campo.unidad] as const),
     [camposEmergencia],
   );
-  const [continuidadInicial] = useState(() => leerContinuidadTriaje());
-  const [borradorInicial] = useState(() => leerBorradorTriaje(continuidadInicial?.cuentaId || ""));
+  const [borradorInicial] = useState<BorradorTriaje>(() => ({}));
   const [seccionClinica, setSeccionClinica] = useState<
     "paciente" | "tratamiento" | "ingreso" | "reportes" | "signos" | "examen" | "descargos"
-  >(() => continuidadInicial?.seccion || "ingreso");
+  >("ingreso");
   const [cuentas, setCuentas] = useState<Cuenta[]>([]),
-    [activa, setActiva] = useState(() => continuidadInicial?.cuentaId || "");
+    [activa, setActiva] = useState("");
   const [trasladosAmbulancia, setTrasladosAmbulancia] = useState<Record<string, TrasladoAmbulanciaProgramado>>(() => {
     try { return JSON.parse(window.localStorage.getItem(CLAVE_TRASLADOS_AMBULANCIA) || "{}"); } catch { return {}; }
   });
@@ -736,7 +735,7 @@ export function TriajeEmergenciasView({
   const [datosIniciales, setDatosIniciales] = useState<Identidad>({});
   const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const [busquedaCuenta, setBusquedaCuenta] = useState(""),
-    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario">(() => continuidadInicial?.subvista || "atencion");
+    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario">("atencion");
   const [modalExportarHistorial, setModalExportarHistorial] = useState(false);
   const [fechaDesdeHistorial, setFechaDesdeHistorial] = useState("");
   const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
@@ -1306,7 +1305,6 @@ export function TriajeEmergenciasView({
     const ancho = pdf.internal.pageSize.getWidth();
     const alto = pdf.internal.pageSize.getHeight();
     const margen = 13;
-    const periodo = `${new Date(desdeReporteTurno).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" })} — ${new Date(hastaReporteTurno).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" })}`;
     const identidad = cuenta.identidad || {};
     let logo: string | null = null;
     try {
@@ -1330,10 +1328,10 @@ export function TriajeEmergenciasView({
       return Number.isNaN(instante.getTime()) ? "—" : instante.toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" });
     };
     const dibujarDatoEncabezado = (etiqueta: string, valor: string, x: number, y: number, anchoMaximo: number) => {
-      pdf.setFont("helvetica", "bold"); pdf.setFontSize(7); pdf.setTextColor(83, 109, 136);
+      pdf.setFont("helvetica", "bold"); pdf.setFontSize(8); pdf.setTextColor(83, 109, 136);
       pdf.text(etiqueta, x, y);
       const xValor = x + pdf.getTextWidth(`${etiqueta} `);
-      pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(22, 53, 88);
+      pdf.setFont("helvetica", "normal"); pdf.setFontSize(8.5); pdf.setTextColor(22, 53, 88);
       pdf.text(pdf.splitTextToSize(valor || "—", Math.max(8, anchoMaximo - (xValor - x)))[0] || "—", xValor, y);
     };
     const dibujarEncabezado = (titulo: string) => {
@@ -1346,16 +1344,17 @@ export function TriajeEmergenciasView({
       }
       pdf.setTextColor(18, 56, 98); pdf.setFont("helvetica", "bold"); pdf.setFontSize(10.5);
       pdf.text(pdf.splitTextToSize(titulo.toLocaleUpperCase("es"), 87).slice(0, 2), 62, 13);
-      pdf.setFontSize(5.8); pdf.setTextColor(83, 109, 136);
+      pdf.setFontSize(8.5); pdf.setTextColor(83, 109, 136);
+      pdf.text("SERVICIO DE EMERGENCIAS", ancho / 2, 21, { align: "center" });
+      pdf.setFontSize(8); pdf.setTextColor(83, 109, 136);
       pdf.text("N.º HISTORIA CLÍNICA / CI", 153, 10);
       pdf.setFontSize(8.5); pdf.setTextColor(22, 53, 88);
       pdf.text(pdf.splitTextToSize(identidad.historiaClinica || identidad.documento || "No registrado", ancho - margen - 153).slice(0, 2), 153, 17);
       pdf.setDrawColor(185, 207, 229); pdf.setLineWidth(0.35); pdf.line(margen, 27, ancho - margen, 27);
-      dibujarDatoEncabezado("SERVICIO:", "Emergencias", margen, 34, 55);
-      dibujarDatoEncabezado("SALA / CUBÍCULO:", nombreCubiculo(cuenta.cubiculo), 78, 34, ancho - margen - 78);
-      dibujarDatoEncabezado("FECHA Y HORA DE INGRESO:", fechaHora(cuenta.inicio), margen, 42, ancho - margen - margen);
-      dibujarDatoEncabezado("PERÍODO DEL TURNO:", periodo, margen, 52, ancho - margen - margen);
-      pdf.setDrawColor(185, 207, 229); pdf.setLineWidth(0.35); pdf.line(margen, 56, ancho - margen, 56);
+      dibujarDatoEncabezado("SALA / CUBÍCULO:", nombreCubiculo(cuenta.cubiculo), 153, 24, ancho - margen - 153);
+      dibujarDatoEncabezado("PACIENTE:", nombrePaciente(cuenta), margen, 32, 112);
+      dibujarDatoEncabezado("EDAD:", edadPaciente(identidad.nacimiento), margen + 116, 32, ancho - margen - (margen + 116));
+      pdf.setDrawColor(185, 207, 229); pdf.setLineWidth(0.35); pdf.line(margen, 36, ancho - margen, 36);
     };
     const comenzarHoja = (titulo: string) => {
       if (paginaIniciada) pdf.addPage("a4", "portrait");
@@ -1368,12 +1367,12 @@ export function TriajeEmergenciasView({
       dibujarEncabezado(titulo);
     };
     const opcionesTabla = (titulo: string) => ({
-      startY: 64,
+      startY: 48,
       theme: "grid" as const,
       styles: { font: "helvetica", fontSize: 7.2, cellPadding: 2, textColor: [35, 65, 91] as [number, number, number], lineColor: [205, 225, 239] as [number, number, number], lineWidth: 0.18, valign: "middle" as const, overflow: "linebreak" as const },
       headStyles: { fillColor: [18, 56, 98] as [number, number, number], textColor: [255, 255, 255] as [number, number, number], fontStyle: "bold" as const },
       alternateRowStyles: { fillColor: [250, 253, 255] as [number, number, number] },
-      margin: { top: 64, left: margen, right: margen, bottom: 25 },
+      margin: { top: 48, left: margen, right: margen, bottom: 25 },
       didDrawPage: () => dibujarEncabezado(titulo),
     });
     const elegidas = hojasSolicitadas || ["signos", "balance", "tratamiento", "enfermeria"];
@@ -1405,9 +1404,9 @@ export function TriajeEmergenciasView({
       const anchoDato = (ancho - margen * 2 - 6) / 3;
       datosVitales.forEach(([etiqueta, valor], indice) => {
         const x = margen + indice * (anchoDato + 3);
-        pdf.setFillColor(247, 249, 252); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(x, 65, anchoDato, 10, 1, 1, "FD");
-        pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.7); pdf.setTextColor(83, 109, 136); pdf.text(etiqueta, x + 2, 69);
-        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.setTextColor(22, 53, 88); pdf.text(pdf.splitTextToSize(valor, anchoDato - 4)[0] || "—", x + 2, 73);
+        pdf.setFillColor(247, 249, 252); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(x, 47, anchoDato, 10, 1, 1, "FD");
+        pdf.setFont("helvetica", "bold"); pdf.setFontSize(5.7); pdf.setTextColor(83, 109, 136); pdf.text(etiqueta, x + 2, 51);
+        pdf.setFont("helvetica", "normal"); pdf.setFontSize(7); pdf.setTextColor(22, 53, 88); pdf.text(pdf.splitTextToSize(valor, anchoDato - 4)[0] || "—", x + 2, 55);
       });
       const filas = signos.map((toma) => {
         const extras = Object.entries(toma.valores || {}).filter(([llave, valor]) => valor !== "" && !coreAliases.some((alias) => normalize(llave).includes(normalize(alias)))).map(([llave, valor]) => `${llave}: ${valor}`);
@@ -1421,7 +1420,7 @@ export function TriajeEmergenciasView({
         const temperatura = valorSigno(toma, ["temperatura"]);
         return [fechaHora(toma.fecha), pulso === "—" ? pulso : `${pulso} lat/min`, respiracion === "—" ? respiracion : `${respiracion} resp/min`, saturacion === "—" ? saturacion : `${saturacion}%`, oxigenoterapia, temperatura === "—" ? temperatura : `${temperatura} °C`, sistolica === "—" && diastolica === "—" ? "—" : `${sistolica}/${diastolica} mmHg`, [...extras, toma.observacion].filter(Boolean).join(" · ") || "—"];
       });
-      autoTable(pdf, { ...opcionesTabla(titulos.signos), startY: 79, head: [["FECHA Y HORA", "PULSO", "RESPIRACIÓN", "SpO₂", "AIRE / O₂", "TEMPERATURA", "PRESIÓN ARTERIAL", "OTROS / OBSERVACIÓN"]], body: filas, columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 17 }, 2: { cellWidth: 19 }, 3: { cellWidth: 16 }, 4: { cellWidth: 17 }, 5: { cellWidth: 18 }, 6: { cellWidth: 24 }, 7: { cellWidth: "auto" } } });
+      autoTable(pdf, { ...opcionesTabla(titulos.signos), startY: 60, head: [["FECHA Y HORA", "PULSO", "RESPIRACIÓN", "SpO₂", "AIRE / O₂", "TEMPERATURA", "PRESIÓN ARTERIAL", "OTROS / OBSERVACIÓN"]], body: filas, columnStyles: { 0: { cellWidth: 22 }, 1: { cellWidth: 17 }, 2: { cellWidth: 19 }, 3: { cellWidth: 16 }, 4: { cellWidth: 17 }, 5: { cellWidth: 18 }, 6: { cellWidth: 24 }, 7: { cellWidth: "auto" } } });
       let graficaY = (pdf as typeof pdf & { lastAutoTable?: { finalY: number } }).lastAutoTable?.finalY || 91;
       const seriesVitales = [
         { titulo: "Pulso · lat/min", valores: signos.map((toma) => valorSigno(toma, ["frecuencia cardiaca", "pulso"])), color: [8, 127, 189] as [number, number, number] },
@@ -1471,10 +1470,12 @@ export function TriajeEmergenciasView({
         const registrosDia = balances.filter((registro) => registro.fecha === dia);
         const filas: (string | number)[][] = [];
         let totalIngreso = 0; let totalEgreso = 0;
+        const tieneMovimientos = (registros: typeof registrosDia) => registros.length > 0;
         for (let bloque = 0; bloque < 4; bloque++) {
           let ingresoBloque = 0; let egresoBloque = 0;
           for (let hora = bloque * 6; hora < bloque * 6 + 6; hora++) {
             const movimientos = registrosDia.filter((registro) => Number(registro.hora.slice(0, 2)) === hora);
+            if (!tieneMovimientos(movimientos)) continue;
             const entradas = movimientos.filter((registro) => registro.tipo === "ingreso");
             const salidas = movimientos.filter((registro) => registro.tipo === "egreso");
             const ingreso = entradas.reduce((suma, registro) => suma + registro.volumen, 0);
@@ -1482,11 +1483,20 @@ export function TriajeEmergenciasView({
             ingresoBloque += ingreso; egresoBloque += egreso; totalIngreso += ingreso; totalEgreso += egreso;
             filas.push([`${String(hora).padStart(2, "0")}:00`, entradas.map((registro) => `${registro.detalle}${registro.anotacion ? ` · ${registro.anotacion}` : ""}`).join("; ") || "—", ingreso || "—", salidas.map((registro) => `${registro.detalle}${registro.anotacion ? ` · ${registro.anotacion}` : ""}`).join("; ") || "—", egreso || "—", ingreso || egreso ? `${ingreso - egreso > 0 ? "+" : ""}${ingreso - egreso}` : "—"]);
           }
-          filas.push([`Subtotal ${bloque + 1} · 6 h`, "Ingresos", ingresoBloque, "Egresos", egresoBloque, `${ingresoBloque - egresoBloque > 0 ? "+" : ""}${ingresoBloque - egresoBloque}`]);
-          if (bloque % 2 === 1) filas.push([`Subtotal ${bloque === 1 ? "12 h" : "24 h"}`, "Ingresos", totalIngreso, "Egresos", totalEgreso, `${totalIngreso - totalEgreso > 0 ? "+" : ""}${totalIngreso - totalEgreso}`]);
+          if (ingresoBloque || egresoBloque) {
+            const desdeBloque = `${String(bloque * 6).padStart(2, "0")}:00`;
+            const hastaBloque = `${String(bloque * 6 + 5).padStart(2, "0")}:59`;
+            filas.push([`${desdeBloque}–${hastaBloque}`, "Subtotal ingresos", ingresoBloque, "Subtotal egresos", egresoBloque, `${ingresoBloque - egresoBloque > 0 ? "+" : ""}${ingresoBloque - egresoBloque}`]);
+          }
+          if (bloque === 1 && (totalIngreso || totalEgreso)) {
+            filas.push(["00:00–11:59", "Total ingresos 12 h", totalIngreso, "Total egresos 12 h", totalEgreso, `${totalIngreso - totalEgreso > 0 ? "+" : ""}${totalIngreso - totalEgreso}`]);
+          }
+          if (bloque === 3 && (totalIngreso || totalEgreso)) {
+            filas.push(["00:00–23:59", "Total ingresos 24 h", totalIngreso, "Total egresos 24 h", totalEgreso, `${totalIngreso - totalEgreso > 0 ? "+" : ""}${totalIngreso - totalEgreso}`]);
+          }
         }
         const movimientosGrafica = registrosDia.slice().sort((a, b) => a.hora.localeCompare(b.hora));
-        const graficaX = margen; const graficaY = 65; const graficaW = ancho - margen * 2; const graficaH = 46;
+        const graficaX = margen; const graficaY = 47; const graficaW = ancho - margen * 2; const graficaH = 46;
         pdf.setFillColor(249, 251, 253); pdf.setDrawColor(205, 220, 233); pdf.roundedRect(graficaX, graficaY, graficaW, graficaH, 1.6, 1.6, "FD");
         pdf.setFont("helvetica", "bold"); pdf.setFontSize(7.4); pdf.setTextColor(18, 56, 98); pdf.text("INGRESOS Y EGRESOS POR MOVIMIENTO", graficaX + 3, graficaY + 5);
         pdf.setFillColor(21, 157, 132); pdf.circle(graficaX + 4, graficaY + 10, 1.1, "F");
@@ -1514,7 +1524,7 @@ export function TriajeEmergenciasView({
             pdf.text(registro.hora, centro, graficaY + 43, { align: "center" });
           }
         });
-        autoTable(pdf, { ...opcionesTabla(`${titulos.balance} · ${new Date(`${dia}T12:00:00`).toLocaleDateString("es-BO")}`), startY: graficaY + graficaH + 3, head: [["HORA", "INGRESOS · DETALLE", "ML", "EGRESOS · DETALLE", "ML", "BALANCE ML"]], body: filas, styles: { ...opcionesTabla(titulos.balance).styles, fontSize: 6.4, cellPadding: 1.35 }, columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 48 }, 2: { cellWidth: 15, halign: "right" }, 3: { cellWidth: 48 }, 4: { cellWidth: 15, halign: "right" }, 5: { cellWidth: 20, halign: "right" } }, didParseCell: (data) => { if (data.row.raw && Array.isArray(data.row.raw) && String(data.row.raw[0]).startsWith("Subtotal")) { data.cell.styles.fillColor = [232, 239, 247]; data.cell.styles.textColor = [18, 56, 98]; data.cell.styles.fontStyle = "bold"; } } });
+        autoTable(pdf, { ...opcionesTabla(`${titulos.balance} · ${new Date(`${dia}T12:00:00`).toLocaleDateString("es-BO")}`), startY: graficaY + graficaH + 3, head: [["HORA", "INGRESOS · DETALLE", "ML", "EGRESOS · DETALLE", "ML", "BALANCE ML"]], body: filas, styles: { ...opcionesTabla(titulos.balance).styles, fontSize: 6.4, cellPadding: 1.35 }, columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 48 }, 2: { cellWidth: 15, halign: "right" }, 3: { cellWidth: 48 }, 4: { cellWidth: 15, halign: "right" }, 5: { cellWidth: 20, halign: "right" } }, didParseCell: (data) => { if (data.row.raw && Array.isArray(data.row.raw) && /^(Subtotal|Total)/.test(String(data.row.raw[1]))) { data.cell.styles.fillColor = [232, 239, 247]; data.cell.styles.textColor = [18, 56, 98]; data.cell.styles.fontStyle = "bold"; } } });
       });
     }
     if (elegidas.includes("tratamiento")) {
@@ -1612,8 +1622,26 @@ export function TriajeEmergenciasView({
       const url = URL.createObjectURL(pdf.output("blob"));
       setVistaPreviaReporte({ url, titulo: titulos[hoja], hoja });
     } else {
-      pdf.save(`reporte-turno-emergencias-${new Date().toISOString().slice(0, 10)}.pdf`);
-      setAviso(`PDF vertical generado con ${hojasIncluidas} hoja(s) del turno seleccionado.`);
+      if (!cuenta.pacienteId) {
+        setAviso("No se pudo guardar el reporte: vincula primero esta atención con la ficha del paciente.");
+        return;
+      }
+      const nombreArchivo = `reporte-turno-emergencias-${new Date().toISOString().slice(0, 10)}.pdf`;
+      const formulario = new FormData();
+      formulario.append("archivo", pdf.output("blob"), nombreArchivo);
+      formulario.append("titulo", "Reporte de turno de Emergencias");
+      formulario.append("periodo_desde", desdeReporteTurno);
+      formulario.append("periodo_hasta", hastaReporteTurno);
+      try {
+        const respuesta = await apiFetch(`/api/v1/emergencias/${encodeURIComponent(cuenta.id)}/reportes`, { method: "POST", body: formulario });
+        const resultado = await respuesta.json().catch(() => null) as { message?: string } | null;
+        if (!respuesta.ok) throw new Error(resultado?.message || "No se pudo guardar el reporte en la historia clínica.");
+      } catch (causa) {
+        setAviso(causa instanceof Error ? causa.message : "No se pudo guardar el reporte en la historia clínica.");
+        return;
+      }
+      pdf.save(nombreArchivo);
+      setAviso(`PDF guardado automáticamente en la historia clínica y descargado (${hojasIncluidas} hoja(s)).`);
     }
   }
 
@@ -2813,14 +2841,11 @@ export function TriajeEmergenciasView({
                         <header className="em-reporte-bloque-cabecera">
                           <div><span>REPORTE CLÍNICO</span><h3 id="em-reporte-atencion-titulo">Reporte de atención de emergencia</h3></div>
                         </header>
-                        <div className="em-reporte-acciones-hojas">
-                          <button type="button" className="em-primario" onClick={() => setHojasReportePendientes(["signos", "balance", "tratamiento", "enfermeria"])}><Icon name="download" size={17} /> Exportar reporte de turno</button>
-                        </div>
                       </section>
                       <section className="em-reporte-bloque" aria-labelledby="em-reporte-insumos-titulo">
                         <header className="em-reporte-bloque-cabecera">
                           <div><span>REPORTE OPERATIVO</span><h3 id="em-reporte-insumos-titulo">Reporte de uso y dispensación de insumos</h3><small>Detalle de medicamentos e insumos utilizados durante esta atención.</small></div>
-                          <button type="button" className="em-primario" onClick={() => void exportarReporteTurnoVertical(["tratamiento"])}><Icon name="download" size={15} /> Exportar PDF del turno</button>
+                          <button type="button" className="em-primario" onClick={() => setHojasReportePendientes(["signos", "balance", "tratamiento", "enfermeria"])}><Icon name="download" size={15} /> Exportar PDF del turno</button>
                         </header>
                           <div className="em-reporte-identidad em-reporte-resumen-insumos">
                             <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong><span>CI {cuenta.identidad?.documento || "Sin documento"}</span></article>
@@ -2991,7 +3016,7 @@ export function TriajeEmergenciasView({
                         {balanceCompleto.slice().reverse().map((registro) => <li key={registro.id} className={registro.tipo}>
                           <span>{registro.tipo === "ingreso" ? "Ingreso" : "Egreso"}</span>
                           <div><strong>{registro.detalle}</strong>{registro.anotacion && <small>{registro.anotacion}</small>}</div>
-                          <b>{registro.tipo === "ingreso" ? "+" : "−"}{registro.volumen.toLocaleString("es-BO")} ml</b>
+                          <b>{registro.tipo === "ingreso" ? "+" : "âˆ’"}{registro.volumen.toLocaleString("es-BO")} ml</b>
                           <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
                         </li>)}
                       </ol>}
@@ -3000,8 +3025,8 @@ export function TriajeEmergenciasView({
                         <fieldset className="em-balance-tipo-switch">
                           <legend>Tipo de registro</legend>
                           <div className="em-balance-tipo-pista" role="group" aria-label="Tipo de movimiento">
-                            <button type="button" className={formBalanceEmergencia.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalanceEmergencia.tipo === "ingreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true">＋</span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
-                            <button type="button" className={formBalanceEmergencia.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalanceEmergencia.tipo === "egreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true">−</span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
+                            <button type="button" className={formBalanceEmergencia.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalanceEmergencia.tipo === "ingreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true">ï¼‹</span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
+                            <button type="button" className={formBalanceEmergencia.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalanceEmergencia.tipo === "egreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true">âˆ’</span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
                           </div>
                         </fieldset>
                         <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalanceEmergencia.volumen} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>

@@ -238,6 +238,7 @@ const VistaPacientes = lazy(() => import("./vistas/pacientes/VistaPacientes"));
 const VistaEstudiosCobrados = lazy(
   () => import("./vistas/VistaEstudiosCobrados"),
 );
+const ImagenologoView = lazy(() => import("./vistas/ImagenologoView"));
 const VistaRayosX = lazy(() => import("./vistas/visor-rayos-x/VistaRayosX"));
 const VisorEcografias = lazy(
   () => import("./vistas/visor-ecografias/VisorEcografias"),
@@ -508,12 +509,6 @@ const modulos: Modulo[] = [
     grupo: "EMERGENCIAS",
   },
   {
-    id: "medico-visitante-emergencias",
-    nombre: "Médico visitante emergencias",
-    icono: "userMedical",
-    grupo: "EMERGENCIAS",
-  },
-  {
     id: "enfermera-internacion",
     nombre: "Enfermera internación",
     icono: "clipboardMedical",
@@ -526,12 +521,6 @@ const modulos: Modulo[] = [
     grupo: "INTERNACIÓN",
   },
   {
-    id: "medico-visitante-internacion",
-    nombre: "Médico visitante internación",
-    icono: "userMedical",
-    grupo: "INTERNACIÓN",
-  },
-  {
     id: "enfermera-terapia-intensiva",
     nombre: "Enfermera terapia intensiva",
     icono: "monitorVitals",
@@ -540,12 +529,6 @@ const modulos: Modulo[] = [
   {
     id: "medico-terapia-intensiva",
     nombre: "Médico terapia intensiva",
-    icono: "userMedical",
-    grupo: "TERAPIA INTENSIVA",
-  },
-  {
-    id: "medico-visitante-terapia-intensiva",
-    nombre: "Médico visitante UCI",
     icono: "userMedical",
     grupo: "TERAPIA INTENSIVA",
   },
@@ -629,7 +612,7 @@ const modulos: Modulo[] = [
   },
   {
     id: "imagenologia",
-    nombre: "Imagenología",
+    nombre: "Imágenes y documentación",
     icono: "image",
     grupo: "IMAGENOLOGÍA",
   },
@@ -637,6 +620,12 @@ const modulos: Modulo[] = [
     id: "atencion-agenda",
     nombre: "Atención / Agenda",
     icono: "calendar",
+    grupo: "IMAGENOLOGÍA",
+  },
+  {
+    id: "imagenologo",
+    nombre: "Imagenólogo",
+    icono: "image",
     grupo: "IMAGENOLOGÍA",
   },
   { id: "farmacia", nombre: "Farmacia", icono: "pill", grupo: "FARMACIA" },
@@ -1176,11 +1165,8 @@ export default function Aplicacion() {
         "pacientes",
         "atencion-medica",
         "atencion-urgencias",
-        "medico-visitante-emergencias",
         "medico-internacion",
-        "medico-visitante-internacion",
         "medico-terapia-intensiva",
-        "medico-visitante-terapia-intensiva",
       ].includes(item.id);
     if (perfil === "quirofano")
       return [
@@ -2120,6 +2106,8 @@ export default function Aplicacion() {
                   setModulo("cuenta-quirofano");
                 }}
               />
+            ) : modulo === "imagenologo" ? (
+              <ImagenologoView />
             ) : modulo === "atencion-agenda" ? (
               subvistaAtencionAgenda === "pacientes" ? (
                 <AgendaImagenologiaView />

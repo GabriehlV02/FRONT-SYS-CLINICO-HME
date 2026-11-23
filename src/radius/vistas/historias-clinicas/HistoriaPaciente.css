@@ -51,6 +51,81 @@
   overflow: hidden;
   box-shadow: 0 8px 22px rgba(7, 71, 115, 0.06);
 }
+.historia-documentos-clinicos {
+  margin: 18px;
+  overflow: hidden;
+  border: 1px solid #c8dfeb;
+  border-radius: 10px;
+  background: #fff;
+}
+.historia-documentos-clinicos > header,
+.historia-documentos-lista article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.historia-documentos-clinicos > header {
+  padding: 13px 15px;
+  border-bottom: 1px solid #dceaf3;
+  background: #f8fcff;
+}
+.historia-documentos-clinicos > header strong,
+.historia-documentos-clinicos > header small,
+.historia-documentos-lista article strong,
+.historia-documentos-lista article small {
+  display: block;
+}
+.historia-documentos-clinicos > header strong,
+.historia-documentos-lista article strong {
+  color: #064773;
+  font-size: 12px;
+}
+.historia-documentos-clinicos > header small,
+.historia-documentos-lista article small {
+  margin-top: 4px;
+  color: #6e849a;
+  font-size: 10px;
+}
+.historia-documentos-clinicos > header > span {
+  display: grid;
+  min-width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 50%;
+  color: #075985;
+  background: #e5f4fb;
+  font-size: 11px;
+  font-weight: 900;
+}
+.historia-documentos-lista article {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e4eef7;
+}
+.historia-documentos-lista article:last-child { border-bottom: 0; }
+.historia-documentos-lista article button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid #9bd3e9;
+  border-radius: 7px;
+  color: #075985;
+  background: #f3fbff;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.historia-documentos-vacio,
+.historia-documentos-clinicos > p[role="alert"] {
+  margin: 0;
+  padding: 15px;
+  color: #6e849a;
+  font-size: 11px;
+}
+.historia-documentos-clinicos > p[role="alert"] { color: #b42318; }
 .historia-paciente-panel-cabecera {
   display: flex;
   align-items: center;

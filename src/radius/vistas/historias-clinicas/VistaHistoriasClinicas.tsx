@@ -1,6 +1,7 @@
 import { AvisoTemporal } from "../../componentes/AvisoTemporal";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { usePacientes } from "../pacientes/usePacientes";
+import { apiFetch } from "../../api";
 import {
   obtenerEpisodios,
   suscribirEpisodios,
@@ -24,6 +25,15 @@ type Paciente = {
   medicos: string[];
   estudiosImagen: number;
   laboratorios: number;
+};
+
+type DocumentoClinico = {
+  id: string;
+  titulo: string;
+  nombre_archivo: string;
+  periodo_desde: string | null;
+  periodo_hasta: string | null;
+  created_at: string;
 };
 
 const formatearFecha = (fecha: string) =>
@@ -87,7 +97,46 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
   const [hasta, setHasta] = useState("");
   const [medicoRegistro, setMedicoRegistro] = useState("");
   const [especialidadRegistro, setEspecialidadRegistro] = useState("");
+  const [documentosClinicos, setDocumentosClinicos] = useState<DocumentoClinico[]>([]);
+  const [cargandoDocumentos, setCargandoDocumentos] = useState(false);
+  const [errorDocumentos, setErrorDocumentos] = useState("");
   const esEstudios = vista === "estudios";
+
+  useEffect(() => {
+    if (!pacienteRevisado) return;
+    let vigente = true;
+    setCargandoDocumentos(true);
+    setErrorDocumentos("");
+    void apiFetch(`/api/v1/pacientes/${encodeURIComponent(pacienteRevisado.id)}/documentos-clinicos`)
+      .then(async (respuesta) => {
+        const resultado = await respuesta.json().catch(() => null) as { data?: DocumentoClinico[]; message?: string } | null;
+        if (!respuesta.ok) throw new Error(resultado?.message || "No se pudieron cargar los documentos clínicos.");
+        if (vigente) setDocumentosClinicos(resultado?.data || []);
+      })
+      .catch((causa) => {
+        if (vigente) {
+          setDocumentosClinicos([]);
+          setErrorDocumentos(causa instanceof Error ? causa.message : "No se pudieron cargar los documentos clínicos.");
+        }
+      })
+      .finally(() => { if (vigente) setCargandoDocumentos(false); });
+    return () => { vigente = false; };
+  }, [pacienteRevisado?.id]);
+
+  async function descargarDocumentoClinico(documento: DocumentoClinico) {
+    try {
+      const respuesta = await apiFetch(`/api/v1/documentos-clinicos/${encodeURIComponent(documento.id)}/archivo`);
+      if (!respuesta.ok) throw new Error("No se pudo descargar el documento.");
+      const url = URL.createObjectURL(await respuesta.blob());
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = documento.nombre_archivo;
+      enlace.click();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+    } catch (causa) {
+      setErrorDocumentos(causa instanceof Error ? causa.message : "No se pudo descargar el documento.");
+    }
+  }
   const episodios = registros
     .filter((r) => r.paciente.ci === pacienteRevisado?.ci)
     .map((r) => ({
@@ -351,6 +400,23 @@ export function VistaHistoriasClinicas({ vista }: { vista: Vista }) {
               )}
             </div>
           </div>
+          <section className="historia-documentos-clinicos" aria-label="Documentos adjuntos a la historia clínica">
+            <header>
+              <div><strong>Documentos de la historia clínica</strong><small>Reportes de turno y documentos clínicos guardados para este paciente.</small></div>
+              <span>{documentosClinicos.length}</span>
+            </header>
+            {errorDocumentos && <p role="alert">{errorDocumentos}</p>}
+            {cargandoDocumentos ? <p className="historia-documentos-vacio">Cargando documentos…</p> : documentosClinicos.length ? (
+              <div className="historia-documentos-lista">
+                {documentosClinicos.map((documento) => (
+                  <article key={documento.id}>
+                    <div><strong>{documento.titulo}</strong><small>{new Date(documento.created_at).toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" })}{documento.periodo_desde && documento.periodo_hasta ? ` · Período ${documento.periodo_desde.replace("T", " ")} — ${documento.periodo_hasta.replace("T", " ")}` : ""}</small></div>
+                    <button type="button" onClick={() => void descargarDocumentoClinico(documento)}><Icon name="download" size={15} /> Descargar PDF</button>
+                  </article>
+                ))}
+              </div>
+            ) : !errorDocumentos && <p className="historia-documentos-vacio">Todavía no hay hojas clínicas o reportes guardados para este paciente.</p>}
+          </section>
           {mensaje && <AvisoTemporal mensaje={mensaje} />}
         </section>
       </section>

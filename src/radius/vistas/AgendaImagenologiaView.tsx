@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type ChangeEvent } from "react";
 import { useEstudiosPacientes } from "./pacientes/useEstudiosPacientes";
+import { apiFetch } from "../api";
 import Icon from "../componentes/Icono";
 import "./AgendaImagenologiaView.css";
 
@@ -18,7 +19,7 @@ type EstudioAgendado = {
   modalidad: Modalidad;
   estudio: string;
   preparacion: string;
-  estado: "Confirmado" | "En preparación";
+  estado: "SOLICITADO" | "EN_PROCESO";
 };
 
 const modalidadClase = (modalidad: Modalidad) =>
@@ -30,6 +31,10 @@ const modalidadClase = (modalidad: Modalidad) =>
 
 export default function AgendaImagenologiaView() {
   const { estudios, errorEstudios } = useEstudiosPacientes();
+  const archivoRef = useRef<HTMLInputElement>(null);
+  const [objetivoArchivo, setObjetivoArchivo] = useState<string | null>(null);
+  const [cargando, setCargando] = useState<string | null>(null);
+  const [errorAccion, setErrorAccion] = useState("");
   const estudiosIniciales: EstudioAgendado[] = estudios.map((e) => ({
     id: e.id,
     hora: e.solicitado_en.slice(11, 16),
@@ -48,31 +53,73 @@ export default function AgendaImagenologiaView() {
       )[e.tipo] || "Radiografía",
     estudio: e.nombre,
     preparacion: e.indicaciones || "Sin indicaciones registradas",
-    estado: e.estado === "EN_PROCESO" ? "En preparación" : "Confirmado",
+    estado: e.estado === "EN_PROCESO" ? "EN_PROCESO" : "SOLICITADO",
   }));
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<"Todos" | Modalidad>("Todos");
-  const [completados, setCompletados] = useState<Set<string>>(() => new Set());
-
   const pendientes = useMemo(
     () =>
       estudiosIniciales.filter((estudio) => {
         const texto =
           `${estudio.paciente} ${estudio.ci} ${estudio.modalidad} ${estudio.estudio}`.toLocaleLowerCase();
         return (
-          !completados.has(estudio.id) &&
           (filtro === "Todos" || estudio.modalidad === filtro) &&
           texto.includes(busqueda.trim().toLocaleLowerCase())
         );
       }),
-    [busqueda, completados, filtro, estudios],
+    [busqueda, filtro, estudios],
   );
-  const realizados = estudiosIniciales.filter((estudio) =>
-    completados.has(estudio.id),
-  );
+  const iniciados = estudiosIniciales.filter((estudio) => estudio.estado === "EN_PROCESO");
   const modalidades = Array.from(
     new Set(estudiosIniciales.map((estudio) => estudio.modalidad)),
   );
+
+  const iniciarToma = async (id: string) => {
+    setErrorAccion("");
+    setCargando(id);
+    try {
+      const respuesta = await apiFetch(`/api/v1/estudios/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ estado: "EN_PROCESO" }),
+      });
+      if (!respuesta.ok) throw new Error("No se pudo iniciar la toma.");
+      window.dispatchEvent(new Event("pacientes:actualizados"));
+    } catch (causa) {
+      setErrorAccion(causa instanceof Error ? causa.message : "No se pudo iniciar la toma.");
+    } finally {
+      setCargando(null);
+    }
+  };
+
+  const elegirArchivo = (id: string) => {
+    setObjetivoArchivo(id);
+    archivoRef.current?.click();
+  };
+
+  const cargarImagen = async (evento: ChangeEvent<HTMLInputElement>) => {
+    const archivo = evento.target.files?.[0];
+    const id = objetivoArchivo;
+    evento.target.value = "";
+    setObjetivoArchivo(null);
+    if (!archivo || !id) return;
+    setErrorAccion("");
+    setCargando(id);
+    try {
+      const formulario = new FormData();
+      formulario.append("archivo", archivo);
+      const respuesta = await apiFetch(`/api/v1/estudios/${id}/archivo`, {
+        method: "POST",
+        body: formulario,
+      });
+      const resultado = await respuesta.json();
+      if (!respuesta.ok) throw new Error(resultado.message || "No se pudo guardar la imagen.");
+      window.dispatchEvent(new Event("pacientes:actualizados"));
+    } catch (causa) {
+      setErrorAccion(causa instanceof Error ? causa.message : "No se pudo guardar la imagen.");
+    } finally {
+      setCargando(null);
+    }
+  };
 
   return (
     <section
@@ -80,6 +127,7 @@ export default function AgendaImagenologiaView() {
       aria-label="Agenda de estudios de imagenología"
     >
       {errorEstudios && <p role="alert">{errorEstudios}</p>}
+      {errorAccion && <p className="agenda-imagenologia-error" role="alert">{errorAccion}</p>}
       <header className="agenda-imagenologia-cabecera">
         <div>
           <span>AGENDA DIAGNÓSTICA</span>
@@ -102,8 +150,8 @@ export default function AgendaImagenologiaView() {
             <small>por realizar</small>
           </strong>
           <strong>
-            {realizados.length}
-            <small>completados</small>
+            {iniciados.length}
+            <small>en toma</small>
           </strong>
         </div>
       </header>
@@ -180,21 +228,18 @@ export default function AgendaImagenologiaView() {
                   <Icon name="fileText" size={16} />
                   <span>{estudio.preparacion}</span>
                 </div>
-                <span
-                  className={`agenda-estudio-estado ${estudio.estado === "Confirmado" ? "confirmado" : "preparacion"}`}
-                >
-                  {estudio.estado}
+                <span className={`agenda-estudio-estado ${estudio.estado === "SOLICITADO" ? "confirmado" : "preparacion"}`}>
+                  {estudio.estado === "SOLICITADO" ? "Programado" : "En toma"}
                 </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCompletados((actuales) =>
-                      new Set(actuales).add(estudio.id),
-                    )
-                  }
-                >
-                  <Icon name="camera" size={15} /> Iniciar estudio
-                </button>
+                {estudio.estado === "SOLICITADO" ? (
+                  <button type="button" disabled={cargando === estudio.id} onClick={() => void iniciarToma(estudio.id)}>
+                    <Icon name="camera" size={15} /> {cargando === estudio.id ? "Iniciando…" : "Iniciar toma"}
+                  </button>
+                ) : (
+                  <button type="button" disabled={cargando === estudio.id} onClick={() => elegirArchivo(estudio.id)}>
+                    <Icon name="plus" size={15} /> {cargando === estudio.id ? "Guardando…" : "Cargar imagen"}
+                  </button>
+                )}
               </article>
             ))
           ) : (
@@ -211,13 +256,13 @@ export default function AgendaImagenologiaView() {
         <aside className="agenda-imagenologia-lateral">
           <header>
             <div>
-              <span>REALIZADOS HOY</span>
-              <strong>Estudios completados</strong>
+              <span>TOMAS EN CURSO</span>
+              <strong>Tomas iniciadas</strong>
             </div>
-            <b>{realizados.length}</b>
+            <b>{iniciados.length}</b>
           </header>
-          {realizados.length ? (
-            realizados.map((estudio) => (
+          {iniciados.length ? (
+            iniciados.map((estudio) => (
               <article key={estudio.id}>
                 <i className={modalidadClase(estudio.modalidad)}>
                   <Icon name="check" size={15} />
@@ -234,15 +279,22 @@ export default function AgendaImagenologiaView() {
           ) : (
             <div className="agenda-imagenologia-sin-realizados">
               <Icon name="camera" size={24} />
-              <p>Aún no se registraron estudios realizados.</p>
+              <p>Aún no se han iniciado tomas.</p>
             </div>
           )}
           <footer>
             <Icon name="check" size={15} />
-            <span>Al iniciar un estudio se moverá a esta lista.</span>
+            <span>Al cargar la imagen, el estudio pasará a interpretación.</span>
           </footer>
         </aside>
       </div>
+      <input
+        ref={archivoRef}
+        hidden
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/dicom,.dcm,.dicom,.zip,.rar"
+        onChange={(evento) => void cargarImagen(evento)}
+      />
     </section>
   );
 }

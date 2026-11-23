@@ -13,6 +13,7 @@ import {
   suscribirSignosVitales,
 } from "../triaje/registroSignosVitales";
 import { apiFetch } from "../../radius/api";
+import { archivarHojaClinica, crearHojaClinicaPdf } from "../../radius/vistas/pacientes/documentosClinicos";
 import { useServiciosSignosVitales } from "../triaje/ServiciosSignosVitales";
 import { camposParaServicio } from "../triaje/camposSignosVitales";
 import type { SignoVitalConfig } from "../triaje/ConfiguracionSignosVitalesView";
@@ -685,16 +686,43 @@ export function ConsultaMedicaView({
     }
   };
   const finalizarAtencion = async () => {
-    if (guardandoAtencionRef.current) return;
+    if (guardandoAtencionRef.current || !paciente) return;
     guardandoAtencionRef.current = true;
     setGuardandoAtencion(true); setErrorAtencion("");
     try {
+      const contenido = obtenerContenidoAtencion();
+      const secciones = [
+        { titulo: "Motivo de consulta", contenido: contenido.motivo },
+        { titulo: "Enfermedad actual", contenido: contenido.enfermedadActual },
+        { titulo: "Antecedentes", contenido: contenido.antecedentes },
+        { titulo: "Examen físico", contenido: contenido.examenFisico },
+        { titulo: "Revisión por sistemas", contenido: Object.entries(contenido.revision || {}).map(([campo, valor]) => `${campo}: ${String(valor)}`) },
+        { titulo: "Diagnósticos", contenido: contenido.diagnosticos.map((item) => `${item.diagnostico}${item.planes.length ? ` — ${item.planes.join("; ")}` : ""}`) },
+        { titulo: "Órdenes médicas", contenido: [...contenido.ordenes, ...contenido.documentos.ordenes.map((orden) => `${orden.tipo}: ${orden.detalle}`)] },
+        { titulo: "Notas médicas", contenido: contenido.notas },
+      ];
+      const pdf = await crearHojaClinicaPdf({
+        titulo: "Hoja de atención ambulatoria",
+        servicio: `Consulta ambulatoria · ${paciente.especialidad}`,
+        paciente: nombreCompletoPaciente,
+        ci: paciente.ci,
+        fecha: `${paciente.fecha} ${paciente.hora}`,
+        secciones,
+      });
+      await archivarHojaClinica({
+        pacienteId: paciente.pacienteId || "",
+        referenciaId: paciente.id,
+        categoriaReferencia: "cita",
+        tipo: "hoja_consulta_ambulatoria",
+        titulo: `Atención ambulatoria · ${paciente.fecha}`,
+        archivo: pdf,
+      });
       const respuesta = await apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, {
         method: "PUT",
         body: JSON.stringify({
           version: atencionServidor?.version ?? null,
           finalizar: true,
-          contenido: obtenerContenidoAtencion(),
+          contenido,
         }),
       });
       const resultado = await respuesta.json().catch(() => ({}));

@@ -1,0 +1,153 @@
+.imagenologo-vista {
+  width: 100%;
+  min-height: 100%;
+  padding: 28px clamp(18px, 3vw, 38px) 36px;
+  color: #183e5c;
+  background: #f5f9fc;
+}
+.imagenologo-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 0 20px;
+}
+.imagenologo-cabecera > div:first-child > span {
+  color: #087eae;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+.imagenologo-cabecera h1 {
+  margin: 6px 0 7px;
+  color: #173b58;
+  font-size: clamp(23px, 3vw, 30px);
+  letter-spacing: -.025em;
+}
+.imagenologo-cabecera p {
+  margin: 0;
+  color: #688195;
+  font-size: 13px;
+}
+.imagenologo-conteo {
+  display: grid;
+  min-width: 94px;
+  padding: 11px 16px;
+  border: 1px solid #d7e6ee;
+  border-radius: 12px;
+  background: white;
+  text-align: center;
+}
+.imagenologo-conteo strong { color: #087eb1; font-size: 24px; line-height: 1.1; }
+.imagenologo-conteo span { color: #71899b; font-size: 10px; }
+.imagenologo-aviso {
+  margin-bottom: 14px;
+  padding: 12px 15px;
+  border: 1px solid #cce5f0;
+  border-radius: 10px;
+  color: #416b83;
+  background: #edf8fc;
+  font-size: 12px;
+}
+.imagenologo-error {
+  margin: 0 0 12px;
+  padding: 11px 13px;
+  border: 1px solid #efc8c8;
+  border-radius: 9px;
+  color: #9c3441;
+  background: #fff5f5;
+  font-size: 12px;
+}
+.imagenologo-busqueda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  margin-bottom: 13px;
+  padding: 0 14px;
+  border: 1px solid #d7e5ee;
+  border-radius: 10px;
+  color: #54809b;
+  background: #fff;
+  font-size: 22px;
+}
+.imagenologo-busqueda:focus-within { border-color: #1588b5; box-shadow: 0 0 0 3px #1689b21a; }
+.imagenologo-busqueda input {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  color: #183e5c;
+  background: transparent;
+  font-size: 13px;
+}
+.imagenologo-lista { display: grid; gap: 10px; }
+.imagenologo-estudio {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 15px;
+  padding: 16px;
+  border: 1px solid #dce7ee;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 4px 14px #294f6808;
+}
+.imagenologo-icono {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: #087fad;
+  background: #eaf6fb;
+  font-size: 24px;
+}
+.imagenologo-datos { display: grid; min-width: 0; gap: 5px; }
+.imagenologo-titulo { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.imagenologo-titulo h2 { margin: 0; color: #1a3f5c; font-size: 14px; }
+.imagenologo-titulo span { padding: 4px 8px; border-radius: 20px; color: #875711; background: #fff4d8; font-size: 9px; font-weight: 750; }
+.imagenologo-datos > strong { overflow: hidden; color: #375c75; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.imagenologo-datos > small { color: #7890a0; font-size: 10px; }
+.imagenologo-acciones { display: flex; align-items: center; gap: 8px; }
+.imagenologo-acciones button, .imagenologo-subir {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 37px;
+  padding: 0 12px;
+  border: 1px solid #cbdde8;
+  border-radius: 8px;
+  color: #23617f;
+  background: #fff;
+  font-size: 11px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.imagenologo-acciones button:hover { background: #f1f8fb; }
+.imagenologo-subir { border-color: #087eae; color: #fff; background: #087eae; }
+.imagenologo-subir:hover { background: #086d96; }
+.imagenologo-subir input { display: none; }
+.imagenologo-vacio {
+  display: grid;
+  justify-items: center;
+  padding: 58px 20px;
+  border: 1px dashed #c9dce7;
+  border-radius: 13px;
+  background: #fff;
+  text-align: center;
+}
+.imagenologo-vacio > span { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: #148365; background: #e5f6ee; font-size: 20px; }
+.imagenologo-vacio h2 { margin: 13px 0 5px; color: #264b65; font-size: 16px; }
+.imagenologo-vacio p { margin: 0; color: #71899a; font-size: 12px; }
+@media (max-width: 700px) {
+  .imagenologo-vista { padding: 20px 13px 28px; }
+  .imagenologo-estudio { grid-template-columns: 38px minmax(0, 1fr); gap: 11px; padding: 13px; }
+  .imagenologo-icono { width: 37px; height: 37px; }
+  .imagenologo-acciones { grid-column: 2; }
+}
+@media (max-width: 420px) {
+  .imagenologo-cabecera { align-items: flex-start; }
+  .imagenologo-conteo { min-width: 72px; padding: 8px; }
+  .imagenologo-acciones { align-items: stretch; flex-direction: column; }
+}

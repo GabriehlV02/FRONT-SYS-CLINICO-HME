@@ -1,4 +1,5 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
+import { archivarHojaClinica, crearHojaClinicaPdf } from "../../radius/vistas/pacientes/documentosClinicos";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import AnamnesisEmergencia from "./AnamnesisEmergencia";
 import { RevisionEmergencia } from "./RevisionEmergencia";
@@ -354,19 +355,11 @@ export function AtencionMedicaEmergenciasView({
   cuentaInicialId?: string;
   camposConfigurados?: SignoVitalConfig[];
 }) {
-  const [restauracionAtencion] = useState(() => {
-    try {
-      return {
-        cuentaId: window.sessionStorage.getItem(CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS) || "",
-        subvista: window.sessionStorage.getItem(`${CLAVE_CONTINUIDAD_ATENCION_EMERGENCIAS}:subvista`) === "historial" ? "historial" as const : "atencion" as const,
-      };
-    } catch { return { cuentaId: "", subvista: "atencion" as const }; }
-  });
   const [cuentas, setCuentas] = useState<CuentaEmergencia[]>([]),
-    [activa, setActiva] = useState(() => restauracionAtencion.cuentaId),
+    [activa, setActiva] = useState(""),
     [busqueda, setBusqueda] = useState("");
   const [subvista, setSubvista] = useState<"atencion" | "historial">(
-      restauracionAtencion.subvista,
+      "atencion",
     ),
     [cargando, setCargando] = useState(true),
     [error, setError] = useState("");
@@ -1592,6 +1585,53 @@ function AtencionPaciente({
                   )
                 )
                   return;
+                const pacienteId = cuenta.pacienteId || cuenta.id;
+                const evaluaciones = cuenta.evaluaciones ?? [];
+                const ultimaEvaluacion = evaluaciones.at(-1);
+                const firmaCampos: Record<string, string> = {
+                  motivoConsulta: "Motivo de consulta",
+                  enfermedadActual: "Enfermedad actual",
+                  antecedentesNoPatologicos: "Antecedentes no patológicos",
+                  antecedentesPatologicos: "Antecedentes patológicos",
+                  antecedentesFamiliares: "Antecedentes familiares",
+                  antecedentesGineco: "Antecedentes ginecoobstétricos",
+                  examenGeneral: "Examen físico general",
+                  diagnostico: "Diagnóstico",
+                  plan: "Plan de tratamiento",
+                };
+                try {
+                  const pdf = await crearHojaClinicaPdf({
+                    titulo: "Hoja de atención de emergencia",
+                    servicio: "Servicio de emergencias",
+                    paciente: nombrePaciente(cuenta),
+                    ci: cuenta.identidad?.ci || cuenta.identidad?.documento || cuenta.identidad?.numeroDocumento || "",
+                    historiaClinica: cuenta.identidad?.historiaClinica,
+                    fecha: new Date().toLocaleString("es-BO"),
+                    secciones: [
+                      ...evaluaciones.map((evaluacion, indice) => ({
+                        titulo: `Evaluación médica ${indice + 1} · ${evaluacion.fecha}`,
+                        contenido: Object.entries(evaluacion.campos).map(([campo, valor]) => `${firmaCampos[campo] || campo}: ${valor}`),
+                      })),
+                      { titulo: "Signos vitales", contenido: cuenta.signos.map((signo) => `${signo.fecha}: ${Object.entries(signo.valores).map(([nombre, valor]) => `${nombre} ${valor}`).join(" · ")}${signo.observacion ? ` · ${signo.observacion}` : ""}`) },
+                      { titulo: "Órdenes e indicaciones", contenido: (cuenta.ordenes ?? []).map((orden) => `${orden.titulo} · ${orden.dosis} · ${orden.via} · ${orden.frecuencia} · ${orden.duracion}`) },
+                      { titulo: "Cierre de atención", contenido: [
+                        `Condición de egreso: ${cierre.condicionEgreso}`,
+                        `Causa de egreso: ${cierre.causaEgreso}`,
+                        cierre.observacionEgreso ? `Observación: ${cierre.observacionEgreso}` : "",
+                      ] },
+                    ],
+                  });
+                  await archivarHojaClinica({
+                    pacienteId,
+                    referenciaId: cuenta.id,
+                    tipo: "hoja_atencion_emergencia",
+                    titulo: `Atención de emergencia · ${new Date().toLocaleDateString("es-BO")}`,
+                    archivo: pdf,
+                  });
+                } catch (causa) {
+                  setError(causa instanceof Error ? causa.message : "No se pudo archivar la hoja clínica.");
+                  return;
+                }
                 if (
                   await guardar(
                     `/${cuenta.id}/cierre`,

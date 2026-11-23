@@ -573,7 +573,7 @@ export function AtencionEnfermeriaInternacion({
         </nav>
         {seccionPaciente === "reportes" && (
           <section className="enfermeria-reporte-panel" aria-labelledby="enfermeria-reporte-titulo">
-            <header><div><span>RESUMEN DE INTERNACIÓN</span><h3 id="enfermeria-reporte-titulo">Reportes de enfermería</h3><p>Registros clínicos asociados a esta internación.</p></div><button type="button" onClick={() => window.print()}><Icon name="fileText" size={16} /> Imprimir reporte</button></header>
+            <header><div><span>RESUMEN DE INTERNACIÓN</span><h3 id="enfermeria-reporte-titulo">Reportes de enfermería</h3><strong className="enfermeria-reporte-servicio">SERVICIO DE INTERNACIÓN</strong><p>Registros clínicos asociados a esta internación.</p></div><button type="button" onClick={() => window.print()}><Icon name="fileText" size={16} /> Imprimir reporte</button></header>
             <div className="enfermeria-reporte-metricas">
               <article><small>Evoluciones</small><strong>{evoluciones.length}</strong></article>
               <article><small>Tomas de signos</small><strong>{signos.length}</strong></article>

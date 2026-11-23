@@ -11,7 +11,6 @@ import {
   eliminarArchivoEstudioDemo,
   eliminarInformeSolicitudImagen,
   guardarSolicitudesImagenologia,
-  guardarInformeSolicitudImagen,
   obtenerInformeSolicitudImagen,
   obtenerSolicitudesImagenologia,
   type SolicitudImagenologiaDemo,
@@ -90,9 +89,7 @@ export default function VistaEstudiosCobrados({
   const [tipoEdicion, setTipoEdicion] = useState(TIPOS_ESTUDIO[0]);
   const [piezaEdicion, setPiezaEdicion] = useState(PIEZAS[0]);
   const [otraPieza, setOtraPieza] = useState("");
-  const [informe, setInforme] = useState<string | null>(null);
   const archivoRef = useRef<HTMLInputElement>(null);
-  const informeRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const actualizar = () => setSolicitudes(obtenerSolicitudesImagenologia());
@@ -292,44 +289,6 @@ export default function VistaEstudiosCobrados({
     setError("");
   };
 
-  const elegirInforme = (solicitud: SolicitudImagenologiaDemo) => {
-    setInforme(solicitud.id);
-    informeRef.current?.click();
-  };
-
-  const alElegirInforme = async (evento: ChangeEvent<HTMLInputElement>) => {
-    const archivo = evento.target.files?.[0];
-    const id = informe;
-    evento.target.value = "";
-    if (!archivo || !id) {
-      setInforme(null);
-      return;
-    }
-    try {
-      await guardarInformeSolicitudImagen(id, archivo);
-      guardarSolicitudesImagenologia(
-        solicitudes.map((solicitud) =>
-          solicitud.id === id
-            ? {
-                ...solicitud,
-                informeNombre: archivo.name,
-                informeMime: archivo.type || "application/octet-stream",
-                informeSubidoEn: new Date().toISOString(),
-              }
-            : solicitud,
-        ),
-      );
-    } catch (causa) {
-      setError(
-        causa instanceof Error
-          ? causa.message
-          : "No se pudo guardar el informe.",
-      );
-    } finally {
-      setInforme(null);
-    }
-  };
-
   const abrirInforme = async (solicitud: SolicitudImagenologiaDemo) => {
     const archivo = await obtenerInformeSolicitudImagen(solicitud.id);
     if (!archivo)
@@ -494,22 +453,6 @@ export default function VistaEstudiosCobrados({
                           </button>
                         </>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => elegirInforme(solicitud)}
-                        title={
-                          solicitud.informeNombre
-                            ? "Cambiar informe médico"
-                            : "Subir informe médico"
-                        }
-                      >
-                        <Icon name="fileText" size={16} />
-                        <span>
-                          {solicitud.informeNombre
-                            ? "Cambiar informe"
-                            : "Subir informe"}
-                        </span>
-                      </button>
                       {solicitud.informeNombre && (
                         <button
                           type="button"
@@ -576,13 +519,6 @@ export default function VistaEstudiosCobrados({
         type="file"
         accept="image/jpeg,image/png,image/webp,application/dicom,application/zip,application/x-rar-compressed,.dcm,.zip,.rar"
         onChange={(evento) => void alElegirArchivo(evento)}
-      />
-      <input
-        ref={informeRef}
-        hidden
-        type="file"
-        accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png"
-        onChange={(evento) => void alElegirInforme(evento)}
       />
       {edicion && (
         <div className="estudios-cobrados-modal-fondo">

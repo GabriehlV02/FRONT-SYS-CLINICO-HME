@@ -5894,6 +5894,22 @@
   border-radius:10px;
   background:#fff;
 }
+
+/* Enfermería registra primero el movimiento y consulta la evolución debajo. */
+.emergencias-vista .em-balance-emergencias-cuerpo {
+  grid-template-columns:minmax(0,1fr);
+}
+.emergencias-vista .em-balance-emergencias-cuerpo > .em-balance-emergencias-form {
+  grid-column:1;
+  grid-row:1;
+  width:100%;
+  max-width:none;
+  justify-self:stretch;
+}
+.emergencias-vista .em-balance-emergencias-visualizacion {
+  grid-column:1;
+  grid-row:2;
+}
 .emergencias-vista .em-balance-dia > header {
   display:flex;
   align-items:center;

@@ -611,14 +611,15 @@
   border-bottom: 0;
 }
 .internacion-medica-fila.encabezado {
-  min-height: auto;
-  padding-block: 9px;
-  color: #638298;
-  background: #f4f9fc;
-  font-size: 10px;
+  min-height: 36px;
+  padding-block: 3px;
+  color: #fff;
+  background: linear-gradient(105deg, #0875a9 0%, #0a86b5 58%, #12a5c7 100%);
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  text-align: center;
 }
 .internacion-medica-fila > div:not(.internacion-medica-paciente) {
   display: grid;

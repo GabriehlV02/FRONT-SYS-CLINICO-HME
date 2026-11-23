@@ -334,7 +334,8 @@
 }
 
 .est-seguimiento-contenido .est-ficha-material {
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, .8fr);
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
   gap: 18px;
 }
 
@@ -347,6 +348,10 @@
   background: #fff;
 }
 
+.est-seguimiento-contenido .est-ficha-observaciones {
+  margin-top: 24px;
+}
+
 .est-seguimiento-contenido .est-ficha-material h4 {
   margin: 0 0 20px;
   font-size: 16px;
@@ -354,17 +359,17 @@
 
 .est-ficha-principal {
   display: grid;
-  grid-template-columns: minmax(340px, 1fr) minmax(0, 1.7fr);
+  grid-template-columns: minmax(400px, 1.2fr) minmax(0, 1fr);
   width: 100%;
   align-items: start;
-  gap: 44px;
+  gap: 36px;
 }
 
 .est-ficha-imagen {
   display: grid;
   width: 100%;
-  aspect-ratio: 4 / 3;
-  max-height: 360px;
+  aspect-ratio: 5 / 4;
+  max-height: 430px;
   overflow: hidden;
   place-items: center;
   border: 1px solid #d7e9f3;
@@ -390,6 +395,16 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 26px 24px;
   width: 100%;
+}
+
+.est-ficha-columna-datos {
+  min-width: 0;
+}
+
+.est-ficha-columna-datos .est-ficha-observaciones {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid #e1edf4;
 }
 
 .est-seguimiento-contenido .est-ficha-datos dl div:first-child {
@@ -475,6 +490,10 @@
 .est-tabla-inventario th, .est-tabla-inventario td {
   vertical-align: middle;
   overflow-wrap: anywhere;
+}
+.est-tabla-inventario th:nth-child(4),
+.est-tabla-inventario td:nth-child(4) {
+  text-align: center;
 }
 .est-tabla-inventario th:last-child, .est-tabla-inventario td:last-child {
   text-align: center;
@@ -636,17 +655,35 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 36px;
-  width: 36px;
+  flex: 0 0 auto;
+  min-width: 72px;
   height: 36px;
-  padding: 0;
-  border: 1px solid #c5dfed;
+  padding: 0 10px;
+  gap: 6px;
+  border: 1px solid;
   border-radius: 8px;
-  color: #087bb5;
-  background: #f2f9fd;
+  font-size: 11px;
+  font-weight: 800;
   cursor: pointer;
 }
-.est-tabla-inventario .est-acciones-instrumental button:hover { background: #e1f2fa; border-color: #70b9dc; }
+.est-tabla-inventario .est-acciones-instrumental .est-accion-ver {
+  border-color: #087bb5;
+  color: #fff;
+  background: #087bb5;
+}
+.est-tabla-inventario .est-acciones-instrumental .est-accion-ver:hover {
+  border-color: #066494;
+  background: #066494;
+}
+.est-tabla-inventario .est-acciones-instrumental .est-accion-editar {
+  border-color: #c57b12;
+  color: #fff;
+  background: #c57b12;
+}
+.est-tabla-inventario .est-acciones-instrumental .est-accion-editar:hover {
+  border-color: #a5630b;
+  background: #a5630b;
+}
 .est-tabla-inventario .est-acciones-instrumental button:focus-visible { outline: 2px solid #087bb5; outline-offset: 2px; }
 .est-modal-material .est-material-datos .est-cuenta-logo {
   display: flex;
@@ -679,7 +716,16 @@
   white-space: nowrap;
   cursor: pointer;
 }
-.est-filtros-inventario .est-exportar-inventario:hover { background: #e6f5fb; }
+.est-filtros-inventario .est-exportar-inventario {
+  border-color: #c62828;
+  color: #fff;
+  background: #c62828;
+}
+.est-filtros-inventario .est-exportar-inventario:hover {
+  border-color: #a61f1f;
+  color: #fff;
+  background: #a61f1f;
+}
 .est-filtros-inventario .est-exportar-inventario:disabled { opacity: .6; cursor: wait; }
 @media (max-width: 600px) {
   .est-filtros-inventario .est-exportar-inventario { width: 100%; min-height: 44px; }

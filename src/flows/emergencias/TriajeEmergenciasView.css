@@ -6005,3 +6005,17 @@
   grid-column:auto;
   grid-row:auto;
 }
+.sistema-app .emergencias-vista .em-lista-triaje-cabecera {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding-block: 3px !important;
+  color: #fff !important;
+  background: linear-gradient(105deg, #0875a9 0%, #0a86b5 58%, #12a5c7 100%) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
+.sistema-app .emergencias-vista .em-lista-triaje-cabecera > span {
+  color: #fff !important;
+  text-align: center !important;
+}

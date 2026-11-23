@@ -1176,7 +1176,25 @@ export function EsterilizacionView({
                 setMaterialEditando(null);
                 setQuitarImagen(false);
                 try {
-                  await exportarInstrumentalPdf(datos.materiales, (item) => ubicacionMaterial(item, cirugias));
+                  const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+                    import("jspdf"),
+                    import("jspdf-autotable"),
+                  ]);
+                  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+                  pdf.setFontSize(18);
+                  pdf.setTextColor(7, 82, 132);
+                  pdf.text("Inventario de instrumental", 14, 18);
+                  pdf.setFontSize(9);
+                  pdf.setTextColor(90, 110, 128);
+                  pdf.text(`Ejemplos locales · ${new Date().toLocaleDateString("es-BO")} · ${materialesVisibles.length} materiales`, 14, 25);
+                  autoTable(pdf, {
+                    startY: 31,
+                    head: [["Código", "Nombre", "Lote", "Cantidad", "Ubicación", "Estado", "Descripción"]],
+                    body: materialesVisibles.map(item => [item.codigo, item.nombre, item.lote || "—", String(item.cantidad ?? 1), ubicacionMaterial(item, cirugias), ETIQUETAS_ESTADO[item.estado], item.descripcion || "—"]),
+                    headStyles: { fillColor: [8, 127, 192] },
+                    styles: { fontSize: 8, cellPadding: 3, overflow: "linebreak" },
+                  });
+                  pdf.save("inventario-instrumental-ejemplos.pdf");
                   setAviso("Reporte PDF generado correctamente.");
                 } catch (causa) {
                   setError(causa instanceof Error ? causa.message : "No se pudo generar el reporte PDF.");
@@ -1213,7 +1231,7 @@ export function EsterilizacionView({
                     <td>{item.cantidad ?? 1}</td>
                     <td>{ubicacionMaterial(item, cirugias)}</td>
                     <td className="est-descripcion-material">{item.descripcion || "-"}</td>
-                    <td><div className="est-acciones-instrumental"><button type="button" title="Ver detalle" aria-label={`Ver detalle de ${item.nombre}`} onClick={() => verSeguimiento(item.id)}><Icon name="eye" size={17} /></button><button type="button" title="Editar material" aria-label={`Editar ${item.nombre}`} onClick={() => abrirEdicionMaterial(item)}><Icon name="edit" size={17} /></button></div></td>
+                    <td><div className="est-acciones-instrumental"><button className="est-accion-ver" type="button" title="Ver detalle" aria-label={`Ver detalle de ${item.nombre}`} onClick={() => verSeguimiento(item.id)}><Icon name="eye" size={16} /><span>Ver</span></button><button className="est-accion-editar" type="button" title="Editar material" aria-label={`Editar ${item.nombre}`} onClick={() => abrirEdicionMaterial(item)}><Icon name="edit" size={16} /><span>Editar</span></button></div></td>
                   </tr>
                 ))}
                 {!materialesVisibles.length && <tr><td colSpan={7}>No hay materiales que coincidan con la busqueda.</td></tr>}
@@ -1252,6 +1270,38 @@ export function EsterilizacionView({
                 </option>
               ))}
             </select>
+            <button
+              className="est-exportar-cajas"
+              type="button"
+              onClick={async () => {
+                const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+                  import("jspdf"),
+                  import("jspdf-autotable"),
+                ]);
+                const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+                pdf.setFontSize(18);
+                pdf.setTextColor(7, 82, 132);
+                pdf.text("Cajas quirúrgicas", 14, 18);
+                pdf.setFontSize(9);
+                pdf.setTextColor(90, 110, 128);
+                pdf.text(`Emitido ${new Date().toLocaleDateString("es-BO")} · ${kitsVisibles.length} cajas`, 14, 25);
+                autoTable(pdf, {
+                  startY: 31,
+                  head: [["Caja quirúrgica", "Descripción", "Materiales", "Estado"]],
+                  body: kitsVisibles.map(kit => [
+                    kit.nombre,
+                    kit.descripcion || "—",
+                    kit.materialIds.map(id => datos.materiales.find(item => item.id === id)?.nombre).filter(Boolean).join(", ") || "Sin materiales",
+                    ETIQUETAS_KIT[estadoKit(kit, datos.materiales)],
+                  ]),
+                  headStyles: { fillColor: [8, 127, 192] },
+                  styles: { fontSize: 9, cellPadding: 3, overflow: "linebreak" },
+                });
+                pdf.save("cajas-quirurgicas.pdf");
+              }}
+            >
+              <Icon name="download" size={16} /> Exportar PDF
+            </button>
             <button
               className="est-principal"
               type="button"
@@ -1484,7 +1534,7 @@ export function EsterilizacionView({
               aria-label="Información del instrumento"
             >
               <div className="est-ficha-datos">
-                <div className="est-ficha-principal">
+              <div className="est-ficha-principal">
                   <div className="est-ficha-imagen">
                     {materialSeleccionado.imagen ? (
                       <img src={materialSeleccionado.imagen} alt={`Imagen de ${materialSeleccionado.nombre}`} />
@@ -1492,17 +1542,20 @@ export function EsterilizacionView({
                       <div className="est-ficha-sin-imagen"><Icon name="image" size={27} /><span>Sin imagen</span></div>
                     )}
                   </div>
-                  <dl>
-                    <div><dt>Nombre</dt><dd>{materialSeleccionado.nombre}</dd></div>
-                    <div><dt>Medida</dt><dd>{materialSeleccionado.medida || "No registrada"}</dd></div>
-                    <div><dt>Cuenta con logo</dt><dd>{materialSeleccionado.cuentaConLogo ? "Sí" : "No"}</dd></div>
-                    <div><dt>Lote</dt><dd>{materialSeleccionado.lote || "No registrado"}</dd></div>
-                    <div><dt>Cantidad</dt><dd>{materialSeleccionado.cantidad ?? 1} {materialSeleccionado.cantidad === 1 || materialSeleccionado.cantidad == null ? "unidad" : "unidades"}</dd></div>
-                  </dl>
-                </div>
-                <div className="est-ficha-observaciones">
-                  <span>Descripción / observaciones</span>
-                  <p>{materialSeleccionado.descripcion || "Sin descripción u observaciones."}</p>
+                  <div className="est-ficha-columna-datos">
+                    <dl>
+                      <div><dt>Nombre</dt><dd>{materialSeleccionado.nombre}</dd></div>
+                      <div><dt>Código</dt><dd>{materialSeleccionado.codigo}</dd></div>
+                      <div><dt>Medida</dt><dd>{materialSeleccionado.medida || "No registrada"}</dd></div>
+                      <div><dt>Cuenta con logo</dt><dd>{materialSeleccionado.cuentaConLogo ? "Sí" : "No"}</dd></div>
+                      <div><dt>Lote</dt><dd>{materialSeleccionado.lote || "No registrado"}</dd></div>
+                      <div><dt>Cantidad</dt><dd>{materialSeleccionado.cantidad ?? 1} {materialSeleccionado.cantidad === 1 || materialSeleccionado.cantidad == null ? "unidad" : "unidades"}</dd></div>
+                    </dl>
+                    <div className="est-ficha-observaciones">
+                      <span>Descripción / observaciones</span>
+                      <p>{materialSeleccionado.descripcion || "Sin descripción u observaciones."}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
@@ -1595,30 +1648,6 @@ export function EsterilizacionView({
                 )}
                 </article>
             </section>
-            <h4>Historial de movimientos</h4>
-            {movimientos.length ? (
-              <div className="est-historial-lista">
-                {movimientos.map((item) => (
-                  <div key={item.id}>
-                    <time>{new Date(item.fecha).toLocaleString("es-BO")}</time>
-                    <strong>
-                      {item.desde === "registro"
-                        ? "Registro inicial"
-                        : ETIQUETAS_ESTADO[item.desde]}{" "}
-                      → {ETIQUETAS_ESTADO[item.hacia]}
-                    </strong>
-                    <small>
-                      {cirugias.find((c) => c.id === item.cirugiaId)?.cuenta ||
-                        "Sin cirugía asignada"}
-                    </small>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="est-ayuda">
-                Este material todavía no tiene movimientos registrados.
-              </p>
-            )}
             <footer>
               <button
                 type="button"
@@ -1637,7 +1666,7 @@ export function EsterilizacionView({
           onMouseDown={cerrarModal}
         >
           <section
-            className={modal === "material" ? "est-modal est-modal-material" : "est-modal"}
+            className={modal === "material" ? "est-modal est-modal-material" : modal === "kit" ? "est-modal est-modal-kit" : "est-modal"}
             role="dialog"
             aria-modal="true"
             aria-label={
@@ -1952,7 +1981,7 @@ export function EsterilizacionView({
                     />
                   </label>
                 </div>
-<label className="est-buscar-kit">
+<div className="est-kit-seleccion-layout"><div className="est-kit-busqueda-panel"><label className="est-buscar-kit">
                   <Icon name="search" size={16} />
                   <input
                     value={busquedaAsociar}
@@ -1961,7 +1990,8 @@ export function EsterilizacionView({
                   />
                 </label>
                 <div className="est-lista-asociar">
-                  {datos.materiales
+                  {busquedaAsociar.trim() && datos.materiales
+                    .filter((item) => !materialesKit.includes(item.id))
                     .filter((item) =>
                       `${item.codigo} ${item.nombre} ${item.lote || ""}`
                         .toLowerCase()
@@ -1992,8 +2022,9 @@ export function EsterilizacionView({
                   {!datos.materiales.length && (
                     <p>Registra materiales antes de crear una caja.</p>
                   )}
+                  {busquedaAsociar.trim() && !datos.materiales.some(item => !materialesKit.includes(item.id) && `${item.codigo} ${item.nombre} ${item.lote || ""}`.toLowerCase().includes(busquedaAsociar.toLowerCase())) && <p>No se encontraron materiales disponibles con esa búsqueda.</p>}
                 </div>
-                <p className="est-ayuda">Los materiales siguen en el inventario y pueden pertenecer a otras cajas.</p>
+                </div><div className="est-kit-seleccionados"><h4>Materiales seleccionados</h4><div className="est-kit-tabla-scroll"><table><thead><tr><th>Código</th><th>Nombre</th><th>Cantidad</th><th>Checklist</th></tr></thead><tbody>{datos.materiales.filter(item => materialesKit.includes(item.id)).map(item => <tr key={item.id}><td>{item.codigo}</td><td>{item.nombre}</td><td>{item.cantidad ?? 1}</td><td><input type="checkbox" defaultChecked aria-label={`Checklist de ${item.nombre}`} /></td></tr>)}{!materialesKit.length && <tr><td colSpan={4}>Selecciona materiales desde la búsqueda.</td></tr>}</tbody></table></div></div></div>
                 {error && (
                   <p className="est-error" role="alert">
                     {error}

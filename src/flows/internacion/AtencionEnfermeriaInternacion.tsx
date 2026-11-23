@@ -662,6 +662,10 @@ export function AtencionEnfermeriaInternacion({
               </div>
             )}
           </section>
+          <div className="enfermeria-registros-vitales" aria-label="Signos vitales y balance hídrico">
+            {panelSignos}
+            {panelBalance}
+          </div>
           </section>
         )}
         {seccionPaciente === "atencion" && <section className="enfermeria-paciente-subvistas">

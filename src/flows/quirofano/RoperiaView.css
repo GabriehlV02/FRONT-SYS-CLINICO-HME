@@ -99,16 +99,21 @@
 }
 
 .roperia-lista { padding: 18px 20px 24px; }
-.roperia-busqueda { display: flex; align-items: center; gap: 10px; max-width: 620px; padding: 0 13px; border: 1px solid #cce3f1; border-radius: 9px; color: #087fbe; background: #f9fcff; }
+.roperia-busqueda { display: flex; align-items: center; gap: 10px; width: 100%; max-width: none; padding: 0 13px; border: 1px solid #cce3f1; border-radius: 9px; color: #087fbe; background: #f9fcff; }
 .roperia-busqueda input { width: 100%; min-height: 44px; border: 0; outline: 0; color: #173d60; background: transparent; font: inherit; }
 .roperia-busqueda:focus-within { outline: 2px solid #087fbe; outline-offset: 2px; }
-.roperia-tabla-scroll { margin-top: 18px; overflow-x: auto; border: 1px solid #dcebf3; border-radius: 10px; }
+.roperia-lista-herramientas { display: flex; align-items: center; gap: 14px; }
+.roperia-lista-herramientas > span { flex: 0 0 auto; color: #66839d; font-size: 12px; font-weight: 700; }
+.roperia-tabla-scroll { margin-top: 16px; overflow-x: auto; border: 1px solid #cce3f1; border-radius: 10px; background: #fff; box-shadow: 0 5px 18px rgb(20 72 110 / 5%); }
 .roperia-tabla-scroll table { width: 100%; min-width: 900px; border-collapse: collapse; text-align: left; }
-.roperia-tabla-scroll th { padding: 13px; color: #65819a; background: #f4f9fc; font-size: 11px; text-transform: uppercase; }
+.roperia-tabla-scroll th { position: sticky; top: 0; padding: 13px; color: #58778f; background: #f3f8fc; font-size: 10px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
 .roperia-tabla-scroll td { padding: 12px 13px; border-top: 1px solid #e1edf4; color: #264f6d; font-size: 13px; }
+.roperia-tabla-scroll tbody tr { transition: background .15s ease; }
+.roperia-tabla-scroll tbody tr:hover { background: #f5faff; }
 .roperia-tabla-scroll td:nth-child(6) { max-width: 300px; overflow-wrap: anywhere; }
 .roperia-miniatura, .roperia-sin-imagen { display: grid; width: 54px; height: 54px; place-items: center; border: 1px solid #d6e8f2; border-radius: 8px; color: #89a6b9; background: #f4f9fc; object-fit: contain; }
 .roperia-vacio { display: grid; gap: 8px; justify-items: center; padding: 65px 15px; color: #718da1; text-align: center; }
+.roperia-vacio::before { content: ""; width: 42px; height: 4px; margin-bottom: 6px; border-radius: 999px; background: linear-gradient(90deg, #087fbe, #24b4ce); }
 .roperia-vacio strong { color: #174b70; font-size: 15px; }
 .roperia-dialogo { width: min(880px, calc(100% - 32px)); max-height: 90vh; padding: 0; border: 1px solid #c9dfed; border-radius: 14px; color: #173d60; box-shadow: 0 20px 60px #061f3855; }
 .roperia-dialogo::backdrop { background: #0a263c99; }

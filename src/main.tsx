@@ -13,6 +13,7 @@ import "./styles/TablasSimetricas.css";
 import "./styles/ClinicoResponsivePlus.css";
 import "./styles/AdaptacionPantallas.css";
 import "./styles/CabeceraSidebar.css";
+import "./styles/EncabezadosTablasClinico.css";
 
 const App = lazy(() => import("./App.tsx").then(m => ({ default: m.App })));
 createRoot(document.getElementById("root")!).render(

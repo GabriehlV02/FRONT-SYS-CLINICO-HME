@@ -1,0 +1,106 @@
+/* Estilo común para encabezados de tablas del sistema clínico. */
+.sistema-app table thead th {
+  height: 36px !important;
+  padding: 6px 10px !important;
+  color: #fff !important;
+  background: linear-gradient(105deg, #0875a9 0%, #0a86b5 58%, #12a5c7 100%) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+.sistema-app
+  :is(
+    [role="table"] > [role="row"]:first-child,
+    [role="row"].encabezado,
+    [class*="fila"].encabezado,
+    [class*="fila"].cabecera,
+    [class*="fila"][class*="columnas"],
+    [class*="tabla-cabecera"],
+    .usuarios-columnas,
+    .ambulancia-fila.encabezado,
+    .anestesia-fila.encabezado,
+    .auditoria-atencion-fila.encabezado,
+    .auditoria-items-fila.encabezado,
+    .auditoria-usuarios-fila.encabezado,
+    .config-signos-encabezado,
+    .estudios-cobrados-fila.encabezado,
+    .internacion-medica-fila.encabezado,
+    .internacion-tabla-cabecera,
+    .mvi-tabla-cabecera,
+    .mvi-visitas-cabecera,
+    .mve-tabla-cabecera,
+    .em-lista-triaje-cabecera,
+    .em-lista-cabecera,
+    .punto-detalle-consumo-tabla-cabecera,
+    .usuarios-admin-fila.encabezado,
+    .usuarios-fila.usuarios-columnas,
+    .historias-fila.historias-columnas,
+    .historia-paciente-fila.historia-paciente-columnas,
+    .instrumentista-fila.instrumentista-columnas,
+    .estudio-fila.estudio-columnas,
+    .almacen-q-fila.almacen-q-columnas,
+    .orthanc-fila.columnas,
+    .inspeccion-columnas,
+    .cuentas-todas-cabecera,
+    .lab-carga-columnas,
+    .instrumentista-cirugias-cabecera,
+    .laboratorio-almacen-columnas,
+    .uci-registro-cabecera,
+    .registro-intra-fila.registro-intra-cabecera
+  ) {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+  color: #fff !important;
+  background: linear-gradient(105deg, #0875a9 0%, #0a86b5 58%, #12a5c7 100%) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+}
+
+.sistema-app
+  :is(
+    [role="table"] > [role="row"]:first-child,
+    [role="row"].encabezado,
+    [class*="fila"].encabezado,
+    [class*="fila"].cabecera,
+    [class*="fila"][class*="columnas"],
+    [class*="tabla-cabecera"],
+    .usuarios-columnas,
+    .ambulancia-fila.encabezado,
+    .anestesia-fila.encabezado,
+    .auditoria-atencion-fila.encabezado,
+    .auditoria-items-fila.encabezado,
+    .auditoria-usuarios-fila.encabezado,
+    .config-signos-encabezado,
+    .estudios-cobrados-fila.encabezado,
+    .internacion-medica-fila.encabezado,
+    .internacion-tabla-cabecera,
+    .mvi-tabla-cabecera,
+    .mvi-visitas-cabecera,
+    .mve-tabla-cabecera,
+    .em-lista-triaje-cabecera,
+    .em-lista-cabecera,
+    .punto-detalle-consumo-tabla-cabecera,
+    .usuarios-admin-fila.encabezado,
+    .usuarios-fila.usuarios-columnas,
+    .historias-fila.historias-columnas,
+    .historia-paciente-fila.historia-paciente-columnas,
+    .instrumentista-fila.instrumentista-columnas,
+    .estudio-fila.estudio-columnas,
+    .almacen-q-fila.almacen-q-columnas,
+    .orthanc-fila.columnas,
+    .inspeccion-columnas,
+    .cuentas-todas-cabecera,
+    .lab-carga-columnas,
+    .instrumentista-cirugias-cabecera,
+    .laboratorio-almacen-columnas,
+    .uci-registro-cabecera,
+    .registro-intra-fila.registro-intra-cabecera
+  ) > * {
+  color: #fff !important;
+  text-align: center !important;
+}

@@ -1,5 +1,5 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { apiFetch } from "../../radius/api";
 import {
   PacienteIngresoEmergencia,
@@ -62,6 +62,7 @@ type PagoCobro = {
 };
 type Identidad = Record<string, string>;
 type Cuenta = CuentaEmergencia;
+type RegistroBalanceTabla = Omit<RegistroBalanceEmergencia, "anotacion"> & { anotacion?: string | null };
 type TrasladoAmbulanciaProgramado = { fecha: string; hora: string; motivo: string; destino: string; paciente?: string; ci?: string };
 const CLAVE_TRASLADOS_AMBULANCIA = "hme:emergencias:traslados-ambulancia:v1";
 const CLAVE_CONTINUIDAD_TRIAJE = "hme:emergencias:triaje:continuidad:v1";
@@ -74,7 +75,7 @@ type BorradorTriaje = {
   valores?: Record<string, string>;
   observacion?: string;
   fechaHoraSignos?: { fecha: string; hora: string };
-  formBalance?: { tipo: "ingreso" | "egreso"; volumen: string; detalle: string; anotacion: string; fecha: string; hora: string };
+  formBalance?: { tipo: "ingreso" | "egreso"; volumen: string; detalle: string; detalleOtro?: string; anotacion: string; fecha: string; hora: string };
   evolucion?: string;
   evolucionEditando?: string | null;
   fechaHoraEvolucion?: { fecha: string; hora: string };
@@ -422,7 +423,85 @@ const normalizar = (s: string) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
-const pedir = apiEmergencias;
+const categoriasBalanceIngreso = [
+  { id: "suero", etiqueta: "Suero" },
+  { id: "sangre", etiqueta: "Sangre" },
+  { id: "plasma", etiqueta: "Plasma" },
+  { id: "viaOral", etiqueta: "Vía oral" },
+  { id: "otros", etiqueta: "Otros" },
+] as const;
+const categoriasBalanceEgreso = [
+  { id: "orina", etiqueta: "Orina" },
+  { id: "vomito", etiqueta: "Vómito" },
+  { id: "deposicion", etiqueta: "Deposición líquida" },
+  { id: "drenajes", etiqueta: "Otros drenajes" },
+] as const;
+function categoriaBalance(registro: RegistroBalanceTabla) {
+  const detalle = normalizar(registro.detalle.split(":")[0]).replace(/[^a-z0-9]/g, "");
+  if (registro.tipo === "ingreso") {
+    if (detalle.includes("sangre")) return "sangre";
+    if (detalle.includes("plasma")) return "plasma";
+    if (detalle.includes("oral")) return "viaOral";
+    if (detalle.includes("suero") || detalle.includes("solucion") || detalle.includes("venoclisis")) return "suero";
+    return "otros";
+  }
+  if (detalle.includes("orina") || detalle.includes("diuresis")) return "orina";
+  if (detalle.includes("vomito")) return "vomito";
+  if (detalle.includes("deposicion") || detalle.includes("liquida") || detalle.includes("fecal")) return "deposicion";
+  return "drenajes";
+}
+function CeldaVolumenBalance({ registros }: { registros: RegistroBalanceTabla[] }) {
+  if (!registros.length) return <span className="em-balance-celda-vacia">—</span>;
+  const total = registros.reduce((suma, registro) => suma + registro.volumen, 0);
+  const detalle = registros.map((registro) => registro.detalle + ": " + registro.volumen.toLocaleString("es-BO") + " ml").join("; ");
+  return <span title={detalle}>{total.toLocaleString("es-BO")} ml</span>;
+}
+function TablaBalanceDiario({ fecha, registros }: { fecha: string; registros: RegistroBalanceTabla[] }) {
+  const fechaLegible = new Date(fecha + "T12:00:00").toLocaleDateString("es-BO", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  const registrosHora = (hora: number, tipo?: "ingreso" | "egreso", categoria?: string) => registros.filter((registro) =>
+    Number(registro.hora.slice(0, 2)) === hora && (!tipo || registro.tipo === tipo) && (!categoria || categoriaBalance(registro) === categoria),
+  );
+  const registrosBloque = (inicio: number, fin: number, tipo?: "ingreso" | "egreso", categoria?: string) => registros.filter((registro) => {
+    const hora = Number(registro.hora.slice(0, 2));
+    return hora >= inicio && hora <= fin && (!tipo || registro.tipo === tipo) && (!categoria || categoriaBalance(registro) === categoria);
+  });
+  const totalVolumen = (items: RegistroBalanceTabla[]) => items.reduce((suma, registro) => suma + registro.volumen, 0);
+  return (
+    <section className="em-balance-dia">
+      <header><h5>{fechaLegible}</h5><span>{registros.length} {registros.length === 1 ? "movimiento" : "movimientos"}</span></header>
+      <div className="em-balance-dia-tabla-scroll">
+        <table className="em-balance-tabla em-balance-tabla-horaria">
+          <thead>
+            <tr><th rowSpan={2} scope="col">Hora</th><th colSpan={6} scope="colgroup">Ingresos</th><th colSpan={5} scope="colgroup">Egresos</th></tr>
+            <tr>{categoriasBalanceIngreso.map((categoria) => <th scope="col" key={categoria.id}>{categoria.etiqueta}</th>)}<th scope="col">Total</th>{categoriasBalanceEgreso.map((categoria) => <th scope="col" key={categoria.id}>{categoria.etiqueta}</th>)}<th scope="col">Total</th></tr>
+          </thead>
+          <tbody>{Array.from({ length: 24 }, (_, hora) => {
+            const ingresosHora = registrosHora(hora, "ingreso");
+            const egresosHora = registrosHora(hora, "egreso");
+            const celdas = [
+              ...categoriasBalanceIngreso.map((categoria) => <td key={"in-" + categoria.id}><CeldaVolumenBalance registros={registrosHora(hora, "ingreso", categoria.id)} /></td>),
+              <td className="em-balance-total-hora ingreso" key="in-total"><CeldaVolumenBalance registros={ingresosHora} /></td>,
+              ...categoriasBalanceEgreso.map((categoria) => <td key={"out-" + categoria.id}><CeldaVolumenBalance registros={registrosHora(hora, "egreso", categoria.id)} /></td>),
+              <td className="em-balance-total-hora egreso" key="out-total"><CeldaVolumenBalance registros={egresosHora} /></td>,
+            ];
+            const filas: ReactNode[] = [<tr key={"hora-" + hora}><th scope="row" className="em-balance-hora">{String(hora).padStart(2, "0")}:00</th>{celdas}</tr>];
+            if (hora % 6 === 5) {
+              const inicio = hora - 5;
+              const sumas = [
+                ...categoriasBalanceIngreso.map((categoria) => totalVolumen(registrosBloque(inicio, hora, "ingreso", categoria.id))),
+                totalVolumen(registrosBloque(inicio, hora, "ingreso")),
+                ...categoriasBalanceEgreso.map((categoria) => totalVolumen(registrosBloque(inicio, hora, "egreso", categoria.id))),
+                totalVolumen(registrosBloque(inicio, hora, "egreso")),
+              ];
+              filas.push(<tr className="em-balance-subtotal-6h" key={"subtotal-" + hora}><th scope="row">Subtotal 6 h</th>{sumas.map((suma, indice) => <td key={indice}>{suma ? suma.toLocaleString("es-BO") + " ml" : "—"}</td>)}</tr>);
+            }
+            return filas;
+          })}</tbody>
+        </table>
+      </div>
+    </section>
+  );
+}const pedir = apiEmergencias;
 const mismasCuentas = (actuales: Cuenta[], siguientes: Cuenta[]) =>
   actuales.length === siguientes.length &&
   actuales.every(
@@ -748,10 +827,12 @@ export function TriajeEmergenciasView({
     [observacion, setObservacion] = useState(() => borradorInicial.observacion || "");
   const [fechaHoraSignos, setFechaHoraSignos] = useState(() => borradorInicial.fechaHoraSignos || fechaHoraIngresoActual());
   const [balanceEmergencia, setBalanceEmergencia] = useState<RegistroBalanceEmergencia[]>([]);
+  const [vistaBalanceEmergencia, setVistaBalanceEmergencia] = useState<"grafica" | "tabla">("grafica");
   const [formBalanceEmergencia, setFormBalanceEmergencia] = useState(() => ({
     tipo: "ingreso" as "ingreso" | "egreso",
     volumen: "",
     detalle: "",
+    detalleOtro: "",
     anotacion: "",
     ...fechaHoraIngresoActual(),
     ...borradorInicial.formBalance,
@@ -930,7 +1011,7 @@ export function TriajeEmergenciasView({
     setValores({});
     setObservacion("");
     setFechaHoraSignos(fechaHoraIngresoActual());
-    setFormBalanceEmergencia({ tipo: "ingreso", volumen: "", detalle: "", anotacion: "", ...fechaHoraIngresoActual() });
+    setFormBalanceEmergencia({ tipo: "ingreso", volumen: "", detalle: "", detalleOtro: "", anotacion: "", ...fechaHoraIngresoActual() });
     setEvolucion("");
     setEvolucionEditando(null);
     setFechaHoraEvolucion(fechaHoraIngresoActual());
@@ -948,7 +1029,7 @@ export function TriajeEmergenciasView({
     setValores({});
     setObservacion("");
     setFechaHoraSignos(fechaHoraIngresoActual());
-    setFormBalanceEmergencia({ tipo: "ingreso", volumen: "", detalle: "", anotacion: "", ...fechaHoraIngresoActual() });
+    setFormBalanceEmergencia({ tipo: "ingreso", volumen: "", detalle: "", detalleOtro: "", anotacion: "", ...fechaHoraIngresoActual() });
     setEvolucion("");
     setEvolucionEditando(null);
     setFechaHoraEvolucion(fechaHoraIngresoActual());
@@ -1071,7 +1152,9 @@ export function TriajeEmergenciasView({
       const guardado = await guardar(`/${cuenta.id}/balance-hidrico`, {
         tipo: formBalanceEmergencia.tipo,
         volumen: Number(formBalanceEmergencia.volumen),
-        detalle: formBalanceEmergencia.detalle.trim(),
+        detalle: [formBalanceEmergencia.detalle, formBalanceEmergencia.detalleOtro?.trim()]
+          .filter(Boolean)
+          .join(": "),
         anotacion: formBalanceEmergencia.anotacion.trim(),
         fecha: formBalanceEmergencia.fecha,
         hora: formBalanceEmergencia.hora,
@@ -1081,6 +1164,7 @@ export function TriajeEmergenciasView({
         ...actual,
         volumen: "",
         detalle: "",
+        detalleOtro: "",
         anotacion: "",
         ...fechaHoraIngresoActual(),
       }));
@@ -2954,8 +3038,15 @@ export function TriajeEmergenciasView({
                       </div>
                       <div className="em-balance-emergencias-cuerpo">
                       <div className="em-balance-emergencias-visualizacion">
-                      <section className="em-balance-emergencias-grafica" aria-label="Gráfica de ingresos y egresos">
+                      <div className="em-balance-emergencias-vistas">
                         <h4>Ingresos y egresos por movimiento</h4>
+                        <div role="group" aria-label="Vista de ingresos y egresos">
+                          <button type="button" className={vistaBalanceEmergencia === "grafica" ? "activo" : ""} aria-pressed={vistaBalanceEmergencia === "grafica"} onClick={() => setVistaBalanceEmergencia("grafica")}>Gráfica</button>
+                          <button type="button" className={vistaBalanceEmergencia === "tabla" ? "activo" : ""} aria-pressed={vistaBalanceEmergencia === "tabla"} onClick={() => setVistaBalanceEmergencia("tabla")}>Tabla</button>
+                        </div>
+                      </div>
+                      {vistaBalanceEmergencia === "grafica" ? <>
+                      <section className="em-balance-emergencias-grafica" aria-label="Gráfica de ingresos y egresos">
                         {puntosBalanceEmergencia.length ? (() => {
                           const tope = Math.max(...puntosBalanceEmergencia.map((punto) => punto.volumen), 100);
                           const escala = tope * 1.18;
@@ -2983,17 +3074,32 @@ export function TriajeEmergenciasView({
                           <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
                         </li>)}
                       </ol>}
+                      </> : <div className="em-balance-tabla-dias">
+                        {[...new Set(balanceCompleto.map((registro) => registro.fecha))].sort().map((dia) => (
+                          <TablaBalanceDiario key={dia} fecha={dia} registros={balanceCompleto.filter((registro) => registro.fecha === dia)} />
+                        ))}
+                        {!balanceCompleto.length && <p className="em-balance-tabla-vacia">Aún no hay ingresos ni egresos registrados.</p>}
+                      </div>}
                       </div>
                       {!cuenta.fin && <form className="em-balance-emergencias-form" onSubmit={registrarBalanceEmergencia}>
                         <fieldset className="em-balance-tipo-switch">
                           <legend>Tipo de registro</legend>
                           <div className="em-balance-tipo-pista" role="group" aria-label="Tipo de movimiento">
-                            <button type="button" className={formBalanceEmergencia.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalanceEmergencia.tipo === "ingreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true"><Icon name="plus" size={14} /></span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
-                            <button type="button" className={formBalanceEmergencia.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalanceEmergencia.tipo === "egreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true"><Icon name="minus" size={14} /></span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
+                            <button type="button" className={formBalanceEmergencia.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalanceEmergencia.tipo === "ingreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "ingreso", detalle: "", detalleOtro: "" }))}><span aria-hidden="true"><Icon name="plus" size={14} /></span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
+                            <button type="button" className={formBalanceEmergencia.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalanceEmergencia.tipo === "egreso"} onClick={() => setFormBalanceEmergencia((actual) => ({ ...actual, tipo: "egreso", detalle: "", detalleOtro: "" }))}><span aria-hidden="true"><Icon name="minus" size={14} /></span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
                           </div>
                         </fieldset>
                         <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalanceEmergencia.volumen} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>
-                        <label className="em-balance-emergencias-detalle">Detalle<input maxLength={180} placeholder={formBalanceEmergencia.tipo === "ingreso" ? "Ej. Solución intravenosa, agua" : "Ej. Diuresis, drenaje"} value={formBalanceEmergencia.detalle} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, detalle: evento.target.value }))} required /></label>
+                        <label className="em-balance-emergencias-detalle">Detalle
+                          <select value={formBalanceEmergencia.detalle} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, detalle: evento.target.value, detalleOtro: "" }))} required>
+                            <option value="">Selecciona una opción</option>
+                            {(formBalanceEmergencia.tipo === "ingreso"
+                              ? ["Suero", "Sangre", "Plasma", "Vía oral", "Otros"]
+                              : ["Orina", "Vómito", "Deposición líquida", "Otros drenajes"]
+                            ).map((opcion) => <option key={opcion} value={opcion}>{opcion}</option>)}
+                          </select>
+                          {(formBalanceEmergencia.detalle === "Otros" || formBalanceEmergencia.detalle === "Otros drenajes") && <input maxLength={150} placeholder="Especifica el detalle" value={formBalanceEmergencia.detalleOtro || ""} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, detalleOtro: evento.target.value }))} required />}
+                        </label>
                         <label className="em-balance-emergencias-anotacion">Anotación clínica<textarea maxLength={1000} rows={2} placeholder="Observación de enfermería relacionada con este registro" value={formBalanceEmergencia.anotacion} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, anotacion: evento.target.value }))} /></label>
                         <div className="em-balance-fecha-hora">
                           <label>Fecha<input type="date" value={formBalanceEmergencia.fecha} onChange={(evento) => setFormBalanceEmergencia((actual) => ({ ...actual, fecha: evento.target.value }))} required /></label>

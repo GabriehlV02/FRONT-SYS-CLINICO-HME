@@ -339,6 +339,8 @@
 }
 
 .est-seguimiento-contenido .est-ficha-material > div {
+  width: 100%;
+  min-width: 0;
   padding: 24px;
   border-color: #d9e8f2;
   border-radius: 12px;
@@ -352,15 +354,17 @@
 
 .est-ficha-principal {
   display: grid;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  grid-template-columns: minmax(340px, 1fr) minmax(0, 1.7fr);
+  width: 100%;
   align-items: start;
-  gap: 24px;
+  gap: 44px;
 }
 
 .est-ficha-imagen {
   display: grid;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 3;
+  max-height: 360px;
   overflow: hidden;
   place-items: center;
   border: 1px solid #d7e9f3;
@@ -384,7 +388,8 @@
 
 .est-seguimiento-contenido .est-ficha-datos dl {
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px 16px;
+  gap: 26px 24px;
+  width: 100%;
 }
 
 .est-seguimiento-contenido .est-ficha-datos dl div:first-child {

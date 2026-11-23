@@ -792,17 +792,21 @@ video {
   }
 }
 .cola-atencion-estado {
-  padding: 14px 8px !important;
+  margin: 0 !important;
+  padding: 13px 14px !important;
+  border: 1px solid #e2edf4;
+  border-radius: 10px;
   color: #69869b !important;
+  background: linear-gradient(135deg, #fff, #f5faff);
   font-size: 12px !important;
-  line-height: 1.45;
+  line-height: 1.5;
 }
 .cola-atencion-internados {
   display: grid;
-  gap: 12px;
-  margin-top: 8px;
-  padding-top: 18px;
-  border-top: 1px solid #cfe0eb;
+  gap: 10px;
+  margin-top: 2px;
+  padding: 18px 0 2px;
+  border-top: 1px solid #d7e5ef;
 }
 .cola-atencion-internados > header {
   padding: 0 4px;
@@ -827,8 +831,15 @@ video {
   gap: 11px;
   padding: 14px;
   border: 1px solid #cfe0eb;
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #fff 0%, #fbfdff 100%);
+  box-shadow: 0 5px 14px rgb(27 83 120 / 5%);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.cola-atencion-internados article:hover {
+  transform: translateY(-1px);
+  border-color: #a8cfe4;
+  box-shadow: 0 8px 18px rgb(27 83 120 / 9%);
 }
 .cola-atencion-internados article > div {
   display: grid;
@@ -846,14 +857,20 @@ video {
 .cola-atencion-internados article button {
   grid-column: 2/-1;
   width: 100%;
-  min-height: 35px;
+  min-height: 38px;
   margin-top: 5px;
   border: 1px solid #087fc0;
-  border-radius: 7px;
+  border-radius: 9px;
   color: #fff;
   background: #087fc0;
   font-size: 11px;
   font-weight: 800;
+  box-shadow: 0 4px 10px rgb(8 127 192 / 16%);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.cola-atencion-internados article button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 14px rgb(8 127 192 / 22%);
 }
 .cola-atencion-internados .cola-atencion-datos b {
   padding: 4px 9px;
@@ -940,20 +957,21 @@ video {
 .cola-atencion-panel {
   position: relative;
   z-index: 1;
-  width: min(390px, 100vw);
+  width: min(420px, 100vw);
   height: 100%;
   overflow: auto;
-  padding: 16px;
-  border-left: 1px solid #bcd8e8;
-  background: #f7fbfe;
-  box-shadow: -12px 0 34px rgba(6, 51, 82, 0.2);
+  padding: 20px 18px;
+  border-left: 1px solid #c5ddeb;
+  background: linear-gradient(180deg, #f8fcff 0%, #f3f8fc 100%);
+  box-shadow: -16px 0 42px rgba(6, 51, 82, 0.22);
 }
 .cola-atencion-panel > header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 4px 4px 16px;
+  padding: 3px 4px 17px;
+  border-bottom: 1px solid #d7e5ef;
 }
 .cola-atencion-panel p {
   margin: 0 0 5px;
@@ -965,7 +983,8 @@ video {
 .cola-atencion-panel h2 {
   margin: 0;
   color: #064773;
-  font-size: 19px;
+  font-size: 21px;
+  letter-spacing: -.025em;
 }
 .cola-atencion-panel header small {
   display: block;
@@ -977,24 +996,38 @@ video {
   width: 32px;
   height: 32px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 10px;
   color: #315d7d;
   background: #e6f3fa;
   font-size: 25px;
   line-height: 1;
+  transition: color .18s ease, background .18s ease, transform .18s ease;
+}
+.cola-atencion-panel > header > button:hover {
+  color: #075d91;
+  background: #d8edf8;
+  transform: rotate(5deg);
 }
 .cola-atencion-lista {
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  padding-top: 3px;
 }
 .cola-atencion-lista article {
   display: grid;
   grid-template-columns: 38px minmax(0, 1fr);
   gap: 11px;
-  padding: 14px;
+  padding: 15px;
   border: 1px solid #cfe0eb;
-  border-radius: 10px;
-  background: #fff;
+  border-radius: 13px;
+  background: linear-gradient(145deg, #fff 0%, #fbfdff 100%);
+  box-shadow: 0 5px 14px rgb(27 83 120 / 5%);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.cola-atencion-lista article:hover {
+  transform: translateY(-1px);
+  border-color: #a8cfe4;
+  box-shadow: 0 8px 18px rgb(27 83 120 / 9%);
 }
 .cola-atencion-numero {
   display: grid;
@@ -1029,17 +1062,21 @@ video {
 }
 .cola-atencion-lista button {
   width: 100%;
-  min-height: 35px;
+  min-height: 38px;
   margin-top: 5px;
   border: 1px solid #087fc0;
-  border-radius: 7px;
+  border-radius: 9px;
   color: #fff;
   background: #087fc0;
   font-size: 11px;
   font-weight: 800;
+  box-shadow: 0 4px 10px rgb(8 127 192 / 16%);
+  transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 .cola-atencion-lista button:hover {
+  transform: translateY(-1px);
   background: #066aab;
+  box-shadow: 0 7px 14px rgb(8 127 192 / 22%);
 }
 @media (max-width: 480px) {
   .cola-atencion-panel {

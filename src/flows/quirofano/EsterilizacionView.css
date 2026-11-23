@@ -628,7 +628,7 @@
 .est-modal h3 {
   margin: 0;
   color: var(--est-titulo);
-  font-size: 17px;
+  font-size: 22px;
 }
 .est-modal > header button {
   display: grid;
@@ -1149,18 +1149,39 @@
 
 .est-seguimiento-modal {
   padding: 0;
-  width: min(740px, calc(100% - 32px));
-  max-height: 90vh;
+  width: min(900px, calc(100% - 40px));
+  max-height: min(92vh, 980px);
   color: var(--est-texto);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgb(10 38 60 / 28%);
 }
 .est-seguimiento-modal::backdrop {
   background: #0a263c99;
 }
 .est-seguimiento-contenido {
-  padding: 20px;
+  padding: 24px 26px 26px;
 }
 .est-seguimiento-contenido > .est-modal-identidad {
-  display: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border: 1px solid var(--est-borde);
+  border-radius: 12px;
+  background: #f2f9fd;
+}
+.est-seguimiento-modal > header .est-seguimiento-codigo {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 20px;
+  margin-right: 0;
+  color: var(--est-azul);
+  font-family: "Roboto Mono", "Consolas", monospace;
+  font-size: 17px;
+  font-weight: 900;
+  white-space: nowrap;
 }
 .est-seguimiento-contenido h4 {
   margin: 18px 0 12px;
@@ -1177,14 +1198,29 @@
 }
 .est-ficha-material {
   display: grid;
-  grid-template-columns: 1.15fr 0.95fr;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
 }
 .est-ficha-material > div {
-  padding: 13px;
+  padding: 16px;
   border: 1px solid var(--est-borde);
-  border-radius: 9px;
+  border-radius: 12px;
   background: #fbfdff;
+}
+
+@media (max-width: 760px) {
+  .est-seguimiento-modal {
+    width: calc(100% - 24px);
+    max-height: 94vh;
+  }
+
+  .est-seguimiento-contenido {
+    padding: 16px;
+  }
+
+  .est-ficha-material {
+    grid-template-columns: 1fr;
+  }
 }
 .est-ficha-material h4 {
   margin: 0 0 10px;
@@ -1192,7 +1228,7 @@
   font-size: 12px;
 }
 .est-ficha-datos {
-  grid-row: span 2;
+  grid-row: auto;
 }
 .est-ficha-identidad {
   display: flex;

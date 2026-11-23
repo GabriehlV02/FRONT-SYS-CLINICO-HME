@@ -639,15 +639,6 @@ export default function VistaRayosX({
         <div>
           <p>IMAGENOLOGÍA / VISOR</p>
           <h2>Visor de {modalidad.toLowerCase()}s</h2>
-          <small>
-            DICOM, DICOMDIR, carpetas, ZIP, RAR e imágenes{" "}
-            {modalidad === "Tomografía"
-              ? "tomográficas"
-              : modalidad === "Ecografía"
-                ? "ecográficas"
-                : "radiográficas"}
-            .
-          </small>
         </div>
         <div>
           <button onClick={() => setPanel((v) => !v)}>

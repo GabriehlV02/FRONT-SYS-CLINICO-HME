@@ -46,6 +46,15 @@ const normalizarBusquedaMaterial = (texto: string) =>
   texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es").trim();
 const KIT_VACIO = { nombre: "", descripcion: "" };
 
+const MATERIALES_DEMO: MaterialEsteril[] = [
+  { id: "demo-material-pinza-mosquito", codigo: "DEMO-INS-001", nombre: "Pinza mosquito curva", lote: "LOTE-DEMO-01", medida: "12.5 cm", cantidad: 8, tipo: "Instrumental", marca: "Demostración", serie: "", sector: "Almacén central", descripcion: "Ejemplo local de instrumental quirúrgico.", estado: "limpio", cirugiaId: "", actualizadoEn: new Date().toISOString() },
+  { id: "demo-material-pinza-kelly", codigo: "DEMO-INS-002", nombre: "Pinza Kelly recta", lote: "LOTE-DEMO-01", medida: "14 cm", cantidad: 6, tipo: "Instrumental", marca: "Demostración", serie: "", sector: "Almacén central", descripcion: "Ejemplo local de instrumental quirúrgico.", estado: "limpio", cirugiaId: "", actualizadoEn: new Date().toISOString() },
+  { id: "demo-material-portaagujas", codigo: "DEMO-INS-003", nombre: "Portaagujas Mayo-Hegar", lote: "LOTE-DEMO-02", medida: "16 cm", cantidad: 4, tipo: "Instrumental", marca: "Demostración", serie: "", sector: "Quirófano 1", descripcion: "Ejemplo local para sutura.", estado: "reservado", cirugiaId: "", actualizadoEn: new Date().toISOString() },
+  { id: "demo-material-tijera-mayo", codigo: "DEMO-INS-004", nombre: "Tijera Mayo recta", lote: "LOTE-DEMO-02", medida: "17 cm", cantidad: 5, tipo: "Instrumental", marca: "Demostración", serie: "", sector: "Almacén central", descripcion: "Ejemplo local de instrumental quirúrgico.", estado: "limpio", cirugiaId: "", actualizadoEn: new Date().toISOString() },
+  { id: "demo-material-separador", codigo: "DEMO-INS-005", nombre: "Separador Farabeuf", lote: "LOTE-DEMO-03", medida: "15 cm", cantidad: 3, tipo: "Instrumental", marca: "Demostración", serie: "", sector: "Esterilización", descripcion: "Ejemplo local pendiente de revisión.", estado: "esterilizacion", cirugiaId: "", actualizadoEn: new Date().toISOString() },
+  { id: "demo-material-bisturi", codigo: "DEMO-INS-006", nombre: "Mango de bisturí número 3", lote: "LOTE-DEMO-03", medida: "13 cm", cantidad: 7, tipo: "Instrumental", marca: "Demostración", serie: "", sector: "Almacén central", descripcion: "Ejemplo local de instrumental quirúrgico.", estado: "limpio", cirugiaId: "", actualizadoEn: new Date().toISOString() },
+];
+
 function PaginacionInventario({ pagina, totalPaginas, total, inicio, cantidad, onCambiar }: {
   pagina: number;
   totalPaginas: number;
@@ -288,6 +297,13 @@ export function EsterilizacionView({
   const [busquedaRecepcion, setBusquedaRecepcion] = useState("");
   const [materialEtiqueta, setMaterialEtiqueta] =
     useState<MaterialEsteril | null>(null);
+
+  useEffect(() => {
+    setDatos(actual => {
+      const materialesReales = actual.materiales.filter(item => !item.id.startsWith("demo-material-"));
+      return { ...actual, materiales: [...materialesReales, ...MATERIALES_DEMO] };
+    });
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -922,11 +938,7 @@ export function EsterilizacionView({
         </nav>
       )}
       {aviso && <AvisoTemporal mensaje={aviso} />}
-      {error && !modal && (
-        <p className="est-error" role="alert">
-          {error}
-        </p>
-      )}
+      {error && !modal && <AvisoTemporal mensaje={error} />}
 
       {subvista === "sala" && (
         <RecepcionSucio
@@ -1451,11 +1463,12 @@ export function EsterilizacionView({
       >
         <header>
           <div>
-            <p>SEGUIMIENTO DEL MATERIAL</p>
+            <p>INFORMACIÓN DEL MATERIAL</p>
             <h3 id="seguimiento-material-titulo">
               {materialSeleccionado?.nombre || "Historial del material"}
             </h3>
           </div>
+          {materialSeleccionado && <small className="est-seguimiento-codigo">{materialSeleccionado.codigo}</small>}
           <button
             type="button"
             aria-label="Cerrar seguimiento"
@@ -1466,27 +1479,11 @@ export function EsterilizacionView({
         </header>
         {materialSeleccionado && (
           <div className="est-seguimiento-contenido">
-            <div className="est-modal-identidad">
-              <div><small>INSTRUMENTO QUIRÚRGICO</small><strong>{materialSeleccionado.codigo}</strong></div>
-              <span className={`est-estado ${materialSeleccionado.estado}`}>
-                {ETIQUETAS_ESTADO[materialSeleccionado.estado]}
-              </span>
-            </div>
             <section
               className="est-ficha-material"
-              aria-label="Información y trazabilidad actual del instrumento"
+              aria-label="Información del instrumento"
             >
               <div className="est-ficha-datos">
-                <div className="est-ficha-identidad">
-                  <div>
-                    <small>INSTRUMENTO QUIRÚRGICO · CÓDIGO</small>
-                    <strong className="est-ficha-codigo">{materialSeleccionado.codigo}</strong>
-                    <h4>{materialSeleccionado.nombre}</h4>
-                  </div>
-                  <span className={`est-estado ${materialSeleccionado.estado}`}>
-                    {ETIQUETAS_ESTADO[materialSeleccionado.estado]}
-                  </span>
-                </div>
                 <div className="est-ficha-principal">
                   <div className="est-ficha-imagen">
                     {materialSeleccionado.imagen ? (
@@ -1508,7 +1505,8 @@ export function EsterilizacionView({
                   <p>{materialSeleccionado.descripcion || "Sin descripción u observaciones."}</p>
                 </div>
               </div>
-              <div className="est-ficha-situacion">
+            </section>
+            <section className="est-ficha-situacion" aria-label="Situación actual del material">
                 <h4>Situación actual</h4>
                 <article>
                   <span>
@@ -1596,7 +1594,6 @@ export function EsterilizacionView({
                   </>
                 )}
                 </article>
-              </div>
             </section>
             <h4>Historial de movimientos</h4>
             {movimientos.length ? (

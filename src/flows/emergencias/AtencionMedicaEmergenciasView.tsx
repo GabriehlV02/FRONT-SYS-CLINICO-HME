@@ -1,7 +1,7 @@
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import AnamnesisEmergencia from "./AnamnesisEmergencia";
-import { RevisionConsulta } from "../consultorio/RevisionConsulta";
+import { RevisionEmergencia } from "./RevisionEmergencia";
 import { AntecedentesConsulta, antecedentesConsultaVacios, type DatosAntecedentesConsulta } from "../consultorio/AntecedentesConsulta";
 import Icon from "../../radius/componentes/Icono";
 import {
@@ -1543,11 +1543,10 @@ function AtencionPaciente({
           cerrada={Boolean(cuenta.fin)}
           inicial={cuenta.evaluaciones?.at(-1)?.campos.enfermedadActual}
         />
-        <RevisionConsulta
+        <RevisionEmergencia
           key={`revision-${cuenta.id}`}
-          pacienteId={cuenta.id}
+          cuentaId={cuenta.id}
           cerrada={Boolean(cuenta.fin)}
-          storageKey={`revision-sistemas-demo-${cuenta.id}`}
         />
         <section
           className="em-panel em-diagnostico-final"
@@ -1556,7 +1555,7 @@ function AtencionPaciente({
           <header className="em-panel-titulo">
             <h3 id="em-diagnostico-final-titulo">Diagnóstico Final</h3>
           </header>
-          <DiagnosticosFinalesSelector
+          <DiagnosticosFinalesSelector key={cuenta.id} cuentaId={cuenta.id} cerrada={Boolean(cuenta.fin)}
             inicial={cuenta.evaluaciones?.at(-1)?.campos.diagnostico || ""}
           />
         </section>

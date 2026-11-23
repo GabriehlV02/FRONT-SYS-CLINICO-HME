@@ -17,8 +17,7 @@ type Caja = {
   almacenes?: Almacen[];
   estado: "ACTIVO" | "INACTIVO";
 };
-type Modal = "almacen" | "caja" | null;
-const TIPOS = ["Producto", "Insumo", "Servicio", "Paquete"];
+type Modal = "almacen" | null;
 
 export default function VistaAlmacenesCajas() {
   const [almacenes, setAlmacenes] = useState<Almacen[]>([]);
@@ -48,26 +47,11 @@ export default function VistaAlmacenesCajas() {
     event.preventDefault();
     if (!modal) return;
     const datos = new FormData(event.currentTarget);
-    const cuerpo =
-      modal === "almacen"
-        ? {
-            nombre: datos.get("nombre"),
-            codigo: datos.get("codigo"),
-            sucursal: datos.get("sucursal"),
-          }
-        : {
-            nombre: datos.get("nombre"),
-            sucursal: datos.get("sucursal"),
-            almacen_principal_id: datos.get("almacen_principal_id"),
-            almacenes: datos.getAll("almacenes"),
-            tipos_item_permitidos: datos.getAll("tipos"),
-            limite_items: datos.get("limite_items") || null,
-          };
-    setGuardando(true);
+    const cuerpo = { nombre: datos.get("nombre"), codigo: datos.get("codigo"), sucursal: datos.get("sucursal") };
     setMensaje("");
     try {
       const respuesta = await apiFetch(
-        `/api/v1/operacion/${modal === "almacen" ? "almacenes" : "cajas"}`,
+        "/api/v1/operacion/almacenes",
         { method: "POST", body: JSON.stringify(cuerpo) },
       );
       const resultado = await respuesta.json();
@@ -83,10 +67,10 @@ export default function VistaAlmacenesCajas() {
       setGuardando(false);
     }
   };
-  const cambiarEstado = async (tipo: "almacen" | "caja", id: string) => {
+  const cambiarEstado = async (id: string) => {
     try {
       const respuesta = await apiFetch(
-        `/api/v1/operacion/${tipo === "almacen" ? "almacenes" : "cajas"}/${id}/estado`,
+        `/api/v1/operacion/almacenes/${id}/estado`,
         { method: "PATCH" },
       );
       if (!respuesta.ok) throw new Error();
@@ -132,7 +116,7 @@ export default function VistaAlmacenesCajas() {
                 <button
                   type="button"
                   className={a.estado === "ACTIVO" ? "activo" : ""}
-                  onClick={() => void cambiarEstado("almacen", a.id)}
+                   onClick={() => void cambiarEstado(a.id)}
                 >
                   {a.estado}
                 </button>
@@ -144,9 +128,8 @@ export default function VistaAlmacenesCajas() {
         </Panel>
         <Panel
           titulo="Cajas"
-          descripcion="Puntos de venta limitados a sus almacenes e ítems permitidos."
+          descripcion="Las cajas se administran en Contabilidad."
           icono="asset"
-          onCrear={() => setModal("caja")}
         >
           {cargando ? (
             <p className="operacion-vacio">Cargando cajas…</p>
@@ -161,13 +144,7 @@ export default function VistaAlmacenesCajas() {
                       "Sin almacén asignado"}
                   </small>
                 </div>
-                <button
-                  type="button"
-                  className={c.estado === "ACTIVO" ? "activo" : ""}
-                  onClick={() => void cambiarEstado("caja", c.id)}
-                >
-                  {c.estado}
-                </button>
+                <span>{c.estado}</span>
               </article>
             ))
           ) : (
@@ -180,10 +157,7 @@ export default function VistaAlmacenesCajas() {
           <form className="operacion-modal" onSubmit={guardar}>
             <header>
               <div>
-                <p>
-                  NUEVO {modal === "almacen" ? "ALMACÉN" : "PUNTO DE VENTA"}
-                </p>
-                <h3>Crear {modal === "almacen" ? "almacén" : "caja"}</h3>
+                <h3>Crear almacén</h3>
               </div>
               <button
                 type="button"
@@ -194,7 +168,6 @@ export default function VistaAlmacenesCajas() {
                 ×
               </button>
             </header>
-            {modal === "almacen" ? (
               <div className="operacion-formulario">
                 <label>
                   Nombre
@@ -223,80 +196,6 @@ export default function VistaAlmacenesCajas() {
                   />
                 </label>
               </div>
-            ) : (
-              <div className="operacion-formulario">
-                <label>
-                  Nombre de la caja
-                  <input
-                    name="nombre"
-                    required
-                    autoFocus
-                    placeholder="Ej. Caja recepción 01"
-                  />
-                </label>
-                <label>
-                  Sucursal
-                  <input
-                    name="sucursal"
-                    required
-                    placeholder="Sucursal donde opera"
-                  />
-                </label>
-                <label className="campo-completo">
-                  Almacén principal
-                  <select name="almacen_principal_id" required defaultValue="">
-                    <option value="" disabled>
-                      Selecciona un almacén
-                    </option>
-                    {almacenes.map((a) => (
-                      <option value={a.id} key={a.id}>
-                        {a.nombre} · {a.codigo}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <fieldset className="campo-completo">
-                  <legend>Almacenes autorizados para vender</legend>
-                  <p>
-                    La caja solo podrá descontar stock de los almacenes
-                    marcados.
-                  </p>
-                  <div className="operacion-checks">
-                    {almacenes.map((a) => (
-                      <label key={a.id}>
-                        <input type="checkbox" name="almacenes" value={a.id} />
-                        {a.nombre}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <fieldset className="campo-completo">
-                  <legend>Tipos de ítem permitidos</legend>
-                  <div className="operacion-checks">
-                    {TIPOS.map((tipo) => (
-                      <label key={tipo}>
-                        <input
-                          type="checkbox"
-                          name="tipos"
-                          value={tipo}
-                          defaultChecked
-                        />
-                        {tipo}
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <label>
-                  Límite de ítems por venta <small>Opcional</small>
-                  <input
-                    name="limite_items"
-                    type="number"
-                    min="1"
-                    placeholder="Sin límite"
-                  />
-                </label>
-              </div>
-            )}
             <footer>
               <button
                 type="button"
@@ -326,7 +225,7 @@ function Panel({
   titulo: string;
   descripcion: string;
   icono: "building" | "asset";
-  onCrear: () => void;
+  onCrear?: () => void;
   children: ReactNode;
 }) {
   return (
@@ -339,9 +238,9 @@ function Panel({
           <h3>{titulo}</h3>
           <p>{descripcion}</p>
         </div>
-        <button type="button" onClick={onCrear}>
+        {onCrear && <button type="button" onClick={onCrear}>
           <Icon name="plus" size={14} /> Crear
-        </button>
+        </button>}
       </header>
       <div className="operacion-lista">{children}</div>
     </section>

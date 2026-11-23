@@ -1320,6 +1320,13 @@ export default function Aplicacion() {
   );
   const [sidebarCerradoPorSeleccion, setSidebarCerradoPorSeleccion] =
     useState(false);
+  const [sidebarHoverActivo, setSidebarHoverActivo] = useState(false);
+  const abrirSidebarDesdeIcono = () => {
+    if (!sidebarReplegado || sidebarCerradoPorSeleccion ||
+        !window.matchMedia("(min-width: 761px) and (hover: hover)").matches) return;
+    setSidebarHoverActivo(true);
+    window.requestAnimationFrame(restaurarScrollSidebar);
+  };
   const sidebarNavRef = useRef<HTMLElement | null>(null);
   const sidebarScrollGuardado = useRef((() => {
     try {
@@ -1518,6 +1525,7 @@ export default function Aplicacion() {
     setModulo("");
   };
   const alternarSidebar = () => {
+    setSidebarHoverActivo(false);
     if (!sidebarReplegado) guardarScrollSidebar();
     setSidebarReplegado((valor) => {
       const siguiente = !valor;
@@ -1553,13 +1561,10 @@ export default function Aplicacion() {
         </aside>
       )}
       <aside
-        className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""}`}
-        onMouseEnter={() => {
-          if (!sidebarReplegado || sidebarCerradoPorSeleccion) return;
-          window.requestAnimationFrame(restaurarScrollSidebar);
-        }}
+        className={`sistema-sidebar ${menuAbierto ? "sidebar-abierto" : ""} ${sidebarCerradoPorSeleccion ? "sidebar-cerrado-por-seleccion" : ""} ${sidebarHoverActivo ? "sidebar-hover-activo" : ""}`}
         onMouseLeave={() => {
           if (!sidebarReplegado) guardarScrollSidebar();
+          setSidebarHoverActivo(false);
           setSidebarCerradoPorSeleccion(false);
         }}
         onKeyDown={(evento) => {
@@ -1592,7 +1597,7 @@ export default function Aplicacion() {
           onScroll={(evento) => {
             const sidebar = evento.currentTarget.closest(".sistema-sidebar");
             const desplegado = !sidebarReplegado ||
-              (!sidebarCerradoPorSeleccion && Boolean(sidebar?.matches(":hover, :focus-within, .sidebar-abierto")));
+              (!sidebarCerradoPorSeleccion && Boolean(sidebar?.matches(".sidebar-hover-activo, :has(:focus-visible), .sidebar-abierto")));
             // Al compactarse desaparecen etiquetas y cambia scrollHeight: no
             // guardamos el scrollTop que el navegador recorta en esa transición.
             if (desplegado) guardarScrollSidebar();
@@ -1640,12 +1645,13 @@ export default function Aplicacion() {
                               "1",
                             );
                             setSidebarReplegado(true);
+                            setSidebarHoverActivo(false);
                             setSidebarCerradoPorSeleccion(true);
                             if (evento.detail > 0) evento.currentTarget.blur();
                           }
                         }}
                       >
-                        <span className="nav-icono line-nav-icono">
+                        <span className="nav-icono line-nav-icono" onMouseEnter={abrirSidebarDesdeIcono}>
                           <Icon
                             name={item.icono}
                             size={20}
@@ -1670,7 +1676,7 @@ export default function Aplicacion() {
           title={sidebarReplegado ? "Cerrar sesión" : undefined}
           onClick={cerrarSesion}
         >
-          <span className="nav-icono">
+          <span className="nav-icono" onMouseEnter={abrirSidebarDesdeIcono}>
             <Icon name="logout" size={19} />
           </span>
           <span className="nav-texto">Cerrar sesión</span>

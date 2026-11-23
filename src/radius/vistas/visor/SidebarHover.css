@@ -69,15 +69,15 @@
   /* Se despliega sobre el contenido, sin mover la vista abierta. */
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     ) {
     width: 270px !important;
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .sistema-marca {
     display: flex;
@@ -87,8 +87,8 @@
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .marca-icono {
     width: 210px;
@@ -100,16 +100,16 @@
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .sistema-nav {
     padding: 10px 12px;
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .nav-texto {
     display: block !important;
@@ -121,8 +121,8 @@
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .sistema-nav
     section
@@ -135,8 +135,8 @@
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .sistema-nav
     section
@@ -145,8 +145,8 @@
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .nav-modulo {
     width: 100%;
@@ -156,8 +156,8 @@
   }
   .sistema-app.sidebar-replegado
     .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(
-      :hover,
-      :focus-within
+      .sidebar-hover-activo,
+      :has(:focus-visible)
     )
     .boton-salir {
     width: calc(100% - 24px);
@@ -217,7 +217,7 @@
 /* Mantiene el tamaño del logo al expandir el menú al pasar el cursor. */
 @media (min-width: 761px) {
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :has(:focus-visible))
     .sistema-marca,
   .sistema-app.sidebar-replegado .sistema-sidebar.sidebar-abierto .sistema-marca {
     height: 96px !important;
@@ -227,7 +227,7 @@
   }
 
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :has(:focus-visible))
     .sistema-marca > .marca-icono,
   .sistema-app.sidebar-replegado
     .sistema-sidebar.sidebar-abierto
@@ -239,7 +239,7 @@
   }
 
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :has(:focus-visible))
     .sistema-marca > .marca-icono img,
   .sistema-app.sidebar-replegado
     .sistema-sidebar.sidebar-abierto
@@ -489,12 +489,12 @@
     display: none !important;
   }
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :has(:focus-visible))
     .sistema-marca {
     display: flex !important;
   }
   .sistema-app.sidebar-replegado
-    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(:hover, :focus-within)
+    .sistema-sidebar:not(.sidebar-cerrado-por-seleccion):is(.sidebar-hover-activo, :has(:focus-visible))
     .sistema-marca
     .marca-texto {
     display: block !important;

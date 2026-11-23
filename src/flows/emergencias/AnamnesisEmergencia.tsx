@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Icon from "../../radius/componentes/Icono";
 import "./AnamnesisEmergencia.css";
+import { apiEmergencias } from "./emergenciasApi";
 
 type Foto = { id: string; nombre: string; url: string };
 export default function AnamnesisEmergencia({
@@ -52,6 +53,28 @@ export default function AnamnesisEmergencia({
     }
   }
   const [cargando, setCargando] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [cargaInicial, setCargaInicial] = useState(true);
+  const [errorCarga, setErrorCarga] = useState(false);
+  useEffect(() => {
+    let vigente = true;
+    void apiEmergencias<{ anamnesis: typeof datos | null }>(`/${cuentaId}/documentacion`).then((respuesta) => {
+      if (!vigente) return;
+      if (sessionStorage.getItem(clave)) { setAviso("Hay un borrador en esta pestaña. Guarda para registrarlo en la atención."); return; }
+      if (respuesta.anamnesis) setDatos(respuesta.anamnesis);
+    }).catch(() => { if (vigente) { setErrorCarga(true); setAviso("No se pudo cargar la anamnesis guardada. Actualiza la página antes de editar."); } })
+      .finally(() => { if (vigente) setCargaInicial(false); });
+    return () => { vigente = false; };
+  }, [cuentaId, clave]);
+  async function guardarDocumentacion() {
+    setGuardando(true);
+    try {
+      await apiEmergencias(`/${cuentaId}/documentacion`, { seccion: "anamnesis", datos });
+      sessionStorage.removeItem(clave);
+      setAviso("Anamnesis guardada en la atención.");
+    } catch (error) { setAviso(error instanceof Error ? error.message : "No se pudo guardar la anamnesis."); }
+    finally { setGuardando(false); }
+  }
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const vigente = useRef(true);
@@ -215,7 +238,7 @@ export default function AnamnesisEmergencia({
               resize: "vertical",
             }}
             value={datos.relato}
-            disabled={cerrada || cargando}
+            disabled={cerrada || cargando || guardando || cargaInicial || errorCarga}
             onChange={(e) => actualizar({ ...datos, relato: e.target.value })}
             placeholder="Registra el motivo de consulta, qué ocurrió, cómo y por qué llegó a emergencias, y quién proporciona el relato (paciente, familiar, bomberos u otra persona)."
           />
@@ -226,7 +249,7 @@ export default function AnamnesisEmergencia({
               type="text"
               list="anamnesis-impresiones"
               maxLength={500}
-              disabled={cerrada || cargando}
+              disabled={cerrada || cargando || guardando || cargaInicial || errorCarga}
               value={datos.impresion || ""}
               placeholder="Escribe o selecciona una impresión diagnóstica…"
               aria-describedby="anamnesis-palabras"
@@ -257,7 +280,7 @@ export default function AnamnesisEmergencia({
           </div>
         </div>
         {!cerrada && (
-          <fieldset disabled={cargando}>
+          <fieldset disabled={cargando || guardando || cargaInicial || errorCarga}>
             <legend>Adjuntar imágenes</legend>
             <label className="anamnesis-adjuntar">
               <Icon name="image" size={19} />
@@ -306,6 +329,7 @@ export default function AnamnesisEmergencia({
           </fieldset>
         )}
       </div>
+      {!cerrada && <button type="button" className="em-primario" disabled={guardando || cargando || cargaInicial || errorCarga} onClick={() => void guardarDocumentacion()}>{guardando ? "Guardando…" : "Guardar anamnesis"}</button>}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         {datos.fotos.map((foto) => (
           <figure key={foto.id} style={{ margin: "12px 0", maxWidth: 200 }}>
@@ -327,7 +351,7 @@ export default function AnamnesisEmergencia({
             {!cerrada && (
               <button
                 type="button"
-                disabled={cargando}
+                disabled={cargando || guardando || cargaInicial || errorCarga}
                 onClick={() =>
                   actualizar({
                     ...datos,

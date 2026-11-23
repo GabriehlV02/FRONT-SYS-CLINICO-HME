@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import Icon from "../../radius/componentes/Icono";
 import { apiEmergencias, nombrePaciente, type CuentaEmergencia } from "./emergenciasApi";
-import { leerSesion } from "../../radius/types/sesion";
 import { usePacientes } from "../../radius/vistas/pacientes/usePacientes";
 import { edadPaciente } from "../../radius/vistas/pacientes/pacientesApi";
 import { HistoriaHojeable } from "../consultorio/ConsultorioView";
@@ -33,13 +32,18 @@ export function MedicoVisitanteEmergenciasView() {
   const [detalleOrden, setDetalleOrden] = useState("");
   const [error, setError] = useState("");
   const [cargando, setCargando] = useState(true);
+  const [guardando, setGuardando] = useState(false);
   const [historiaAbierta, setHistoriaAbierta] = useState(false);
   const { pacientes: fichas } = usePacientes(historiaAbierta);
 
   const cargarCuentas = useCallback(async () => {
     try {
       const resultado = await apiEmergencias<{ cuentas: CuentaEmergencia[] }>();
-      setCuentas(resultado.cuentas.filter((cuenta) => !cuenta.fin));
+      setCuentas(resultado.cuentas);
+      const remotas = resultado.cuentas.flatMap((cuenta) => (cuenta.evaluaciones || []).filter((e) => e.campos.visitanteEvolucion).map((e) => ({ id: e.id || `${cuenta.id}-${e.revision}`, pacienteId: cuenta.id, fecha: e.campos.visitanteFecha || e.fecha, texto: e.campos.visitanteEvolucion, medico: e.usuario, pacienteNombre: nombrePaciente(cuenta), cubiculo: cuenta.cubiculo })));
+      const ordenesRemotas = resultado.cuentas.flatMap((cuenta) => (cuenta.ordenes || []).filter((o) => o.historial?.some((h) => h.detalle === 'medico_visitante') || o.indicaciones?.startsWith('[Médico visitante] ')).map((o) => ({ id: o.id, pacienteId: cuenta.id, tipo: o.tipo, detalle: o.indicaciones?.replace(/^\[Médico visitante\] /, '') || o.titulo, fecha: o.fecha, medico: o.usuario })));
+      setEvoluciones([...remotas, ...leer<Evolucion>(KEY_EVOLUCIONES)]);
+      setOrdenes([...ordenesRemotas, ...leer<Orden>(KEY_ORDENES)]);
       setError("");
     } catch (causa) {
       setError(causa instanceof Error ? causa.message : "No se pudieron cargar las atenciones de Emergencias.");
@@ -62,7 +66,7 @@ export function MedicoVisitanteEmergenciasView() {
 
   const visibles = useMemo(() => {
     const q = busqueda.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-    return cuentas.filter((c) => !q || `${nombrePaciente(c)} ${c.identidad?.documento || ""} ${c.cubiculo}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(q))
+    return cuentas.filter((c) => !c.fin && (!q || `${nombrePaciente(c)} ${c.identidad?.documento || ""} ${c.cubiculo}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(q)))
       .sort((a, b) => Date.parse(b.inicio) - Date.parse(a.inicio));
   }, [cuentas, busqueda]);
   const paciente = cuentas.find((c) => c.id === seleccionado);
@@ -81,21 +85,30 @@ export function MedicoVisitanteEmergenciasView() {
       .sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
   }, [evoluciones, cuentas, busqueda]);
 
-  function guardarLista<T>(key: string, rows: T[], actualizar: (items: T[]) => void, item: T) {
-    try { const next = [item, ...leer<T>(key)]; localStorage.setItem(key, JSON.stringify(next)); actualizar(next); setError(""); }
-    catch { setError("No se pudo guardar el registro médico."); }
-  }
-  function guardarEvolucion(event: FormEvent<HTMLFormElement>) {
+  async function guardarEvolucion(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!seleccionado || !borrador.texto.trim()) return;
     const fecha = new Date(`${borrador.fecha}T${borrador.hora}`);
     if (Number.isNaN(fecha.getTime())) { setError("Indica una fecha y hora válidas."); return; }
-    guardarLista(KEY_EVOLUCIONES, evoluciones, setEvoluciones, { id: crypto.randomUUID(), pacienteId: seleccionado, fecha: fecha.toISOString(), texto: borrador.texto.trim(), medico: leerSesion()?.usuario.nombre?.trim() || "Médico visitante", pacienteNombre: paciente ? nombrePaciente(paciente) : "Paciente de Emergencias", cubiculo: paciente?.cubiculo || "—" });
-    setBorrador({ texto: "", ...ahora() });
+    if (guardando) return;
+    setGuardando(true);
+    try {
+      await apiEmergencias(`/${seleccionado}/evaluacion`, { revision: 1, campos: { visitanteEvolucion: borrador.texto.trim(), visitanteFecha: fecha.toISOString() } });
+      setBorrador({ texto: "", ...ahora() });
+      await cargarCuentas();
+    } catch (causa) { setError(causa instanceof Error ? causa.message : "No se pudo guardar la evolución."); }
+    finally { setGuardando(false); }
   }
-  function guardarOrden(event: FormEvent<HTMLFormElement>) {
+  async function guardarOrden(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); if (!seleccionado || !detalleOrden.trim()) return;
-    guardarLista(KEY_ORDENES, ordenes, setOrdenes, { id: crypto.randomUUID(), pacienteId: seleccionado, tipo: tipoOrden, detalle: detalleOrden.trim(), fecha: new Date().toISOString(), medico: leerSesion()?.usuario.nombre?.trim() || "Médico visitante" });
-    setDetalleOrden("");
+    if (guardando) return;
+    setGuardando(true);
+    try {
+      const tipo = tipoOrden === 'medicamentos' ? 'medicamento' : tipoOrden === 'indicacion' ? 'cuidado' : tipoOrden;
+      await apiEmergencias(`/${seleccionado}/orden`, { tipo, titulo: detalleOrden.trim().slice(0, 200), indicaciones: `[Médico visitante] ${detalleOrden.trim()}` });
+      setDetalleOrden("");
+      await cargarCuentas();
+    } catch (causa) { setError(causa instanceof Error ? causa.message : "No se pudo guardar la orden."); }
+    finally { setGuardando(false); }
   }
 
   return <section className="medico-visitante-internacion mve-emergencias" aria-label="Médico visitante de Emergencias">

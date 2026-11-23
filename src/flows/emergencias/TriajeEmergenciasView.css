@@ -5987,3 +5987,21 @@
 }
 .emergencias-vista .em-balance-tabla-horaria tbody tr:last-child th,
 .emergencias-vista .em-balance-tabla-horaria tbody tr:last-child td { border-bottom:0; }
+.emergencias-vista .em-balance-emergencias-cuerpo {
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:16px;
+}
+.emergencias-vista .em-balance-emergencias-cuerpo > .em-balance-emergencias-form {
+  order:1;
+  width:100%;
+  max-width:none;
+  align-self:stretch;
+}
+.emergencias-vista .em-balance-emergencias-cuerpo > .em-balance-emergencias-visualizacion {
+  order:2;
+  width:100%;
+  grid-column:auto;
+  grid-row:auto;
+}

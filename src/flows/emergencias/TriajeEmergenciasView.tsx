@@ -827,7 +827,7 @@ export function TriajeEmergenciasView({
     [observacion, setObservacion] = useState(() => borradorInicial.observacion || "");
   const [fechaHoraSignos, setFechaHoraSignos] = useState(() => borradorInicial.fechaHoraSignos || fechaHoraIngresoActual());
   const [balanceEmergencia, setBalanceEmergencia] = useState<RegistroBalanceEmergencia[]>([]);
-  const [vistaBalanceEmergencia, setVistaBalanceEmergencia] = useState<"grafica" | "tabla">("grafica");
+  const [vistaBalanceEmergencia, setVistaBalanceEmergencia] = useState<"grafica" | "tabla">("tabla");
   const [formBalanceEmergencia, setFormBalanceEmergencia] = useState(() => ({
     tipo: "ingreso" as "ingreso" | "egreso",
     volumen: "",

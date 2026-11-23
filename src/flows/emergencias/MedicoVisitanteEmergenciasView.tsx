@@ -71,6 +71,12 @@ export function MedicoVisitanteEmergenciasView() {
   const paciente = cuentas.find((c) => c.id === seleccionado);
   const ciActual = paciente?.identidad?.documento || "";
   const ficha = fichas.find((p) => p.ci === ciActual);
+  const identidad = paciente?.identidad || {};
+  const nacimiento = identidad.nacimiento || ficha?.fecha_nacimiento;
+  const edad = nacimiento ? edadPaciente(nacimiento) : Number.NaN;
+  const totalConsumido = (paciente?.consumos || []).reduce(
+    (total, consumo) => total + consumo.precio * consumo.cantidad, 0,
+  );
   const evolucionesActuales = evoluciones.filter((r) => r.pacienteId === seleccionado).sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
   const ordenesActuales = ordenes.filter((r) => r.pacienteId === seleccionado).sort((a, b) => Date.parse(b.fecha) - Date.parse(a.fecha));
   const visitas = useMemo(() => {
@@ -120,7 +126,28 @@ export function MedicoVisitanteEmergenciasView() {
       </div>
     </section> : <section className="mve-atencion">
       <button type="button" className="mvi-volver" onClick={() => { setSeleccionado(null); setHistoriaAbierta(false); }}><Icon name="chevronLeft" size={16}/> Volver a pacientes de Emergencias</button>
-      <header className="mvi-paciente-cabecera"><div><small>PACIENTE DE EMERGENCIAS</small><h3>{nombrePaciente(paciente)}</h3><p>HC-{paciente.identidad?.historiaClinica || ciActual || "S/R"} · Cubículo {paciente.cubiculo}</p></div><div className="mvi-paciente-acciones"><button type="button" className="mvi-ver-historia" onClick={() => setHistoriaAbierta(true)}><Icon name="fileText" size={17}/> Ver historia clínica</button><span className="mvi-estado">En atención</span></div></header>
+      <header className="mve-resumen-paciente">
+        <div className="mve-resumen-datos">
+          <div className="mve-resumen-principal">
+            <div className="mve-resumen-nombre"><small>Paciente</small><h3>{nombrePaciente(paciente)}</h3></div>
+            <div className="mve-resumen-campo"><small>Edad</small><strong>{Number.isFinite(edad) ? `${edad} años` : "No registrada"}</strong></div>
+            <div className="mve-resumen-campo"><small>Sexo</small><strong>{identidad.sexo || "No registrado"}</strong></div>
+          </div>
+          <div className="mve-resumen-familia">
+            <div><small>Familiar o responsable</small><strong>{identidad.familiar || "Sin registro"}</strong></div>
+            <div><small>Número de referencia</small><strong>{identidad.referenciaFamiliar || "Sin registro"}</strong></div>
+          </div>
+          <div className="mve-resumen-indicadores">
+            <div><small>Cubículo</small><strong>Cubículo {paciente.cubiculo}</strong></div>
+            <div><small>Hora de ingreso</small><strong>{new Date(paciente.inicio).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}</strong></div>
+          </div>
+        </div>
+        <div className="mve-resumen-acciones">
+          <div className="mve-resumen-total"><small>Total consumido</small><strong>Bs {totalConsumido.toFixed(2)}</strong></div>
+          <button type="button" className="mve-resumen-historia" onClick={() => setHistoriaAbierta(true)}><Icon name="fileText" size={16}/> Historia clínica</button>
+          <span className="mvi-estado">En atención</span>
+        </div>
+      </header>
       {error && <p className="mvi-error" role="alert">{error}</p>}
       <nav className="mve-subvistas mve-subsubvistas" aria-label="Secciones de la atención del paciente">
         <button type="button" className={seccionPaciente === "evolucion" ? "activa" : ""} aria-pressed={seccionPaciente === "evolucion"} aria-controls="mve-evolucion" onClick={() => setSeccionPaciente("evolucion")}><Icon name="fileText" size={17}/> Evolución</button>

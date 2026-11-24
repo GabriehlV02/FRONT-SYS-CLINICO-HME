@@ -18,8 +18,10 @@ import {
   suscribirDescargos,
 } from "./registroDescargos";
 import "./FarmaciaInternacionView.css";
+import { PacientesDescargosView } from "./PacientesDescargosView";
+import { DevolucionesFarmaciaView } from "./DevolucionesFarmaciaView";
 
-type Subvista = "descargos" | "internados";
+type Subvista = "pacientes" | "historial" | "devoluciones" | "historialDevoluciones";
 type EstadoFiltro = "todos" | "pendientes" | "recibidos";
 type SolicitudDescargo = {
   id: string;
@@ -45,8 +47,10 @@ const opcionesSubvista: {
   nombre: string;
   icono: "package" | "patient";
 }[] = [
-  { id: "descargos", nombre: "Descargos", icono: "package" },
-  { id: "internados", nombre: "Internados", icono: "patient" },
+  { id: "pacientes", nombre: "Pacientes", icono: "patient" },
+  { id: "historial", nombre: "Historial de descargos", icono: "package" },
+  { id: "devoluciones", nombre: "Devoluciones", icono: "package" },
+  { id: "historialDevoluciones", nombre: "Historial de devoluciones", icono: "package" },
 ];
 
 const textoNormalizado = (valor: string) =>
@@ -75,11 +79,12 @@ function ubicacion(internacion: RegistroInternacion) {
 }
 
 export function FarmaciaInternacionView({ enfermera }: { enfermera: string }) {
-  const [subvista, setSubvista] = useState<Subvista>("descargos");
+  const [subvista, setSubvista] = useState<Subvista>("pacientes");
+  const [pacienteCi, setPacienteCi] = useState<string | null>(null);
   const navegacion = (
     <HorizontalSubvistaNav
       className="recepcion-subvistas"
-      ariaLabel="Subvistas de Internación"
+      ariaLabel="Subvistas de Descargos farmacia"
     >
       {opcionesSubvista.map((item) => (
         <button
@@ -87,7 +92,7 @@ export function FarmaciaInternacionView({ enfermera }: { enfermera: string }) {
           type="button"
           aria-current={subvista === item.id ? "page" : undefined}
           className={subvista === item.id ? "activo" : ""}
-          onClick={() => setSubvista(item.id)}
+          onClick={() => { setPacienteCi(null); setSubvista(item.id); }}
         >
           <span>
             <Icon name={item.icono} size={17} />
@@ -101,16 +106,17 @@ export function FarmaciaInternacionView({ enfermera }: { enfermera: string }) {
   return (
     <section className="farmacia-internacion-vista">
       {navegacion}
-      {subvista === "descargos" ? (
-        <VistaDescargos enfermera={enfermera} />
-      ) : (
-        <VistaInternados />
-      )}
+      {subvista === "pacientes" && (pacienteCi
+        ? <><button className="fi-secundario" onClick={() => setPacienteCi(null)}>Volver a pacientes</button><VistaDescargos enfermera={enfermera} pacienteCi={pacienteCi} /></>
+        : <PacientesDescargosView abrir={setPacienteCi} />)}
+      {subvista === "historial" && <VistaDescargos enfermera={enfermera} historial />}
+      {subvista === "devoluciones" && <DevolucionesFarmaciaView responsable={enfermera} />}
+      {subvista === "historialDevoluciones" && <DevolucionesFarmaciaView responsable={enfermera} historial />}
     </section>
   );
 }
 
-function VistaDescargos({ enfermera }: { enfermera: string }) {
+function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermera: string; historial?: boolean; pacienteCi?: string }) {
   const internaciones = useInternacionesVinculadas();
   const episodios = useSyncExternalStore(
     suscribirEpisodios,
@@ -123,7 +129,7 @@ function VistaDescargos({ enfermera }: { enfermera: string }) {
     leerDescargos,
   );
   const [busqueda, setBusqueda] = useState("");
-  const [filtro, setFiltro] = useState<EstadoFiltro>("pendientes");
+  const [filtro, setFiltro] = useState<EstadoFiltro>(historial ? "recibidos" : "pendientes");
   const [seleccionada, setSeleccionada] = useState<SolicitudDescargo | null>(
     null,
   );
@@ -143,15 +149,17 @@ function VistaDescargos({ enfermera }: { enfermera: string }) {
     () =>
       episodios.flatMap((episodio) => {
         const fechaIngreso = pacientesInternados.get(episodio.paciente.ci);
-        if (!fechaIngreso) return [];
+        if (!historial && !pacienteCi && !fechaIngreso) return [];
+        if (pacienteCi && episodio.paciente.ci !== pacienteCi) return [];
         return episodio.recetas.flatMap((receta, indice) => {
           const medicamentos = receta.receta?.medicamentos ?? [];
           if (!medicamentos.length) return [];
           const id = receta.receta?.id || `${episodio.episodioId}-${indice}`;
           const fecha = receta.receta?.fecha || receta.fecha || episodio.fecha;
           const fechaSolicitud = fechaParaEditar(fecha);
-          if (!fechaSolicitud || fechaSolicitud < fechaIngreso) return [];
+          if (!historial && fechaIngreso && (!fechaSolicitud || fechaSolicitud < fechaIngreso)) return [];
           const estado = estados[id];
+          if (historial && estado?.estado !== "recibido") return [];
           return [
             {
               id,
@@ -174,7 +182,7 @@ function VistaDescargos({ enfermera }: { enfermera: string }) {
           ];
         });
       }),
-    [episodios, estados, pacientesInternados],
+    [episodios, estados, pacientesInternados, historial, pacienteCi],
   );
   const visibles = solicitudes.filter((solicitud) => {
     const coincideEstado =
@@ -199,11 +207,10 @@ function VistaDescargos({ enfermera }: { enfermera: string }) {
     <section className="fi-panel" aria-label="Solicitudes de dispensación">
       <header className="fi-encabezado">
         <div>
-          <p>FARMACIA · INTERNACIÓN</p>
-          <h2>Descargos</h2>
+          <p>FARMACIA · DESCARGOS</p>
+          <h2>{historial ? "Historial de descargos" : "Descargos del paciente"}</h2>
           <small>
-            Solicitudes de medicamentos e insumos recetados a pacientes
-            internados.
+            {historial ? "Medicamentos e insumos recibidos, incluidos los pacientes que ya egresaron." : "Solicitudes de medicamentos e insumos del paciente seleccionado."}
           </small>
         </div>
         <div className="fi-resumen">
@@ -225,7 +232,7 @@ function VistaDescargos({ enfermera }: { enfermera: string }) {
             aria-label="Buscar solicitudes"
           />
         </label>
-        <div
+        {!historial && <div
           className="fi-filtros"
           role="group"
           aria-label="Filtrar solicitudes"
@@ -247,7 +254,7 @@ function VistaDescargos({ enfermera }: { enfermera: string }) {
               {texto}
             </button>
           ))}
-        </div>
+        </div>}
       </div>
       {visibles.length ? (
         <div className="fi-lista-descargos">

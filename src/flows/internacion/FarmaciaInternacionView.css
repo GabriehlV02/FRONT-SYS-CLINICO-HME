@@ -708,3 +708,9 @@
 .sistema-app[data-theme="dark"] .fi-error {
   color: var(--danger);
 }
+.fd-aviso { margin: 16px 20px; color: #506b82; line-height: 1.6; }
+.fd-formulario { display: grid; gap: 18px; max-width: 780px; padding: 24px; }
+.fd-formulario label { display: grid; gap: 8px; color: #193f5e; font-weight: 600; }
+.fd-formulario :is(input, select, textarea) { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c6ddec; border-radius: 8px; background: #fff; color: #193f5e; font: inherit; }
+.fd-formulario textarea { min-height: 100px; resize: vertical; }
+.fi-tabla td small { display: block; margin-top: 5px; }

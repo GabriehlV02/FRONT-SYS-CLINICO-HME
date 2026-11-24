@@ -64,10 +64,10 @@ const rango = (periodo: Exclude<Periodo, "personalizado">) => {
   return { desde: fechaLocal(inicio), hasta: fechaLocal(hoy) };
 };
 
-export function ReportesFarmaciaView() {
+export function ReportesFarmaciaView({ soloVentas = false }: { soloVentas?: boolean }) {
   const [periodo, setPeriodo] = useState<Periodo>("hoy");
   const [fechas, setFechas] = useState(() => rango("hoy"));
-  const [tipo, setTipo] = useState<TipoReporte>("todos");
+  const [tipo, setTipo] = useState<TipoReporte>(soloVentas ? "ventas" : "todos");
   const [busqueda, setBusqueda] = useState("");
   const [ventas, setVentas] = useState<Venta[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -200,7 +200,8 @@ export function ReportesFarmaciaView() {
     .reduce((suma, item) => suma + (Number(item.cantidad) || 0), 0);
 
   return (
-    <section className="farmacia-reporte" aria-label="Reportes de farmacia">
+    <section className="farmacia-reporte" aria-label={soloVentas ? "Historial de ventas de farmacia" : "Reportes de farmacia"}>
+      {soloVentas && <header className="farmacia-reporte-cabecera"><div><h2>Historial de ventas</h2><p>Consulta las ventas de Farmacia por fecha, producto o cliente.</p></div></header>}
       <div
         className="farmacia-reporte-periodos"
         role="group"
@@ -255,7 +256,7 @@ export function ReportesFarmaciaView() {
             }}
           />
         </label>
-        <label>
+        {!soloVentas && <label>
           Tipo
           <select
             value={tipo}
@@ -265,7 +266,7 @@ export function ReportesFarmaciaView() {
             <option value="ventas">Ventas</option>
             <option value="descargos">Descargos recibidos</option>
           </select>
-        </label>
+        </label>}
         <label>
           Buscar
           <input
@@ -308,10 +309,10 @@ export function ReportesFarmaciaView() {
                 : unidades.toLocaleString("es-BO")}
           </strong>
         </article>
-        <article>
+        {!soloVentas && <article>
           <span>Ítems de descargos recibidos</span>
           <strong>{descargosFiltrados.length}</strong>
-        </article>
+        </article>}
       </div>
       {error && (
         <p className="farmacia-reporte-error" role="alert">

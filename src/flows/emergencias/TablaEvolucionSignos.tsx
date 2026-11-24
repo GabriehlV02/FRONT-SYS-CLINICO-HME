@@ -1,6 +1,9 @@
 import "./TriajeEmergenciasView.css";
+import { useState } from "react";
+import { GraficaSignoVital } from "./GraficaSignoVital";
+import type { CampoGrafica } from "./datosGraficaSigno";
 
-type CampoSigno = { id: string; etiqueta: string; unidad?: string };
+type CampoSigno = CampoGrafica;
 type Medicion = {
   id: string;
   fecha: string;
@@ -9,10 +12,12 @@ type Medicion = {
   observacion?: string;
 };
 
-export function TablaEvolucionSignos({ campos, mediciones }: {
+export function TablaEvolucionSignos({ campos, mediciones, nacimiento }: {
+  nacimiento?: string;
   campos: readonly CampoSigno[];
   mediciones: readonly Medicion[];
 }) {
+  const [signoSeleccionado, setSignoSeleccionado] = useState<CampoSigno | null>(null);
   return (
     <section className="em-signos-evolucion-tabla" aria-label="Tabla de evolución de signos vitales">
       <header>
@@ -40,8 +45,11 @@ export function TablaEvolucionSignos({ campos, mediciones }: {
               {campos.map((campo) => (
                 <tr key={campo.id}>
                   <th scope="row">
+                    <button type="button" className="signo-vital-grafica-trigger" aria-haspopup="dialog" aria-label={`Ver gráfica de ${campo.etiqueta}`} onClick={() => setSignoSeleccionado(campo)}>
                     <span>{campo.etiqueta}</span>
                     {campo.unidad && <small>{campo.unidad}</small>}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M3 3v18h18M6 15l5-5 4 3 6-8" /></svg>
+                    </button>
                   </th>
                   {mediciones.map((medicion) => {
                     const detalle = medicion.mediciones?.find((registro) =>
@@ -61,6 +69,7 @@ export function TablaEvolucionSignos({ campos, mediciones }: {
           </table>
         </div>
       ) : <p className="em-signos-evolucion-vacia">Aún no hay mediciones de signos vitales para mostrar.</p>}
+      {signoSeleccionado && <GraficaSignoVital campo={signoSeleccionado} nacimiento={nacimiento} mediciones={mediciones} cerrar={() => setSignoSeleccionado(null)} />}
     </section>
   );
 }

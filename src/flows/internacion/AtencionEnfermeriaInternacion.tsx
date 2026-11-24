@@ -1,5 +1,5 @@
 import { controlEstatura } from "./controlEstatura";
-import { TablaBalanceDiario } from "../emergencias/TablaBalanceDiario";
+import { TablaBalancePaginada } from "../emergencias/TablaBalanceDiario";
 import { useDiasInternacion } from "./diasInternacion";
 import { FormularioSignosVitales } from "../emergencias/FormularioSignosVitales";
 import { TablaEvolucionSignos } from "../emergencias/TablaEvolucionSignos";
@@ -260,7 +260,7 @@ export function AtencionEnfermeriaInternacion({
         error={errorSignos}
       />
       <TablaEvolucionSignos
-        campos={camposEvolucion}
+        nacimiento={nacimiento} campos={camposEvolucion}
         mediciones={signos.map((toma) => ({
           id: toma.id,
           fecha: toma.fecha + "T" + toma.hora,
@@ -287,11 +287,6 @@ export function AtencionEnfermeriaInternacion({
                         </div>
                         <b>{balance.length} {balance.length === 1 ? "registro" : "registros"}</b>
                       </header>
-                      <div className="em-balance-emergencias-resumen">
-                        <article><small>Ingresos</small><strong>{totalIngresos.toLocaleString("es-BO")} ml</strong></article>
-                        <article><small>Egresos</small><strong>{totalEgresos.toLocaleString("es-BO")} ml</strong></article>
-                        <article className={balanceAcumulado < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{balanceAcumulado > 0 ? "+ " : ""}{balanceAcumulado.toLocaleString("es-BO")} ml</strong></article>
-                      </div>
                       <div className="em-balance-emergencias-cuerpo">
                       <div className="em-balance-emergencias-visualizacion">
                       <div className="em-balance-emergencias-vistas">
@@ -301,10 +296,12 @@ export function AtencionEnfermeriaInternacion({
                           <button type="button" className={vistaBalance === "grafica" ? "activo" : ""} aria-pressed={vistaBalance === "grafica"} onClick={() => setVistaBalance("grafica")}>Gráfica</button>
                         </div>
                       </div>
-                      {vistaBalance === "tabla" ? <div className="em-balance-tabla-dias">
-                        {[...new Set(balance.map((registro) => registro.fecha))].sort().map((fecha) => <TablaBalanceDiario key={fecha} fecha={fecha} registros={balance.filter((registro) => registro.fecha === fecha)} />)}
-                        {!balance.length && <p className="em-balance-tabla-vacia">Aún no hay ingresos ni egresos registrados.</p>}
-                      </div> : <>
+                      <div className="em-balance-emergencias-resumen">
+                        <article><small>Ingresos</small><strong>{totalIngresos.toLocaleString("es-BO")} ml</strong></article>
+                        <article><small>Egresos</small><strong>{totalEgresos.toLocaleString("es-BO")} ml</strong></article>
+                        <article className={balanceAcumulado < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{balanceAcumulado > 0 ? "+ " : ""}{balanceAcumulado.toLocaleString("es-BO")} ml</strong></article>
+                      </div>
+                      {vistaBalance === "tabla" ? <TablaBalancePaginada key={paciente.id} registros={balance} /> : <>
                       <section className="em-balance-emergencias-grafica" aria-label="Gráfica de ingresos y egresos">
                         <h4>Ingresos y egresos por movimiento</h4>
                         {puntosBalance.length ? (() => {
@@ -316,13 +313,13 @@ export function AtencionEnfermeriaInternacion({
                           const anchoGrupo = anchoDisponible / puntosBalance.length;
                           const anchoBarra = Math.min(54, Math.max(16, anchoGrupo * 0.58));
                           const guias = [0, 0.5, 1].map((fraccion) => ({ y: yCero - fraccion * alturaMaxima, valor: escala * fraccion }));
-                          return <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>{puntosBalance.length} movimientos · balance neto {balanceAcumulado > 0 ? "+" : ""}{balanceAcumulado.toLocaleString("es-BO")} ml</small></div><svg viewBox="0 0 800 225" role="img" aria-label="Gráfica de columnas de ingresos y egresos en mililitros; escala ajustada al mayor movimiento"><path d={guias.map((guia) => `M58 ${guia.y}H780`).join(" ")} /><path className="em-balance-emergencias-cero" d={`M58 ${yCero}H780`} />{guias.map((guia, indice) => <text className="em-balance-emergencias-eje" key={`eje-${indice}`} x="50" y={guia.y + 4}>{Math.round(guia.valor).toLocaleString("es-BO")}</text>)}{puntosBalance.map((punto, indice) => {
+                          return <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>{puntosBalance.length} movimientos · balance neto {balanceAcumulado > 0 ? "+" : ""}{balanceAcumulado.toLocaleString("es-BO")} ml</small></div><svg viewBox="0 0 800 250" role="img" aria-label="Gráfica de columnas de ingresos y egresos en mililitros; escala ajustada al mayor movimiento"><path d={guias.map((guia) => `M58 ${guia.y}H780`).join(" ")} /><path className="em-balance-emergencias-cero" d={`M58 ${yCero}H780`} />{guias.map((guia, indice) => <text className="em-balance-emergencias-eje" key={`eje-${indice}`} x="50" y={guia.y + 4}>{Math.round(guia.valor).toLocaleString("es-BO")}</text>)}{puntosBalance.map((punto, indice) => {
                             const centro = 58 + anchoGrupo * (indice + 0.5);
                             const altura = Math.max(3, (punto.volumen / escala) * alturaMaxima);
                             const ingreso = punto.tipo === "ingreso";
                             const y = ingreso ? yCero - altura : yCero;
                             const etiquetaY = ingreso ? y - 6 : y + altura + 13;
-                            return <g key={punto.id} className={`em-balance-emergencias-barra ${punto.tipo}`}><rect x={centro - anchoBarra / 2} y={y} width={anchoBarra} height={altura} rx="4"><title>{`${ingreso ? "Ingreso" : "Egreso"}: ${punto.detalle} · ${punto.volumen.toLocaleString("es-BO")} ml · ${punto.hora}`}</title></rect><text className="em-balance-emergencias-volumen" x={centro} y={etiquetaY} textAnchor="middle">{punto.volumen.toLocaleString("es-BO")}</text><text className="em-balance-emergencias-hora" x={centro} y="218" textAnchor="middle">{punto.hora}</text></g>;
+                            return <g key={punto.id} className={`em-balance-emergencias-barra ${punto.tipo}`}><rect x={centro - anchoBarra / 2} y={y} width={anchoBarra} height={altura} rx="4"><title>{`${ingreso ? "Ingreso" : "Egreso"}: ${punto.detalle} · ${punto.volumen.toLocaleString("es-BO")} ml · ${punto.fecha} · ${punto.hora}`}</title></rect><text className="em-balance-emergencias-volumen" x={centro} y={etiquetaY} textAnchor="middle">{punto.volumen.toLocaleString("es-BO")}</text><text className="em-balance-emergencias-hora" x={centro} y="215" textAnchor="middle">{punto.hora}</text><text className="em-balance-emergencias-fecha" x={centro} y="234" textAnchor="middle">{new Date(punto.fecha + "T12:00:00").toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</text></g>;
                           })}</svg></>;
                         })() : <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>Se actualizará con cada movimiento</small></div><svg className="em-balance-emergencias-sin-datos" viewBox="0 0 800 225" role="img" aria-label="Gráfica vacía de ingresos y egresos"><path d="M58 34H780M58 73H780M58 112H780M58 151H780" /><path className="em-balance-emergencias-cero" d="M58 112H780" /><text className="em-balance-emergencias-eje" x="50" y="38">—</text><text className="em-balance-emergencias-eje" x="50" y="77">—</text><text className="em-balance-emergencias-eje" x="50" y="116">0</text><text className="em-balance-emergencias-eje" x="50" y="155">—</text><text x="420" y="111">Registra el primer movimiento para comparar ingresos y egresos</text></svg></>}
                       </section>

@@ -116,9 +116,37 @@
 .em-balance-emergencias .em-balance-tabla-horaria tbody tr:last-child th,
 .em-balance-emergencias .em-balance-tabla-horaria tbody tr:last-child td { border-bottom:0; }
 .em-balance-emergencias .em-balance-emergencias-visualizacion { min-width: 0; }
-.em-balance-emergencias .em-balance-emergencias-vistas { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-.em-balance-emergencias .em-balance-emergencias-vistas h4 { margin: 0; }
-.em-balance-emergencias .em-balance-emergencias-vistas > div { display: flex; gap: 4px; padding: 3px; border: 1px solid #cfe1ec; border-radius: 9px; background: #f3f8fb; }
-.em-balance-emergencias .em-balance-emergencias-vistas button { min-height: 36px; padding: 7px 14px; border: 0; border-radius: 6px; background: transparent; color: #315875; font: inherit; cursor: pointer; }
-.em-balance-emergencias .em-balance-emergencias-vistas button.activo { background: #087fb8; color: #fff; }
+.em-balance-emergencias .em-balance-emergencias-vistas { display: flex; align-items: center; justify-content: flex-start; gap: 18px; margin-bottom: 16px; flex-wrap: wrap; }
+.em-balance-emergencias .em-balance-emergencias-vistas h4 { margin: 0; color: #244f6d; font-size: 15px; font-weight: 750; }
+.em-balance-emergencias .em-balance-emergencias-vistas > div { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid #bad8e8; border-radius: 12px; background: #eaf3f9; box-shadow: inset 0 1px 2px rgb(36 79 109 / 5%); }
+.em-balance-emergencias .em-balance-emergencias-vistas button { min-height: 40px; min-width: 94px; padding: 9px 18px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #315875; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.em-balance-emergencias .em-balance-emergencias-vistas button:hover:not(.activo) { background: #fff; border-color: #cbdfea; color: #086f9f; }
+.em-balance-emergencias .em-balance-emergencias-vistas button.activo { background: #087fb8; border-color: #0875a9; color: #fff; box-shadow: 0 3px 8px rgb(8 127 184 / 24%); }
 .em-balance-emergencias .em-balance-emergencias-vistas button:focus-visible { outline: 2px solid #087fb8; outline-offset: 2px; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria thead th {
+  background: #244f6d !important;
+  color: #fff !important;
+}
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria thead .balance-grupo-ingresos { box-shadow: inset 0 -4px #58c69d; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria thead .balance-grupo-egresos { box-shadow: inset 0 -4px #ef9aab; border-left: 3px solid #9db5c5; }
+.balance-grupo-simbolo { display: inline-grid; place-items: center; width: 22px; height: 22px; margin-right: 6px; border-radius: 50%; font-size: 17px; line-height: 1; vertical-align: middle; }
+.balance-grupo-ingresos .balance-grupo-simbolo { background: #c9f2df; color: #126544; }
+.balance-grupo-egresos .balance-grupo-simbolo { background: #ffe0e6; color: #9b334c; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria thead tr:nth-child(2) th:nth-child(-n+6) { box-shadow: inset 0 -3px #58c69d; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria thead tr:nth-child(2) th:nth-child(n+7) { box-shadow: inset 0 -3px #ef9aab; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria thead tr:nth-child(2) th:nth-child(7),
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria tbody tr > :nth-child(8) { border-left: 3px solid #9db5c5; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria tbody tr:not(.em-balance-subtotal-6h) td:nth-child(n+2):nth-child(-n+7) { background: #f0faf5; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria tbody tr:not(.em-balance-subtotal-6h) td:nth-child(n+8) { background: #fff4f6; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria tbody tr.em-balance-subtotal-6h td:nth-child(n+2):nth-child(-n+7) { background: #ddefe5; }
+.sistema-app .em-balance-emergencias table.em-balance-tabla-horaria tbody tr.em-balance-subtotal-6h td:nth-child(n+8) { background: #f6e3e8; }
+.em-balance-emergencias-visualizacion > .em-balance-emergencias-resumen { margin-bottom: 16px; }
+.balance-paginacion { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 14px; border: 1px solid #cfe1ec; border-radius: 10px; background: #f5f9fc; color: #244f6d; }
+.balance-paginacion label, .balance-paginacion > div { display: flex; align-items: center; gap: 12px; font-size: 12px; font-weight: 650; }
+.balance-paginacion :is(button, select) { min-height: 38px; padding: 8px 12px; border: 1px solid #c5dce9; border-radius: 8px; background: #fff; color: #14668f; font: inherit; cursor: pointer; }
+.balance-paginacion button:hover:not(:disabled) { background: #e6f3fa; border-color: #78bad9; }
+.balance-paginacion button:disabled { opacity: .45; cursor: default; }
+.balance-paginacion :is(button, select):focus-visible { outline: 2px solid #087fb8; outline-offset: 2px; }
+@media (max-width: 600px) { .balance-paginacion > div { width: 100%; justify-content: space-between; gap: 6px; } }
+.em-balance-emergencias .em-balance-emergencias-grafica svg .em-balance-emergencias-fecha { fill: #244f6d; font-size: 12px; font-weight: 750; }
+.em-balance-emergencias .em-balance-emergencias-grafica svg .em-balance-emergencias-hora { font-size: 12px; }

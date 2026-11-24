@@ -1,4 +1,4 @@
-import { TablaBalanceDiario } from "./TablaBalanceDiario";
+import { TablaBalancePaginada } from "./TablaBalanceDiario";
 import { FormularioSignosVitales } from "./FormularioSignosVitales";
 import { TablaEvolucionSignos } from "./TablaEvolucionSignos";
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
@@ -2851,7 +2851,7 @@ export function TriajeEmergenciasView({
                           />
                           )}
                       </div>
-                      <TablaEvolucionSignos campos={camposEmergencia} mediciones={cuenta.signos} />
+                      <TablaEvolucionSignos nacimiento={cuenta.identidad?.nacimiento} campos={camposEmergencia} mediciones={cuenta.signos} />
                     </section>
                     <section className="em-panel em-balance-emergencias" aria-label="Balance hídrico">
                       <header className="em-balance-emergencias-cabecera">
@@ -2861,11 +2861,6 @@ export function TriajeEmergenciasView({
                         </div>
                         <b>{balanceCompleto.length} {balanceCompleto.length === 1 ? "registro" : "registros"}</b>
                       </header>
-                      <div className="em-balance-emergencias-resumen">
-                        <article><small>Ingresos</small><strong>{ingresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
-                        <article><small>Egresos</small><strong>{egresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
-                        <article className={totalBalanceEmergencia < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{totalBalanceEmergencia > 0 ? "+ " : ""}{totalBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
-                      </div>
                       <div className="em-balance-emergencias-cuerpo">
                       <div className="em-balance-emergencias-visualizacion">
                       <div className="em-balance-emergencias-vistas">
@@ -2874,6 +2869,11 @@ export function TriajeEmergenciasView({
                           <button type="button" className={vistaBalanceEmergencia === "grafica" ? "activo" : ""} aria-pressed={vistaBalanceEmergencia === "grafica"} onClick={() => setVistaBalanceEmergencia("grafica")}>Gráfica</button>
                           <button type="button" className={vistaBalanceEmergencia === "tabla" ? "activo" : ""} aria-pressed={vistaBalanceEmergencia === "tabla"} onClick={() => setVistaBalanceEmergencia("tabla")}>Tabla</button>
                         </div>
+                      </div>
+                      <div className="em-balance-emergencias-resumen">
+                        <article><small>Ingresos</small><strong>{ingresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
+                        <article><small>Egresos</small><strong>{egresosBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
+                        <article className={totalBalanceEmergencia < 0 ? "negativo" : "positivo"}><small>Balance acumulado</small><strong>{totalBalanceEmergencia > 0 ? "+ " : ""}{totalBalanceEmergencia.toLocaleString("es-BO")} ml</strong></article>
                       </div>
                       {vistaBalanceEmergencia === "grafica" ? <>
                       <section className="em-balance-emergencias-grafica" aria-label="Gráfica de ingresos y egresos">
@@ -2886,13 +2886,13 @@ export function TriajeEmergenciasView({
                           const anchoGrupo = anchoDisponible / puntosBalanceEmergencia.length;
                           const anchoBarra = Math.min(54, Math.max(16, anchoGrupo * 0.58));
                           const guias = [0, 0.5, 1].map((fraccion) => ({ y: yCero - fraccion * alturaMaxima, valor: escala * fraccion }));
-                          return <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>{puntosBalanceEmergencia.length} movimientos · balance neto {totalBalanceEmergencia > 0 ? "+" : ""}{totalBalanceEmergencia.toLocaleString("es-BO")} ml</small></div><svg viewBox="0 0 800 225" role="img" aria-label="Gráfica de columnas de ingresos y egresos en mililitros; escala ajustada al mayor movimiento"><path d={guias.map((guia) => `M58 ${guia.y}H780`).join(" ")} /><path className="em-balance-emergencias-cero" d={`M58 ${yCero}H780`} />{guias.map((guia, indice) => <text className="em-balance-emergencias-eje" key={`eje-${indice}`} x="50" y={guia.y + 4}>{Math.round(guia.valor).toLocaleString("es-BO")}</text>)}{puntosBalanceEmergencia.map((punto, indice) => {
+                          return <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>{puntosBalanceEmergencia.length} movimientos · balance neto {totalBalanceEmergencia > 0 ? "+" : ""}{totalBalanceEmergencia.toLocaleString("es-BO")} ml</small></div><svg viewBox="0 0 800 250" role="img" aria-label="Gráfica de columnas de ingresos y egresos en mililitros; escala ajustada al mayor movimiento"><path d={guias.map((guia) => `M58 ${guia.y}H780`).join(" ")} /><path className="em-balance-emergencias-cero" d={`M58 ${yCero}H780`} />{guias.map((guia, indice) => <text className="em-balance-emergencias-eje" key={`eje-${indice}`} x="50" y={guia.y + 4}>{Math.round(guia.valor).toLocaleString("es-BO")}</text>)}{puntosBalanceEmergencia.map((punto, indice) => {
                             const centro = 58 + anchoGrupo * (indice + 0.5);
                             const altura = Math.max(3, (punto.volumen / escala) * alturaMaxima);
                             const ingreso = punto.tipo === "ingreso";
                             const y = ingreso ? yCero - altura : yCero;
                             const etiquetaY = ingreso ? y - 6 : y + altura + 13;
-                            return <g key={punto.id} className={`em-balance-emergencias-barra ${punto.tipo}`}><rect x={centro - anchoBarra / 2} y={y} width={anchoBarra} height={altura} rx="4"><title>{`${ingreso ? "Ingreso" : "Egreso"}: ${punto.detalle} · ${punto.volumen.toLocaleString("es-BO")} ml · ${punto.hora}`}</title></rect><text className="em-balance-emergencias-volumen" x={centro} y={etiquetaY} textAnchor="middle">{punto.volumen.toLocaleString("es-BO")}</text><text className="em-balance-emergencias-hora" x={centro} y="218" textAnchor="middle">{punto.hora}</text></g>;
+                            return <g key={punto.id} className={`em-balance-emergencias-barra ${punto.tipo}`}><rect x={centro - anchoBarra / 2} y={y} width={anchoBarra} height={altura} rx="4"><title>{`${ingreso ? "Ingreso" : "Egreso"}: ${punto.detalle} · ${punto.volumen.toLocaleString("es-BO")} ml · ${punto.fecha} · ${punto.hora}`}</title></rect><text className="em-balance-emergencias-volumen" x={centro} y={etiquetaY} textAnchor="middle">{punto.volumen.toLocaleString("es-BO")}</text><text className="em-balance-emergencias-hora" x={centro} y="215" textAnchor="middle">{punto.hora}</text><text className="em-balance-emergencias-fecha" x={centro} y="234" textAnchor="middle">{new Date(punto.fecha + "T12:00:00").toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit", year: "numeric" })}</text></g>;
                           })}</svg></>;
                         })() : <><div className="em-balance-emergencias-leyenda"><span><i className="ingreso" /> Ingreso</span><span><i className="egreso" /> Egreso</span><small>Se actualizará con cada movimiento</small></div><svg className="em-balance-emergencias-sin-datos" viewBox="0 0 800 225" role="img" aria-label="Gráfica vacía de ingresos y egresos"><path d="M58 34H780M58 73H780M58 112H780M58 151H780" /><path className="em-balance-emergencias-cero" d="M58 112H780" /><text className="em-balance-emergencias-eje" x="50" y="38">—</text><text className="em-balance-emergencias-eje" x="50" y="77">—</text><text className="em-balance-emergencias-eje" x="50" y="116">0</text><text className="em-balance-emergencias-eje" x="50" y="155">—</text><text x="420" y="111">Registra el primer movimiento para comparar ingresos y egresos</text></svg></>}
                       </section>
@@ -2904,12 +2904,7 @@ export function TriajeEmergenciasView({
                           <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
                         </li>)}
                       </ol>}
-                      </> : <div className="em-balance-tabla-dias">
-                        {[...new Set(balanceCompleto.map((registro) => registro.fecha))].sort().map((dia) => (
-                          <TablaBalanceDiario key={dia} fecha={dia} registros={balanceCompleto.filter((registro) => registro.fecha === dia)} />
-                        ))}
-                        {!balanceCompleto.length && <p className="em-balance-tabla-vacia">Aún no hay ingresos ni egresos registrados.</p>}
-                      </div>}
+                      </> : <TablaBalancePaginada key={cuenta.id} registros={balanceCompleto} />}
                       </div>
                       {!cuenta.fin && <form className="em-balance-emergencias-form" onSubmit={registrarBalanceEmergencia}>
                         <fieldset className="em-balance-tipo-switch">

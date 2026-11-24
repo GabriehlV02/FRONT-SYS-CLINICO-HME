@@ -1,0 +1,48 @@
+.em-signos-evolucion-matriz .signo-vital-grafica-trigger { position: relative; display: grid; gap: 4px; width: 100%; min-height: 44px; padding: 4px 25px 4px 0; border: 0; background: transparent; color: inherit; text-align: left; font: inherit; cursor: pointer; }
+.signo-vital-grafica-trigger svg { position: absolute; right: 0; top: 50%; transform: translateY(-50%); opacity: .7; }
+.signo-vital-grafica-trigger:hover { text-decoration: underline; text-underline-offset: 3px; }
+.signo-vital-grafica-trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; border-radius: 3px; }
+.signo-grafica-modal { width: min(900px, calc(100% - 32px)); max-height: calc(100dvh - 40px); padding: 0; border: 1px solid #cbdfea; border-radius: 18px; background: #fff; color: #244f6d; box-shadow: 0 24px 80px #102d5050; overflow: auto; }
+.signo-grafica-modal::backdrop { background: #0c233c99; backdrop-filter: blur(3px); }
+.signo-grafica-modal > header { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding: 22px 24px; border-bottom: 1px solid #deebf2; background: #f3f8fc; }
+.signo-grafica-modal > header span { color: #087faf; font-size: 10px; font-weight: 800; letter-spacing: .1em; }
+.signo-grafica-modal h2 { margin: 8px 0; font-size: 22px; }
+.signo-grafica-modal header p { margin: 0; color: #688297; font-size: 12px; }
+.signo-grafica-modal header button { flex-shrink: 0; width: 40px; height: 40px; border: 1px solid #cbdfea; border-radius: 10px; color: #244f6d; background: #fff; font-size: 26px; cursor: pointer; }
+.signo-grafica-resumen { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px 24px 0; }
+.signo-grafica-resumen article { display: grid; gap: 7px; padding: 14px; border: 1px solid #dce9f2; border-radius: 10px; }
+.signo-grafica-resumen span, .signo-grafica-resumen small { color: #688297; font-size: 12px; }
+.signo-grafica-resumen strong { font-size: 19px; }
+.signo-grafica-modal figure { margin: 22px 16px; }
+.signo-grafica-modal figure svg { display: block; width: 100%; height: auto; }
+.signo-grafica-modal svg text { fill: #607f95; font: 11px sans-serif; }
+.signo-grafica-guia { stroke: #deebf2; }
+.signo-grafica-linea { stroke: #087fb8; stroke-width: 3; fill: none; stroke-linejoin: round; }
+.signo-grafica-punto { fill: #087fb8; stroke: #fff; stroke-width: 2; }
+.signo-grafica-modal figcaption { color: #688297; font-size: 12px; text-align: center; }
+.signo-grafica-datos { max-height: 220px; margin: 0 24px; overflow: auto; border: 1px solid #deebf2; border-radius: 10px; }
+.signo-grafica-datos table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.signo-grafica-datos caption { padding: 12px; font-weight: 700; text-align: left; }
+.signo-grafica-datos th, .signo-grafica-datos td { padding: 10px 14px; border-top: 1px solid #deebf2; text-align: left; }
+.signo-grafica-datos th { background: #244f6d; color: #fff; }
+.signo-grafica-modal footer { display: flex; justify-content: flex-end; padding: 20px 24px; }
+.signo-grafica-modal footer button { min-height: 42px; padding: 10px 20px; border: 0; border-radius: 9px; color: #fff; background: #087fb8; font: inherit; cursor: pointer; }
+.signo-grafica-modal button:focus-visible { outline: 3px solid #0796c6; outline-offset: 3px; }
+.signo-grafica-vacia { padding: 40px 24px; text-align: center; }
+@media (max-width: 600px) { .signo-grafica-resumen { gap: 6px; padding-inline: 12px; } .signo-grafica-resumen article { padding: 10px; } .signo-grafica-resumen strong { font-size: 15px; } .signo-grafica-modal > header { padding: 18px; } .signo-grafica-datos { margin-inline: 12px; } }
+.signo-grafica-modal { --signo-color: #1686bb; }
+.signo-grafica-modal .estado-dentro { --signo-color: #16845b; color: #16845b; }
+.signo-grafica-modal .estado-fuera { --signo-color: #d54156; color: #bb3045; }
+.signo-grafica-modal .estado-sin-referencia { --signo-color: #1686bb; }
+.signo-grafica-resumen article.estado-dentro { background: #effaf4; border-color: #bae5cf; }
+.signo-grafica-resumen article.estado-fuera { background: #fff1f3; border-color: #f0bcc5; }
+.signo-estado-etiqueta { width: fit-content; padding: 4px 8px; border-radius: 6px; background: #ffffffb3; font-size: 11px; font-weight: 650; }
+.signo-grafica-resumen article strong { color: var(--signo-color); }
+.signo-grafica-leyenda { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 20px 24px 0; color: #1686bb; font-size: 12px; font-weight: 650; }
+.signo-grafica-referencia { margin: 12px 24px 0; padding: 12px 14px; border: 1px solid #e0eaf2; border-radius: 10px; background: #f6f9fc; color: #61798d; font-size: 12px; line-height: 1.6; }
+.signo-grafica-modal figure { padding: 12px 8px; border: 1px solid #e4edf4; border-radius: 14px; background: linear-gradient(180deg, #f8fbfe, #fff); }
+.signo-grafica-rango { fill: #19a06b; opacity: .08; }
+.signo-grafica-segmento { stroke: var(--signo-color); stroke-width: 3; stroke-linecap: round; }
+.signo-grafica-modal .signo-grafica-punto { fill: var(--signo-color); stroke: #fff; stroke-width: 2.5; }
+.signo-grafica-halo { fill: var(--signo-color); opacity: .12; }
+.signo-grafica-modal svg .signo-grafica-valor { fill: var(--signo-color); font-weight: 750; font-size: 13px; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }

@@ -1,8 +1,23 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import "./TablaBalanceDiario.css";
 
 type RegistroBalanceTabla = { tipo: "ingreso" | "egreso"; volumen: number; detalle: string; fecha: string; hora: string; anotacion?: string | null };
 const normalizar = (valor: string) => valor.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase();
+
+export function TablaBalancePaginada({ registros }: { registros: RegistroBalanceTabla[] }) {
+  const dias = [...new Set(registros.map((registro) => registro.fecha))].sort();
+  const [seleccion, setSeleccion] = useState<string | null>(null);
+  const fecha = seleccion && dias.includes(seleccion) ? seleccion : dias[dias.length - 1];
+  const indice = dias.indexOf(fecha);
+  if (!fecha) return <p className="em-balance-tabla-vacia">Aún no hay ingresos ni egresos registrados.</p>;
+  return <div className="em-balance-tabla-dias">
+    <nav className="balance-paginacion" aria-label="Navegar entre días del balance hídrico">
+      <label>Fecha del balance<select value={fecha} onChange={(evento) => setSeleccion(evento.target.value)}>{dias.map((dia) => <option key={dia} value={dia}>{new Date(dia + "T12:00:00").toLocaleDateString("es-BO")}</option>)}</select></label>
+      <div><button type="button" disabled={indice <= 0} onClick={() => setSeleccion(dias[indice - 1])}>‹ Anterior</button><span aria-live="polite">Día {indice + 1} de {dias.length}</span><button type="button" disabled={indice >= dias.length - 1} onClick={() => setSeleccion(dias[indice + 1])}>Siguiente ›</button></div>
+    </nav>
+    <TablaBalanceDiario fecha={fecha} registros={registros.filter((registro) => registro.fecha === fecha)} />
+  </div>;
+}
 
 const categoriasBalanceIngreso = [
   { id: "suero", etiqueta: "Suero" },
@@ -53,7 +68,7 @@ export function TablaBalanceDiario({ fecha, registros }: { fecha: string; regist
       <div className="em-balance-dia-tabla-scroll">
         <table className="em-balance-tabla em-balance-tabla-horaria">
           <thead>
-            <tr><th rowSpan={2} scope="col">Hora</th><th colSpan={6} scope="colgroup">Ingresos</th><th colSpan={5} scope="colgroup">Egresos</th></tr>
+            <tr><th rowSpan={2} scope="col">Hora</th><th colSpan={6} scope="colgroup" className="balance-grupo-ingresos"><span className="balance-grupo-simbolo" aria-hidden="true">+</span> Ingresos</th><th colSpan={5} scope="colgroup" className="balance-grupo-egresos"><span className="balance-grupo-simbolo" aria-hidden="true">−</span> Egresos</th></tr>
             <tr>{categoriasBalanceIngreso.map((categoria) => <th scope="col" key={categoria.id}>{categoria.etiqueta}</th>)}<th scope="col">Total</th>{categoriasBalanceEgreso.map((categoria) => <th scope="col" key={categoria.id}>{categoria.etiqueta}</th>)}<th scope="col">Total</th></tr>
           </thead>
           <tbody>{Array.from({ length: 24 }, (_, hora) => {

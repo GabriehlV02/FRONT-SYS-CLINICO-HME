@@ -1,5 +1,5 @@
 /* Estilo común para encabezados de tablas del sistema clínico. */
-.sistema-app table thead th {
+.sistema-app table:not(.em-signos-evolucion-matriz) thead th {
   height: 36px !important;
   padding: 6px 10px !important;
   color: #fff !important;

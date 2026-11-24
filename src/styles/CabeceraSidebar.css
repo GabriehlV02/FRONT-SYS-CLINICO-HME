@@ -37,11 +37,55 @@
 }
 
 @media (max-width: 760px) {
-  .sistema-app { --clinico-topbar: 100px; }
+  .sistema-app { --clinico-topbar: calc(104px + env(safe-area-inset-top)); }
 
   .sistema-app .sistema-cuerpo,
   .sistema-app.sidebar-replegado .sistema-cuerpo {
     width: 100% !important;
     margin-left: 0 !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .sistema-app .sistema-topbar {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px 44px !important;
+    grid-template-rows: 44px 40px;
+    align-content: center;
+  }
+
+  .sistema-app .sistema-topbar .abrir-menu { grid-area: 1 / 1; }
+  .sistema-app .sistema-topbar .topbar-titulo { grid-area: 1 / 2; }
+  .sistema-app .sistema-topbar .topbar-notificaciones { grid-area: 1 / 3; }
+  .sistema-app .sistema-topbar .cola-atencion-rapida { grid-area: 1 / 4; }
+  .sistema-app .sistema-topbar .busqueda-global {
+    grid-area: 2 / 1 / 3 / -1;
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+  }
+
+  .sistema-app .sistema-topbar :is(.abrir-menu, .topbar-boton, .cola-atencion-rapida) {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .sistema-app .sistema-topbar :is(.topbar-icono, .perfil, .salir-rapido) { display: none; }
+  .sistema-app .sistema-topbar .topbar-titulo h1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sistema-app .sistema-topbar .pulso-avisos {
+    position: fixed;
+    inset: var(--clinico-topbar) max(8px, env(safe-area-inset-right)) auto max(8px, env(safe-area-inset-left));
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - var(--clinico-topbar) - 12px);
+    overflow-y: auto;
   }
 }

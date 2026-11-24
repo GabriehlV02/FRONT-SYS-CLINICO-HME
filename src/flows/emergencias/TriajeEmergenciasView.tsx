@@ -1,3 +1,5 @@
+import { FormularioSignosVitales } from "./FormularioSignosVitales";
+import { TablaEvolucionSignos } from "./TablaEvolucionSignos";
 import { AvisoTemporal } from "../../radius/componentes/AvisoTemporal";
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { apiFetch } from "../../radius/api";
@@ -2904,124 +2906,29 @@ export function TriajeEmergenciasView({
                       </header>
                       <div className="em-signos-columnas">
                         {!cuenta.fin && (
-                            <form
-                              className="em-signos-formulario"
-                              onSubmit={registrarSignos}
-                            >
-                              <h4>Registrar signos vitales</h4>
-                              <div className="em-signos-fecha-hora">
-                                <label>
-                                  Fecha de la medición
-                                  <input
-                                    type="date"
-                                    required
-                                    value={fechaHoraSignos.fecha}
-                                    onChange={(evento) =>
-                                      setFechaHoraSignos({ ...fechaHoraSignos, fecha: evento.target.value })
-                                    }
-                                  />
-                                </label>
-                                <label>
-                                  Hora de la medición
-                                  <input
-                                    type="time"
-                                    required
-                                    value={fechaHoraSignos.hora}
-                                    onChange={(evento) =>
-                                      setFechaHoraSignos({ ...fechaHoraSignos, hora: evento.target.value })
-                                    }
-                                  />
-                                </label>
-                              </div>
-                              <div className="em-form-grid em-signos">
-                                {camposEmergencia.map(
-                                  ({ id, etiqueta, unidad, tipo }) => (
-                                  <label key={id}>
-                                    {etiqueta}
-                                    <span>
-                                      <input
-                                        type={tipo === "Texto" ? "text" : "number"}
-                                        step={tipo === "Número entero" ? "1" : "any"}
-                                        value={valores[id] || ""}
-                                        onChange={(e) =>
-                                          setValores({
-                                            ...valores,
-                                            [id]: e.target.value,
-                                          })
-                                        }
-                                      />
-                                      {unidad}
-                                    </span>
-                                  </label>
-                                  ),
-                                )}
-                                {(catalogoSignos.cargando ||
-                                  catalogoServicios.cargando) && (
-                                  <p role="status">
-                                    Cargando los signos configurados para Emergencias…
-                                  </p>
-                                )}
-                                {(catalogoSignos.error ||
-                                  catalogoServicios.error) && (
-                                  <p role="alert">
-                                    {catalogoSignos.error ||
-                                      catalogoServicios.error}
-                                  </p>
-                                )}
-                                {!catalogoSignos.cargando &&
-                                  !catalogoServicios.cargando &&
-                                  !camposEmergencia.length && (
-                                    <p role="status">
-                                      No hay signos vitales asignados al servicio de Emergencias.
-                                    </p>
-                                  )}
-                              </div>
-                              <label>
-                                Observación o motivo de medición no disponible
-                                <textarea
-                                  value={observacion}
-                                  maxLength={1000}
-                                  onChange={(e) =>
-                                    setObservacion(e.target.value)
-                                  }
-                                />
-                              </label>
-                              <div className="em-acciones">
-                                <button
-                                  className="em-primario"
-                                  disabled={
-                                    ocupado ||
-                                    catalogoSignos.cargando ||
-                                    catalogoServicios.cargando ||
-                                    !!catalogoSignos.error ||
-                                    !!catalogoServicios.error ||
-                                    !camposEmergencia.length
-                                  }
-                                >
-                                  Guardar signos vitales
-                                </button>
-                              </div>
-                            </form>
+                          <FormularioSignosVitales
+                            campos={camposEmergencia}
+                            fechaHora={fechaHoraSignos}
+                            valores={valores}
+                            observacion={observacion}
+                            onFechaHora={setFechaHoraSignos}
+                            onValor={(id, valor) => setValores((actual) => ({ ...actual, [id]: valor }))}
+                            onObservacion={setObservacion}
+                            onSubmit={registrarSignos}
+                            deshabilitado={ocupado || catalogoSignos.cargando || catalogoServicios.cargando ||
+                              Boolean(catalogoSignos.error || catalogoServicios.error) || !camposEmergencia.length}
+                            estadoCampos={<>
+                              {(catalogoSignos.cargando || catalogoServicios.cargando) &&
+                                <p role="status">Cargando los signos configurados para Emergencias…</p>}
+                              {(catalogoSignos.error || catalogoServicios.error) &&
+                                <p role="alert">{catalogoSignos.error || catalogoServicios.error}</p>}
+                              {!catalogoSignos.cargando && !catalogoServicios.cargando && !camposEmergencia.length &&
+                                <p role="status">No hay signos vitales asignados al servicio de Emergencias.</p>}
+                            </>}
+                          />
                           )}
                       </div>
-                      <section className="em-signos-evolucion-tabla" aria-label="Tabla de evolución de signos vitales">
-                        <header>
-                          <h4>Evolución por hora</h4>
-                          <span>{cuenta.signos.length} {cuenta.signos.length === 1 ? "medición registrada" : "mediciones registradas"}</span>
-                        </header>
-                        {cuenta.signos.length > 0 && camposEmergencia.length > 0 ? (
-                          <div className="em-signos-tabla-contenedor">
-                            <table className="em-signos-tabla em-signos-evolucion-matriz">
-                              <thead><tr><th scope="col">Signo vital</th>{cuenta.signos.map((medicion) => <th scope="col" key={medicion.id}><span>{horaIngreso(medicion.fecha)}</span><small>{new Date(medicion.fecha).toLocaleDateString("es-BO")}</small></th>)}</tr></thead>
-                              <tbody>{camposEmergencia.map((campo) => <tr key={campo.id}><th scope="row"><span>{campo.etiqueta}</span>{campo.unidad && <small>{campo.unidad}</small>}</th>{cuenta.signos.map((medicion) => {
-                                const valorDetalle = medicion.mediciones?.find((registro) => registro.id === campo.id || registro.nombre === campo.etiqueta)?.valor;
-                                const valor = valorDetalle ?? medicion.valores[campo.id];
-                                return <td key={medicion.id}><strong>{valor !== undefined && valor !== "" ? valor : "—"}</strong></td>;
-                              })}</tr>)}</tbody>
-                            </table>
-                          </div>
-                        ) : <p className="em-signos-evolucion-vacia">Aún no hay mediciones de signos vitales para mostrar.</p>}
-                      </section>
+                      <TablaEvolucionSignos campos={camposEmergencia} mediciones={cuenta.signos} />
                     </section>
                     <section className="em-panel em-balance-emergencias" aria-label="Balance hídrico">
                       <header className="em-balance-emergencias-cabecera">

@@ -249,11 +249,11 @@
 .internacion-atencion-cabecera > div:first-child > span {
   margin: 0;
   color: #397096;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 750;
   white-space: nowrap;
 }
-.internacion-atencion-cabecera > div:first-child > .internacion-atencion-diagnostico { max-width:min(520px,38vw); overflow:hidden; color:#174d72; font-size:11px; font-weight:700; text-overflow:ellipsis; }
+.internacion-atencion-cabecera > div:first-child > .internacion-atencion-diagnostico { max-width:min(520px,38vw); overflow:hidden; color:#174d72; font-weight:700; text-overflow:ellipsis; }
 .internacion-atencion-contexto {
   display: flex;
   align-items: stretch;
@@ -334,7 +334,7 @@
   border-radius: 0;
   background: transparent;
 }
-.internacion-atencion-info .internacion-atencion-ubicacion {
+.internacion-atencion-info .internacion-atencion-contexto > div + div {
   border-left: 1px solid #d5e6f0;
 }
 .internacion-atencion-info .internacion-atencion-datos {
@@ -405,7 +405,7 @@
   .internacion-atencion-info .internacion-atencion-contexto {
     flex-direction: column;
   }
-  .internacion-atencion-info .internacion-atencion-ubicacion {
+  .internacion-atencion-info .internacion-atencion-contexto > div + div {
     border-top: 1px solid #d5e6f0;
     border-left: 0;
   }
@@ -436,11 +436,6 @@
 .internacion-medica-accion .internacion-atender:hover {
   color: #fff;
   background: #056b9f;
-}
-.internacion-medica-fila.altas {
-  grid-template-columns:
-    135px minmax(210px, 1.35fr) 125px minmax(145px, 0.95fr)
-    128px 128px 106px 90px;
 }
 .internacion-medica-sala-cama strong {
   color: #087fc0;
@@ -590,17 +585,20 @@
   background: #eaf5fa;
 }
 .internacion-medica-tabla {
-  min-width: 1240px;
+  --columnas-internacion: 60px 60px minmax(220px, 1.45fr) 155px minmax(150px, 1fr) 140px 95px 110px;
+  min-width: 1092px;
+}
+.internacion-medica-tabla.altas {
+  --columnas-internacion: 110px minmax(220px, 1.45fr) 155px minmax(150px, 1fr) 140px 125px 110px 110px;
+  min-width: 1222px;
 }
 .internacion-medica-fila {
   display: grid;
-  grid-template-columns:
-    84px 84px minmax(210px, 1.35fr) 125px minmax(145px, 0.95fr)
-    128px 106px 190px;
-  gap: 12px;
+  grid-template-columns: var(--columnas-internacion);
+  gap: 10px;
   align-items: center;
   min-height: 76px;
-  padding: 11px 20px;
+  padding: 11px 16px;
   border-bottom: 1px solid #e4eef4;
   transition: background 0.16s;
 }
@@ -668,36 +666,28 @@
   color: #416c57;
   background: #eaf7ef;
 }
-.internacion-medica-fila:not(.altas) {
-  grid-template-columns:
-    90px 90px minmax(300px, 1.22fr) 165px minmax(175px, 0.72fr)
-    150px 112px 130px;
-  gap: 16px;
-  min-height: 84px;
-  padding-inline: 24px;
-}
-.internacion-medica-fila.encabezado:not(.altas) > span:nth-child(1),
-.internacion-medica-fila.encabezado:not(.altas) > span:nth-child(2),
-.internacion-medica-fila.encabezado:not(.altas) > span:nth-child(4),
-.internacion-medica-fila.encabezado:not(.altas) > span:nth-child(6),
-.internacion-medica-fila.encabezado:not(.altas) > span:nth-child(7),
-.internacion-medica-fila.encabezado:not(.altas) > span:nth-child(8) {
-  justify-self: center;
+.internacion-medica-fila > * {
+  min-width: 0;
   text-align: center;
+  overflow-wrap: anywhere;
 }
-.internacion-medica-fila:not(.altas) > div:nth-child(1),
-.internacion-medica-fila:not(.altas) > div:nth-child(2),
-.internacion-medica-fila:not(.altas) > div:nth-child(4),
-.internacion-medica-fila:not(.altas) > div:nth-child(6),
-.internacion-medica-fila:not(.altas) > div:nth-child(7) {
+.internacion-medica-tabla .internacion-medica-fila.encabezado > .internacion-columna-texto {
+  text-align: left !important;
+}
+.internacion-medica-fila.encabezado > .internacion-columna-paciente {
+  padding-inline-start: 46px;
+}
+.internacion-medica-fila > .internacion-columna-texto {
+  text-align: left;
+}
+.internacion-medica-fila > div:not(.internacion-columna-texto) {
   justify-items: center;
-  text-align: center;
 }
-.internacion-medica-fila:not(.altas) .internacion-medica-accion {
+.internacion-medica-paciente > div {
+  min-width: 0;
+}
+.internacion-medica-accion {
   justify-content: center;
-}
-.internacion-medica-fila:not(.altas) .internacion-medica-paciente {
-  padding-left: 2px;
 }
 .internacion-medica-fila:not(.altas) .internacion-medica-ubicacion strong,
 .internacion-medica-fila:not(.altas) .internacion-medica-cama strong {
@@ -744,39 +734,6 @@
 }
 .internacion-medica-listado {
   overflow-x: auto;
-}
-.internacion-medica-tabla {
-  min-width: 0;
-}
-.internacion-medica-fila:not(.altas) {
-  grid-template-columns:
-    60px 60px minmax(230px, 1.5fr) 125px minmax(130px, 0.85fr)
-    118px 95px 105px;
-  gap: 10px;
-  min-width: 0;
-  padding-inline: 16px;
-}
-.internacion-medica-fila:not(.altas) .internacion-medica-accion {
-  justify-content: flex-end;
-}
-.internacion-medica-fila:not(.altas) .internacion-atender {
-  min-width: 94px;
-}
-@media (max-width: 1120px) {
-  .internacion-medica-tabla {
-    min-width: 1020px;
-  }
-  .internacion-medica-fila:not(.altas) .internacion-medica-accion {
-    position: sticky;
-    right: 0;
-    z-index: 2;
-    padding-left: 10px;
-    background: var(--panel, #fff);
-    box-shadow: -8px 0 12px -12px #173d6080;
-  }
-  .internacion-medica-fila.encabezado:not(.altas) .internacion-medica-accion {
-    background: var(--panel-2, #f4f9fc);
-  }
 }
 .internacion-medica-vacio {
   display: grid;

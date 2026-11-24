@@ -1,3 +1,7 @@
+import { controlEstatura } from "./controlEstatura";
+import { useDiasInternacion } from "./diasInternacion";
+import { FormularioSignosVitales } from "../emergencias/FormularioSignosVitales";
+import { TablaEvolucionSignos } from "../emergencias/TablaEvolucionSignos";
 import { InsumosEnfermeriaPanel } from "../emergencias/InsumosEnfermeriaPanel";
 import "../emergencias/TriajeEmergenciasView.css";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -9,6 +13,7 @@ import {
   leerBalanceInternacion,
   leerEvolucionesEnfermeriaInternacion,
   leerSignosInternacion,
+  leerInternaciones,
   type EvolucionEnfermeriaInternacion,
   type RegistroBalanceInternacion,
   type RegistroInternacion,
@@ -23,220 +28,18 @@ import "./AtencionEnfermeriaInternacion.css";
 import "./BalanceEmergenciasCompartido.css";
 
 const campos = [["temperatura", "Temperatura", "°C"], ["glicemia", "Glicemia capilar", "mg/dL"], ["frecuenciaCardiaca", "Frecuencia cardíaca", "P/min"], ["frecuenciaRespiratoria", "Frecuencia respiratoria", "Res/min"], ["presionSistolica", "Presión sistólica", "mmHg"], ["presionDiastolica", "Presión diastólica", "mmHg"], ["saturacion", "Saturación ambiente", "%"], ["oxigeno", "Oxígeno", "L"], ["saturacionOxigeno", "Saturación con oxígeno", "%"], ["peso", "Peso", "kg"], ["estatura", "Estatura", "cm"], ["imc", "IMC", "kg/m²"]] as const;
-const fecha = (v: string) => new Date(v).toLocaleString("es-BO");
-const horaIngreso = (v: string) => new Date(v).toLocaleTimeString("es-BO", {hour:"2-digit",minute:"2-digit",hour12:false});
-function GraficaEvolucionSignos({
-  mediciones,
-  camposGrafica = campos,
-}: {
-  mediciones: { id: string; fecha: string; valores: Record<string, string | number>; observacion?: string }[];
-  camposGrafica?: readonly (readonly [string, string, string])[];
-}) {
-  const [signosSeleccionados, setSignosSeleccionados] = useState<string[]>([]);
-  const colores = [
-    "#087fc0",
-    "#f0783b",
-    "#7655c5",
-    "#18a17e",
-    "#db7a51",
-    "#0c9e88",
-    "#9a6bc3",
-    "#547e9b",
-  ];
-  const medicionesVisibles = mediciones.slice(-8);
-  const series = camposGrafica.map(([id, nombre, unidad], indice) => {
-    const valores = medicionesVisibles
-      .map((medicion, posicion) => ({
-        medicion,
-        posicion,
-        valor: Number(medicion.valores[id]),
-      }))
-      .filter((punto) => punto.medicion.valores[id] !== undefined && punto.medicion.valores[id] !== "" && Number.isFinite(punto.valor));
-    const minimo = valores.length
-      ? Math.min(...valores.map((punto) => punto.valor!))
-      : 0;
-    const maximo = valores.length
-      ? Math.max(...valores.map((punto) => punto.valor!))
-      : 1;
-    const margen = Math.max(
-      (maximo - minimo) * 0.2,
-      Math.abs(maximo || minimo) * 0.08,
-      1,
-    );
-    const bajo = minimo - margen,
-      alto = maximo + margen;
-    return {
-      id,
-      nombre,
-      unidad,
-      color: colores[indice],
-      valores,
-      coords: valores.map((punto) => ({
-        ...punto,
-        x:
-          medicionesVisibles.length === 1
-            ? 415
-            : 55 + punto.posicion * (720 / (medicionesVisibles.length - 1)),
-        y: 30 + ((alto - punto.valor!) / (alto - bajo)) * 160,
-      })),
-    };
-  });
-  const alternarSigno = (id: string) =>
-    setSignosSeleccionados((actual) =>
-      actual.includes(id)
-        ? actual.filter((signo) => signo !== id)
-        : [...actual, id],
-    );
-  useEffect(() => {
-    setSignosSeleccionados(camposGrafica.slice(0, 2).map(([id]) => id));
-  }, [camposGrafica]);
-  const seleccionados = series.filter((serie) =>
-    signosSeleccionados.includes(serie.id),
-  );
-  return (
-    <section
-      className="em-signos-grafica"
-      aria-label="Evolución de signos vitales"
-    >
-      <header>
-        <div>
-          <h4>Evolución de signos vitales</h4>
-        </div>
-        <span>
-          {seleccionados.length} signo{seleccionados.length === 1 ? "" : "s"}{" "}
-          seleccionado{seleccionados.length === 1 ? "" : "s"}
-        </span>
-      </header>
-      <nav
-        className="em-signos-selector"
-        aria-label="Seleccionar signos vitales"
-      >
-        {series.map((serie) => (
-          <button
-            type="button"
-            key={serie.id}
-            className={signosSeleccionados.includes(serie.id) ? "activo" : ""}
-            onClick={() => alternarSigno(serie.id)}
-            aria-pressed={signosSeleccionados.includes(serie.id)}
-          >
-            {serie.nombre}
-          </button>
-        ))}
-      </nav>
-      {medicionesVisibles.length &&
-      seleccionados.some((serie) => serie.coords.length) ? (
-        <>
-          <svg
-            viewBox="0 0 830 235"
-            role="img"
-            aria-label="Comparación de la evolución de los signos vitales seleccionados"
-          >
-            <g className="em-signos-grafica-guia">
-              <path d="M55 30H775M55 83H775M55 136H775M55 190H775" />
-            </g>
-            {seleccionados.map(
-              (serie) =>
-                serie.coords.length > 0 && (
-                  <g
-                    className="em-signos-serie"
-                    key={serie.id}
-                    style={{ color: serie.color }}
-                  >
-                    <polyline
-                      points={serie.coords
-                        .map((punto) => `${punto.x},${punto.y}`)
-                        .join(" ")}
-                    />
-                    {serie.coords.map((punto, indice) => (
-                      <g key={`${serie.id}-${indice}`}>
-                      <circle
-                        cx={punto.x}
-                        cy={punto.y}
-                        r="5"
-                      >
-                        <title>
-                          {serie.nombre}: {punto.valor} {serie.unidad} ·{" "}
-                          {fecha(punto.medicion.fecha)}
-                        </title>
-                      </circle>
-                      <text className="em-signos-grafica-etiqueta" x={punto.x} y={punto.y - 12} textAnchor="middle">
-                        {punto.valor} {serie.unidad}
-                      </text>
-                      </g>
-                    ))}
-                  </g>
-                ),
-            )}
-            {medicionesVisibles.length > 0 && (
-              <>
-                <text
-                  className="em-signos-grafica-hora"
-                  x="55"
-                  y="222"
-                  textAnchor="start"
-                >
-                  {horaIngreso(medicionesVisibles[0].fecha)}
-                </text>
-                <text
-                  className="em-signos-grafica-hora"
-                  x="775"
-                  y="222"
-                  textAnchor="end"
-                >
-                  {horaIngreso(medicionesVisibles.at(-1)!.fecha)}
-                </text>
-              </>
-            )}
-          </svg>
-          <p className="em-signos-grafica-nota">
-            Cada signo se escala según sus propias mediciones; pasa sobre un
-            punto para consultar su valor exacto.
-          </p>
-        </>
-      ) : (
-        <div className="em-signos-grafica-vacia">
-          <Icon name="patient" size={23} />
-          <strong>
-            {mediciones.length
-              ? "No hay datos para los signos seleccionados"
-              : "Aún no hay mediciones"}
-          </strong>
-          <span>
-            {mediciones.length
-              ? "Elige otro signo para ver sus mediciones."
-              : "Registra los signos vitales para iniciar la gráfica de evolución."}
-          </span>
-        </div>
-      )}
-      {mediciones.length > 0 && (
-        <details className="em-signos-historial-inline">
-          <summary>
-            <Icon name="chevronRight" size={15} /> Ver mediciones registradas (
-            {mediciones.length})
-          </summary>
-          <div className="em-mediciones">
-            {[...mediciones].reverse().map((medicion) => (
-              <details key={medicion.id}>
-                <summary>
-                  {fecha(medicion.fecha)} ·{" "}
-                  {Object.entries(medicion.valores)
-                    .map(
-                      ([id, valor]) =>
-                        `${campos.find((campo) => campo[0] === id)?.[1] || id}: ${valor}`,
-                    )
-                    .join(" · ") || "Medición no disponible"}
-                </summary>
-                <p>
-                  {medicion.observacion || "Sin observaciones adicionales."}
-                </p>
-              </details>
-            ))}
-          </div>
-        </details>
-      )}
-    </section>
-  );
+const camposRegistroSignos = campos.map(([id, etiqueta, unidad]) => ({ id, etiqueta, unidad }));
+
+function signosParaEstatura(paciente: RegistroInternacion, signosActuales: TomaSignosInternacion[]) {
+  if (!paciente.pacienteId) return signosActuales;
+  const anteriores = leerInternaciones().filter((registro) =>
+    registro.id !== paciente.id && registro.pacienteId === paciente.pacienteId);
+  return [...anteriores.flatMap((registro) => leerSignosInternacion(registro.id)), ...signosActuales];
 }
+
+const mostrarFechaCalendario = (fecha: string) =>
+  fecha.split("-").reverse().join("/");
+
 export function AtencionEnfermeriaInternacion({
   paciente,
   onVolver,
@@ -289,10 +92,15 @@ export function AtencionEnfermeriaInternacion({
     return cancelar;
   }, []);
   const datos = paciente.datosPaciente ?? {};
+  const nacimiento = datos.nacimiento || datos.fechaNacimiento || "";
+  const estatura = controlEstatura(nacimiento, fechaHoraSignos.fecha, signosParaEstatura(paciente, signos));
+  const camposFormulario = estatura.medir ? camposRegistroSignos : camposRegistroSignos.filter(({ id }) => id !== "estatura");
+  const camposEvolucion = estatura.adulto ? camposRegistroSignos.filter(({ id }) => id !== "estatura") : camposRegistroSignos;
   const responsable =
     datos.responsableNombre || datos.responsable || "Sin registro";
   const telefonoResponsable = datos.responsableTelefono || "Sin teléfono";
   const fechaIngreso = paciente.fechaIngreso || paciente.fecha;
+  const diasInternacion = useDiasInternacion(fechaIngreso);
   const fechaVisible = (() => {
     if (!fechaIngreso) return "Sin registro";
     if (/^\d{4}-\d{2}-\d{2}/.test(fechaIngreso))
@@ -377,9 +185,16 @@ export function AtencionEnfermeriaInternacion({
   function registrarSignos(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     try {
-      if (!Object.values(valoresSignos).some((valor) => valor.trim()) && !observacionSignos.trim()) { setErrorSignos("Ingresa al menos una medición o una observación."); return; }
-      const numero = (clave: string) => valoresSignos[clave] ? Number(valoresSignos[clave]) : 0;
-      guardarSignosInternacion(paciente.id, { temperatura: numero("temperatura"), frecuenciaCardiaca: numero("frecuenciaCardiaca"), frecuenciaRespiratoria: numero("frecuenciaRespiratoria"), saturacion: numero("saturacion"), presionSistolica: numero("presionSistolica"), presionDiastolica: numero("presionDiastolica"), valores: valoresSignos, observacion: observacionSignos.trim(), ...fechaHoraSignos });
+      const valores = { ...valoresSignos };
+      const control = controlEstatura(nacimiento, fechaHoraSignos.fecha,
+        signosParaEstatura(paciente, leerSignosInternacion(paciente.id)));
+      if (!control.medir) delete valores.estatura;
+      if (!Object.values(valores).some((valor) => valor.trim()) && !observacionSignos.trim()) {
+        setErrorSignos("Ingresa al menos una medición o una observación.");
+        return;
+      }
+      const numero = (clave: string) => valores[clave] ? Number(valores[clave]) : 0;
+      guardarSignosInternacion(paciente.id, { temperatura: numero("temperatura"), frecuenciaCardiaca: numero("frecuenciaCardiaca"), frecuenciaRespiratoria: numero("frecuenciaRespiratoria"), saturacion: numero("saturacion"), presionSistolica: numero("presionSistolica"), presionDiastolica: numero("presionDiastolica"), valores, observacion: observacionSignos.trim(), ...fechaHoraSignos });
       setSignos(leerSignosInternacion(paciente.id));
       setValoresSignos({}); setObservacionSignos(""); setFechaHoraSignos(fechaHoraActual());
       setErrorSignos("");
@@ -420,16 +235,40 @@ export function AtencionEnfermeriaInternacion({
   const panelSignos = (
     <section className="em-panel em-signos-panel">
       <header className="em-panel-titulo"><div><h3>Signos vitales</h3></div></header>
-      <div className="em-signos-columnas">
-        <GraficaEvolucionSignos mediciones={signos.map((toma) => ({ id: toma.id, fecha: toma.fecha + "T" + toma.hora, observacion: toma.observacion, valores: toma.valores ?? { temperatura: toma.temperatura, frecuenciaCardiaca: toma.frecuenciaCardiaca, frecuenciaRespiratoria: toma.frecuenciaRespiratoria, saturacion: toma.saturacion, presionSistolica: toma.presionSistolica, presionDiastolica: toma.presionDiastolica } }))} />
-        <form className="em-signos-formulario" onSubmit={registrarSignos}>
-          <h4>Registrar signos vitales</h4>
-          <div className="em-signos-fecha-hora"><label>Fecha de la medición<input type="date" required value={fechaHoraSignos.fecha} onChange={(e) => setFechaHoraSignos({ ...fechaHoraSignos, fecha:e.target.value })} /></label><label>Hora de la medición<input type="time" required value={fechaHoraSignos.hora} onChange={(e) => setFechaHoraSignos({ ...fechaHoraSignos, hora:e.target.value })} /></label></div>
-          <div className="em-form-grid em-signos">{campos.map(([id, etiqueta, unidad]) => <label key={id}>{etiqueta}<span><input type="number" step="any" value={valoresSignos[id] || ""} onChange={(e) => setValoresSignos({ ...valoresSignos, [id]: e.target.value })} />{unidad}</span></label>)}</div>
-          <label>Observación o motivo de medición no disponible<textarea maxLength={1000} value={observacionSignos} onChange={(e) => setObservacionSignos(e.target.value)} /></label>
-          {errorSignos && <p role="alert">{errorSignos}</p>}<div className="em-acciones"><button className="em-primario" type="submit">Guardar signos vitales</button></div>
-        </form>
-      </div>
+      {estatura.adulto && estatura.ultima && (
+        <p className="enfermeria-estatura-registrada">
+          <strong>Última estatura: {estatura.ultima.estatura} cm</strong>
+          <span>Medida el {mostrarFechaCalendario(estatura.ultima.fecha)}</span>
+          {estatura.siguiente && <span>Próxima medición desde el {mostrarFechaCalendario(estatura.siguiente)}</span>}
+        </p>
+      )}
+      <FormularioSignosVitales
+        campos={camposFormulario}
+        fechaHora={fechaHoraSignos}
+        valores={valoresSignos}
+        observacion={observacionSignos}
+        onFechaHora={setFechaHoraSignos}
+        onValor={(id, valor) => setValoresSignos((actual) => ({ ...actual, [id]: valor }))}
+        onObservacion={setObservacionSignos}
+        onSubmit={registrarSignos}
+        error={errorSignos}
+      />
+      <TablaEvolucionSignos
+        campos={camposEvolucion}
+        mediciones={signos.map((toma) => ({
+          id: toma.id,
+          fecha: toma.fecha + "T" + toma.hora,
+          observacion: toma.observacion,
+          valores: toma.valores ?? {
+            temperatura: toma.temperatura,
+            frecuenciaCardiaca: toma.frecuenciaCardiaca,
+            frecuenciaRespiratoria: toma.frecuenciaRespiratoria,
+            saturacion: toma.saturacion,
+            presionSistolica: toma.presionSistolica,
+            presionDiastolica: toma.presionDiastolica,
+          },
+        }))}
+      />
     </section>
   );
 
@@ -532,6 +371,10 @@ export function AtencionEnfermeriaInternacion({
             <div>
               <span>Fecha de ingreso</span>
               <strong>{fechaVisible}</strong>
+            </div>
+            <div>
+              <span>Días de internación</span>
+              <strong>{diasInternacion}</strong>
             </div>
             <div>
               <span>Ubicación actual</span>

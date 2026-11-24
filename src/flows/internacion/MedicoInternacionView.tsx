@@ -1,3 +1,4 @@
+import { useDiasInternacion } from "./diasInternacion";
 import { useInternacionesVinculadas } from "./useInternacionesVinculadas";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Icon from "../../radius/componentes/Icono";
@@ -315,6 +316,7 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
     const pacienteActual =
       registros.find((registro) => registro.id === atencionActiva.id) ||
       atencionActiva;
+  const diasInternacion = useDiasInternacion(pacienteActual?.fechaIngreso || pacienteActual?.fecha || "");
     const notasPaciente = evolucionesMedicas.filter((nota) => nota.pacienteId === pacienteActual.id);
     const medicosNotas = [...new Set(notasPaciente.map((nota) => nota.medico || "Profesional no registrado"))].sort((a, b) => a.localeCompare(b, "es"));
     const notasFiltradas = notasPaciente.filter((nota) => {
@@ -358,6 +360,10 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                 <strong>
                   {fecha(pacienteActual.fechaIngreso || pacienteActual.fecha)}
                 </strong>
+              </div>
+              <div className="internacion-atencion-ingreso">
+                <span>Días de internación</span>
+                <strong>{diasInternacion}</strong>
               </div>
               <div className="internacion-atencion-ubicacion">
                 <span>Ubicación actual</span>
@@ -1598,7 +1604,7 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
         </header>
         {visibles.length > 0 ? (
           <div
-            className="internacion-medica-tabla"
+            className={subvista === "altas" ? "internacion-medica-tabla altas" : "internacion-medica-tabla"}
             role="table"
             aria-label="Listado de pacientes"
           >
@@ -1608,19 +1614,19 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
             >
               {subvista === "internados" ? (
                 <>
-                  <span>Sala</span>
-                  <span>Cama</span>
+                  <span role="columnheader">Sala</span>
+                  <span role="columnheader">Cama</span>
                 </>
               ) : (
-                <span>Sala y cama</span>
+                <span role="columnheader">Sala y cama</span>
               )}
-              <span>Paciente</span>
-              <span>Historia clínica</span>
-              <span>Médico</span>
-              <span>Fecha de ingreso</span>
-              {subvista === "altas" && <span>Fecha de alta</span>}
-              <span>Estado</span>
-              <span>Acciones</span>
+              <span role="columnheader" className="internacion-columna-texto internacion-columna-paciente">Paciente</span>
+              <span role="columnheader">Historia clínica</span>
+              <span role="columnheader" className="internacion-columna-texto">Médico</span>
+              <span role="columnheader">Fecha de ingreso</span>
+              {subvista === "altas" && <span role="columnheader">Fecha de alta</span>}
+              <span role="columnheader">Estado</span>
+              <span role="columnheader">Acciones</span>
             </div>
             {visibles.map((registro) => (
               <article
@@ -1644,7 +1650,7 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                     </strong>
                   </div>
                 )}
-                <div role="cell" className="internacion-medica-paciente">
+                <div role="cell" className="internacion-medica-paciente internacion-columna-texto">
                   <span>
                     <Icon name="patient" size={19} />
                   </span>
@@ -1655,7 +1661,7 @@ export function MedicoInternacionView({ subvista, area = "internacion" }: { subv
                 <div role="cell">
                   <strong>HC-{registro.ci || "S/R"}</strong>
                 </div>
-                <div role="cell">
+                <div role="cell" className="internacion-columna-texto">
                   <strong>{registro.medico || "Sin asignar"}</strong>
                 </div>
                 <div role="cell">

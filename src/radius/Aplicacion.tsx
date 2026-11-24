@@ -2,6 +2,7 @@ import { ErrorAplicacion } from "./componentes/ErrorAplicacion";
 import React, {
   Suspense,
   lazy,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -355,7 +356,7 @@ type SubvistaAtencionAgenda = "pacientes" | "cronograma";
 type SubvistaTriajeAmbulatorio =
   "signos-vitales" | "agenda" | "registro-uso" | "uso-items" | "configuracion";
 type SubvistaMedicoInternacion = "internados" | "altas" | "dietas";
-type SubvistaEnfermeraInternacion = "internados" | "altas";
+type SubvistaEnfermeraInternacion = "internados" | "altas" | "almacen";
 type TemaSistema = "light" | "dark";
 type CirugiaProgramada = {
   id: string;
@@ -745,7 +746,7 @@ function TablaSubvistaPaciente({ vista }: { vista: "historias" | "estudios" }) {
 export default function Aplicacion() {
   useSyncExternalStore(suscribirEpisodios, obtenerEpisodios, obtenerEpisodios);
   const [sesion, setSesion] = useState<Sesion | null>(leerSesion);
-  const ubicacionInicial = leerUbicacion();
+
   useEffect(() => {
     // Durante el desarrollo exclusivo de frontend, Triaje usa la configuración local.
     setSignosVitalesConfigurados(cargarSignos(signosVitalesIniciales));
@@ -764,26 +765,84 @@ export default function Aplicacion() {
       .catch(() => undefined);
     return () => controller.abort();
   }, [sesion?.token]);
-  const [modulo, setModulo] = useState(
-    ubicacionInicial.modulo === "pruebas-camara-quirofano"
-      ? "recepcion"
-      : ubicacionInicial.modulo || "",
+  const [ubicacion, setUbicacion] = useState(() => {
+    const inicial = leerUbicacion();
+    return {
+      modulo: inicial.modulo === "pruebas-camara-quirofano" ? "recepcion" : inicial.modulo || "",
+      subvistaImagenologia: (inicial.subvistaImagenologia || "pacientes") as SubvistaImagenologia,
+      subvistaModalidad: (inicial.subvistaModalidad || "pacientes") as SubvistaModalidad,
+      subvistaAlmacenQuirofano: (inicial.subvistaAlmacenQuirofano || "quirofano-1") as SubvistaAlmacenQuirofano,
+      subvistaRecepcion: (inicial.subvistaRecepcion || "caja") as SubvistaRecepcion,
+      subvistaPacientes: (inicial.subvistaPacientes || "pacientes") as SubvistaPacientes,
+      subvistaConfiguracion: (inicial.subvistaConfiguracion || "usuario") as SubvistaConfiguracion,
+      subvistaAtencionAgenda: (inicial.subvistaAtencionAgenda || "pacientes") as SubvistaAtencionAgenda,
+      subvistaTriajeAmbulatorio: (inicial.subvistaTriajeAmbulatorio || "signos-vitales") as SubvistaTriajeAmbulatorio,
+      subvistaMedicoInternacion: (inicial.subvistaMedicoInternacion || "internados") as SubvistaMedicoInternacion,
+      subvistaEnfermeraInternacion: (inicial.subvistaEnfermeraInternacion || "internados") as SubvistaEnfermeraInternacion,
+      subvistaTerapia: (["monitorizacion", "registros", "inventario"].includes(inicial.subvistaTerapia)
+        ? inicial.subvistaTerapia
+        : "registro-enfermeria") as "registro-enfermeria" | "monitorizacion" | "registros" | "inventario",
+      visorModalidad: (inicial.visorModalidad === "Tomografía" ? "Tomografía" : null) as "Tomografía" | null,
+    };
+  });
+  const {
+    modulo, subvistaImagenologia, subvistaModalidad, subvistaAlmacenQuirofano,
+    subvistaRecepcion, subvistaPacientes, subvistaConfiguracion, subvistaAtencionAgenda,
+    subvistaTriajeAmbulatorio, subvistaMedicoInternacion, subvistaEnfermeraInternacion,
+    subvistaTerapia, visorModalidad,
+  } = ubicacion;
+  const cambiarUbicacion = useCallback(<K extends keyof typeof ubicacion>(clave: K) =>
+    (valor: (typeof ubicacion)[K]) => {
+      setUbicacion((actual) => actual[clave] === valor ? actual : { ...actual, [clave]: valor });
+    }, []);
+  const setModulo = cambiarUbicacion("modulo");
+  const setSubvistaImagenologia = cambiarUbicacion("subvistaImagenologia");
+  const setSubvistaModalidad = cambiarUbicacion("subvistaModalidad");
+  const setSubvistaAlmacenQuirofano = cambiarUbicacion("subvistaAlmacenQuirofano");
+  const setSubvistaRecepcion = cambiarUbicacion("subvistaRecepcion");
+  const setSubvistaPacientes = cambiarUbicacion("subvistaPacientes");
+  const setSubvistaConfiguracion = cambiarUbicacion("subvistaConfiguracion");
+  const setSubvistaAtencionAgenda = cambiarUbicacion("subvistaAtencionAgenda");
+  const setSubvistaTriajeAmbulatorio = cambiarUbicacion("subvistaTriajeAmbulatorio");
+  const setSubvistaMedicoInternacion = cambiarUbicacion("subvistaMedicoInternacion");
+  const setSubvistaEnfermeraInternacion = cambiarUbicacion("subvistaEnfermeraInternacion");
+  const setSubvistaTerapia = cambiarUbicacion("subvistaTerapia");
+  const setVisorModalidad = cambiarUbicacion("visorModalidad");
+
+  const ambitoHistorial = useRef<string | null>(
+    sesion ? window.history.state?.clinico?.ambito ?? null : null,
   );
-  const [subvistaImagenologia, setSubvistaImagenologia] =
-    useState<SubvistaImagenologia>(
-      (ubicacionInicial.subvistaImagenologia as SubvistaImagenologia) ||
-        "pacientes",
-    );
-  const [visorModalidad, setVisorModalidad] = useState<"Tomografía" | null>(
-    null,
-  );
-  const [subvistaModalidad, setSubvistaModalidad] = useState<SubvistaModalidad>(
-    (ubicacionInicial.subvistaModalidad as SubvistaModalidad) || "pacientes",
-  );
+  const tokenSesion = sesion?.token;
+  useEffect(() => {
+    if (!tokenSesion) {
+      ambitoHistorial.current = null;
+      return;
+    }
+    function restaurar(evento: PopStateEvent) {
+      const entrada = evento.state?.clinico;
+      if (entrada?.ambito === ambitoHistorial.current && entrada.ubicacion) {
+        setUbicacion(entrada.ubicacion);
+      }
+    }
+    window.addEventListener("popstate", restaurar);
+    return () => window.removeEventListener("popstate", restaurar);
+  }, [tokenSesion]);
+
+  useLayoutEffect(() => {
+    if (!tokenSesion) return;
+    ambitoHistorial.current ??= Array.from(crypto.getRandomValues(new Uint32Array(4))).join("-");
+    const estado = window.history.state;
+    const clinico = { ambito: ambitoHistorial.current, ubicacion };
+    if (estado?.clinico?.ambito !== clinico.ambito) {
+      window.history.replaceState({ ...estado, clinico }, "");
+    } else if (JSON.stringify(estado.clinico.ubicacion) !== JSON.stringify(ubicacion)) {
+      window.history.pushState({ ...estado, clinico }, "");
+    }
+    localStorage.setItem(claveUbicacion, JSON.stringify(ubicacion));
+  }, [tokenSesion, ubicacion]);
+
   const [rolEnfermeriaQuirofano, setRolEnfermeriaQuirofano] =
     useState<RolEnfermeriaQuirofano>("instrumentista");
-  const [subvistaAlmacenQuirofano, setSubvistaAlmacenQuirofano] =
-    useState<SubvistaAlmacenQuirofano>("quirofano-1");
   const [cirugiaInstrumentista, setCirugiaInstrumentista] = useState<
     string | null
   >(null);
@@ -798,78 +857,6 @@ export default function Aplicacion() {
   }, [modulo]);
   const [fechaDesdeCirugias, setFechaDesdeCirugias] = useState("");
   const [fechaHastaCirugias, setFechaHastaCirugias] = useState("");
-  const [subvistaRecepcion, setSubvistaRecepcion] = useState<SubvistaRecepcion>(
-    (ubicacionInicial.subvistaRecepcion as SubvistaRecepcion) || "caja",
-  );
-  const [subvistaPacientes, setSubvistaPacientes] = useState<SubvistaPacientes>(
-    (ubicacionInicial.subvistaPacientes as SubvistaPacientes) || "pacientes",
-  );
-  const [subvistaConfiguracion, setSubvistaConfiguracion] =
-    useState<SubvistaConfiguracion>(
-      (ubicacionInicial.subvistaConfiguracion as SubvistaConfiguracion) ||
-        "usuario",
-    );
-  const [subvistaAtencionAgenda, setSubvistaAtencionAgenda] =
-    useState<SubvistaAtencionAgenda>(
-      (ubicacionInicial.subvistaAtencionAgenda as SubvistaAtencionAgenda) ||
-        "pacientes",
-    );
-  const [subvistaTriajeAmbulatorio, setSubvistaTriajeAmbulatorio] =
-    useState<SubvistaTriajeAmbulatorio>(
-      (ubicacionInicial.subvistaTriajeAmbulatorio as SubvistaTriajeAmbulatorio) ||
-        "signos-vitales",
-    );
-  const [subvistaMedicoInternacion, setSubvistaMedicoInternacion] =
-    useState<SubvistaMedicoInternacion>(
-      (ubicacionInicial.subvistaMedicoInternacion as SubvistaMedicoInternacion) ||
-        "internados",
-    );
-  const [subvistaEnfermeraInternacion, setSubvistaEnfermeraInternacion] =
-    useState<SubvistaEnfermeraInternacion>(
-      (ubicacionInicial.subvistaEnfermeraInternacion as SubvistaEnfermeraInternacion) ||
-        "internados",
-    );
-  const [subvistaTerapia, setSubvistaTerapia] = useState<
-    "registro-enfermeria" | "monitorizacion" | "registros" | "inventario"
-  >(
-    ubicacionInicial.subvistaTerapia === "monitorizacion"
-      ? "monitorizacion"
-      : ubicacionInicial.subvistaTerapia === "registros"
-        ? "registros"
-        : ubicacionInicial.subvistaTerapia === "inventario"
-          ? "inventario"
-        : "registro-enfermeria",
-  );
-  useEffect(() => {
-    localStorage.setItem(
-      claveUbicacion,
-      JSON.stringify({
-        modulo,
-        subvistaImagenologia,
-        subvistaModalidad,
-        subvistaRecepcion,
-        subvistaPacientes,
-        subvistaConfiguracion,
-        subvistaAtencionAgenda,
-        subvistaTriajeAmbulatorio,
-        subvistaMedicoInternacion,
-        subvistaEnfermeraInternacion,
-        subvistaTerapia,
-      }),
-    );
-  }, [
-    modulo,
-    subvistaImagenologia,
-    subvistaModalidad,
-    subvistaRecepcion,
-    subvistaPacientes,
-    subvistaConfiguracion,
-    subvistaAtencionAgenda,
-    subvistaTriajeAmbulatorio,
-    subvistaMedicoInternacion,
-    subvistaEnfermeraInternacion,
-    subvistaTerapia,
-  ]);
   const [versionAsignaciones, setVersionAsignaciones] = useState(0);
   useEffect(() => {
     const actualizar = () => setVersionAsignaciones((version) => version + 1);
@@ -1223,9 +1210,13 @@ export default function Aplicacion() {
         }
       }
     };
+    const escritorio = window.matchMedia("(min-width: 761px)");
+    const cerrarAlAmpliar = () => { if (escritorio.matches) setMenuAbierto(false); };
+    escritorio.addEventListener("change", cerrarAlAmpliar);
     window.addEventListener("keydown", teclado);
     return () => {
       document.body.style.overflow = overflow;
+      escritorio.removeEventListener("change", cerrarAlAmpliar);
       window.removeEventListener("keydown", teclado);
       antes?.focus();
     };
@@ -1635,6 +1626,7 @@ export default function Aplicacion() {
           </button>
           <button
             className="abrir-menu"
+            aria-expanded={menuAbierto}
             onClick={() => setMenuAbierto(true)}
             aria-label="Abrir menú"
           >
@@ -2406,10 +2398,21 @@ export default function Aplicacion() {
                     <strong>Pacientes dados de alta</strong>
                     <small>Historial de internaciones finalizadas.</small>
                   </button>
+                  <button
+                    type="button"
+                    aria-current={subvistaEnfermeraInternacion === "almacen" ? "page" : undefined}
+                    className={subvistaEnfermeraInternacion === "almacen" ? "activo" : ""}
+                    onClick={() => setSubvistaEnfermeraInternacion("almacen")}
+                  >
+                    <span><Icon name="warehouse" size={17} /></span>
+                    <strong>Almacén de internación</strong>
+                  </button>
                 </HorizontalSubvistaNav>
-                <EnfermeraInternacionView
-                  subvista={subvistaEnfermeraInternacion}
-                />
+                {subvistaEnfermeraInternacion === "almacen" ? (
+                  <InsumosEnfermeriaPanel titulo="Almacén de internación" />
+                ) : (
+                  <EnfermeraInternacionView subvista={subvistaEnfermeraInternacion} />
+                )}
               </section>
             ) : modulo === "farmacia-internacion" ? (
               <FarmaciaInternacionView enfermera={sesion.usuario.nombre} />

@@ -23,7 +23,7 @@
   font-size: 12px;
   line-height: 1.5;
 }
-.emergencias-vista button {
+:is(.emergencias-vista, .em-registro-signos) button {
   border: 1px solid #cbddeb;
   background: #fff;
   color: #175d8c;
@@ -33,11 +33,11 @@
   font: inherit;
   font-size: 13px;
 }
-.emergencias-vista button:disabled {
+:is(.emergencias-vista, .em-registro-signos) button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.emergencias-vista button.em-primario {
+:is(.emergencias-vista, .em-registro-signos) button.em-primario {
   background: #087fb7;
   color: #fff;
   border-color: #087fb7;
@@ -46,9 +46,9 @@
   justify-content: center;
   gap: 7px;
 }
-.emergencias-vista input,
+:is(.emergencias-vista, .em-registro-signos) input,
 .emergencias-vista select,
-.emergencias-vista textarea {
+:is(.emergencias-vista, .em-registro-signos) textarea {
   width: 100%;
   min-width: 0;
   border: 1px solid #cadce9;
@@ -59,18 +59,18 @@
   font: inherit;
   box-sizing: border-box;
 }
-.emergencias-vista :focus-visible {
+:is(.emergencias-vista, .em-registro-signos) :focus-visible {
   outline: 2px solid #0798d7;
   outline-offset: 2px;
 }
-.emergencias-vista label {
+:is(.emergencias-vista, .em-registro-signos) label {
   display: flex;
   flex-direction: column;
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
 }
-.emergencias-vista textarea {
+:is(.emergencias-vista, .em-registro-signos) textarea {
   min-height: 64px;
   resize: vertical;
 }
@@ -1020,7 +1020,7 @@
 .em-iniciar-vacio {
   margin-top: 16px;
 }
-.emergencias-vista button.em-primario:hover:not(:disabled) {
+:is(.emergencias-vista, .em-registro-signos) button.em-primario:hover:not(:disabled) {
   color: #fff;
   background: #066b9b;
   border-color: #066b9b;
@@ -3341,6 +3341,9 @@
   border-radius: 8px;
   background: #fff;
 }
+.em-registro-signos .em-signos > p {
+  grid-column: 1 / -1;
+}
 .em-signos-formulario > label {
   margin-top: 8px;
 }
@@ -3418,6 +3421,10 @@
   font-size: 11px;
 }
 .em-signos-evolucion-matriz {
+  --signos-encabezado: #e8e9eb;
+  --signos-encabezado-lateral: #dfe1e4;
+  --signos-encabezado-texto: #30363e;
+  --signos-encabezado-fecha: #505861;
   min-width: max-content;
 }
 .em-signos-evolucion-matriz th:first-child {
@@ -3430,12 +3437,28 @@
   text-align: left;
   background: #f2f8fb;
 }
+.sistema-app .em-signos-evolucion-matriz thead th {
+  height: 52px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #cdd0d4;
+  background: var(--signos-encabezado) !important;
+  color: var(--signos-encabezado-texto) !important;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: normal;
+  text-transform: none;
+}
 .em-signos-evolucion-matriz thead th:not(:first-child) {
   min-width: 105px;
   padding: 10px 12px;
   text-align: center;
   vertical-align: middle;
-  border-left: 1px solid #c8dce9;
+  border-left: 1px solid #d1d4d8;
+}
+.em-signos-evolucion-matriz td.em-signos-observacion {
+  max-width: 220px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .em-signos-evolucion-matriz tbody td {
   border-left: 1px solid #d8e7f0;
@@ -3450,15 +3473,15 @@
   white-space: nowrap;
 }
 .em-signos-evolucion-matriz thead th:not(:first-child) span {
-  color: #087fc0;
-  font-size: 12px;
+  color: var(--signos-encabezado-texto);
+  font-size: 15px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 .em-signos-evolucion-matriz thead th:not(:first-child) small {
-  margin-top: 4px;
-  color: #263f52;
-  font-size: 12px;
+  margin-top: 2px;
+  color: var(--signos-encabezado-fecha);
+  font-size: 11px;
   font-weight: 650;
   text-transform: none;
 }
@@ -3477,9 +3500,15 @@
   color: #fff;
   background: #244f6d;
 }
-.em-signos-evolucion-matriz thead th:first-child {
-  color: #fff;
-  background: #244f6d;
+.sistema-app .em-signos-evolucion-matriz thead th:first-child {
+  background: var(--signos-encabezado-lateral) !important;
+  text-align: left;
+}
+.sistema-app[data-theme="dark"] .em-signos-evolucion-matriz {
+  --signos-encabezado: #333941;
+  --signos-encabezado-lateral: #3e454e;
+  --signos-encabezado-texto: #f0f1f3;
+  --signos-encabezado-fecha: #cbd0d6;
 }
 .em-signos-evolucion-matriz td strong {
   font-size: 13px;

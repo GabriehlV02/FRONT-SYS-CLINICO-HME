@@ -78,3 +78,60 @@
 @media (prefers-reduced-motion: reduce) {
   .sistema-app *, .sistema-app *::before, .sistema-app *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* Keep wide clinical records scrollable inside their own panels. */
+.sistema-app .area-trabajo :is(
+  .internacion-medica-listado,
+  .internacion-altas-tabla-scroll,
+  .em-signos-tabla-contenedor,
+  .mvi-tabla-scroll,
+  .uci-registro-tabla
+) {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 1100px) {
+  .sistema-app .area-trabajo :is(
+    .internacion-medica-titulo,
+    .internacion-medica-herramientas,
+    .internacion-listado-titulo,
+    .enfermeria-resumen-identidad
+  ) {
+    flex-wrap: wrap;
+  }
+
+  .sistema-app .area-trabajo .internacion-medica-herramientas > label {
+    flex: 1 1 240px;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .sistema-app .area-trabajo .internacion-medica-herramientas {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .sistema-app .area-trabajo .internacion-medica-herramientas > button {
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .sistema-app .area-trabajo [role="dialog"][aria-modal="true"] {
+    max-inline-size: 100%;
+    max-block-size: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overscroll-behavior: contain;
+  }
+}
+
+@media (max-height: 620px) and (orientation: landscape) {
+  .sistema-app :is(.cola-atencion-panel, .pulso-avisos) {
+    max-height: calc(100dvh - var(--clinico-topbar) - 12px);
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+  }
+}

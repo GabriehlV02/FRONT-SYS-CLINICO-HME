@@ -1,3 +1,4 @@
+import "./TriajeEmergenciasView.css";
 import Icon from "../../radius/componentes/Icono";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { leerSesion } from "../../radius/types/sesion";
@@ -7,9 +8,10 @@ import { opcionesInsumos, stockInsumos, solicitudesInsumos, enviarSolicitudInsum
 type InsumosEnfermeriaPanelProps = {
   onUtilizar?: (item: ItemInsumos, cantidad: number, almacenId: number, solicitudId: string) => Promise<boolean>;
   silenciarAlmacenNoAsignado?: boolean;
+  titulo?: string;
 };
 
-export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado = false }: InsumosEnfermeriaPanelProps = {}) {
+export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado = false, titulo = "Insumos de enfermería" }: InsumosEnfermeriaPanelProps = {}) {
   const claveAlmacen = `enfermeria:almacen:${leerSesion()?.usuario.id || "local"}`;
   const [opciones, setOpciones] = useState<OpcionesInsumos>({ almacenes: [], catalogo: [] });
   const [almacen, setAlmacen] = useState(() => sessionStorage.getItem(claveAlmacen) || "");
@@ -141,7 +143,7 @@ export function InsumosEnfermeriaPanel({ onUtilizar, silenciarAlmacenNoAsignado 
     <section className="em-panel em-insumos-enfermeria" aria-labelledby="em-insumos-enfermeria-titulo">
       <header className="em-panel-titulo">
         <div>
-          <h3 id="em-insumos-enfermeria-titulo">Insumos de enfermería</h3>
+          <h3 id="em-insumos-enfermeria-titulo">{titulo}</h3>
         </div>
       </header>
       <div className="em-insumos-enfermeria-herramientas">

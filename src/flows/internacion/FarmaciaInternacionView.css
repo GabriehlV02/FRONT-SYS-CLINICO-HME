@@ -714,3 +714,35 @@
 .fd-formulario :is(input, select, textarea) { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c6ddec; border-radius: 8px; background: #fff; color: #193f5e; font: inherit; }
 .fd-formulario textarea { min-height: 100px; resize: vertical; }
 .fi-tabla td small { display: block; margin-top: 5px; }
+.farmacia-internacion-vista > .fi-volver-pacientes {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 9px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid #bddded;
+  border-radius: 10px;
+  color: #096c9e;
+  background: #fff;
+  box-shadow: 0 2px 6px rgb(6 71 115 / 5%);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s, border-color .18s, box-shadow .18s;
+}
+.farmacia-internacion-vista > .fi-volver-pacientes:hover {
+  background: #eaf7fd;
+  border-color: #78bedf;
+  box-shadow: 0 3px 10px rgb(6 71 115 / 10%);
+}
+.farmacia-internacion-vista > .fi-volver-pacientes:focus-visible {
+  outline: 3px solid #0796c6;
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .farmacia-internacion-vista > .fi-volver-pacientes { transition: none; }
+}
+.fi-codigo-descargo { display: block; max-width: 280px; overflow-wrap: anywhere; }
+.fi-estado.anulado { color: #a12e3d; background: #ffedf0; border: 1px solid #f3c3cd; }

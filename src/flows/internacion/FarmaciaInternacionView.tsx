@@ -14,6 +14,8 @@ import {
 } from "./registroInternaciones";
 import {
   leerDescargos,
+  codigoDescargo,
+  anularDescargo,
   registrarRecepcionDescargo,
   suscribirDescargos,
 } from "./registroDescargos";
@@ -22,9 +24,11 @@ import { PacientesDescargosView } from "./PacientesDescargosView";
 import { DevolucionesFarmaciaView } from "./DevolucionesFarmaciaView";
 
 type Subvista = "pacientes" | "historial" | "devoluciones" | "historialDevoluciones";
-type EstadoFiltro = "todos" | "pendientes" | "recibidos";
+type EstadoFiltro = "todos" | "pendientes" | "recibidos" | "anulados";
+const etiquetaEstado = (estado: SolicitudDescargo["estado"]) => estado === "pendiente" ? "En solicitud" : estado === "recibido" ? "Descargado" : "Anulado";
 type SolicitudDescargo = {
   id: string;
+  codigo: string;
   paciente: string;
   ci: string;
   medico: string;
@@ -37,7 +41,7 @@ type SolicitudDescargo = {
     cantidad: string;
     via: string;
   }[];
-  estado: "pendiente" | "recibido";
+  estado: "pendiente" | "recibido" | "anulado";
   recibidoPor?: string;
   recibidoEn?: string;
 };
@@ -107,7 +111,7 @@ export function FarmaciaInternacionView({ enfermera }: { enfermera: string }) {
     <section className="farmacia-internacion-vista">
       {navegacion}
       {subvista === "pacientes" && (pacienteCi
-        ? <><button className="fi-secundario" onClick={() => setPacienteCi(null)}>Volver a pacientes</button><VistaDescargos enfermera={enfermera} pacienteCi={pacienteCi} /></>
+        ? <><button type="button" className="fi-volver-pacientes" onClick={() => setPacienteCi(null)}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7M5 12h14" /></svg>Volver a pacientes</button><VistaDescargos enfermera={enfermera} pacienteCi={pacienteCi} /></>
         : <PacientesDescargosView abrir={setPacienteCi} />)}
       {subvista === "historial" && <VistaDescargos enfermera={enfermera} historial />}
       {subvista === "devoluciones" && <DevolucionesFarmaciaView responsable={enfermera} />}
@@ -129,7 +133,8 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
     leerDescargos,
   );
   const [busqueda, setBusqueda] = useState("");
-  const [filtro, setFiltro] = useState<EstadoFiltro>(historial ? "recibidos" : "pendientes");
+  const [filtro, setFiltro] = useState<EstadoFiltro>("todos");
+  const [errorAccion, setErrorAccion] = useState("");
   const [seleccionada, setSeleccionada] = useState<SolicitudDescargo | null>(
     null,
   );
@@ -159,10 +164,11 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
           const fechaSolicitud = fechaParaEditar(fecha);
           if (!historial && fechaIngreso && (!fechaSolicitud || fechaSolicitud < fechaIngreso)) return [];
           const estado = estados[id];
-          if (historial && estado?.estado !== "recibido") return [];
+          if (historial && estado?.estado !== "recibido" && estado?.estado !== "anulado") return [];
           return [
             {
               id,
+              codigo: codigoDescargo(id),
               paciente: episodio.paciente.paciente,
               ci: episodio.paciente.ci,
               medico: receta.medico || episodio.medico,
@@ -189,19 +195,29 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
       filtro === "todos" ||
       (filtro === "pendientes"
         ? solicitud.estado === "pendiente"
-        : solicitud.estado === "recibido");
+        : filtro === "recibidos" ? solicitud.estado === "recibido" : solicitud.estado === "anulado");
     const termino = textoNormalizado(busqueda.trim());
     const coincideBusqueda =
       !termino ||
       textoNormalizado(
-        `${solicitud.paciente} ${solicitud.ci} ${solicitud.medico} ${solicitud.medicamentos.map((item) => item.nombre).join(" ")}`,
+        `${solicitud.codigo} ${solicitud.paciente} ${solicitud.ci} ${solicitud.medico} ${solicitud.medicamentos.map((item) => item.nombre).join(" ")}`,
       ).includes(termino);
     return coincideEstado && coincideBusqueda;
   });
   const pendientes = solicitudes.filter(
     (item) => item.estado === "pendiente",
   ).length;
-  const recibidas = solicitudes.length - pendientes;
+  const recibidas = solicitudes.filter((item) => item.estado === "recibido").length;
+  const anuladas = solicitudes.filter((item) => item.estado === "anulado").length;
+  function cambiarEstado(solicitud: SolicitudDescargo, estado: "recibido" | "anulado") {
+    if (!window.confirm(`${estado === "recibido" ? "Confirmar la descarga de" : "Anular"} ${solicitud.codigo}?`)) return;
+    try {
+      setErrorAccion("");
+      if (estado === "recibido") registrarRecepcionDescargo(solicitud.id, enfermera);
+      else anularDescargo(solicitud.id, enfermera);
+      setSeleccionada(null);
+    } catch (error) { setErrorAccion(error instanceof Error ? error.message : "No se pudo actualizar el descargo."); }
+  }
 
   return (
     <section className="fi-panel" aria-label="Solicitudes de dispensación">
@@ -210,16 +226,17 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
           <p>FARMACIA · DESCARGOS</p>
           <h2>{historial ? "Historial de descargos" : "Descargos del paciente"}</h2>
           <small>
-            {historial ? "Medicamentos e insumos recibidos, incluidos los pacientes que ya egresaron." : "Solicitudes de medicamentos e insumos del paciente seleccionado."}
+            {historial ? "Registro de descargos realizados y solicitudes anuladas." : `${solicitudes[0]?.paciente || "Paciente"} · CI ${pacienteCi || ""}`}
           </small>
         </div>
         <div className="fi-resumen">
           <span>
-            <strong>{pendientes}</strong> pendientes
+            <strong>{pendientes}</strong> en solicitud
           </span>
           <span>
-            <strong>{recibidas}</strong> recibidas
+            <strong>{recibidas}</strong> descargados
           </span>
+          <span><strong>{anuladas}</strong> anulados</span>
         </div>
       </header>
       <div className="fi-controles">
@@ -228,20 +245,21 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
           <input
             value={busqueda}
             onChange={(event) => setBusqueda(event.target.value)}
-            placeholder="Buscar paciente, CI, médico o producto"
+            placeholder="Buscar código de descargo, médico o producto"
             aria-label="Buscar solicitudes"
           />
         </label>
-        {!historial && <div
+        <div
           className="fi-filtros"
           role="group"
           aria-label="Filtrar solicitudes"
         >
           {(
             [
-              ["pendientes", "Pendientes"],
-              ["recibidos", "Recibidas"],
-              ["todos", "Todas"],
+              ["todos", "Todos"],
+              ["pendientes", "En solicitud"],
+              ["recibidos", "Descargados"],
+              ["anulados", "Anulados"],
             ] as const
           ).map(([id, texto]) => (
             <button
@@ -254,79 +272,29 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
               {texto}
             </button>
           ))}
-        </div>}
+        </div>
       </div>
+      {errorAccion && <p className="fd-aviso" role="alert">{errorAccion}</p>}
       {visibles.length ? (
-        <div className="fi-lista-descargos">
-          {visibles.map((solicitud) => (
-            <article className="fi-descargo" key={solicitud.id}>
-              <div className="fi-descargo-principal">
-                <div className="fi-descargo-paciente">
-                  <span className="fi-icono">
-                    <Icon name="patient" size={18} />
-                  </span>
-                  <div>
-                    <strong>{solicitud.paciente}</strong>
-                    <small>
-                      CI {solicitud.ci} · Dr. {solicitud.medico}
-                    </small>
-                    <small>Solicitud · {fechaVisible(solicitud.fecha)}</small>
-                  </div>
-                </div>
-                <span className={`fi-estado ${solicitud.estado}`}>
-                  {solicitud.estado === "pendiente" ? "Pendiente" : "Recibida"}
-                </span>
-              </div>
-              <div className="fi-productos">
-                {solicitud.medicamentos.map((medicamento) => (
-                  <div key={medicamento.id}>
-                    <strong>
-                      {medicamento.nombre || "Producto sin nombre"}
-                    </strong>
-                    <small>
-                      {[
-                        medicamento.dosis,
-                        medicamento.via,
-                        medicamento.frecuencia,
-                        medicamento.cantidad &&
-                          `Cantidad: ${medicamento.cantidad}`,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ") || "Sin indicaciones adicionales"}
-                    </small>
-                  </div>
-                ))}
-              </div>
-              {solicitud.estado === "recibido" && (
-                <small className="fi-recibido-info">
-                  Recibido por {solicitud.recibidoPor || "Enfermería"}
-                  {solicitud.recibidoEn
-                    ? ` · ${new Date(solicitud.recibidoEn).toLocaleString("es-BO")}`
-                    : ""}
-                </small>
-              )}
-              <div className="fi-acciones">
-                <button
-                  type="button"
-                  className="fi-secundario"
-                  onClick={() => setSeleccionada(solicitud)}
-                >
-                  <Icon name="eye" size={15} /> Ver solicitud
-                </button>
-                {solicitud.estado === "pendiente" && (
-                  <button
-                    type="button"
-                    className="fi-primario"
-                    onClick={() =>
-                      registrarRecepcionDescargo(solicitud.id, enfermera)
-                    }
-                  >
-                    <Icon name="check" size={15} /> Registrar recepción
-                  </button>
-                )}
-              </div>
-            </article>
-          ))}
+        <div className="fi-tabla-wrap">
+          <table className="fi-tabla">
+            <thead><tr><th>Código de descargo</th><th>Fecha de solicitud</th>{historial && <th>Paciente</th>}<th>Solicitante</th><th>Productos</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody>{visibles.map((solicitud) => <tr key={solicitud.id}>
+              <td><strong className="fi-codigo-descargo">{solicitud.codigo}</strong></td>
+              <td>{fechaVisible(solicitud.fecha)}</td>
+              {historial && <td>{solicitud.paciente}<small>CI {solicitud.ci}</small></td>}
+              <td>{solicitud.medico || "Sin registrar"}</td>
+              <td>{solicitud.medicamentos.length} productos</td>
+              <td><span className={`fi-estado ${solicitud.estado}`}>{etiquetaEstado(solicitud.estado)}</span></td>
+              <td><div className="fi-acciones-tabla">
+                <button type="button" onClick={() => setSeleccionada(solicitud)}><Icon name="eye" size={15} /> Ver detalle</button>
+                {solicitud.estado === "pendiente" && <>
+                  <button type="button" onClick={() => cambiarEstado(solicitud, "recibido")}>Descargar</button>
+                  <button type="button" onClick={() => cambiarEstado(solicitud, "anulado")}>Anular</button>
+                </>}
+              </div></td>
+            </tr>)}</tbody>
+          </table>
         </div>
       ) : (
         <div className="fi-vacio">
@@ -345,7 +313,7 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
           <small>
             {busqueda
               ? "Prueba con otro paciente, CI, médico o producto."
-              : "Las recetas médicas de pacientes internados aparecerán aquí para su entrega por enfermería."}
+              : "Cada solicitud del paciente aparecerá aquí con su código y estado."}
           </small>
         </div>
       )}
@@ -365,7 +333,7 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
           >
             <header>
               <div>
-                <p>DETALLE DE SOLICITUD</p>
+                <p>{seleccionada.codigo}</p>
                 <h3 id="fi-detalle-titulo">{seleccionada.paciente}</h3>
                 <small>
                   CI {seleccionada.ci} · Médico {seleccionada.medico}
@@ -387,9 +355,7 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
               <div>
                 <dt>Estado</dt>
                 <dd>
-                  {seleccionada.estado === "pendiente"
-                    ? "Pendiente de recepción"
-                    : "Recibida"}
+                  {etiquetaEstado(seleccionada.estado)}
                 </dd>
               </div>
             </dl>
@@ -424,11 +390,10 @@ function VistaDescargos({ enfermera, historial = false, pacienteCi }: { enfermer
                   type="button"
                   className="fi-primario"
                   onClick={() => {
-                    registrarRecepcionDescargo(seleccionada.id, enfermera);
-                    setSeleccionada(null);
+                    cambiarEstado(seleccionada, "recibido");
                   }}
                 >
-                  Confirmar recepción
+                  Confirmar descargo
                 </button>
               )}
             </footer>

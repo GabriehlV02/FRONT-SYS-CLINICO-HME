@@ -1,5 +1,8 @@
 export type EstadoDescargo = {
-  estado: "pendiente" | "recibido";
+  estado: "pendiente" | "recibido" | "anulado";
+  codigo?: string;
+  anuladoPor?: string;
+  anuladoEn?: string;
   recibidoPor?: string;
   recibidoEn?: string;
 };
@@ -31,16 +34,34 @@ export function leerDescargos(): Descargos {
 }
 
 export function registrarRecepcionDescargo(id: string, recibidoPor: string) {
+  if (leerDescargos()[id]?.estado === "anulado") throw new Error("No se puede descargar una solicitud anulada.");
+  if (leerDescargos()[id]?.estado === "recibido") return;
   const descargos = {
     ...leerDescargos(),
     [id]: {
       estado: "recibido" as const,
+      codigo: codigoDescargo(id),
       recibidoPor,
       recibidoEn: new Date().toISOString(),
     },
   };
-  cache = descargos;
   window.localStorage.setItem(clave, JSON.stringify(descargos));
+  cache = descargos;
+  window.dispatchEvent(new Event(evento));
+}
+
+export function codigoDescargo(id: string): string {
+  return leerDescargos()[id]?.codigo || `DESC-${encodeURIComponent(id)}`;
+}
+
+export function anularDescargo(id: string, responsable: string) {
+  if (leerDescargos()[id]?.estado === "recibido") throw new Error("Un descargo realizado debe gestionarse mediante devoluciones.");
+  if (leerDescargos()[id]?.estado === "anulado") return;
+  const descargos: Descargos = { ...leerDescargos(), [id]: {
+    estado: "anulado", codigo: codigoDescargo(id), anuladoPor: responsable, anuladoEn: new Date().toISOString(),
+  } };
+  window.localStorage.setItem(clave, JSON.stringify(descargos));
+  cache = descargos;
   window.dispatchEvent(new Event(evento));
 }
 

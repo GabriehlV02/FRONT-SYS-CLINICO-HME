@@ -1,0 +1,124 @@
+.em-balance-emergencias .em-balance-tabla-dias { display:grid; gap:12px; }
+.em-balance-emergencias .em-balance-dia {
+  min-width:0;
+  overflow:hidden;
+  border:1px solid #d5e4ed;
+  border-radius:10px;
+  background:#fff;
+}
+
+/* Enfermería registra primero el movimiento y consulta la evolución debajo. */
+.em-balance-emergencias .em-balance-emergencias-cuerpo {
+  grid-template-columns:minmax(0,1fr);
+}
+.em-balance-emergencias .em-balance-emergencias-cuerpo > .em-balance-emergencias-form {
+  grid-column:1;
+  grid-row:1;
+  width:100%;
+  max-width:none;
+  justify-self:stretch;
+}
+.em-balance-emergencias .em-balance-emergencias-visualizacion {
+  grid-column:1;
+  grid-row:2;
+}
+.em-balance-emergencias .em-balance-dia > header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:11px 14px;
+  border-bottom:1px solid #dce8f0;
+  background:#f3f8fb;
+}
+.em-balance-emergencias .em-balance-dia > header h5 {
+  margin:0;
+  color:#244f6d;
+  font-size:12px;
+  font-weight:800;
+  text-transform:capitalize;
+}
+.em-balance-emergencias .em-balance-dia > header span { color:#71899c; font-size:10px; font-weight:650; }
+.em-balance-emergencias .em-balance-dia-tabla-scroll { max-width:100%; overflow:auto; }
+.em-balance-emergencias .em-balance-tabla-horaria {
+  width:100%;
+  min-width:1120px;
+  border-collapse:separate;
+  border-spacing:0;
+  table-layout:fixed;
+  color:#315875;
+  font-size:10px;
+}
+.em-balance-emergencias .em-balance-tabla-horaria th,
+.em-balance-emergencias .em-balance-tabla-horaria td {
+  padding:7px 6px;
+  border-right:1px solid #d7e5ee;
+  border-bottom:1px solid #e1ebf1;
+  text-align:center;
+  vertical-align:middle;
+}
+.em-balance-emergencias .em-balance-tabla-horaria tr > :last-child { border-right:0; }
+.em-balance-emergencias .em-balance-tabla-horaria thead tr:first-child th {
+  padding:8px 6px;
+  color:#fff;
+  background:#244f6d;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.em-balance-emergencias .em-balance-tabla-horaria thead tr:first-child th:first-child {
+  position:sticky;
+  left:0;
+  z-index:3;
+  width:62px;
+}
+.em-balance-emergencias .em-balance-tabla-horaria thead tr:nth-child(2) th {
+  position:sticky;
+  top:0;
+  z-index:2;
+  color:#315875;
+  background:#eaf3f8;
+  font-size:9px;
+  font-weight:800;
+  line-height:1.3;
+  white-space:normal;
+}
+.em-balance-emergencias .em-balance-tabla-horaria tbody th.em-balance-hora {
+  position:sticky;
+  left:0;
+  z-index:1;
+  width:62px;
+  color:#244f6d;
+  background:#f2f8fb;
+  font-variant-numeric:tabular-nums;
+}
+.em-balance-emergencias .em-balance-tabla-horaria tbody td { background:#fff; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody tr:nth-child(even):not(.em-balance-subtotal-6h) td { background:#f7fafc; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody tr:hover:not(.em-balance-subtotal-6h) td { background:#edf6fa; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody td > span:not(.em-balance-celda-vacia) { color:#174e70; font-weight:750; white-space:nowrap; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody td .em-balance-celda-vacia { color:#a1b1bc; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody td.em-balance-total-hora { background:#f0f6fa; font-weight:850; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody td.em-balance-total-hora.ingreso { color:#16805e; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody td.em-balance-total-hora.egreso { color:#b95758; }
+.em-balance-emergencias .em-balance-tabla-horaria tbody tr.em-balance-subtotal-6h th,
+.em-balance-emergencias .em-balance-tabla-horaria tbody tr.em-balance-subtotal-6h td {
+  color:#244f6d;
+  background:#e6f0f6;
+  font-weight:850;
+}
+.em-balance-emergencias .em-balance-tabla-horaria tbody tr.em-balance-subtotal-6h th {
+  position:sticky;
+  left:0;
+  z-index:1;
+  white-space:nowrap;
+}
+.em-balance-emergencias .em-balance-tabla-horaria tbody tr:last-child th,
+.em-balance-emergencias .em-balance-tabla-horaria tbody tr:last-child td { border-bottom:0; }
+.em-balance-emergencias .em-balance-emergencias-visualizacion { min-width: 0; }
+.em-balance-emergencias .em-balance-emergencias-vistas { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.em-balance-emergencias .em-balance-emergencias-vistas h4 { margin: 0; }
+.em-balance-emergencias .em-balance-emergencias-vistas > div { display: flex; gap: 4px; padding: 3px; border: 1px solid #cfe1ec; border-radius: 9px; background: #f3f8fb; }
+.em-balance-emergencias .em-balance-emergencias-vistas button { min-height: 36px; padding: 7px 14px; border: 0; border-radius: 6px; background: transparent; color: #315875; font: inherit; cursor: pointer; }
+.em-balance-emergencias .em-balance-emergencias-vistas button.activo { background: #087fb8; color: #fff; }
+.em-balance-emergencias .em-balance-emergencias-vistas button:focus-visible { outline: 2px solid #087fb8; outline-offset: 2px; }

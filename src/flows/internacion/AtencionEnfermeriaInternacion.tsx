@@ -1,4 +1,5 @@
 import { controlEstatura } from "./controlEstatura";
+import { TablaBalanceDiario } from "../emergencias/TablaBalanceDiario";
 import { useDiasInternacion } from "./diasInternacion";
 import { FormularioSignosVitales } from "../emergencias/FormularioSignosVitales";
 import { TablaEvolucionSignos } from "../emergencias/TablaEvolucionSignos";
@@ -59,6 +60,7 @@ export function AtencionEnfermeriaInternacion({
   };
 
   const [seccionPaciente, setSeccionPaciente] = useState<"ingreso" | "atencion" | "reportes">("ingreso");
+  const [vistaBalance, setVistaBalance] = useState<"tabla" | "grafica">("tabla");
   const [evoluciones, setEvoluciones] = useState<EvolucionEnfermeriaInternacion[]>(() => leerEvolucionesEnfermeriaInternacion(paciente.id));
   const [textoEvolucion, setTextoEvolucion] = useState("");
   const [fechaHoraEvolucion, setFechaHoraEvolucion] = useState(fechaHoraActual);
@@ -72,7 +74,7 @@ export function AtencionEnfermeriaInternacion({
   const [fechaHoraSignos, setFechaHoraSignos] = useState(fechaHoraActual);
   const [observacionSignos, setObservacionSignos] = useState("");
   const [balance, setBalance] = useState<RegistroBalanceInternacion[]>(() => leerBalanceInternacion(paciente.id));
-  const [formBalance, setFormBalance] = useState({ tipo: "ingreso" as "ingreso" | "egreso", volumen: "", detalle: "", anotacion: "", ...fechaHoraActual() });
+  const [formBalance, setFormBalance] = useState({ tipo: "ingreso" as "ingreso" | "egreso", volumen: "", detalle: "", detalleOtro: "", anotacion: "", ...fechaHoraActual() });
   const [errorBalance, setErrorBalance] = useState("");
   const [solicitudesLaboratorio, setSolicitudesLaboratorio] = useState<
     SolicitudLaboratorio[]
@@ -205,17 +207,21 @@ export function AtencionEnfermeriaInternacion({
 
   function registrarBalance(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
+    if (!formBalance.detalle || ((formBalance.detalle === "Otros" || formBalance.detalle === "Otros drenajes") && !formBalance.detalleOtro.trim())) {
+      setErrorBalance("Selecciona el detalle y especifica el tipo de líquido cuando corresponda.");
+      return;
+    }
     try {
       guardarRegistroBalanceInternacion(paciente.id, {
         tipo: formBalance.tipo,
         volumen: Number(formBalance.volumen),
-        detalle: formBalance.detalle.trim(),
+        detalle: formBalance.detalle + ((formBalance.detalle === "Otros" || formBalance.detalle === "Otros drenajes") ? `: ${formBalance.detalleOtro.trim()}` : ""),
         anotacion: formBalance.anotacion.trim(),
         fecha: formBalance.fecha,
         hora: formBalance.hora,
       });
       setBalance(leerBalanceInternacion(paciente.id));
-      setFormBalance((actual) => ({ ...actual, volumen: "", detalle: "", anotacion: "", ...fechaHoraActual() }));
+      setFormBalance((actual) => ({ ...actual, volumen: "", detalle: "", detalleOtro: "", anotacion: "", ...fechaHoraActual() }));
       setErrorBalance("");
     } catch (error) {
       setErrorBalance((error as Error).message || "No se pudo guardar el balance hídrico.");
@@ -288,6 +294,17 @@ export function AtencionEnfermeriaInternacion({
                       </div>
                       <div className="em-balance-emergencias-cuerpo">
                       <div className="em-balance-emergencias-visualizacion">
+                      <div className="em-balance-emergencias-vistas">
+                        <h4>Ingresos y egresos</h4>
+                        <div role="group" aria-label="Vista del balance hídrico">
+                          <button type="button" className={vistaBalance === "tabla" ? "activo" : ""} aria-pressed={vistaBalance === "tabla"} onClick={() => setVistaBalance("tabla")}>Tabla</button>
+                          <button type="button" className={vistaBalance === "grafica" ? "activo" : ""} aria-pressed={vistaBalance === "grafica"} onClick={() => setVistaBalance("grafica")}>Gráfica</button>
+                        </div>
+                      </div>
+                      {vistaBalance === "tabla" ? <div className="em-balance-tabla-dias">
+                        {[...new Set(balance.map((registro) => registro.fecha))].sort().map((fecha) => <TablaBalanceDiario key={fecha} fecha={fecha} registros={balance.filter((registro) => registro.fecha === fecha)} />)}
+                        {!balance.length && <p className="em-balance-tabla-vacia">Aún no hay ingresos ni egresos registrados.</p>}
+                      </div> : <>
                       <section className="em-balance-emergencias-grafica" aria-label="Gráfica de ingresos y egresos">
                         <h4>Ingresos y egresos por movimiento</h4>
                         {puntosBalance.length ? (() => {
@@ -317,17 +334,24 @@ export function AtencionEnfermeriaInternacion({
                           <time>{new Date(`${registro.fecha}T12:00:00`).toLocaleDateString("es-BO")} · {registro.hora}</time>
                         </li>)}
                       </ol>}
+                      </>}
                       </div>
                       {<form className="em-balance-emergencias-form" onSubmit={registrarBalance}>
                         <fieldset className="em-balance-tipo-switch">
                           <legend>Tipo de registro</legend>
                           <div className="em-balance-tipo-pista" role="group" aria-label="Tipo de movimiento">
-                            <button type="button" className={formBalance.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalance.tipo === "ingreso"} onClick={() => setFormBalance((actual) => ({ ...actual, tipo: "ingreso" }))}><span aria-hidden="true">＋</span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
-                            <button type="button" className={formBalance.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalance.tipo === "egreso"} onClick={() => setFormBalance((actual) => ({ ...actual, tipo: "egreso" }))}><span aria-hidden="true">−</span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
+                            <button type="button" className={formBalance.tipo === "ingreso" ? "activo ingreso" : "ingreso"} aria-pressed={formBalance.tipo === "ingreso"} onClick={() => setFormBalance((actual) => ({ ...actual, tipo: "ingreso", detalle: "", detalleOtro: "" }))}><span aria-hidden="true">＋</span><span><strong>Ingreso</strong><small>Entra líquido</small></span></button>
+                            <button type="button" className={formBalance.tipo === "egreso" ? "activo egreso" : "egreso"} aria-pressed={formBalance.tipo === "egreso"} onClick={() => setFormBalance((actual) => ({ ...actual, tipo: "egreso", detalle: "", detalleOtro: "" }))}><span aria-hidden="true">−</span><span><strong>Egreso</strong><small>Sale líquido</small></span></button>
                           </div>
                         </fieldset>
                         <label>Volumen (ml)<input type="number" min="1" step="1" placeholder="Ej. 250" value={formBalance.volumen} onChange={(evento) => setFormBalance((actual) => ({ ...actual, volumen: evento.target.value }))} required /></label>
-                        <label className="em-balance-emergencias-detalle">Detalle<input maxLength={180} placeholder={formBalance.tipo === "ingreso" ? "Ej. Solución intravenosa, agua" : "Ej. Diuresis, drenaje"} value={formBalance.detalle} onChange={(evento) => setFormBalance((actual) => ({ ...actual, detalle: evento.target.value }))} required /></label>
+                        <label className="em-balance-emergencias-detalle">Detalle
+                          <select value={formBalance.detalle} onChange={(evento) => setFormBalance((actual) => ({ ...actual, detalle: evento.target.value, detalleOtro: "" }))} required>
+                            <option value="">Selecciona una opción</option>
+                            {(formBalance.tipo === "ingreso" ? ["Suero", "Sangre", "Plasma", "Vía oral", "Otros"] : ["Orina", "Vómito", "Deposición líquida", "Otros drenajes"]).map((opcion) => <option key={opcion} value={opcion}>{opcion}</option>)}
+                          </select>
+                          {(formBalance.detalle === "Otros" || formBalance.detalle === "Otros drenajes") && <input maxLength={150} placeholder="Especifica el detalle" value={formBalance.detalleOtro} onChange={(evento) => setFormBalance((actual) => ({ ...actual, detalleOtro: evento.target.value }))} required />}
+                        </label>
                         <label className="em-balance-emergencias-anotacion">Anotación clínica<textarea maxLength={1000} rows={2} placeholder="Observación de enfermería relacionada con este registro" value={formBalance.anotacion} onChange={(evento) => setFormBalance((actual) => ({ ...actual, anotacion: evento.target.value }))} /></label>
                         <div className="em-balance-fecha-hora">
                           <label>Fecha<input type="date" value={formBalance.fecha} onChange={(evento) => setFormBalance((actual) => ({ ...actual, fecha: evento.target.value }))} required /></label>

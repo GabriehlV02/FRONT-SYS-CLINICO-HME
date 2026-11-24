@@ -29,7 +29,6 @@ export function PacientesDescargosView({ abrir }: { abrir: (ci: string) => void 
   ];
   const visibles = pacientes.filter((item) => (area === "Todas" || item.area === area) && `${item.nombre} ${item.ci} ${item.ubicacion}`.toLocaleLowerCase().includes(busqueda.trim().toLocaleLowerCase()));
   return <section className="fi-panel">
-    <header className="fi-encabezado"><div><p>FARMACIA · ATENCIÓN HOSPITALARIA</p><h2>Pacientes</h2><small>Pacientes activos de Emergencias, Internación y Terapia Intensiva.</small></div><span className="fi-total">{pacientes.length} pacientes</span></header>
     <div className="fi-controles"><label className="fi-buscador"><input aria-label="Buscar pacientes" placeholder="Buscar paciente, CI o ubicación" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></label><div className="fi-filtros">{["Todas", "Emergencias", "Internación", "Terapia intensiva"].map((valor) => <button key={valor} className={area === valor ? "activo" : ""} aria-pressed={area === valor} onClick={() => setArea(valor)}>{valor}</button>)}<button onClick={() => setRevision((valor) => valor + 1)} disabled={cargando}>Actualizar</button></div></div>
     {error && <p role="alert" className="fd-aviso">{error}</p>}
     {cargando && <p role="status" className="fd-aviso">Cargando pacientes de Emergencias…</p>}

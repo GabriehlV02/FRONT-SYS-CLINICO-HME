@@ -293,7 +293,7 @@ export function ConsultaMedicaView({
     setAntecedentesEstructurados(antecedentesConsultaVacios);
     setMensajeAntecedentes("");
     setMensajeOrdenes(""); setErrorOrdenes("");
-    apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion`, { signal: controller.signal })
+    apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/atencion/iniciar`, { method: 'POST', signal: controller.signal })
       .then(async (respuesta) => {
         if (!respuesta.ok) throw new Error("No se pudo cargar la atención desde el servidor.");
         const resultado = await respuesta.json() as { data: AtencionGuardada | null };

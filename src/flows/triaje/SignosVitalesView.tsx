@@ -23,6 +23,7 @@ type PacienteEnEspera = {
   especialidad: string;
   motivoConsulta?: string;
   signosRegistrados?: boolean;
+  atencionIniciadaEn?: string | null;
 };
 type PacienteAtendido = PacienteEnEspera & {
   valores: Record<string, string>;
@@ -36,6 +37,47 @@ const colaInicial: PacienteEnEspera[] = obtenerCitasAgendaDemo().map((cita) => (
   edad: cita.edad,
 }));
 const atendidosIniciales: PacienteAtendido[] = [];
+
+function AtendidoDesplegable({ paciente, indice, campos, editar }: {
+  paciente: PacienteAtendido;
+  indice: number;
+  campos: { id: string; etiqueta: string; unidad: string }[];
+  editar: (paciente: PacienteAtendido) => Promise<void>;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const [datos, setDatos] = useState<Record<string, string> | null>(null);
+  const [error, setError] = useState("");
+  const [intento, setIntento] = useState(0);
+  const [bloqueada, setBloqueada] = useState(Boolean(paciente.atencionIniciadaEn));
+  useEffect(() => {
+    if (!abierto) return;
+    const controller = new AbortController();
+    setDatos(null);
+    setError("");
+    apiFetch(`/api/v1/citas/${encodeURIComponent(paciente.id)}/signos-vitales`, { signal: controller.signal })
+      .then(async (respuesta) => {
+        if (!respuesta.ok) throw new Error("No se pudieron cargar los signos vitales.");
+        const resultado = await respuesta.json();
+        if (!controller.signal.aborted) {
+          setDatos(resultado.data?.valores ?? {});
+          setBloqueada(Boolean(resultado.bloqueadaEnfermeria));
+        }
+      })
+      .catch((causa) => { if (!controller.signal.aborted) setError(causa instanceof Error ? causa.message : "No se pudieron cargar los signos vitales."); });
+    return () => controller.abort();
+  }, [abierto, paciente.id, paciente.atencionIniciadaEn, intento]);
+  return <details className="atendido-desplegable" onToggle={(evento) => setAbierto(evento.currentTarget.open)}>
+    <summary><span className="atendido-numero">{indice + 1}</span><strong>{paciente.paciente}</strong><span className="atendido-desplegar" aria-hidden="true">⌄</span></summary>
+    {abierto && <div className="atendido-detalle">
+      <div className="atendido-consulta"><span>Consulta <b>{paciente.hora}</b></span><span>{paciente.doctor}</span></div>
+      {bloqueada || paciente.atencionIniciadaEn ? <p className="atendido-solo-lectura" role="status">Consulta médica iniciada · Signos vitales de solo lectura para enfermería.</p> : <button className="atendido-editar" type="button" disabled={datos === null || Boolean(error)} onClick={() => void editar(paciente)} aria-label={`Editar signos vitales de ${paciente.paciente}`}><Icon name="edit" size={16} /> Editar signos vitales</button>}
+      {error ? <div className="atendido-error" role="alert"><p>{error}</p><button type="button" onClick={() => setIntento((actual) => actual + 1)}>Reintentar</button></div> : datos === null ? <p role="status">Cargando signos vitales…</p> : <dl className="atendido-mediciones">
+        {campos.map((campo) => <div key={campo.id}><dt>{campo.etiqueta}</dt><dd>{datos[campo.id]?.trim() ? `${datos[campo.id]}${campo.unidad ? ` ${campo.unidad}` : ""}` : "Sin registro"}</dd></div>)}
+        {!campos.length && <div><dt>Mediciones</dt><dd>No hay campos configurados.</dd></div>}
+      </dl>}
+    </div>}
+  </details>;
+}
 
 function leerListaDemo<T>(clave: string, inicial: T[]): T[] {
   try {
@@ -196,6 +238,10 @@ export function SignosVitalesView({
   const guardar = async (evento: React.FormEvent) => {
     evento.preventDefault();
     if (!pacienteSeleccionado) return;
+    if (atendidos.some((item) => item.id === pacienteSeleccionado.id && item.atencionIniciadaEn)) {
+      setErrorRegistro("El médico ya inició la consulta. Enfermería solo puede consultar los signos vitales.");
+      return;
+    }
     const datos = Object.fromEntries(
       camposVitales
         .map((campo) => [campo.id, (valores[campo.id] || "").trim()])
@@ -268,6 +314,7 @@ export function SignosVitalesView({
       );
       if (!respuesta.ok) throw new Error("No se pudo cargar la valoración.");
       const resultado = await respuesta.json();
+      if (resultado.bloqueadaEnfermeria) throw new Error("El médico ya inició la consulta. Enfermería solo puede consultar los signos vitales.");
       setValores(resultado.data?.valores ?? {});
       setMotivoConsulta(paciente.motivoConsulta || "");
       setVersionValoracion(resultado.data?.id ?? null);
@@ -636,8 +683,8 @@ export function SignosVitalesView({
           <div className="signos-atendidos-contenido">
             <header>
               <div>
-                <p>SIGNOS REGISTRADOS</p>
-                <strong>Signos vitales registrados</strong>
+                <p>ENFERMERÍA</p>
+                <strong>Signos registrados</strong>
               </div>
               <b>{atendidos.length}</b>
             </header>
@@ -652,31 +699,8 @@ export function SignosVitalesView({
             </label>
             {atendidosVisibles.length ? (
               <div className="cola-historial">
-                {atendidosVisibles.map((paciente) => (
-                  <article key={paciente.id}>
-                    <span>
-                      {paciente.paciente
-                        .split(" ")
-                        .map((parte) => parte[0])
-                        .slice(0, 2)
-                        .join("")}
-                    </span>
-                    <div>
-                      <strong>{paciente.paciente}</strong>
-                      <small>
-                        Consulta {paciente.hora} · Registrado{" "}
-                        {paciente.registrado}
-                      </small>
-                      <small>{paciente.doctor}</small>
-                    </div>
-                    <button
-                      type="button"
-                      aria-label={`Editar signos vitales de ${paciente.paciente}`}
-                      onClick={() => void editar(paciente)}
-                    >
-                      <Icon name="edit" size={15} />
-                    </button>
-                  </article>
+                {atendidosVisibles.map((paciente, indice) => (
+                  <AtendidoDesplegable key={paciente.id} paciente={paciente} indice={indice} campos={camposVitales} editar={editar} />
                 ))}
               </div>
             ) : (

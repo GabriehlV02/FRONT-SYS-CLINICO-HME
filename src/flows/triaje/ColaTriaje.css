@@ -399,3 +399,66 @@
   color: #587b96;
   white-space: nowrap;
 }
+
+/* Fichas desplegables de pacientes con signos registrados. */
+.signos-atendidos .atendido-desplegable { margin:0 0 9px; border:1px solid #efc9a7; border-radius:10px; background:#fff; overflow:hidden; }
+.signos-atendidos .atendido-desplegable > summary { display:grid; grid-template-columns:26px minmax(0,1fr) 18px; align-items:center; gap:9px; min-height:54px; padding:11px 12px; cursor:pointer; list-style:none; color:#663c1f; }
+.signos-atendidos .atendido-desplegable > summary::-webkit-details-marker { display:none; }
+.signos-atendidos .atendido-desplegable summary strong { font-size:12px; line-height:1.5; overflow-wrap:anywhere; }
+.atendido-numero { display:grid; place-items:center; width:26px; height:26px; border-radius:8px; background:#fff0df; color:#ae500c; font-size:12px; font-weight:800; }
+.atendido-desplegar { font-size:20px; text-align:center; transition:transform .18s; }
+.atendido-desplegable[open] .atendido-desplegar { transform:rotate(180deg); }
+.signos-atendidos .atendido-desplegable[open] > summary { border-bottom:1px solid #f0d6bd; background:#fff4e8; }
+.atendido-detalle { padding:12px; }
+.signos-atendidos .atendido-consulta { margin:0 0 12px; color:#87654a; font-size:12px; line-height:1.6; }
+.signos-atendidos .atendido-editar { display:flex; justify-content:center; align-items:center; gap:8px; width:100%; min-height:38px; margin-bottom:12px; border:1px solid #dc7d32; border-radius:7px; background:#d97725; color:#fff; font:inherit; font-size:12px; font-weight:700; cursor:pointer; }
+.signos-atendidos .atendido-editar:hover { background:#b85a14; }
+.atendido-mediciones { margin:0; }
+.atendido-mediciones > div { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:12px; padding:7px 0; border-bottom:1px solid #ece4dc; font-size:12px; line-height:1.5; }
+.atendido-mediciones dt { color:#6e655d; }
+.atendido-mediciones dd { margin:0; color:#304d63; font-weight:700; overflow-wrap:anywhere; }
+.atendido-error { font-size:12px; color:#a93434; }
+.atendido-error button { min-height:36px; padding:6px 12px; border:1px solid #e5c7a8; border-radius:6px; background:#fff8f1; color:#984a12; cursor:pointer; }
+.signos-atendidos summary:focus-visible { outline:3px solid #dd8a44; outline-offset:-3px; }
+@media(prefers-reduced-motion:reduce) { .atendido-desplegar { transition:none; } }
+.signos-atendidos .atendido-solo-lectura { margin:0 0 12px; padding:10px 12px; border:1px solid #d5e2ee; border-radius:8px; background:#eff5fb; color:#375c78; font-size:12px; line-height:1.6; }
+.signos-atendidos .atendido-editar:disabled { opacity:.55; cursor:wait; }
+
+/* Panel de atendidos: jerarquía y contraste suaves. */
+.sistema-app .signos-atendidos .signos-atendidos-contenido {
+ border:1px solid #edcfb6; border-top:3px solid #d47a30; border-radius:18px; background:#fbfcfe;
+ box-shadow:0 10px 30px #244f6d0c; overflow:hidden;
+}
+.sistema-app .signos-atendidos .signos-atendidos-contenido > header {
+ padding:20px 18px; border-bottom:1px solid #f1dfcf; background:linear-gradient(120deg,#fff8f0,#fff1e2);
+}
+.sistema-app .signos-atendidos .signos-atendidos-contenido header p { margin:0 0 6px; color:#ab6229; font-size:10px; letter-spacing:.12em; font-weight:750; }
+.sistema-app .signos-atendidos .signos-atendidos-contenido header strong { color:#633c22; font-size:18px; line-height:1.3; letter-spacing:-.02em; }
+.sistema-app .signos-atendidos .signos-atendidos-contenido header > b { min-width:32px; height:32px; border:1px solid #eec9a7; border-radius:11px; background:#fff; color:#ac5c20; box-shadow:none; font-size:13px; }
+.sistema-app .signos-atendidos .cola-buscar-atendidos { height:42px; margin:14px; padding-inline:12px; border:1px solid #e3d7cc; border-radius:11px; color:#a06c43; background:#fff; }
+.sistema-app .signos-atendidos .cola-buscar-atendidos:focus-within { border-color:#d48a50; box-shadow:0 0 0 3px #d48a5014; }
+.sistema-app .signos-atendidos .cola-buscar-atendidos input { color:#35516a; font-size:13px; }
+.sistema-app .signos-atendidos .cola-buscar-atendidos input::placeholder { color:#8797a4; }
+.sistema-app .signos-atendidos .cola-historial { padding:0 14px 14px; scrollbar-color:#d1b69e transparent; scrollbar-gutter:stable; }
+.signos-atendidos .atendido-desplegable { margin-bottom:12px; border-color:#dfe7ed; border-radius:13px; box-shadow:0 3px 10px #244f6d05; }
+.signos-atendidos .atendido-desplegable > summary { grid-template-columns:32px minmax(0,1fr) 20px; min-height:64px; padding:13px; gap:11px; color:#284b66; background:#fff; }
+.signos-atendidos .atendido-desplegable summary strong { font-size:13px; font-weight:700; }
+.signos-atendidos .atendido-desplegable[open] > summary { border-bottom:1px solid #eee2d6; background:#fffbf7; }
+.signos-atendidos .atendido-numero { width:32px; height:32px; border:1px solid #f0d8bf; border-radius:10px; background:#fff1e2; color:#ac5c20; }
+.signos-atendidos .atendido-desplegar { color:#8d9ba7; }
+.signos-atendidos .atendido-detalle { padding:14px; }
+.signos-atendidos .atendido-consulta { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px 12px; margin:0 0 14px; padding:0 1px; color:#738597; font-size:12px; line-height:1.6; }
+.signos-atendidos .atendido-consulta b { color:#3a5871; font-weight:650; }
+.signos-atendidos .atendido-editar { min-height:42px; margin-bottom:16px; border-color:#cf7a39; border-radius:10px; background:#cd7834; box-shadow:0 3px 8px #cd783415; font-size:13px; font-weight:650; }
+.signos-atendidos .atendido-editar:hover:not(:disabled) { background:#b66326; }
+.signos-atendidos .atendido-mediciones { overflow:hidden; border:1px solid #e5ecf1; border-radius:10px; }
+.signos-atendidos .atendido-mediciones > div { grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); align-items:center; gap:12px; min-height:39px; padding:9px 11px; border-bottom:1px solid #e8eef3; font-size:12px; }
+.signos-atendidos .atendido-mediciones > div:nth-child(even) { background:#f6f9fc; }
+.signos-atendidos .atendido-mediciones > div:last-child { border-bottom:0; }
+.signos-atendidos .atendido-mediciones dt { color:#637b8f; }
+.signos-atendidos .atendido-mediciones dd { color:#244b67; font-weight:700; font-variant-numeric:tabular-nums; }
+@media(max-width:400px) {
+ .signos-atendidos .atendido-detalle { padding:10px; }
+ .sistema-app .signos-atendidos .cola-historial { padding-inline:10px; }
+ .signos-atendidos .atendido-mediciones > div { gap:8px; padding-inline:9px; }
+}

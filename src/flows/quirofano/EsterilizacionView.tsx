@@ -1180,22 +1180,117 @@ export function EsterilizacionView({
                     import("jspdf"),
                     import("jspdf-autotable"),
                   ]);
+                  const logoRespuesta = await fetch("/logo-hospital-reportes.png");
+                  if (!logoRespuesta.ok) throw new Error("No se pudo cargar el logo del hospital.");
+                  const logo = new Uint8Array(await logoRespuesta.arrayBuffer());
+                  const imagenes = new Map<string, { datos: string; ancho: number; alto: number }>();
+                  const imagenesFallidas = new Set<string>();
+                  const cargarImagenReporte = async (item: MaterialEsteril) => {
+                    if (!item.imagen && !item.tieneImagen) return;
+                    try {
+                      const opciones = { signal: AbortSignal.timeout(20000) };
+                      const respuesta = item.imagen
+                        ? await fetch(item.imagen, opciones)
+                        : await apiFetch(`/api/v1/instrumental/${encodeURIComponent(item.id)}/imagen`, opciones);
+                      if (!respuesta.ok) throw new Error("Imagen no disponible");
+                      const blob = await respuesta.blob();
+                      const url = URL.createObjectURL(blob);
+                      try {
+                        const imagen = new Image();
+                        imagen.src = url;
+                        await imagen.decode();
+                        const escala = Math.min(220 / imagen.naturalWidth, 180 / imagen.naturalHeight, 1);
+                        const lienzo = document.createElement("canvas");
+                        lienzo.width = Math.max(1, Math.round(imagen.naturalWidth * escala));
+                        lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
+                        const contexto = lienzo.getContext("2d");
+                        if (!contexto) throw new Error("No se pudo preparar la fotografía");
+                        contexto.fillStyle = "#ffffff";
+                        contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+                        contexto.drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
+                        imagenes.set(item.id, { datos: lienzo.toDataURL("image/jpeg", .85), ancho: lienzo.width, alto: lienzo.height });
+                      } finally { URL.revokeObjectURL(url); }
+                    } catch { imagenesFallidas.add(item.id); }
+                  };
+                  for (let indice = 0; indice < materialesVisibles.length; indice += 4) {
+                    await Promise.all(materialesVisibles.slice(indice, indice + 4).map(cargarImagenReporte));
+                  }
                   const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
-                  pdf.setFontSize(18);
-                  pdf.setTextColor(7, 82, 132);
-                  pdf.text("Inventario de instrumental", 14, 18);
-                  pdf.setFontSize(9);
-                  pdf.setTextColor(90, 110, 128);
-                  pdf.text(`Ejemplos locales · ${new Date().toLocaleDateString("es-BO")} · ${materialesVisibles.length} materiales`, 14, 25);
+                  const azul: [number, number, number] = [29, 57, 110];
+                  const gris: [number, number, number] = [93, 111, 134];
+                  const generado = new Date();
+                  const fechaReporte = generado.toLocaleString("es-BO", { dateStyle: "short", timeStyle: "short" });
+                  const unidades = materialesVisibles.reduce((total, item) => total + (item.cantidad ?? 1), 0);
+                  const filtros = [busqueda.trim() && `Búsqueda: ${busqueda.trim()}`, filtroSector && `Ubicación: ${filtroSector}`, filtroEstado && `Estado: ${ETIQUETAS_ESTADO[filtroEstado as keyof typeof ETIQUETAS_ESTADO]}`].filter(Boolean).join(" | ");
+                  const dibujarEncabezado = () => {
+                    pdf.setFillColor(...azul);
+                    pdf.rect(0, 0, 297, 2, "F");
+                    pdf.addImage(logo, "PNG", 14, 5, 45, 15);
+                    pdf.setFont("helvetica", "bold");
+                    pdf.setTextColor(...azul);
+                    pdf.setFontSize(18);
+                    pdf.text("Inventario de instrumental", 67, 11);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setTextColor(...gris);
+                    pdf.setFontSize(9);
+                    pdf.text("Unidad de Esterilización | Control de materiales", 67, 16);
+                    pdf.setFontSize(8);
+                    pdf.text(`Emitido: ${fechaReporte}`, 283, 21, { align: "right" });
+                    pdf.setDrawColor(214, 224, 237);
+                    pdf.line(14, 24, 283, 24);
+                    const indicadores = [["MATERIALES REGISTRADOS", String(materialesVisibles.length)], ["UNIDADES EN INVENTARIO", unidades.toLocaleString("es-BO")], ["ORIGEN DEL REPORTE", "Ejemplos locales"]];
+                    indicadores.forEach(([etiqueta, valor], indice) => {
+                      const x = 14 + indice * 91;
+                      pdf.setFillColor(241, 245, 250);
+                      pdf.roundedRect(x, 27, 87, 14, 2, 2, "F");
+                      pdf.setFont("helvetica", "normal");
+                      pdf.setTextColor(...gris);
+                      pdf.setFontSize(7);
+                      pdf.text(etiqueta, x + 4, 32);
+                      pdf.setFont("helvetica", "bold");
+                      pdf.setTextColor(...azul);
+                      pdf.setFontSize(11);
+                      pdf.text(valor, x + 4, 38);
+                    });
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setFontSize(8);
+                    pdf.setTextColor(...gris);
+                    if (filtros) pdf.text(pdf.splitTextToSize(filtros, 266).slice(0, 2), 14, 46);
+                  };
                   autoTable(pdf, {
-                    startY: 31,
-                    head: [["Código", "Nombre", "Lote", "Cantidad", "Ubicación", "Estado", "Descripción"]],
-                    body: materialesVisibles.map(item => [item.codigo, item.nombre, item.lote || "—", String(item.cantidad ?? 1), ubicacionMaterial(item, cirugias), ETIQUETAS_ESTADO[item.estado], item.descripcion || "—"]),
-                    headStyles: { fillColor: [8, 127, 192] },
-                    styles: { fontSize: 8, cellPadding: 3, overflow: "linebreak" },
+                    startY: filtros ? 54 : 45,
+                    margin: { top: filtros ? 54 : 45, right: 14, bottom: 18, left: 14 },
+                    head: [["Imagen", "Código", "Nombre del material", "Lote", "Cantidad", "Ubicación", "Estado", "Descripción / observaciones"]],
+                    body: materialesVisibles.map(item => [imagenes.has(item.id) ? "" : imagenesFallidas.has(item.id) ? "Imagen no disponible" : "Sin imagen", item.codigo, item.nombre, item.lote || "—", String(item.cantidad ?? 1), ubicacionMaterial(item, cirugias), ETIQUETAS_ESTADO[item.estado], item.descripcion || "—"]),
+                    theme: "plain",
+                    showHead: "everyPage",
+                    rowPageBreak: "avoid",
+                    headStyles: { fillColor: azul, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8, cellPadding: 3.2 },
+                    styles: { font: "helvetica", fontSize: 7.5, cellPadding: 3, overflow: "linebreak", textColor: [54, 72, 96], valign: "middle", lineColor: [224, 232, 241], lineWidth: { bottom: .15 } },
+                    alternateRowStyles: { fillColor: [244, 247, 251] },
+                    columnStyles: { 0: { cellWidth: 24, minCellHeight: 23, halign: "center", fontSize: 7, textColor: gris }, 1: { cellWidth: 25 }, 2: { cellWidth: 62, fontStyle: "bold" }, 3: { cellWidth: 20 }, 4: { cellWidth: 17, halign: "center", fontStyle: "bold", textColor: azul }, 5: { cellWidth: 31 }, 6: { cellWidth: 33 }, 7: { cellWidth: 57 } },
+                    didDrawCell: (celda) => {
+                      if (celda.section !== "body" || celda.column.index !== 0) return;
+                      const material = materialesVisibles[celda.row.index];
+                      const imagen = material && imagenes.get(material.id);
+                      if (!imagen) return;
+                      const escala = Math.min((celda.cell.width - 4) / imagen.ancho, (celda.cell.height - 4) / imagen.alto);
+                      const ancho = imagen.ancho * escala;
+                      const alto = imagen.alto * escala;
+                      pdf.addImage(imagen.datos, "JPEG", celda.cell.x + (celda.cell.width - ancho) / 2, celda.cell.y + (celda.cell.height - alto) / 2, ancho, alto, `instrumental-${material.id}`, "FAST");
+                    },
+                    didDrawPage: dibujarEncabezado,
                   });
-                  pdf.save("inventario-instrumental-ejemplos.pdf");
-                  setAviso("Reporte PDF generado correctamente.");
+                  const paginas = pdf.getNumberOfPages();
+                  for (let pagina = 1; pagina <= paginas; pagina++) {
+                    pdf.setPage(pagina);
+                    pdf.setFont("helvetica", "normal");
+                    pdf.setFontSize(7);
+                    pdf.setTextColor(145, 154, 165);
+                    pdf.text(`Página ${pagina} de ${paginas}`, 283, 205, { align: "right" });
+                  }
+                  pdf.save(`inventario-instrumental-${generado.toLocaleDateString("sv-SE")}.pdf`);
+                  setAviso(imagenesFallidas.size ? `Reporte generado. No se pudieron cargar ${imagenesFallidas.size} imágenes; están identificadas en el PDF.` : "Reporte PDF generado correctamente con las imágenes disponibles.");
                 } catch (causa) {
                   setError(causa instanceof Error ? causa.message : "No se pudo generar el reporte PDF.");
                 } finally { setExportandoInventario(false); }

@@ -45,3 +45,9 @@
 .signo-grafica-modal .signo-grafica-punto { fill: var(--signo-color); stroke: #fff; stroke-width: 2.5; }
 .signo-grafica-halo { fill: var(--signo-color); opacity: .12; }
 .signo-grafica-modal svg .signo-grafica-valor { fill: var(--signo-color); font-weight: 750; font-size: 13px; paint-order: stroke; stroke: #fff; stroke-width: 4px; stroke-linejoin: round; }
+.signo-grafica-area { cursor: crosshair; }
+.signo-grafica-area:focus-visible { outline: none; stroke: #244f6d; stroke-width: 2; stroke-dasharray: 3 3; }
+.signo-grafica-tooltip > rect:first-child { fill: #fff; stroke: #cbdfea; stroke-width: 1; filter: drop-shadow(0 4px 7px #173d6026); }
+.signo-grafica-tooltip .signo-tooltip-acento { fill: var(--signo-color); }
+.signo-grafica-modal svg .signo-tooltip-valor { fill: var(--signo-color); font-size: 18px; font-weight: 750; }
+.signo-grafica-modal svg .signo-tooltip-fecha { fill: #526e84; font-size: 13px; }

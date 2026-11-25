@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { puntosSignoVital, type CampoGrafica, type MedicionGrafica } from "./datosGraficaSigno";
 import "./GraficaSignoVital.css";
@@ -10,6 +10,7 @@ const numero = (valor: number) => valor.toLocaleString("es-BO", { maximumFractio
 export function GraficaSignoVital({ campo, mediciones, cerrar, nacimiento }: { campo: CampoGrafica; mediciones: readonly MedicionGrafica[]; cerrar: () => void; nacimiento?: string }) {
   const dialogo = useRef<HTMLDialogElement>(null);
   const titulo = useId();
+  const [puntoActivo, setPuntoActivo] = useState<string | null>(null);
   useEffect(() => {
     const anterior = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const elemento = dialogo.current;
@@ -42,6 +43,7 @@ export function GraficaSignoVital({ campo, mediciones, cerrar, nacimiento }: { c
   const duracion = (puntos.at(-1)?.instante || 0) - inicio;
   const posiciones = puntos.map((punto) => ({ ...punto, x: duracion ? 72 + (punto.instante - inicio) / duracion * 656 : 400, y: 250 - (punto.valor - base) / (tope - base) * 210 }));
   const ultimo = puntos.at(-1);
+  const destacado = posiciones.find((punto) => punto.id === puntoActivo);
   return createPortal(<dialog ref={dialogo} className="signo-grafica-modal" aria-labelledby={titulo} onCancel={(e) => { e.preventDefault(); cerrar(); }} onClick={(e) => { if (e.target === e.currentTarget) { const caja = e.currentTarget.getBoundingClientRect(); if (e.clientX < caja.left || e.clientX > caja.right || e.clientY < caja.top || e.clientY > caja.bottom) cerrar(); } }}>
     <header><div><span>EVOLUCIÓN DE SIGNOS VITALES</span><h2 id={titulo}>{campo.etiqueta}</h2><p>{campo.unidad ? `Unidad: ${campo.unidad} · ` : ""}{puntos.length} mediciones disponibles</p></div><button type="button" onClick={cerrar} aria-label="Cerrar gráfica">×</button></header>
     {ultimo ? <>
@@ -57,6 +59,17 @@ export function GraficaSignoVital({ campo, mediciones, cerrar, nacimiento }: { c
           {(posiciones.length <= 10 || indice === posiciones.length - 1) && <text x={punto.x} y={punto.y - 16} textAnchor="middle" className="signo-grafica-valor">{numero(punto.valor)}</text>}
         </g>; })}
         <text x="72" y="281">{fechaHora(puntos[0].fecha)}</text>{duracion > 0 && <text x="728" y="281" textAnchor="end">{fechaHora(ultimo.fecha)}</text>}
+        {posiciones.map((punto) => <circle key={`area-${punto.id}`} cx={punto.x} cy={punto.y} r="18" fill="transparent" className="signo-grafica-area" tabIndex={0} role="button" aria-label={`${campo.etiqueta}: ${numero(punto.valor)} ${campo.unidad || ""}, ${fechaHora(punto.fecha)}`} onPointerEnter={() => setPuntoActivo(punto.id)} onPointerLeave={(e) => { if (e.pointerType !== "touch") setPuntoActivo(null); }} onFocus={() => setPuntoActivo(punto.id)} onBlur={() => setPuntoActivo(null)} onClick={() => setPuntoActivo(punto.id)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setPuntoActivo(punto.id); } }} />)}
+        {destacado && (() => {
+          const x = Math.max(8, Math.min(572, destacado.x - 110));
+          const y = destacado.y < 100 ? destacado.y + 22 : destacado.y - 86;
+          return <g className={`signo-grafica-tooltip estado-${estado(destacado.valor, destacado.instante)}`} role="tooltip" pointerEvents="none">
+            <rect x={x} y={y} width="220" height="70" rx="10" />
+            <rect x={x} y={y + 12} width="4" height="46" rx="2" className="signo-tooltip-acento" />
+            <text x={x + 15} y={y + 27} className="signo-tooltip-valor">{numero(destacado.valor)} {campo.unidad}</text>
+            <text x={x + 15} y={y + 50} className="signo-tooltip-fecha">{fechaHora(destacado.fecha)}</text>
+          </g>;
+        })()}
       </svg><figcaption>Fecha y hora de registro · {campo.unidad || "Valor registrado"}{puntos.length === 1 ? " · Se requiere otra medición para mostrar la evolución." : ""}</figcaption></figure>
       <div className="signo-grafica-datos"><table><caption>Mediciones de {campo.etiqueta}</caption><thead><tr><th scope="col">Fecha y hora</th><th scope="col">Valor {campo.unidad ? `(${campo.unidad})` : ""}</th></tr></thead><tbody>{puntos.map((punto) => <tr key={punto.id}><td>{fechaHora(punto.fecha)}</td><td>{numero(punto.valor)}</td></tr>)}</tbody></table></div>
     </> : <p className="signo-grafica-vacia">No hay valores numéricos registrados para este signo vital.</p>}

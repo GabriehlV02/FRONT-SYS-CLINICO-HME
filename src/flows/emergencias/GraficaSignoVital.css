@@ -39,7 +39,6 @@
 .signo-estado-etiqueta { width: fit-content; padding: 4px 8px; border-radius: 6px; background: #ffffffb3; font-size: 11px; font-weight: 650; }
 .signo-grafica-resumen article strong { color: var(--signo-color); }
 .signo-grafica-leyenda { display: flex; flex-wrap: wrap; gap: 10px 22px; padding: 20px 24px 0; color: #1686bb; font-size: 12px; font-weight: 650; }
-.signo-grafica-referencia { margin: 12px 24px 0; padding: 12px 14px; border: 1px solid #e0eaf2; border-radius: 10px; background: #f6f9fc; color: #61798d; font-size: 12px; line-height: 1.6; }
 .signo-grafica-modal figure { padding: 12px 8px; border: 1px solid #e4edf4; border-radius: 14px; background: linear-gradient(180deg, #f8fbfe, #fff); }
 .signo-grafica-rango { fill: #19a06b; opacity: .08; }
 .signo-grafica-segmento { stroke: var(--signo-color); stroke-width: 3; stroke-linecap: round; }

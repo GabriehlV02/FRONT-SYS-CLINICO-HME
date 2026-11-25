@@ -2838,22 +2838,27 @@ export default function Aplicacion() {
               <MedicoTerapiaIntensivaView />
             ) : !modulo ? (
               <section className="inicio-clinico" aria-labelledby="inicio-clinico-titulo">
-                <header>
-                  <span>HOSPITAL MARÍA ESPERANZA</span>
-                  <h1 id="inicio-clinico-titulo">¿Qué necesitas atender hoy?</h1>
-                  <p>Abre un módulo para continuar con tu trabajo.</p>
+                <header className="inicio-clinico-bienvenida">
+                  <img className="inicio-clinico-logo" src="/logo-hospital-original.png" alt="Hospital María Esperanza" />
+                  <span>SISTEMA CLÍNICO</span>
+                  <h1 id="inicio-clinico-titulo">Bienvenido, {sesion.usuario.nombre}</h1>
+                  <p>Selecciona un módulo para comenzar tu jornada.</p>
+                  <div className="inicio-clinico-perfil"><Icon name="shieldCheck" size={16} />{sesion.usuario.rol}</div>
                 </header>
-                <div className="inicio-clinico-accesos">
-                  {modulosVisibles
-                    .filter((item) => ["triaje-emergencias", "pacientes", "atencion-medica", "medico-internacion", "recepcion", "farmacia"].includes(item.id))
-                    .slice(0, 4)
-                    .map((item) => (
-                      <button key={item.id} type="button" onClick={() => setModulo(item.id)}>
-                        <span><Icon name={item.icono} size={20} /></span>
-                        <strong>{item.nombre}</strong>
-                        <small>{item.grupo}</small>
-                      </button>
-                    ))}
+                <div className="inicio-clinico-areas">
+                    <section className="inicio-clinico-grupo" aria-label="Accesos principales">
+                      <h2>ACCESOS PRINCIPALES</h2>
+                      <div className="inicio-clinico-accesos">
+                        {modulosVisibles.slice(0, 4).map((item) => (
+                          <button key={item.id} type="button" onClick={() => setModulo(item.id)}>
+                            <span><Icon name={item.icono} size={25} /></span>
+                            <strong>{item.nombre}</strong>
+                            <small>Abrir módulo</small>
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  {modulosVisibles.length === 0 && <p className="inicio-clinico-sin-accesos">Tu cuenta aún no tiene módulos disponibles. Comunícate con el administrador para revisar tus accesos.</p>}
                 </div>
               </section>
             ) : actual ? (

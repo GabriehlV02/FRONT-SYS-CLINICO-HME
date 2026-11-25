@@ -6064,3 +6064,48 @@
   color: #fff !important;
   text-align: center !important;
 }
+
+/* La cabecera y las filas comparten exactamente la misma cuadrícula. */
+@media(min-width:1025px) {
+  .sistema-app .emergencias-vista .em-distribucion:has(.em-lista-triaje-cabecera) > .em-cubiculos {
+    --em-columnas-lista:110px minmax(220px,2fr) 120px 105px 110px 125px minmax(180px,1fr) 120px;
+  }
+  .sistema-app .emergencias-vista .em-distribucion > .em-cubiculos > .em-lista-triaje-cabecera,
+  .sistema-app .emergencias-vista .em-distribucion:has(.em-lista-triaje-cabecera) > .em-cubiculos > .em-cubiculo:not(.em-cubiculo-traslado) {
+    display:grid;
+    grid-template-columns:var(--em-columnas-lista);
+    gap:12px;
+    width:100%;
+    min-width:1240px;
+    box-sizing:border-box;
+    margin-inline:0;
+    padding-inline:16px;
+    border-inline:0;
+    align-items:center;
+  }
+  .sistema-app .emergencias-vista .em-distribucion > .em-cubiculos > .em-lista-triaje-cabecera > span {
+    justify-content:flex-start;
+    text-align:left !important;
+    padding:0;
+  }
+  .sistema-app .emergencias-vista .em-distribucion > .em-cubiculos > .em-lista-triaje-cabecera > span::before { content:none; }
+  .sistema-app .emergencias-vista .em-distribucion > .em-cubiculos > .em-lista-triaje-cabecera > :is(:nth-child(3),:nth-child(4),:nth-child(5),:nth-child(6),:nth-child(8)) {
+    justify-content:center;
+    text-align:center !important;
+  }
+  .sistema-app .emergencias-vista .em-distribucion:has(.em-lista-triaje-cabecera) > .em-cubiculos > .em-cubiculo:not(.em-cubiculo-traslado) > * {
+    margin:0;
+    min-width:0;
+    text-align:left;
+  }
+  .sistema-app .emergencias-vista .em-distribucion:has(.em-lista-triaje-cabecera) > .em-cubiculos > .em-cubiculo:not(.em-cubiculo-traslado) > :is(:nth-child(3),:nth-child(4),:nth-child(5),:nth-child(6),:nth-child(8)) {
+    text-align:center;
+    justify-self:stretch;
+    font-variant-numeric:tabular-nums;
+  }
+  .sistema-app .emergencias-vista .em-distribucion:has(.em-lista-triaje-cabecera) > .em-cubiculos > .em-cubiculo:not(.em-cubiculo-traslado) > .em-accion-lista {
+    justify-self:center;
+    width:106px;
+    box-sizing:border-box;
+  }
+}

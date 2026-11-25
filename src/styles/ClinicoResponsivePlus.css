@@ -751,7 +751,7 @@
 
 .sistema-app .area-trabajo .inicio-clinico {
   display: grid;
-  align-content: center;
+  align-content: start;
   gap: clamp(22px, 4vw, 36px);
   min-height: min(68vh, 680px);
   padding: clamp(20px, 4vw, 56px);
@@ -763,11 +763,41 @@
 .inicio-clinico > header > span { color:#0874ad; font-size:11px; font-weight:850; letter-spacing:.1em; }
 .inicio-clinico h1 { margin:8px 0; color:#173f5d; font-size:clamp(24px,3vw,36px); line-height:1.2; }
 .inicio-clinico > header p { margin:0; color:#526a7c; font-size:15px; }
-.inicio-clinico-accesos { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr)); gap:12px; max-width:980px; }
+.inicio-clinico-bienvenida { display:flex; flex-direction:column; align-items:center; text-align:center; padding:12px 0 30px; border-bottom:1px solid #dce9f1; }
+.inicio-clinico-logo { display:block; width:min(100%,480px); height:auto; margin:0 auto 26px; mix-blend-mode:multiply; }
+.inicio-clinico-bienvenida .inicio-clinico-perfil { display:inline-flex; align-items:center; gap:8px; margin-top:18px; padding:8px 14px; border:1px solid #d8e8f1; border-radius:24px; color:#42647b; background:#eef6fb; font-size:13px; }
+.inicio-clinico-areas { display:grid; gap:28px; width:100%; }
+.inicio-clinico-grupo h2 { margin:0 0 14px; color:#4e6b80; font-size:12px; font-weight:750; letter-spacing:.09em; }
+.inicio-clinico-accesos { display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr)); gap:14px; width:100%; }
 .inicio-clinico-accesos button { display:grid; grid-template-columns:44px minmax(0,1fr); grid-template-rows:auto auto; align-items:center; gap:4px 12px; min-height:76px; padding:14px; border:1px solid #cfe0eb; border-radius:12px; color:#173f5d; background:#fff; text-align:left; cursor:pointer; transition:border-color .16s,box-shadow .16s,transform .16s; }
 .inicio-clinico-accesos button:hover { transform:translateY(-2px); border-color:#82bad6; box-shadow:0 8px 18px rgb(23 61 96 / 9%); }
 .inicio-clinico-accesos button:focus-visible { outline:3px solid rgb(8 116 173 / 24%); outline-offset:2px; }
 .inicio-clinico-accesos button > span { display:grid; grid-row:1/3; place-items:center; width:42px; height:42px; border-radius:11px; color:#076da4; background:#e9f5fb; }
 .inicio-clinico-accesos button strong { font-size:14px; }
-.inicio-clinico-accesos button small { color:#526a7c; font-size:10px; font-weight:750; letter-spacing:.05em; }
+.inicio-clinico-accesos button small { color:#607b8d; font-size:12px; font-weight:500; }
+.inicio-clinico-grupo .inicio-clinico-accesos button { min-height:96px; padding:20px; border-radius:16px; gap:6px 16px; grid-template-columns:50px minmax(0,1fr); box-shadow:0 3px 10px #173d6004; }
+.inicio-clinico-grupo .inicio-clinico-accesos button > span { width:50px; height:50px; border-radius:14px; }
+.inicio-clinico-sin-accesos { text-align:center; color:#526a7c; line-height:1.7; }
 @media(max-width:600px) { .sistema-app .area-trabajo .inicio-clinico { min-height:0; padding:22px 16px; } .inicio-clinico-accesos { grid-template-columns:minmax(0,1fr); } }
+
+/* Volumen y detalle comparten la fila de registro de balance. */
+.sistema-app .area-trabajo .em-balance-emergencias-cuerpo > .em-balance-emergencias-form {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.sistema-app .area-trabajo .em-balance-emergencias-cuerpo > .em-balance-emergencias-form > label:first-of-type {
+  grid-column:1;
+  grid-row:2;
+  min-width:0;
+}
+.sistema-app .area-trabajo .em-balance-emergencias-cuerpo > .em-balance-emergencias-form > .em-balance-emergencias-detalle {
+  grid-column:2;
+  grid-row:2;
+  min-width:0;
+}
+@media(max-width:480px) {
+  .sistema-app .area-trabajo .em-balance-emergencias-cuerpo > .em-balance-emergencias-form > label:first-of-type,
+  .sistema-app .area-trabajo .em-balance-emergencias-cuerpo > .em-balance-emergencias-form > .em-balance-emergencias-detalle {
+    grid-column:1/-1;
+    grid-row:auto;
+  }
+}

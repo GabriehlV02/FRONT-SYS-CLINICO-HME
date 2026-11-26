@@ -1,0 +1,356 @@
+/* Secciones diferenciadas con color institucional y separadores definidos. */
+.sistema-app[data-theme="light"] .em-atencion-abierta {
+  color: #344f60;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-triaje-cabecera > button.em-volver-listado,
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-triaje-cabecera > button.em-volver-listado:is(:hover, :active, :focus) {
+  color: #3e6075 !important;
+  background: #fff !important;
+  border: 1px solid #7faac4 !important;
+  border-radius: 8px;
+  box-shadow: none !important;
+  transform: none;
+  font-weight: 600;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen:has(.em-resumen-identidad) {
+  border-color: #a3c4d8 !important;
+  border-top-color: #a3c4d8 !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  background: #fff !important;
+  gap: 22px;
+  padding: 18px 22px !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child {
+  border-left: 0 !important;
+  padding-left: 0 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:first-child strong {
+  color: #2b4658 !important;
+  font-size: 21px !important;
+  font-weight: 600 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-identidad-fila strong {
+  color: #425f70;
+  font-weight: 500;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-resumen :is(.em-total-cubiculo, .em-total-fecha) {
+  background: #f7f9fb !important;
+  border-color: #e0e7ed !important;
+  box-shadow: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-total-acciones .em-liberar-cobrar {
+  color: #fff !important;
+  background: #087ba7 !important;
+  border-color: #087ba7 !important;
+  box-shadow: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-total-consumido {
+  background: #f5f8fa !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-total-consumido strong {
+  color: #35596e !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica {
+  display: flex;
+  gap: 6px;
+  padding: 6px 12px !important;
+  border: 1px solid #a3c4d8 !important;
+  border-top: 0 !important;
+  border-radius: 0 0 12px 12px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  overflow-x: auto;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica > button {
+  min-height: 42px;
+  padding: 9px 14px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  color: #5c7484 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  white-space: nowrap;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica > button:hover {
+  background: #f4f7f9 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica > button.activo {
+  color: #fff !important;
+  background: linear-gradient(110deg, #0875a9, #0c96b8) !important;
+  border-color: #0878a6 !important;
+  box-shadow: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica > button::after {
+  display: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica .em-pestana-icono {
+  color: inherit !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-layout {
+  gap: 24px;
+  padding: 22px !important;
+  border: 1px solid #a3c4d8 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-form label {
+  color: #1f5776;
+  font-size: 12px;
+  font-weight: 500;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-form :is(input, textarea) {
+  color: #304f62 !important;
+  background: #fff !important;
+  border: 1.5px solid #a1c3d7 !important;
+  border-radius: 8px !important;
+  box-shadow: none;
+  font-weight: 400;
+  line-height: 1.7;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-form textarea {
+  min-height: 150px;
+  padding: 14px 16px;
+  resize: vertical;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-form :is(input, textarea):focus-visible {
+  outline: 2px solid #80a9bd;
+  outline-offset: 2px;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-acciones .em-primario {
+  color: #fff !important;
+  background: #087ba7 !important;
+  border-color: #087ba7 !important;
+  border-radius: 8px;
+  box-shadow: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-acciones .em-primario:disabled {
+  color: #718695 !important;
+  background: #eaf0f4 !important;
+  border-color: #a3c4d8 !important;
+  opacity: 1;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial {
+  padding: 18px;
+  border: 1px solid #93bbcf !important;
+  border-radius: 10px;
+  background: #edf6fa !important;
+  box-shadow: none !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial > header {
+  border-bottom-color: #e2e8ed;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial > header h3 {
+  color: #3a5568;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial > header > span {
+  color: #5a7688;
+  background: #edf2f5;
+  border-color: #dce5eb;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-vacia {
+  color: #6a7f8e;
+  font-size: 12px;
+  line-height: 1.7;
+}
+@media (max-width: 760px) {
+  .sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-layout { padding: 16px !important; gap: 18px; }
+  .sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica { padding-inline: 6px !important; }
+}
+
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen:has(.em-resumen-identidad) {
+  border-left: 4px solid #0990b7 !important;
+  background: linear-gradient(110deg, #fff 45%, #f0f8fc) !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-identidad-fila-familiar {
+  padding-top: 12px;
+  border-top: 1px solid #bbd5e4 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-identidad-fila:first-child > div:not(:first-child) {
+  padding: 10px 12px;
+  border: 1px solid #bdd6e5 !important;
+  border-radius: 8px;
+  background: #eaf4fa !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-resumen :is(.em-total-cubiculo, .em-total-fecha) {
+  border-color: #add3e6 !important;
+  background: #e5f4fb !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen > .em-total-acciones {
+  border-left: 1px solid #aacadb;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-total-consumido {
+  border: 1px solid #bbd7e7;
+  border-radius: 8px;
+  padding: 8px 10px !important;
+  background: #e6f3fa !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica { background: #f1f7fb !important; }
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica > button:not(.activo) {
+  color: #38647f !important;
+  border-color: #c1d8e6 !important;
+  background: #fff !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica > button:not(.activo):hover {
+  background: #e2f1fa !important;
+  border-color: #7eb4d0 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-paginacion-clinica > button.activo .em-pestana-icono {
+  color: #fff !important;
+  background: #ffffff20 !important;
+  border-color: #ffffff60 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-layout {
+  background: #f7fbfd !important;
+  border-top: 3px solid #2385ac !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-form { padding: 4px 0; }
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-form label { font-weight: 600; }
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-form textarea {
+  border-left: 3px solid #3298b5 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial {
+  overflow: hidden;
+  border-top: 3px solid #497f9e !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial > header {
+  margin: -18px -18px 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #9ebfd3;
+  background: #deedf6;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial > header h3 {
+  color: #20526f;
+  font-weight: 700;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-evolucion-historial > header > span {
+  color: #fff;
+  border: 1px solid #427b9a;
+  background: #427b9a;
+}
+@media (max-width: 1000px) {
+  .sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen > .em-total-acciones {
+    border-left: 0;
+    border-top: 1px solid #aacadb;
+  }
+}
+
+/* Ficha del paciente: bloques reconocibles y separadores de alto contraste. */
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen:has(> .em-ficha-paciente) {
+  gap: 18px;
+  padding: 16px 18px !important;
+  border: 1px solid #8db6cf !important;
+  border-top: 3px solid #1687b2 !important;
+  border-radius: 12px !important;
+  background: #f6fafd !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen > .em-ficha-paciente {
+  gap: 12px;
+  padding: 0;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila {
+  align-items: stretch;
+  gap: 12px;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:first-child {
+  min-height: 60px;
+  padding: 10px 14px !important;
+  border: 1px solid #a4c9df !important;
+  border-left: 4px solid #1484b0 !important;
+  border-radius: 9px;
+  background: #e3f1fa !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:not(:first-child) {
+  padding: 10px 14px !important;
+  border: 1px solid #accadb !important;
+  border-radius: 9px;
+  background: #edf5fa !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila:first-child > div:first-child strong {
+  color: #174f71 !important;
+  font-weight: 700 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila small {
+  color: #496e85;
+  font-weight: 600;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila-familiar {
+  padding: 0 !important;
+  border: 0 !important;
+  gap: 12px;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila-familiar > div {
+  padding: 10px 14px;
+  border: 1px solid #b4d6ce;
+  border-left: 3px solid #70a99c;
+  border-radius: 8px;
+  background: #edf7f3;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-identidad-fila-familiar > div:last-child {
+  border-color: #c6bfdc;
+  border-left-color: #9383b3;
+  background: #f2eff8;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores > div {
+  padding: 7px 12px;
+  border: 1px solid #a8cada !important;
+  border-radius: 7px;
+  background: #e6f3fa !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-ficha-paciente .em-cuenta-indicadores > div + div {
+  padding-left: 12px;
+  border-color: #e3cda3 !important;
+  background: #fff5e3 !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen > .em-total-acciones {
+  padding: 12px !important;
+  border: 1px solid #a9c7da !important;
+  border-left: 2px solid #7eaec7 !important;
+  border-radius: 10px;
+  background: #eaf3f9;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-total-consumido {
+  padding: 9px 10px !important;
+  border: 1px solid #8db9d3;
+  border-radius: 7px;
+  background: #fff !important;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-total-consumido strong {
+  color: #11678c !important;
+  font-weight: 750;
+}
+.sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen .em-total-acciones .em-resumen-editar {
+  color: #205c7b;
+  border-color: #91b9d0;
+  background: #fff;
+}
+@media (max-width: 600px) {
+  .sistema-app[data-theme="light"] .em-atencion-abierta .em-trabajo > .em-resumen:has(> .em-ficha-paciente) {
+    padding: 12px !important;
+  }
+}
+
+.em-reporte-rango-modal .em-reporte-exportacion-error {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid #ebc3c8;
+  border-radius: 8px;
+  background: #fff2f3;
+  color: #983c48;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.em-reporte-descarga-lista { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px; padding: 14px; margin: 14px 0; border: 1px solid #acd0bc; border-radius: 9px; background: #edf8f1; color: #295f44; }
+.em-reporte-descarga-lista strong { font-size: 14px; }
+.em-reporte-descarga-lista p { margin: 5px 0 0; font-size: 12px; line-height: 1.6; }
+.em-reporte-descarga-lista a { display: inline-flex; min-height: 40px; align-items: center; padding: 8px 14px; border-radius: 7px; background: #087ca9; color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; }
+.em-reporte-descarga-lista a:focus-visible { outline: 3px solid #72b8d5; outline-offset: 3px; }

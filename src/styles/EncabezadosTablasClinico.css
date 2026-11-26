@@ -1,9 +1,17 @@
 /* Estilo común para encabezados de tablas del sistema clínico. */
+.sistema-app table:not(.em-signos-evolucion-matriz) thead {
+  background: linear-gradient(105deg, #0875a9 0%, #0a86b5 58%, #12a5c7 100%) !important;
+}
+
+.sistema-app table:not(.em-signos-evolucion-matriz) thead tr {
+  background: transparent !important;
+}
+
 .sistema-app table:not(.em-signos-evolucion-matriz) thead th {
   height: 36px !important;
   padding: 6px 10px !important;
   color: #fff !important;
-  background: linear-gradient(105deg, #0875a9 0%, #0a86b5 58%, #12a5c7 100%) !important;
+  background: transparent !important;
   font-size: 12px !important;
   font-weight: 800 !important;
   text-align: center !important;
@@ -102,5 +110,6 @@
     .registro-intra-fila.registro-intra-cabecera
   ) > * {
   color: #fff !important;
+  background: transparent !important;
   text-align: center !important;
 }

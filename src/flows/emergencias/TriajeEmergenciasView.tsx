@@ -15,9 +15,12 @@ import "./TriajeEmergenciasView.css";
 import "./TriajeEmergenciasCompacto.css";
 import "./ResumenPacienteEmergencias.css";
 import "./EditarPacienteEmergencias.css";
+import "./AtencionEmergenciasSerena.css";
 import { cubiculosEmergencias, nombreCubiculo } from "./cubiculos";
 import { OrdenesEmergencias } from "./OrdenesEmergencias";
 import { InsumosEnfermeriaPanel } from "./InsumosEnfermeriaPanel";
+import { HistorialDescargosEmergencias } from "./HistorialDescargosEmergencias";
+import { descargarReporte } from "./descargarReporte";
 import { TratamientoPacienteTabla } from "./TratamientoPacienteTabla";
 import {
   leerBalanceEmergencia,
@@ -72,7 +75,7 @@ const CLAVE_CONTINUIDAD_TRIAJE = "hme:emergencias:triaje:continuidad:v1";
 type ContinuidadTriaje = {
   cuentaId: string;
   seccion: "paciente" | "tratamiento" | "ingreso" | "reportes" | "signos" | "examen" | "descargos";
-  subvista: "atencion" | "historial" | "inventario";
+  subvista: "atencion" | "historial" | "inventario" | "historial-descargos";
 };
 type BorradorTriaje = {
   valores?: Record<string, string>;
@@ -732,13 +735,18 @@ export function TriajeEmergenciasView({
   const [datosIniciales, setDatosIniciales] = useState<Identidad>({});
   const [mostrarAcompanante, setMostrarAcompanante] = useState(false);
   const [busquedaCuenta, setBusquedaCuenta] = useState(""),
-    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario">("atencion");
+    [subvista, setSubvista] = useState<"atencion" | "historial" | "inventario" | "historial-descargos">("atencion");
   const [modalExportarHistorial, setModalExportarHistorial] = useState(false);
   const [fechaDesdeHistorial, setFechaDesdeHistorial] = useState("");
   const [fechaHastaHistorial, setFechaHastaHistorial] = useState("");
   const [desdeReporteTurno, setDesdeReporteTurno] = useState("");
   const [hastaReporteTurno, setHastaReporteTurno] = useState("");
   const [hojasReportePendientes, setHojasReportePendientes] = useState<Array<"signos" | "balance" | "tratamiento" | "enfermeria"> | null>(null);
+  const [exportandoReporte, setExportandoReporte] = useState(false);
+  const exportacionEnCurso = useRef(false);
+  const [errorReporte, setErrorReporte] = useState("");
+  const [pdfPreparado, setPdfPreparado] = useState<{ url: string; nombre: string } | null>(null);
+  useEffect(() => () => { if (pdfPreparado) URL.revokeObjectURL(pdfPreparado.url); }, [pdfPreparado]);
   const [vistaPreviaReporte, setVistaPreviaReporte] = useState<{ url: string; titulo: string; hoja: "signos" | "balance" | "tratamiento" | "enfermeria" } | null>(null);
   const [errorExportarHistorial, setErrorExportarHistorial] = useState("");
   const [pagina, setPagina] = useState(1);
@@ -1291,13 +1299,30 @@ export function TriajeEmergenciasView({
   }, [vistaPreviaReporte?.url]);
 
   async function exportarReporteTurnoVertical(hojasSolicitadas?: Array<"signos" | "balance" | "tratamiento" | "enfermeria">, abrirPrevisualizacion = false) {
-    if (!cuenta) return;
-    if (!desdeReporteTurno || !hastaReporteTurno || new Date(desdeReporteTurno) > new Date(hastaReporteTurno)) {
-      setAviso("Selecciona un rango válido de fecha y hora para el turno.");
-      return;
+    if (exportacionEnCurso.current) return;
+    exportacionEnCurso.current = true;
+    setExportandoReporte(true);
+    setErrorReporte("");
+    try {
+      const generado = await generarReporteTurnoVertical(hojasSolicitadas, abrirPrevisualizacion);
+      if (generado && !abrirPrevisualizacion) setErrorReporte("");
+    } catch (causa) {
+      const mensaje = causa instanceof Error ? causa.message : "No se pudo generar el PDF. Intenta nuevamente.";
+      setErrorReporte(mensaje);
+      setAviso(mensaje);
+    } finally {
+      exportacionEnCurso.current = false;
+      setExportandoReporte(false);
     }
+  }
+
+  async function generarReporteTurnoVertical(hojasSolicitadas?: Array<"signos" | "balance" | "tratamiento" | "enfermeria">, abrirPrevisualizacion = false): Promise<boolean> {
+    if (!cuenta) throw new Error("Selecciona una atención antes de exportar.");
     const desde = new Date(desdeReporteTurno).getTime();
-    const hasta = new Date(hastaReporteTurno).getTime();
+    const hasta = new Date(hastaReporteTurno).getTime() + 59_999;
+    if (!desdeReporteTurno || !hastaReporteTurno || !Number.isFinite(desde) || !Number.isFinite(hasta) || desde > hasta) {
+      throw new Error("Selecciona un rango válido de fecha y hora para el turno.");
+    }
     const enRango = (valor: string) => {
       const instante = new Date(valor).getTime();
       return Number.isFinite(instante) && instante >= desde && instante <= hasta;
@@ -1563,8 +1588,7 @@ export function TriajeEmergenciasView({
       }
     }
     if (!hojasIncluidas) {
-      setAviso("No hay registros en las hojas seleccionadas para el turno indicado.");
-      return;
+      throw new Error("No hay registros en las hojas seleccionadas para el turno indicado.");
     }
     const paginas = pdf.getNumberOfPages();
     for (let pagina = 1; pagina <= paginas; pagina++) {
@@ -1580,27 +1604,32 @@ export function TriajeEmergenciasView({
       const url = URL.createObjectURL(pdf.output("blob"));
       setVistaPreviaReporte({ url, titulo: titulos[hoja], hoja });
     } else {
-      if (!cuenta.pacienteId) {
-        setAviso("No se pudo guardar el reporte: vincula primero esta atención con la ficha del paciente.");
-        return;
-      }
       const nombreArchivo = `reporte-turno-emergencias-${new Date().toISOString().slice(0, 10)}.pdf`;
       const formulario = new FormData();
       formulario.append("archivo", pdf.output("blob"), nombreArchivo);
       formulario.append("titulo", "Reporte de turno de Emergencias");
       formulario.append("periodo_desde", desdeReporteTurno);
       formulario.append("periodo_hasta", hastaReporteTurno);
-      try {
+      const advertencia = await descargarReporte({
+        descargar: () => {
+          const url = URL.createObjectURL(pdf.output("blob"));
+          setPdfPreparado({ url, nombre: nombreArchivo });
+          const enlace = document.createElement("a");
+          enlace.href = url;
+          enlace.download = nombreArchivo;
+          enlace.style.display = "none";
+          document.body.appendChild(enlace);
+          try { enlace.click(); } finally { enlace.remove(); }
+        },
+        archivar: cuenta.pacienteId ? async () => {
         const respuesta = await apiFetch(`/api/v1/emergencias/${encodeURIComponent(cuenta.id)}/reportes`, { method: "POST", body: formulario });
         const resultado = await respuesta.json().catch(() => null) as { message?: string } | null;
         if (!respuesta.ok) throw new Error(resultado?.message || "No se pudo guardar el reporte en la historia clínica.");
-      } catch (causa) {
-        setAviso(causa instanceof Error ? causa.message : "No se pudo guardar el reporte en la historia clínica.");
-        return;
-      }
-      pdf.save(nombreArchivo);
-      setAviso(`PDF guardado automáticamente en la historia clínica y descargado (${hojasIncluidas} hoja(s)).`);
+        } : undefined,
+      });
+      setAviso(advertencia ? advertencia.replace("El PDF se descargó", "El PDF está listo para descargar") : `PDF generado y guardado en la historia clínica (${hojasIncluidas} hoja(s)).`);
     }
+    return true;
   }
 
   async function trasladarAInternacion() {
@@ -1670,7 +1699,7 @@ export function TriajeEmergenciasView({
     }
   }
   return (
-    <section className="emergencias-vista">
+    <section className={`emergencias-vista${cuenta ? " em-atencion-abierta" : ""}`}>
       {!recepcion && (
         <header
           className={`em-cabecera em-triaje-cabecera ${cuenta ? "em-cabecera-con-paciente" : ""}`}
@@ -1724,6 +1753,15 @@ export function TriajeEmergenciasView({
                 >
                   <span><Icon name="package" size={16} /></span>
                   <strong>Inventario</strong>
+                </button>
+                <button
+                  type="button"
+                  className={subvista === "historial-descargos" ? "activo" : ""}
+                  aria-current={subvista === "historial-descargos" ? "page" : undefined}
+                  onClick={() => setSubvista("historial-descargos")}
+                >
+                  <span><Icon name="fileText" size={16} /></span>
+                  <strong>Historial de descargos</strong>
                 </button>
               </HorizontalSubvistaNav>
             )}
@@ -2228,8 +2266,9 @@ export function TriajeEmergenciasView({
           <InsumosEnfermeriaPanel />
         </section>
       )}
+      {!recepcion && subvista === "historial-descargos" && <HistorialDescargosEmergencias cuentas={cuentas} cargando={cargando} />}
       <div
-        hidden={!recepcion && subvista === "inventario"}
+        hidden={!recepcion && (subvista === "inventario" || subvista === "historial-descargos")}
         className={`em-distribucion ${nueva && !recepcion ? "formulario-abierto" : ""} ${cuenta && !recepcion ? "atencion-activa" : ""}`}
       >
         {!cuenta && (
@@ -2772,7 +2811,7 @@ export function TriajeEmergenciasView({
                       onClick={() => setSeccionClinica("paciente")}
                     >
                       <span className="em-pestana-icono" aria-hidden="true"><Icon name="stethoscope" size={17} /></span>
-                      Atención del paciente
+                      Evolución de enfermería
                     </button>
                     <button
                       type="button"
@@ -2803,7 +2842,7 @@ export function TriajeEmergenciasView({
                       <section className="em-reporte-bloque" aria-labelledby="em-reporte-insumos-titulo">
                         <header className="em-reporte-bloque-cabecera">
                           <div><span>REPORTE OPERATIVO</span><h3 id="em-reporte-insumos-titulo">Reporte de uso y dispensación de insumos</h3><small>Detalle de medicamentos e insumos utilizados durante esta atención.</small></div>
-                          <button type="button" className="em-primario" onClick={() => setHojasReportePendientes(["signos", "balance", "tratamiento", "enfermeria"])}><Icon name="download" size={15} /> Exportar PDF del turno</button>
+                          <button type="button" className="em-primario" onClick={() => { setErrorReporte(""); setPdfPreparado(null); setHojasReportePendientes(["signos", "balance", "tratamiento", "enfermeria"]); }}><Icon name="download" size={15} /> Exportar PDF del turno</button>
                         </header>
                           <div className="em-reporte-identidad em-reporte-resumen-insumos">
                             <article><small>Paciente</small><strong>{nombrePaciente(cuenta)}</strong><span>CI {cuenta.identidad?.documento || "Sin documento"}</span></article>
@@ -3498,13 +3537,15 @@ export function TriajeEmergenciasView({
               <button type="button" aria-label="Cerrar selección de período" onClick={() => setHojasReportePendientes(null)}><Icon name="close" size={19} /></button>
             </header>
             <div className="em-reporte-turno-rango" aria-label="Rango del turno que se exportará">
-              <label>Desde<input type="datetime-local" value={desdeReporteTurno} max={hastaReporteTurno || undefined} onChange={(event) => setDesdeReporteTurno(event.target.value)} /></label>
-              <label>Hasta<input type="datetime-local" value={hastaReporteTurno} min={desdeReporteTurno || undefined} onChange={(event) => setHastaReporteTurno(event.target.value)} /></label>
+              <label>Desde<input type="datetime-local" value={desdeReporteTurno} disabled={exportandoReporte} max={hastaReporteTurno || undefined} onChange={(event) => { setPdfPreparado(null); setDesdeReporteTurno(event.target.value); }} /></label>
+              <label>Hasta<input type="datetime-local" value={hastaReporteTurno} disabled={exportandoReporte} min={desdeReporteTurno || undefined} onChange={(event) => { setPdfPreparado(null); setHastaReporteTurno(event.target.value); }} /></label>
             </div>
             <p className="em-reporte-turno-ayuda">El PDF incluirá los registros dentro del período seleccionado.</p>
+            {errorReporte && <p className="em-reporte-exportacion-error" role="alert">{errorReporte}</p>}
+            {pdfPreparado && <div className="em-reporte-descarga-lista"><div role="status"><strong>PDF listo</strong><p>Si la descarga no comenzó, pulsa el botón para guardar el archivo.</p></div><a href={pdfPreparado.url} download={pdfPreparado.nombre}>Descargar PDF</a></div>}
             <footer className="em-reporte-preview-acciones">
               <button type="button" className="em-secundario" onClick={() => setHojasReportePendientes(null)}>Cancelar</button>
-              <button type="button" className="em-primario" onClick={() => { const hojas = hojasReportePendientes || undefined; setHojasReportePendientes(null); void exportarReporteTurnoVertical(hojas); }}><Icon name="download" size={16} /> Exportar</button>
+              <button type="button" className="em-primario" disabled={exportandoReporte} onClick={() => void exportarReporteTurnoVertical(hojasReportePendientes || undefined)}><Icon name="download" size={16} /> {exportandoReporte ? "Generando PDF…" : "Exportar"}</button>
             </footer>
           </section>
         </div>

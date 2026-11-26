@@ -7,6 +7,9 @@
 }
 .imagenologo-cabecera, .imagenologo-conteo { display: none !important; }
 .imagenologo-subvistas {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
   display: flex;
   gap: 8px;
   margin: 0 0 16px;
@@ -17,6 +20,9 @@
   background: #eaf3f9;
 }
 .imagenologo-subvistas button {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -52,6 +58,17 @@
   font-size: 10px;
 }
 .imagenologo-subvistas button.activo span { color: #087eae; }
+.imagenologo-subvistas::before,
+.imagenologo-subvistas::after,
+.imagenologo-subvistas button::before,
+.imagenologo-subvistas button::after,
+.imagenologo-subvistas button > span {
+  pointer-events: none;
+}
+.imagenologo-subvistas button:focus-visible {
+  outline: 3px solid #72b9d8;
+  outline-offset: 2px;
+}
 .imagenologo-aviso {
   margin-bottom: 14px;
   padding: 12px 15px;

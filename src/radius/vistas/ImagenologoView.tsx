@@ -157,9 +157,29 @@ export default function ImagenologoView() {
 
   return (
     <main className="imagenologo-vista">
-      <nav className="imagenologo-subvistas" aria-label="Informes de imagenología">
-        <button type="button" className={subvista === "pendientes" ? "activo" : ""} onClick={() => setSubvista("pendientes")}>Pendientes <span>{pendientes.length}</span></button>
-        <button type="button" className={subvista === "realizados" ? "activo" : ""} onClick={() => setSubvista("realizados")}>Realizados <span>{realizadosVisibles.length}</span></button>
+      <nav className="imagenologo-subvistas" aria-label="Informes de imagenología" role="tablist">
+        {(["pendientes", "realizados"] as const).map((vista) => (
+          <button
+            key={vista}
+            id={`imagenologo-tab-${vista}`}
+            type="button"
+            role="tab"
+            aria-selected={subvista === vista}
+            aria-controls="imagenologo-panel"
+            tabIndex={subvista === vista ? 0 : -1}
+            className={subvista === vista ? "activo" : ""}
+            onClick={() => setSubvista(vista)}
+            onKeyDown={(evento) => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(evento.key)) return;
+              evento.preventDefault();
+              const siguiente = evento.key === "Home" ? "pendientes" : evento.key === "End" ? "realizados" : vista === "pendientes" ? "realizados" : "pendientes";
+              setSubvista(siguiente);
+              document.getElementById(`imagenologo-tab-${siguiente}`)?.focus();
+            }}
+          >
+            {vista === "pendientes" ? "Pendientes" : "Realizados"} <span>{vista === "pendientes" ? pendientes.length : realizadosVisibles.length}</span>
+          </button>
+        ))}
       </nav>
 
       {error && (
@@ -177,7 +197,7 @@ export default function ImagenologoView() {
         />
       </label>
 
-      <div className="imagenologo-tabla-contenedor">
+      <div className="imagenologo-tabla-contenedor" id="imagenologo-panel" role="tabpanel" aria-labelledby={`imagenologo-tab-${subvista}`}>
         <table className="imagenologo-tabla" aria-label={subvista === "pendientes" ? "Tabla de informes pendientes" : "Tabla de informes realizados"}>
           <thead>
             <tr><th>Paciente</th><th>CI</th><th>Estudio</th><th>Tipo</th><th>Fecha de realización</th><th>Estado</th><th>Acciones</th></tr>

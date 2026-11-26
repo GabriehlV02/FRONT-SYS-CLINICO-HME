@@ -471,7 +471,9 @@
    scrollTop y el usuario pierde su posición al abrir el menú con hover. */
 @media (min-width: 761px) {
   .sistema-app.sidebar-replegado .sistema-sidebar {
-    overflow-x: clip;
+    /* El nav conserva 270px para mantener su scroll, pero su área de clic
+       debe quedar dentro del ancho visible del sidebar. */
+    overflow: hidden !important;
   }
   .sistema-app.sidebar-replegado .sistema-sidebar .sistema-nav {
     width: 270px;
